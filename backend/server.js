@@ -7,6 +7,7 @@ const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 5000
+const http = require('http');
 
 app.use(express.json())
 app.use(cookieParser());
@@ -16,14 +17,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use('/api', indexRoutes);
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use('/api', indexRoutes);
 
 // Define a root route
 app.get('/', (req, res) => {
     res.send('Hello Hotel Booking Admin Panel !');
 });
-
+const server = http.createServer(app);
 
 server.listen(port, () => {
     connectDb();
