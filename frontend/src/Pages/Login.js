@@ -22,7 +22,7 @@ const LoginPage = () => {
     }
 };
     return (
-        <div className="flex h-[100vh] bg-[#876B56]">
+        <div className="flex h-[100vh] bg-[#876B56] sp_login">
             <div className="left">
                 {selectedModal === 'Login' &&
                     <div className="login-section">
