@@ -125,7 +125,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, onItemClick }) => (
   </NavLink>
 );
 
-const Sidebar = ({ open = true, isMobile = false, onClose }) => {
+const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {
   const containerClasses = [
     'flex h-screen flex-col overflow-y-auto border-r border-secondary/20 bg-white shadow-sm transition-all duration-200 ease-in-out',
   ];
@@ -146,10 +146,14 @@ const Sidebar = ({ open = true, isMobile = false, onClose }) => {
   };
 
   return (
-    <aside className={containerClasses.join(' ')} aria-hidden={isMobile && !open}>
+    <aside
+      className={containerClasses.join(' ')}
+      aria-hidden={isMobile && !open}
+      data-compact={isCompact ? 'true' : 'false'}
+    >
       <div
         className={`flex items-center gap-3 ${
-          open ? 'px-6 pt-8 pb-10' : 'px-0 pt-8 pb-6 justify-center'
+          open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
         }`}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
