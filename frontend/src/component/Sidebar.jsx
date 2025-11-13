@@ -30,7 +30,7 @@ const sections = [
     title: null,
     key: 'main',
     items: [
-      { icon: RxDashboard, label: 'Dashboard', path: '/' },
+      { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: LuBed, label: 'Rooms', path: '/rooms' },
       { icon: LuUsers, label: 'Staff', path: '/staff' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
