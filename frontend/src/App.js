@@ -5,6 +5,7 @@ import { SnackbarProvider } from 'notistack';
 import { Route, Routes } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
+import LoginPage from './Pages/Login';
 
 function App() {
 
@@ -20,6 +21,7 @@ function App() {
           <Alert />
           <Routes>
             <Route path='/' element={<Dashboard/>}></Route>
+            <Route path='/login' element={<LoginPage/>}></Route>
           </Routes>
         </SnackbarProvider>
       </Provider>
