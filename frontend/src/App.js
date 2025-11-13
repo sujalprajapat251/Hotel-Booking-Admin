@@ -5,6 +5,7 @@ import { SnackbarProvider } from 'notistack';
 import { Route, Routes } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
+<<<<<<< HEAD
 import EditorDemo from './Pages/EditorDemo';
 import DataTable from './Pages/DataTable';
 import Rooms from './Pages/Rooms';
@@ -16,6 +17,9 @@ import Blog from './Pages/Blog';
 import Review from './Pages/Review';
 import Contact from './Pages/Contact';
 import Help from './Pages/Help';
+=======
+import LoginPage from './Pages/Login';
+>>>>>>> origin/sujal13-11
 
 function App() {
 
