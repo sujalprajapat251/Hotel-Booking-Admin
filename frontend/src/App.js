@@ -16,6 +16,7 @@ import Blog from './Pages/Blog';
 import Review from './Pages/Review';
 import Contact from './Pages/Contact';
 import Help from './Pages/Help';
+import LoginPage from './Pages/Login';
 
 function App() {
 
@@ -33,8 +34,9 @@ function App() {
             <Route path='/' element={<Dashboard/>}></Route>
             <Route path='/editor' element={<EditorDemo />}></Route>
             <Route path='/data-table' element={<DataTable />}></Route>
+            <Route path='/' element={<LoginPage/>}/>
             <Route element={<Layout />}>
-              <Route path='/' element={<Dashboard />} />
+              <Route path='/dashboard' element={<Dashboard />} />
               <Route path='/rooms' element={<Rooms />} />
               <Route path='/staff' element={<Staff />} />
               <Route path='/departments' element={<Departments />} />
