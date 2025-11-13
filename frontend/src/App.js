@@ -31,7 +31,6 @@ function App() {
         >
           <Alert />
           <Routes>
-            <Route path='/' element={<Dashboard/>}></Route>
             <Route path='/editor' element={<EditorDemo />}></Route>
             <Route path='/data-table' element={<DataTable />}></Route>
             <Route path='/' element={<LoginPage/>}/>
