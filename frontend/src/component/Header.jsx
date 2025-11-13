@@ -40,7 +40,7 @@ const Header = ({ onMenuClick }) => {
             <button
               type="button"
               onClick={toggleProfileMenu}
-              className="flex items-center gap-3 rounded-full border border-transparent px-2 py-2 text-left transition hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+              className="flex items-center gap-3 rounded-full border border-transparent px-2 text-left transition"
               aria-haspopup="menu"
               aria-expanded={isProfileOpen}
             >
@@ -63,7 +63,7 @@ const Header = ({ onMenuClick }) => {
             {isProfileOpen ? (
               <div
                 role="menu"
-                className="absolute right-0 mt-2 w-48 rounded-lg border border-secondary/20 bg-white py-2 shadow-lg"
+                className="absolute right-0 mt-2 z-50 w-48 rounded-lg border border-secondary/20 bg-white py-2 shadow-lg"
               >
                 <button
                   type="button"

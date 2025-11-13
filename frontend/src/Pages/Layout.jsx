@@ -6,20 +6,31 @@ import Header from '../component/Header';
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const wasMobileRef = useRef(false);
+  const [isCompact, setIsCompact] = useState(false);
+  const previousModeRef = useRef(null);
+
+  const evaluateViewport = (width) => {
+    if (width <= 500) return 'mobile';
+    if (width <= 768) return 'compact';
+    return 'desktop';
+  };
 
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth <= 425;
-      setIsMobile(mobile);
+      const width = window.innerWidth;
+      const mode = evaluateViewport(width);
 
-      if (mobile) {
-        setIsSidebarOpen(false);
-      } else if (wasMobileRef.current) {
-        setIsSidebarOpen(true);
+      setIsMobile(mode === 'mobile');
+      setIsCompact(mode === 'compact');
+
+      if (previousModeRef.current !== mode) {
+        if (mode === 'mobile' || mode === 'compact') {
+          setIsSidebarOpen(false);
+        } else if (mode === 'desktop') {
+          setIsSidebarOpen(true);
+        }
+        previousModeRef.current = mode;
       }
-
-      wasMobileRef.current = mobile;
     };
 
     handleResize();
@@ -40,7 +51,12 @@ const Layout = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-100">
-      <Sidebar open={isSidebarOpen} isMobile={isMobile} onClose={closeSidebar} />
+      <Sidebar
+        open={isSidebarOpen}
+        isMobile={isMobile}
+        isCompact={isCompact}
+        onClose={closeSidebar}
+      />
       {isMobile && isSidebarOpen ? (
         <div
           className="fixed inset-0 z-30 bg-slate-900/40 backdrop-blur-sm"
