@@ -2,8 +2,9 @@ import './App.css';
 import { Provider } from 'react-redux';
 import { configureStore } from './Redux/Store';
 import { SnackbarProvider } from 'notistack';
-import { Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import Alert from './Pages/Alert';
+import { Dashboard } from './Pages/Dashboard';
 
 function App() {
 
@@ -18,7 +19,7 @@ function App() {
         >
           <Alert />
           <Routes>
-
+            <Route path='/' element={<Dashboard/>}></Route>
           </Routes>
         </SnackbarProvider>
       </Provider>
