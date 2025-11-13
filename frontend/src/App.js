@@ -5,6 +5,8 @@ import { SnackbarProvider } from 'notistack';
 import { Route, Routes } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
+import EditorDemo from './Pages/EditorDemo';
+import DataTable from './Pages/DataTable';
 
 function App() {
 
@@ -20,6 +22,8 @@ function App() {
           <Alert />
           <Routes>
             <Route path='/' element={<Dashboard/>}></Route>
+            <Route path='/editor' element={<EditorDemo />}></Route>
+            <Route path='/data-table' element={<DataTable />}></Route>
           </Routes>
         </SnackbarProvider>
       </Provider>
