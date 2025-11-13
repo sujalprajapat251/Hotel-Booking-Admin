@@ -47,7 +47,7 @@ const LoginPage = () => {
                             <p className="animation a5 text-right text-white text-sm my-4 hover:text-black">
                                 <a href="#" onClick={() => setSelectedModal('Forgot')}>Forgot password?</a>
                             </p>
-                            <button type="submit" onClick={()=>{navigate('/dashboard')}}  className="animation a6 hover:bg-transparent hover:border-[#B79982] hover:shadow-xl hover:scale-105">
+                            <button type="button" onClick={()=>{navigate('/dashboard')}}  className="animation a6 hover:bg-transparent hover:border-[#B79982] hover:shadow-xl hover:scale-105">
                                 Sign in
                             </button>
                         </form>
