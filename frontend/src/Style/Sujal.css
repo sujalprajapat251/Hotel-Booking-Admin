@@ -148,11 +148,183 @@ form button {
 .V_chart_2_div {
   width: 35%;
   height: 425px;
+  display: flex;
+  flex-direction: column;
 }
 
 .V_chart_2 {
   width: 100%;
-  /* max-width: 60%; */
   height: 365px;
-  /* aspect-ratio: 1.618; */
+  flex: 1;
+}
+
+
+#recharts-zindex-100-_r_4_:focus,
+.recharts-surface:focus,
+#recharts-zindex-2000-_r_d_:focus {
+  outline: none;
+}
+
+.V_chart_1:focus-visible {
+  outline: none;
+}
+
+.recharts-sector:focus {
+  outline: none;
+}
+
+@media (min-width: 320px) and (max-width: 424px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 300px;
+    margin-top: 20px;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 290px;
+  }
+}
+
+@media (min-width: 425px) and (max-width: 599px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 300px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 365px !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important; 
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 365px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 365px !important;
+    /* aspect-ratio: 1.618; */
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 320px !important;
+    /* aspect-ratio: 1.618; */
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .V_chart_1_div {
+    width: 49% !important;
+    height: 425px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 360px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 49% !important;
+    height: 425px !important;
+    /* margin-top: 20px; */
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 360px !important;
+    /* aspect-ratio: 1.618; */
+  }
 }

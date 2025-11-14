@@ -31,7 +31,7 @@ export const Dashboard = () => {
   const data = [
     {
       id: 1,
-      Title: 'John',
+      Title: 'Occupied',
       value: 20,
       Icon: <LuNotebook />,
       color: "#F7DF9C",  // pale yellow
@@ -40,7 +40,7 @@ export const Dashboard = () => {
     },
     {
       id: 2,
-      Title: 'Jane',
+      Title: 'Reserved',
       value: 18,
       Icon: <MdLocalHotel />,
       color: "#B79982",  // muted sand
@@ -49,7 +49,7 @@ export const Dashboard = () => {
     },
     {
       id: 3,
-      Title: 'John',
+      Title: 'Avaliable',
       value: 20,
       Icon: <FaUsers />,
       color: "#876B56",  // brown
@@ -58,7 +58,7 @@ export const Dashboard = () => {
     },
     {
       id: 4,
-      Title: 'Jane',
+      Title: 'Not Ready',
       value: 18,
       Icon: <PiCurrencyDollarSimpleBold />,
       color: "#A3876A",  // taupe brown
@@ -69,47 +69,35 @@ export const Dashboard = () => {
 
   const areaData = [
     {
-      name: 'Page A',
+      name: 'A',
       uv: 4000,
       pv: 2400,
       amt: 2400,
     },
     {
-      name: 'Page B',
+      name: 'B',
       uv: 3000,
       pv: 1398,
       amt: 2210,
     },
     {
-      name: 'Page C',
+      name: 'C',
       uv: 2000,
       pv: 9800,
       amt: 2290,
     },
     {
-      name: 'Page D',
+      name: 'D',
       uv: 2780,
       pv: 3908,
       amt: 2000,
     },
     {
-      name: 'Page E',
+      name: 'E',
       uv: 1890,
       pv: 4800,
       amt: 2181,
-    },
-    {
-      name: 'Page F',
-      uv: 2390,
-      pv: 3800,
-      amt: 2500,
-    },
-    {
-      name: 'Page G',
-      uv: 3490,
-      pv: 4300,
-      amt: 2100,
-    },
+    }
   ];
 
   const bookings = [
@@ -295,7 +283,7 @@ export const Dashboard = () => {
           ))}
         </div>
 
-        <div className='mt-5 flex justify-between gap-5'>
+        <div className='mt-5 xl:flex justify-between gap-5'>
           <div className='bg-white rounded-lg p-5 V_chart_1_div'>
             <div className='flex items-center justify-between'>
               <p className='text-[20px] '>Title</p>
@@ -348,15 +336,15 @@ export const Dashboard = () => {
               <table className="w-full min-w-[1000px]">
                 <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">#</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Name</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Check In</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Check Out</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Status</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Phone</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Room Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Documents</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-[#755647]">Actions</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">#</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Name</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Check In</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Check Out</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Status</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Phone</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Room Type</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Documents</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -365,8 +353,8 @@ export const Dashboard = () => {
                       key={booking.id}
                       className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                     >
-                      <td className="px-6 py-4 text-sm font-medium text-gray-700">{index + 1}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm font-medium text-gray-700">{index + 1}</td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <img
@@ -379,27 +367,27 @@ export const Dashboard = () => {
                           <span className="text-sm font-semibold text-gray-800">{booking.name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{booking.checkIn}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{booking.checkOut}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(booking.status)}`}>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm text-gray-700">{booking.checkIn}</td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm text-gray-700">{booking.checkOut}</td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
+                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(booking.status)}`}>
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{booking.phone}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center">
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm text-gray-700">{booking.phone}</td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
+                        <div className="flex items-center ">
                           <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold bg-[#B79982]/20 text-[#755647] border border-[#B79982]/30">
                             {booking.roomType}
                           </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <button className="text-[#EC5C09] hover:text-[#EC0927] transition-colors p-2 hover:bg-orange-50 rounded-md">
                           <IoDocumentText size={22} />
                         </button>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
                           <button className="text-[#4F15E0] hover:text-[#3d0fb3] transition-colors p-2 hover:bg-purple-50 rounded-md">
                             <FaEdit size={18} />
