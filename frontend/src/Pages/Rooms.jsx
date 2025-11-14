@@ -1,13 +1,15 @@
 import React from 'react';
+import { Outlet, NavLink } from 'react-router-dom';
 
-const Rooms = () => (
-  <section className="p-10">
-    <h1 className="text-2xl font-semibold text-senary">Rooms</h1>
-    <p className="mt-4 text-quaternary">
-      Manage room availability, categories, and pricing details from this
-      section.
-    </p>
-  </section>
-);
+const Rooms = () => {
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-senary mb-4">Rooms</h1>
+      </div>
+      <Outlet />
+    </div>
+  );
+};
 
 export default Rooms;
