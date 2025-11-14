@@ -64,8 +64,16 @@ const Layout = () => {
           onClick={closeSidebar}
         />
       ) : null}
-      <main className="flex flex-1 flex-col overflow-hidden">
-        <Header onMenuClick={toggleSidebar} />
+      <main 
+        className="flex flex-1 flex-col overflow-hidden"
+        style={{
+          marginLeft: !isMobile && isSidebarOpen ? '288px' : !isMobile && !isSidebarOpen ? '80px' : '0',
+          transition: 'margin-left 0.2s ease-in-out'
+        }}
+      >
+        <div className="sticky top-0 z-20">
+          <Header onMenuClick={toggleSidebar} />
+        </div>
         <div className="flex-1 overflow-y-auto bg-slate-50">
           <Outlet />
         </div>

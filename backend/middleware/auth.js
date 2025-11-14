@@ -32,3 +32,23 @@ exports.auth = async (req, res, next) => {
         return res.status(401).json({ status: 401, message: error.message })
     }
 }
+
+exports.adminOnly = (req, res, next) => {
+    if (req.user.role !== "admin") {
+        return res.status(403).json({
+            status: 403,
+            message: "Access denied! Admin only"
+        });
+    }
+    next();
+};
+
+exports.userOnly = (req, res, next) => {
+    if (req.user.role !== "user") {
+        return res.status(403).json({
+            status: 403,
+            message: "Access denied! User only"
+        });
+    }
+    next();
+};

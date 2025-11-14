@@ -1,11 +1,13 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   FiCalendar,
   FiGrid,
   FiLayers,
   FiMail,
   FiPlus,
+  FiChevronDown,
+  FiChevronRight,
 } from 'react-icons/fi';
 import {
   HiOutlineLocationMarker,
@@ -31,7 +33,17 @@ const sections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
-      { icon: LuBed, label: 'Rooms', path: '/rooms' },
+      { 
+        icon: LuBed, 
+        label: 'Rooms', 
+        path: '/rooms',
+        subMenus: [
+          { label: 'Create Room', path: '/rooms/create' },
+          { label: 'New Room type', path: '/rooms/room-type' },
+          { label: 'Available Rooms', path: '/rooms/available' },
+          { label: 'Room Features', path: '/rooms/features' },
+        ]
+      },
       { icon: LuUsers, label: 'Staff', path: '/staff' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       { icon: LuInfo, label: 'About', path: '/about' },
@@ -89,41 +101,91 @@ const badgeStyles = {
   success: 'bg-emerald-100 text-emerald-600',
 };
 
-const MenuItem = ({ icon: Icon, label, badge, open, path, onItemClick }) => (
-  <NavLink
-    to={path}
-    className={({ isActive }) =>
-      [
-        'group flex w-full items-center text-left text-sm font-medium transition',
-        open ? 'px-6 py-3' : 'px-3 py-3 justify-center',
-        isActive ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
-      ].join(' ')
+const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick }) => {
+  const location = useLocation();
+  const [isExpanded, setIsExpanded] = useState(
+    subMenus && subMenus.some(subMenu => location.pathname === subMenu.path)
+  );
+  const isActive = location.pathname === path || (subMenus && subMenus.some(subMenu => location.pathname === subMenu.path));
+
+  useEffect(() => {
+    if (subMenus) {
+      const shouldExpand = subMenus.some(subMenu => location.pathname === subMenu.path);
+      setIsExpanded(shouldExpand);
     }
-    aria-label={!open ? label : undefined}
-    onClick={onItemClick}
-  >
-    <div
-      className={`flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}
-    >
-      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/40 text-lg text-senary transition group-hover:bg-primary group-hover:text-senary">
-        <Icon />
-      </span>
-      {open ? (
-        <>
-          <span className="truncate">{label}</span>
-          {badge ? (
-            <span
-              className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyles[badge.tone]}`}
-            >
-              {badge.text}
-            </span>
+  }, [location.pathname, subMenus]);
+
+  const handleClick = (e) => {
+    if (subMenus && open) {
+      e.preventDefault();
+      setIsExpanded(!isExpanded);
+    } else {
+      onItemClick?.();
+    }
+  };
+
+  return (
+    <div>
+      <NavLink
+        to={path}
+        className={({ isActive: navActive }) =>
+          [
+            'group flex w-full items-center text-left text-sm font-medium transition',
+            open ? 'px-6 py-3' : 'px-3 py-3 justify-center',
+            (navActive || isActive) ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
+          ].join(' ')
+        }
+        aria-label={!open ? label : undefined}
+        onClick={handleClick}
+      >
+        <div
+          className={`flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/40 text-lg text-senary transition group-hover:bg-primary group-hover:text-senary">
+            <Icon />
+          </span>
+          {open ? (
+            <>
+              <span className="truncate flex-1">{label}</span>
+              {subMenus ? (
+                <span className="text-senary">
+                  {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+                </span>
+              ) : null}
+              {badge ? (
+                <span
+                  className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyles[badge.tone]}`}
+                >
+                  {badge.text}
+                </span>
+              ) : null}
+            </>
           ) : null}
-        </>
-      ) : null}
-      {!open ? <span className="sr-only">{label}</span> : null}
+          {!open ? <span className="sr-only">{label}</span> : null}
+        </div>
+      </NavLink>
+      {subMenus && open && isExpanded && (
+        <div className="ml-6 space-y-1 border-l-2 border-primary/20">
+          {subMenus.map((subMenu) => (
+            <NavLink
+              key={subMenu.path}
+              to={subMenu.path}
+              className={({ isActive }) =>
+                [
+                  'group flex w-full items-center text-left text-sm font-medium transition px-4 py-2 rounded-lg',
+                  isActive ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
+                ].join(' ')
+              }
+              onClick={onItemClick}
+            >
+              <span className="truncate">{subMenu.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      )}
     </div>
-  </NavLink>
-);
+  );
+};
 
 const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {
   const containerClasses = [
@@ -136,7 +198,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
       open ? 'translate-x-0' : '-translate-x-full'
     );
   } else {
-    containerClasses.push('relative', open ? 'w-72' : 'w-20');
+    containerClasses.push('fixed inset-y-0 left-0 z-40', open ? 'w-72' : 'w-20');
   }
 
   const handleItemClick = () => {
@@ -161,7 +223,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         </div>
         {open ? (
           <div>
-            <p className="text-xl font-semibold text-senary">Spice</p>
+            <p className="text-xl font-semibold text-senary">Taj Hotel</p>
           </div>
         ) : null}
       </div>

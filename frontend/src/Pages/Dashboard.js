@@ -3,7 +3,7 @@ import { PiCurrencyDollarSimpleBold } from "react-icons/pi";
 import { MdLocalHotel } from "react-icons/md";
 import { FaUsers } from "react-icons/fa";
 import { LuNotebook } from "react-icons/lu";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line } from 'recharts';
 import '../Style/Sujal.css';
 import { CustomActiveShapePieChart } from '../component/CustomActiveShapePieChart ';
 import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
@@ -273,8 +273,16 @@ export const Dashboard = () => {
                   <p className='text-lg font-bold text-gray-800'>{item.value}</p>
                 </div>
               </div>
-              <div className='w-full h-4 bg-gray-200 rounded-full mt-10 relative '>
-                <div className='h-full rounded-full' style={{ width: `${item.barvalue}%`, background: `linear-gradient(90deg, ${item.barcolor} 0%, ${item.barcolor}80 100%)` }}></div>
+              <div className='w-full h-4 bg-gray-200 rounded-full mt-10 relative overflow-hidden'>
+                <div
+                  className='h-full rounded-full progress-bar-fill'
+                  style={{
+                    '--target-width': `${item.barvalue}%`,
+                    width: `${item.barvalue}%`,
+                    background: `linear-gradient(90deg, ${item.barcolor} 0%, ${item.barcolor}80 100%)`,
+                    position: 'relative'
+                  }}
+                ></div>
                 <div className='absolute inset-0 flex items-center justify-start pl-2 text-xs text-white font-bold' style={{ width: `${item.barvalue}%` }}>
                   {item.barvalue}%
                 </div>
@@ -306,8 +314,8 @@ export const Dashboard = () => {
               <YAxis width="auto" />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Area type="monotone" dataKey="uv" stackId="1" stroke="#B79982" fill="#B79982" />
-              <Area type="monotone" dataKey="pv" stackId="1" stroke="#E3C78A" fill="#E3C78A" />
+              <Line type="monotone" dataKey="uv" stackId="1" stroke="#B79982"  />
+              {/* <Area type="monotone" dataKey="pv" stackId="1" stroke="#E3C78A" fill="#E3C78A" /> */}
               {/* <Area type="monotone" dataKey="amt" stackId="1" stroke="#ffc658" fill="#ffc658" /> */}
             </AreaChart>
           </div>
