@@ -2,7 +2,6 @@
     width: 30px;
     height: 30px;
     min-width: 30px;
-    border: 1px solid #1E213180;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -54,7 +53,7 @@
     transition: 0.3s ease-in-out;
 }
 .mv_user_cancel:hover{
-    color: white;
+    color: black;
     border: 1px solid black;
 }
 .mv_user_add{
@@ -62,7 +61,7 @@
     height: 45px;
     width: 160px;
     border-radius: 4px;
-    color: white;
+    color: black;
     transition: 0.3s ease-in-out;
 }
 .mv_user_add:hover{
