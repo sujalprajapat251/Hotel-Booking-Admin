@@ -1,0 +1,56 @@
+.mv_table_action div {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    border: 1px solid #1E213180;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+.mv_table_action div:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.mv_View_btn {
+    width: 150px;
+    min-width: 150px;
+    background-color: transparent;
+    color: white;
+    text-align: center;
+    height: 42px;
+    line-height: 44px;
+    border-radius: 5px;
+    border: 1px solid white;
+    transition: 0.2s;
+    cursor: pointer;
+}
+.mv_View_btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.mv_Add_btn {
+    width: 150px;
+    min-width: 150px;
+    color: #1E2131;
+    text-align: center;
+    height: 42px;
+    line-height: 44px;
+    border-radius: 5px;
+    transition: 0.2s;
+    cursor: pointer;
+}
+.mv_Add_btn:hover {
+    color: #1E2131;
+}
+
+@media(max-width:576px) {
+    .mv_Add_btn {
+        min-width: 100px;
+        width: 100px;
+    }
+    .mv_View_btn {
+        min-width: 100px;
+        width: 100px;
+    }
+}
