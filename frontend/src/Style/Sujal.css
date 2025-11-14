@@ -1,131 +1,158 @@
+.sp_login .left {
+  display: flex;
+  animation-name: left;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  animation-delay: 1s;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
 
-  
-  
-  .sp_login .left {
-    display: flex;
-    animation-name: left;
-    animation-duration: 1s;
-    animation-fill-mode: both;
-    animation-delay: 1s;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-  }
-  
-  .sp_login .right {
-    flex: 1;
-    transition: 1s;
-    background-image: url("https://www.pennyspencer.com.au/wp-content/uploads/2016/02/Screen-Shot-2016-03-01-at-3.17.59-pm.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-  
-  .sp_login header h2 {
-    margin: 0;
-  }
-  
-  .sp_login header h4 {
-    color: #fff;
-    opacity: 0.4;
-    font-size: 1rem;
-    font-weight: normal;
-  }
-  
-  .sp_login form {
-    display: flex;
-    flex-direction: column;
+.sp_login .right {
+  flex: 1;
+  transition: 1s;
+  background-image: url("https://www.pennyspencer.com.au/wp-content/uploads/2016/02/Screen-Shot-2016-03-01-at-3.17.59-pm.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.sp_login header h2 {
+  margin: 0;
+}
+
+.sp_login header h4 {
+  color: #fff;
+  opacity: 0.4;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.sp_login form {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp_login .input-field {
+  height: 46px;
+  padding: 0 1rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  margin-top: 1.25rem;
+  transition: 0.2s;
+}
+
+.sp_login .otpBox {
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  margin-top: 1.25rem;
+  transition: 0.2s;
+}
+
+.sp_login .otpBox:focus {
+  border-color: #E3C78A;
+}
+
+q .input-field:focus {
+  border-color: #E3C78A;
+}
+
+form button {
+  padding: 0.75rem 0.625rem;
+  border: 0;
+  background-color: #B79982;
+  border-radius: 0.25rem;
+  margin-top: 0.625;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: "Rubik", sans-serif;
+  border: 2px solid transparent;
+}
+
+.animation {
+  animation-name: move;
+  animation-duration: 0.4s;
+  animation-fill-mode: both;
+  animation-delay: 1s;
+}
+
+.a1 {
+  animation-delay: 1s;
+}
+
+.a2 {
+  animation-delay: 1.2s;
+}
+
+.a3 {
+  animation-delay: 1.4s;
+}
+
+.a4 {
+  animation-delay: 1.6s;
+}
+
+.a5 {
+  animation-delay: 1.8s;
+}
+
+.a6 {
+  animation-delay: 1s;
+}
+
+@keyframes move {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-40px);
   }
 
-  .sp_login .input-field {
-    height: 46px;
-    padding: 0 1rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    margin-top: 1.25rem;
-    transition: 0.2s;
+  100% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
-  .sp_login .otpBox{
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    margin-top: 1.25rem;
-    transition: 0.2s;
+}
+
+@keyframes left {
+  0% {
+    opacity: 0;
+    width: 0%;
   }
-  .sp_login .otpBox:focus {
-    border-color: #E3C78A;
-  }q    
-  .input-field:focus {
-    border-color: #E3C78A;
+
+  100% {
+    opacity: 1;
+    width: 440px;
+    padding: 3rem;
   }
-  
-  form button {
-    padding: 0.75rem 0.625rem;
-    border: 0;
-    background-color: #B79982;
-    border-radius: 0.25rem;
-    margin-top: 0.625;
-    color: #fff;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-family: "Rubik", sans-serif;
-    border: 2px solid transparent;
-  }
-  .animation {
-    animation-name: move;
-    animation-duration: 0.4s;
-    animation-fill-mode: both;
-    animation-delay: 1s;
-  }
-  
-  .a1 {
-    animation-delay: 1s;
-  }
-  
-  .a2 {
-    animation-delay: 1.2s;
-  }
-  
-  .a3 {
-    animation-delay: 1.4s;
-  }
-  
-  .a4 {
-    animation-delay: 1.6s;
-  }
-  
-  .a5 {
-    animation-delay: 1.8s;
-  }
-  
-  .a6 {
-    animation-delay: 1s;
-  }
-  
-  @keyframes move {
-    0% {
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-40px);
-    }
-    100% {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes left {
-    0% {
-      opacity: 0;
-      width: 0%;
-    }
-    100% {
-      opacity: 1;
-      width: 440px;
-      padding: 3rem;
-    }
-  }
-  
+}
+
+
+.V_chart_1_div {
+  width: 65%;
+  height: 425px;
+}
+
+.V_chart_1 {
+  width: 100%;
+  /* max-width: 60%; */
+  height: 365px;
+  aspect-ratio: 1.618;
+}
+
+.V_chart_2_div {
+  width: 35%;
+  height: 425px;
+}
+
+.V_chart_2 {
+  width: 100%;
+  /* max-width: 60%; */
+  height: 365px;
+  /* aspect-ratio: 1.618; */
+}
