@@ -253,7 +253,7 @@ exports.verifyOtp = async (req, res) => {
 
 exports.resetPassword = async (req, res) => {
     try {
-        let { email, newPassword, confirmPassword  } = req.body;
+        let { email, newPassword } = req.body;
 
         let userId = await User.findOne({ email });
 
@@ -261,13 +261,13 @@ exports.resetPassword = async (req, res) => {
             return res.status(404).json({ status: 404, message: "User Not Found" });
         }
 
-        if (newPassword !== confirmPassword) {
-            return res.status(400).json({
-                status: 400,
-                success: false,
-                message: "Passwords do not match",
-            });
-        }
+        // if (newPassword !== confirmPassword) {
+        //     return res.status(400).json({
+        //         status: 400,
+        //         success: false,
+        //         message: "Passwords do not match",
+        //     });
+        // }
 
         let salt = await bcrypt.genSalt(10);
         let hashPassword = await bcrypt.hash(newPassword, salt);

@@ -16,7 +16,7 @@
   .sp_login .right {
     flex: 1;
     transition: 1s;
-    background-image: url("https://www.pennyspencer.com.au/wp-content/uploads/2016/02/Screen-Shot-2016-03-01-at-3.17.59-pm.png");
+    background-image: url("../Images/loginbg.png");
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -57,11 +57,11 @@
   .sp_login .otpBox:focus {
     border-color: #E3C78A;
   }q    
-  .input-field:focus {
+  .sp_login .input-field:focus {
     border-color: #E3C78A;
   }
   
-  form button {
+  .sp_login form button {
     padding: 0.75rem 0.625rem;
     border: 0;
     background-color: #B79982;
@@ -73,38 +73,38 @@
     font-family: "Rubik", sans-serif;
     border: 2px solid transparent;
   }
-  .animation {
+  .sp_login .animation {
     animation-name: move;
     animation-duration: 0.4s;
     animation-fill-mode: both;
     animation-delay: 1s;
   }
   
-  .a1 {
+  .sp_login .a1 {
     animation-delay: 1s;
   }
   
-  .a2 {
+  .sp_login .a2 {
     animation-delay: 1.2s;
   }
   
-  .a3 {
+  .sp_login .a3 {
     animation-delay: 1.4s;
   }
   
-  .a4 {
+  .sp_login .a4 {
     animation-delay: 1.6s;
   }
   
-  .a5 {
+  .sp_login .a5 {
     animation-delay: 1.8s;
   }
   
-  .a6 {
+  .sp_login .a6 {
     animation-delay: 1s;
   }
   
-  @keyframes move {
+  @keyframes  move {
     0% {
       opacity: 0;
       visibility: hidden;
@@ -129,3 +129,22 @@
     }
   }
   
+
+@media (max-width: 480px) {
+  @keyframes left {
+    0% {
+      opacity: 0;
+      width: 0%;
+    }
+    100% {
+      opacity: 1;
+      width: 85vw; /* full width on mobile */
+      max-width: 300px;
+      padding: 1rem;
+    }
+  }
+  .sp_login form button {
+    font-size: 14px;
+    padding: 5px 0px;
+  }
+}

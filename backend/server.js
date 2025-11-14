@@ -12,10 +12,9 @@ const port = process.env.PORT || 5000
 app.use(express.json())
 app.use(cookieParser());
 app.use(cors({
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+    origin: 'http://localhost:3000',   // your frontend URL
+    credentials: true
+  }));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use('/api', indexRoutes);
