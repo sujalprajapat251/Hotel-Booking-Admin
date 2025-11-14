@@ -4,6 +4,8 @@ import { IoFilterSharp } from "react-icons/io5";
 import { IoMdAddCircleOutline, IoMdRefresh } from "react-icons/io";
 import { MdOutlineFileDownload } from "react-icons/md";
 import editImg from '../Images/edit.svg'
+import { RiDeleteBinLine } from "react-icons/ri";
+import { FiEdit } from "react-icons/fi";
 import deleteImg from '../Images/delete.svg'
 
 const Review = () => {
@@ -274,8 +276,8 @@ const Review = () => {
 
 									<td className="px-4 py-3">
 										<div className="flex gap-3 w-14">
-											<div className="cursor-pointer"><img src={editImg} alt="edit" /></div>
-											<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><img src={deleteImg} alt="delete" /></div>
+											<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+											<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
 										</div>
 									</td>
 								</tr>
