@@ -64,11 +64,11 @@
   form button {
     padding: 0.75rem 0.625rem;
     border: 0;
-    background-color: #B79982;
+    /* background-color: #B79982; */
     border-radius: 0.25rem;
     margin-top: 0.625;
     color: #fff;
-    text-transform: uppercase;
+    /* text-transform: uppercase; */
     font-weight: 500;
     font-family: "Rubik", sans-serif;
     border: 2px solid transparent;
