@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 
-
 exports.createUser = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -67,7 +66,7 @@ exports.userLogin = async (req, res) => {
         return res.status(200)
             .json({
                 status: 200,
-                message: "User Login SuccessFully..!",
+                message: "Login SuccessFully..!",
                 user: checkEmailIsExist,
                 token: token,
             });
@@ -288,6 +287,104 @@ exports.resetPassword = async (req, res) => {
         return res.status(500).json({ status: 500, message: error.message });
     }
 };
+
+exports.resendOtp = async (req, res) => {
+    try {
+      const { email } = req.body;
+  
+      const existingUser = await User.findOne({ email });
+      if (!existingUser) {
+        return res.status(404).json({
+          status: 404,
+          message: "Email not found.!",
+        });
+      }
+  
+      const newOtp = Math.floor(1000 + Math.random() * 9000);
+      existingUser.otp = newOtp;
+      await existingUser.save();
+  
+      const transporter = nodemailer.createTransport({
+        service: "Gmail",
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+  
+      const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Resend OTP - Password Reset",
+        text: `Your new OTP code is: ${newOtp}`,
+      };
+  
+      transporter.sendMail(mailOptions, (error) => {
+        if (error) {
+          console.log(error);
+          return res.status(500).json({
+            status: 500,
+            message: "Failed to send OTP email..!",
+          });
+        }
+  
+        return res.status(200).json({
+          status: 200,
+          success: true,
+          message: "New OTP sent successfully via Email..!",
+        });
+      });
+    } catch (error) {
+      return res.status(500).json({
+        status: 500,
+        message: error.message,
+      });
+    }
+};
+
+exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: "user" }); 
+
+        return res.status(200).json({
+            status: 200,
+            message: "All users fetched successfully..!",
+            users,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: error.message,
+        });
+    }
+};
+
+exports.getUserById = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 404,
+                message: "User not found.",
+            });
+        }
+
+        return res.status(200).json({
+            status: 200,
+            message: "User fetched successfully..!",
+            user,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: error.message,
+        });
+    }
+};
+
 
 
 
