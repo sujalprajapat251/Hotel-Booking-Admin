@@ -1,13 +1,16 @@
 import React from 'react';
 
-const Contact = () => (
-  <section className="p-10">
-    <h1 className="text-2xl font-semibold text-senary">Contact</h1>
-    <p className="mt-4 text-quaternary">
-      Access guest inquiries, contact details, and communication history here.
-    </p>
-  </section>
-);
+
+const Contact = () => {
+
+  return (
+    <div className="bg-[#f0f3fb] px-4 md:px-8 py-6 min-h-screen">
+    <section className="py-5">
+      <h1 className="text-2xl font-semibold text-senary">Contact</h1>
+    </section>
+    </div>
+  );
+};
 
 export default Contact;
 

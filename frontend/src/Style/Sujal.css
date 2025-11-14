@@ -1,150 +1,376 @@
+.sp_login .left {
+  display: flex;
+  animation-name: left;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+  animation-delay: 1s;
+  flex-wrap: wrap;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
 
-  
-  
-  .sp_login .left {
-    display: flex;
-    animation-name: left;
-    animation-duration: 1s;
-    animation-fill-mode: both;
-    animation-delay: 1s;
-    flex-wrap: wrap;
-    flex-direction: column;
-    justify-content: center;
-    overflow: hidden;
-  }
-  
-  .sp_login .right {
-    flex: 1;
-    transition: 1s;
-    background-image: url("../Images/loginbg.png");
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-  }
-  
-  .sp_login header h2 {
-    margin: 0;
-  }
-  
-  .sp_login header h4 {
-    color: #fff;
-    opacity: 0.4;
-    font-size: 1rem;
-    font-weight: normal;
-  }
-  
-  .sp_login form {
-    display: flex;
-    flex-direction: column;
+.sp_login .right {
+  flex: 1;
+  transition: 1s;
+  background-image: url("https://www.pennyspencer.com.au/wp-content/uploads/2016/02/Screen-Shot-2016-03-01-at-3.17.59-pm.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.sp_login header h2 {
+  margin: 0;
+}
+
+.sp_login header h4 {
+  color: #fff;
+  opacity: 0.4;
+  font-size: 1rem;
+  font-weight: normal;
+}
+
+.sp_login form {
+  display: flex;
+  flex-direction: column;
+}
+
+.sp_login .input-field {
+  height: 46px;
+  padding: 0 1rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  margin-top: 1.25rem;
+  transition: 0.2s;
+}
+
+.sp_login .otpBox {
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  margin-top: 1.25rem;
+  transition: 0.2s;
+}
+
+.sp_login .otpBox:focus {
+  border-color: #E3C78A;
+}
+
+.sp_login .input-field:focus {
+  border-color: #E3C78A;
+}
+
+.sp_login form button {
+  padding: 0.75rem 0.625rem;
+  border: 0;
+  background-color: #B79982;
+  border-radius: 0.25rem;
+  margin-top: 0.625;
+  color: #fff;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-family: "Rubik", sans-serif;
+  border: 2px solid transparent;
+}
+
+.sp_login .animation {
+  animation-name: move;
+  animation-duration: 0.4s;
+  animation-fill-mode: both;
+  animation-delay: 1s;
+}
+
+.sp_login .a1 {
+  animation-delay: 1s;
+}
+
+.sp_login .a2 {
+  animation-delay: 1.2s;
+}
+
+.sp_login .a3 {
+  animation-delay: 1.4s;
+}
+
+.sp_login .a4 {
+  animation-delay: 1.6s;
+}
+
+.sp_login .a5 {
+  animation-delay: 1.8s;
+}
+
+.sp_login .a6 {
+  animation-delay: 1s;
+}
+
+@keyframes move {
+  0% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-40px);
   }
 
-  .sp_login .input-field {
-    height: 46px;
-    padding: 0 1rem;
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    margin-top: 1.25rem;
-    transition: 0.2s;
+  100% {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
   }
-  .sp_login .otpBox{
-    border: 2px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-    margin-top: 1.25rem;
-    transition: 0.2s;
-  }
-  .sp_login .otpBox:focus {
-    border-color: #E3C78A;
-  }q    
-  .sp_login .input-field:focus {
-    border-color: #E3C78A;
-  }
-  
-  .sp_login form button {
-    padding: 0.75rem 0.625rem;
-    border: 0;
-    background-color: #B79982;
-    border-radius: 0.25rem;
-    margin-top: 0.625;
-    color: #fff;
-    text-transform: uppercase;
-    font-weight: 500;
-    font-family: "Rubik", sans-serif;
-    border: 2px solid transparent;
-  }
-  .sp_login .animation {
-    animation-name: move;
-    animation-duration: 0.4s;
-    animation-fill-mode: both;
-    animation-delay: 1s;
-  }
-  
-  .sp_login .a1 {
-    animation-delay: 1s;
-  }
-  
-  .sp_login .a2 {
-    animation-delay: 1.2s;
-  }
-  
-  .sp_login .a3 {
-    animation-delay: 1.4s;
-  }
-  
-  .sp_login .a4 {
-    animation-delay: 1.6s;
-  }
-  
-  .sp_login .a5 {
-    animation-delay: 1.8s;
-  }
-  
-  .sp_login .a6 {
-    animation-delay: 1s;
-  }
-  
-  @keyframes  move {
-    0% {
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-40px);
-    }
-    100% {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes left {
-    0% {
-      opacity: 0;
-      width: 0%;
-    }
-    100% {
-      opacity: 1;
-      width: 440px;
-      padding: 3rem;
-    }
-  }
-  
+}
 
-@media (max-width: 480px) {
-  @keyframes left {
-    0% {
-      opacity: 0;
-      width: 0%;
-    }
-    100% {
-      opacity: 1;
-      width: 85vw; /* full width on mobile */
-      max-width: 300px;
-      padding: 1rem;
-    }
+@keyframes left {
+  0% {
+    opacity: 0;
+    width: 0%;
   }
-  .sp_login form button {
-    font-size: 14px;
-    padding: 5px 0px;
+
+  100% {
+    opacity: 1;
+    width: 440px;
+    padding: 3rem;
+  }
+}
+
+
+.V_chart_1_div {
+  width: 65%;
+  height: 425px;
+}
+
+.V_chart_1 {
+  width: 100%;
+  /* max-width: 60%; */
+  height: 365px;
+  aspect-ratio: 1.618;
+}
+
+.V_chart_2_div {
+  width: 35%;
+  height: 425px;
+  display: flex;
+  flex-direction: column;
+}
+
+.V_chart_2 {
+  width: 100%;
+  height: 365px;
+  flex: 1;
+}
+
+
+#recharts-zindex-100-_r_4_:focus,
+.recharts-surface:focus,
+#recharts-zindex-2000-_r_d_:focus {
+  outline: none;
+}
+
+.V_chart_1:focus-visible {
+  outline: none;
+}
+
+.recharts-sector:focus {
+  outline: none;
+}
+
+@media (min-width: 320px) and (max-width: 424px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 300px;
+    margin-top: 20px;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 290px;
+  }
+}
+
+@media (min-width: 425px) and (max-width: 599px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 300px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 365px !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important; 
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    height: 365px !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 365px !important;
+    /* aspect-ratio: 1.618; */
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .V_chart_1_div {
+    width: 100% !important;
+    height: 300px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 240px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 100% !important;
+    height: 425px !important;
+    margin-top: 20px !important;
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 320px !important;
+    /* aspect-ratio: 1.618; */
+  }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .V_chart_1_div {
+    width: 49% !important;
+    height: 425px !important;
+  }
+
+  .V_chart_1 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 360px !important;
+    aspect-ratio: 1.618;
+  }
+
+  .V_chart_2_div {
+    width: 49% !important;
+    height: 425px !important;
+    /* margin-top: 20px; */
+  }
+
+  .V_chart_2 {
+    width: 100% !important;
+    /* max-width: 60%; */
+    height: 360px !important;
+    /* aspect-ratio: 1.618; */
+  }
+}
+
+
+
+
+/* Progress Bar Animation */
+.progress-bar-fill {
+  animation: progressAnimation 1.5s ease-out forwards;
+  transform-origin: left;
+}
+
+@keyframes progressAnimation {
+  0% {
+    width: 0%;
+    opacity: 0.5;
+  }
+  100% {
+    width: var(--target-width);
+    opacity: 1;
+  }
+}
+
+/* Optional: Add shimmer effect */
+.progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
   }
 }
