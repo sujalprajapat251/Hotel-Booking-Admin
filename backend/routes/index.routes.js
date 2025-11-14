@@ -1,8 +1,8 @@
 const express = require('express');
 const indexRoutes = express.Router();
 const upload = require('../helper/uploades')
-const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword } = require('../controller/userController');
-const { auth } = require('../middleware/auth');
+// const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword } = require('../controller/userController');
+// const { auth } = require('../middleware/auth');
 const {
     createRoomType,
     getRoomTypes,
