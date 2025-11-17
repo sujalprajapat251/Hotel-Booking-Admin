@@ -1,42 +1,70 @@
 const Feature = require('../models/featuresModel');
+const RoomType = require('../models/roomtypeModel');
 
 const formatFeature = (doc) => ({
     id: doc._id,
     feature: doc.feature,
+    roomType: doc.roomType,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt
 });
 
 const createFeature = async (req, res) => {
     try {
-        const { feature } = req.body;
+        const { feature, roomType } = req.body;
 
         if (!feature || !feature.trim()) {
             return res.status(400).json({ success: false, message: 'feature is required' });
         }
 
-        const trimmed = feature.trim();
-
-        const existing = await Feature.findOne({ feature: trimmed });
-        if (existing) {
-            return res.status(409).json({ success: false, message: 'Feature already exists' });
+        if (!roomType) {
+            return res.status(400).json({ success: false, message: 'roomType is required' });
         }
 
-        const created = await Feature.create({ feature: trimmed });
+        const trimmed = feature.trim();
+
+        // Verify room type exists
+        const roomTypeExists = await RoomType.findById(roomType);
+        if (!roomTypeExists) {
+            return res.status(404).json({ success: false, message: 'Room type not found' });
+        }
+
+        // Check if feature already exists for this room type
+        const existing = await Feature.findOne({ feature: trimmed, roomType });
+        if (existing) {
+            return res.status(409).json({ success: false, message: 'Feature already exists for this room type' });
+        }
+
+        const created = await Feature.create({ feature: trimmed, roomType });
+        const populated = await Feature.findById(created._id).populate('roomType', 'roomType');
+        
         return res.status(201).json({
             success: true,
             message: 'Feature created successfully',
-            data: formatFeature(created)
+            data: formatFeature(populated)
         });
     } catch (error) {
         console.error('createFeature error:', error);
-        res.status(500).json({ success: false, message: 'Failed to create feature' });
+        if (error.code === 11000) {
+            return res.status(409).json({ success: false, message: 'Feature already exists for this room type' });
+        }
+        res.status(500).json({ success: false, message: 'Failed to create feature', error: error.message });
     }
 };
 
-const getFeatures = async (_req, res) => {
+const getFeatures = async (req, res) => {
     try {
-        const list = await Feature.find().sort({ createdAt: -1 });
+        const { roomType } = req.query;
+        let query = {};
+        
+        if (roomType) {
+            query.roomType = roomType;
+        }
+        
+        const list = await Feature.find(query)
+            .populate('roomType', 'roomType')
+            .sort({ createdAt: -1 });
+        
         res.json({
             success: true,
             data: list.map(formatFeature)
@@ -47,10 +75,28 @@ const getFeatures = async (_req, res) => {
     }
 };
 
+const getFeaturesByRoomType = async (req, res) => {
+    try {
+        const { roomTypeId } = req.params;
+        
+        const list = await Feature.find({ roomType: roomTypeId })
+            .populate('roomType', 'roomType')
+            .sort({ createdAt: -1 });
+        
+        res.json({
+            success: true,
+            data: list.map(formatFeature)
+        });
+    } catch (error) {
+        console.error('getFeaturesByRoomType error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch features' });
+    }
+};
+
 const getFeatureById = async (req, res) => {
     try {
         const { id } = req.params;
-        const doc = await Feature.findById(id);
+        const doc = await Feature.findById(id).populate('roomType', 'roomType');
 
         if (!doc) {
             return res.status(404).json({ success: false, message: 'Feature not found' });
@@ -66,17 +112,28 @@ const getFeatureById = async (req, res) => {
 const updateFeature = async (req, res) => {
     try {
         const { id } = req.params;
-        const { feature } = req.body;
+        const { feature, roomType } = req.body;
 
         if (!feature || !feature.trim()) {
             return res.status(400).json({ success: false, message: 'feature is required' });
         }
 
+        const updateData = { feature: feature.trim() };
+        
+        if (roomType) {
+            // Verify room type exists
+            const roomTypeExists = await RoomType.findById(roomType);
+            if (!roomTypeExists) {
+                return res.status(404).json({ success: false, message: 'Room type not found' });
+            }
+            updateData.roomType = roomType;
+        }
+
         const updated = await Feature.findByIdAndUpdate(
             id,
-            { feature: feature.trim() },
+            updateData,
             { new: true }
-        );
+        ).populate('roomType', 'roomType');
 
         if (!updated) {
             return res.status(404).json({ success: false, message: 'Feature not found' });
@@ -89,7 +146,10 @@ const updateFeature = async (req, res) => {
         });
     } catch (error) {
         console.error('updateFeature error:', error);
-        res.status(500).json({ success: false, message: 'Failed to update feature' });
+        if (error.code === 11000) {
+            return res.status(409).json({ success: false, message: 'Feature already exists for this room type' });
+        }
+        res.status(500).json({ success: false, message: 'Failed to update feature', error: error.message });
     }
 };
 
@@ -116,6 +176,7 @@ const deleteFeature = async (req, res) => {
 module.exports = {
     createFeature,
     getFeatures,
+    getFeaturesByRoomType,
     getFeatureById,
     updateFeature,
     deleteFeature

@@ -9,9 +9,12 @@ const buildError = (error) => {
 
 export const fetchFeatures = createAsyncThunk(
   'features/fetchAll',
-  async (_, { rejectWithValue }) => {
+  async (roomTypeId, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/features`);
+      const url = roomTypeId 
+        ? `${BASE_URL}/features/roomtype/${roomTypeId}`
+        : `${BASE_URL}/features`;
+      const response = await axios.get(url);
       return response.data?.data || [];
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -33,9 +36,9 @@ export const getFeatureById = createAsyncThunk(
 
 export const createFeature = createAsyncThunk(
   'features/create',
-  async ({ feature }, { rejectWithValue }) => {
+  async ({ feature, roomType }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${BASE_URL}/features`, { feature });
+      const response = await axios.post(`${BASE_URL}/features`, { feature, roomType });
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -45,9 +48,9 @@ export const createFeature = createAsyncThunk(
 
 export const updateFeature = createAsyncThunk(
   'features/update',
-  async ({ id, feature }, { rejectWithValue }) => {
+  async ({ id, feature, roomType }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${BASE_URL}/features/${id}`, { feature });
+      const response = await axios.put(`${BASE_URL}/features/${id}`, { feature, roomType });
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));

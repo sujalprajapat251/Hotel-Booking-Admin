@@ -6,6 +6,11 @@ const FeatureSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    roomType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'roomType',
+      required: true
+    },
   },
   {
     timestamps: true,

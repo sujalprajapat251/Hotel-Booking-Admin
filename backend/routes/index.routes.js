@@ -13,6 +13,7 @@ const {
 const {
     createFeature,
     getFeatures,
+    getFeaturesByRoomType,
     getFeatureById,
     updateFeature,
     deleteFeature
@@ -25,6 +26,13 @@ const { createTermCondition, getAllTermConditions, getTermConditionById, updateT
 const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../controller/faqController');
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
 const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff } = require('../controller/staffController');
+const {
+    createRoom,
+    getRooms,
+    getRoomById,
+    updateRoom,
+    deleteRoom
+} = require('../controller/createRoomController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -90,8 +98,16 @@ indexRoutes.delete('/roomtypes/:id', deleteRoomType);
 // feature routes
 indexRoutes.post('/features', createFeature);
 indexRoutes.get('/features', getFeatures);
+indexRoutes.get('/features/roomtype/:roomTypeId', getFeaturesByRoomType);
 indexRoutes.get('/features/:id', getFeatureById);
 indexRoutes.put('/features/:id', updateFeature);
 indexRoutes.delete('/features/:id', deleteFeature);
+
+// room routes
+indexRoutes.post('/rooms', auth, adminOnly, upload.array('images', 10), createRoom);
+indexRoutes.get('/rooms', getRooms);
+indexRoutes.get('/rooms/:id', getRoomById);
+indexRoutes.put('/rooms/:id', auth, adminOnly, upload.array('images', 10), updateRoom);
+indexRoutes.delete('/rooms/:id', auth, adminOnly, deleteRoom);
 
 module.exports = indexRoutes;

@@ -8,21 +8,34 @@ import {
   updateFeature,
   deleteFeature
 } from '../Redux/Slice/featuresSlice';
+import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 
 const RoomFeatures = () => {
   const dispatch = useDispatch();
   const { items: features, loading, error } = useSelector((state) => state.features);
+  const { items: roomTypes } = useSelector((state) => state.roomtypes);
   const [feature, setFeature] = useState('');
+  const [selectedRoomType, setSelectedRoomType] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const isEditing = editingId !== null;
 
   useEffect(() => {
+    dispatch(fetchRoomTypes());
     dispatch(fetchFeatures());
   }, [dispatch]);
 
+  useEffect(() => {
+    if (selectedRoomType) {
+      dispatch(fetchFeatures(selectedRoomType));
+    } else {
+      dispatch(fetchFeatures());
+    }
+  }, [dispatch, selectedRoomType]);
+
   const resetForm = () => {
     setFeature('');
+    setSelectedRoomType('');
     setEditingId(null);
     setIsModalOpen(false);
   };
@@ -31,27 +44,37 @@ const RoomFeatures = () => {
     e.preventDefault();
     const payload = feature.trim();
     if (!payload) return;
+    
+    if (!selectedRoomType) {
+      alert('Please select a room type');
+      return;
+    }
 
     try {
       if (isEditing) {
-        await dispatch(updateFeature({ id: editingId, feature: payload })).unwrap();
+        await dispatch(updateFeature({ id: editingId, feature: payload, roomType: selectedRoomType })).unwrap();
       } else {
-        await dispatch(createFeature({ feature: payload })).unwrap();
+        await dispatch(createFeature({ feature: payload, roomType: selectedRoomType })).unwrap();
       }
+      const currentRoomType = selectedRoomType;
       resetForm();
+      // Refresh features list for the selected room type
+      if (currentRoomType) {
+        dispatch(fetchFeatures(currentRoomType));
+        setSelectedRoomType(currentRoomType);
+      } else {
+        dispatch(fetchFeatures());
+      }
     } catch (submitError) {
       console.error('handleSubmit error:', submitError);
     }
   };
 
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setFeature(name);
+  const handleEdit = (item) => {
+    setEditingId(item.id);
+    setFeature(item.feature);
+    setSelectedRoomType(item.roomType?.id || item.roomType || '');
     setIsModalOpen(true);
-  };
-
-  const handleCancelEdit = () => {
-    resetForm();
   };
 
   const handleAddNew = () => {
@@ -77,14 +100,28 @@ const RoomFeatures = () => {
     <div className="p-6">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <h1 className="text-2xl font-bold text-senary">Room Features</h1>
-        <button
-          type="button"
-          onClick={handleAddNew}
-          className="inline-flex items-center gap-2 rounded-lg bg-tertiary px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-quaternary focus:outline-none focus:ring-2 focus:ring-tertiary focus:ring-offset-2"
-        >
-          <span className="text-lg leading-none">+</span>
-          <span>Add</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedRoomType}
+            onChange={(e) => setSelectedRoomType(e.target.value)}
+            className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
+          >
+            <option value="">All Room Types</option>
+            {roomTypes.map((type) => (
+              <option key={type.id} value={type.id}>
+                {type.roomType}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={handleAddNew}
+            className="inline-flex items-center gap-2 rounded-lg bg-tertiary px-4 py-2 font-semibold text-white shadow-sm transition-colors hover:bg-quaternary focus:outline-none focus:ring-2 focus:ring-tertiary focus:ring-offset-2"
+          >
+            <span className="text-lg leading-none">+</span>
+            <span>Add</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -102,6 +139,7 @@ const RoomFeatures = () => {
                 <tr>
                   <th className="py-3 px-4 text-left">No</th>
                   <th className="py-3 px-4 text-left">Feature Name</th>
+                  <th className="py-3 px-4 text-left">Room Type</th>
                   <th className="py-3 px-4 text-left">Actions</th>
                 </tr>
               </thead>
@@ -113,11 +151,14 @@ const RoomFeatures = () => {
                   >
                     <td className="py-4 px-4 text-gray-700">{index + 1}</td>
                     <td className="py-4 px-4 font-medium text-senary">{item.feature}</td>
+                    <td className="py-4 px-4 text-gray-700">
+                      {item.roomType?.roomType || item.roomType || 'N/A'}
+                    </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <FiEdit2
                           className="text-[#3f51b5] cursor-pointer hover:text-[#303f9f] transition-colors"
-                          onClick={() => handleEdit(item.id, item.feature)}
+                          onClick={() => handleEdit(item)}
                           title="Edit"
                         />
                         <MdDelete
@@ -163,8 +204,27 @@ const RoomFeatures = () => {
             </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
+                <label htmlFor="roomType" className="mb-2 block text-sm font-medium text-senary">
+                  Room Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="roomType"
+                  value={selectedRoomType}
+                  onChange={(e) => setSelectedRoomType(e.target.value)}
+                  className="w-full rounded-lg border-2 border-gray-300 px-4 py-2 transition-colors focus:border-secondary focus:outline-none"
+                  required
+                >
+                  <option value="">Select Room Type</option>
+                  {roomTypes.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.roomType}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
                 <label htmlFor="feature" className="mb-2 block text-sm font-medium text-senary">
-                  Room Feature Name
+                  Room Feature Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
