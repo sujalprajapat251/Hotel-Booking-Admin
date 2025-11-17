@@ -23,6 +23,7 @@ import LoginPage from './Pages/Login';
 import RoomType from './Pages/RoomType';
 import StaffForm from './Pages/StaffForm';
 import User from './Pages/User';
+import TermsCondition from "./Pages/TermsCondition";
 
 function App() {
 
@@ -58,6 +59,7 @@ function App() {
               <Route path='/help' element={<Help />} />
               <Route path='/addstaff' element={<StaffForm />} />
               <Route path='/user' element={<User />} />
+              <Route path='/terms' element={<TermsCondition />} />
             </Route>
           </Routes>
         </SnackbarProvider>

@@ -52,6 +52,7 @@ const sections = [
       { icon: VscCodeReview, label: 'Review', path: '/review' },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
+      { icon: FiPlus, label: 'Terms & Conditions', path: '/terms' },
     ],
   },
 //   {
