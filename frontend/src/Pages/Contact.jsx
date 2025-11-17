@@ -6,6 +6,8 @@ import "../Style/vaidik.css"
 import { IoEyeSharp } from 'react-icons/io5';
 import { getAllContact } from '../Redux/Slice/contactSlice';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 
 const Contact = () => {
 
@@ -23,7 +25,7 @@ const Contact = () => {
       no: true,
       name: true,
       email: true,
-      MobileNo: true,
+      mobileno: true,
       message: true,
       actions: true,
     });
@@ -63,13 +65,18 @@ const Contact = () => {
     };
 
     const filteredBookings = contact.filter((item) => {
-      const searchLower = searchTerm.toLowerCase();
+      const searchLower = searchTerm.trim().toLowerCase();
+      if (!searchLower) return true;
+
+      const mobileValue = Array.isArray(item.mobileno)
+        ? item.mobileno.join(' ').toLowerCase()
+        : item.mobileno?.toString().toLowerCase() ?? '';
+
       return (
-          item.title?.toLowerCase().includes(searchLower) ||
-          item.subtitle?.toLowerCase().includes(searchLower) ||
-          item.message?.toLowerCase().includes(searchLower) ||
-          item.date?.toLowerCase().includes(searchLower) ||
-          item.name?.toLowerCase().includes(searchLower)
+        item.name?.toLowerCase().includes(searchLower) ||
+        item.email?.toLowerCase().includes(searchLower) ||
+        mobileValue.includes(searchLower) ||
+        item.message?.toLowerCase().includes(searchLower) 
       );
     });
 
@@ -77,6 +84,55 @@ const Contact = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
+
+    const handleDownloadExcel = () => {
+      try {
+          // Prepare data for Excel
+          const excelData = filteredBookings.map((user, index) => {
+              const row = {};
+              
+              if (visibleColumns.no) {
+                  row['No.'] = index + 1;
+              }
+              if (visibleColumns.name) {
+                  row['Name'] = user.name || '';
+              }
+              if (visibleColumns.email) {
+                  row['Email'] = user.email || '';
+              }
+              if (visibleColumns.mobileno) {
+                row['Mobile No.'] = Array.isArray(user.mobileno)
+                  ? user.mobileno.join(', ')
+                  : user.mobileno || '';
+            }
+            if (visibleColumns.message) {
+              row['Message'] = user.message || '';
+          }
+              
+              return row;
+          });
+
+          // Create a new workbook
+          const worksheet = XLSX.utils.json_to_sheet(excelData);
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+          // Auto-size columns
+          const maxWidth = 20;
+          const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+          worksheet['!cols'] = wscols;
+
+          // Generate file name with current date
+          const date = new Date();
+          const fileName = `Contact_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+          // Download the file
+          XLSX.writeFile(workbook, fileName);
+          dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+      } catch (error) {
+          dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+      }
+  };
 
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -142,7 +198,7 @@ const Contact = () => {
                           </div>
                         )}
                       </div>
-                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
                         <Download size={20} />
                       </button>
                     </div>
@@ -155,22 +211,22 @@ const Contact = () => {
                         <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
                             <tr>
                               {visibleColumns.no && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">No</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No</th>
                               )}
                               {visibleColumns.name && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Name</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                               )}
                               {visibleColumns.email && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Email</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Email</th>
                               )}
-                              {visibleColumns.MobileNo && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Mobile No.</th>
+                              {visibleColumns.mobileno && (
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile No.</th>
                               )}
                               {visibleColumns.message && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Message</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Message</th>
                               )}
                               {visibleColumns.actions && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Action</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Action</th>
                               )}
                             </tr>
                         </thead>
@@ -204,7 +260,7 @@ const Contact = () => {
                                   )}
 
                                   {/* email */}
-                                  {visibleColumns.MobileNo && (
+                                  {visibleColumns.mobileno && (
                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                         <div className="flex items-center gap-2">
                                             <Phone className='text-sm text-green-600' size={16} />
@@ -303,13 +359,13 @@ const Contact = () => {
                                 <div className="md:flex justify-between gap-4">
 
                                     {/* Image */}
-                                    <div className="flex items-center me-4 md:mb-0 mb-4 flex-shrink-0">
+                                    {/* <div className="flex items-center me-4 md:mb-0 mb-4 flex-shrink-0">
                                         <img
                                             src={selectedItem.image}
                                             alt={selectedItem.name}
                                             className="min-w-32 h-32 m-auto"
                                         />
-                                    </div>
+                                    </div> */}
 
                                     {/* Details */}
                                     <div className="space-y-3 flex-1 min-w-0">
@@ -327,7 +383,7 @@ const Contact = () => {
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[100px] flex-shrink-0">Message:</span>
-                                            <span className="text-gray-900 break-words flex-1 min-w-0">{selectedItem.description}</span>
+                                            <span className="text-gray-900 break-words flex-1 min-w-0">{selectedItem.message}</span>
                                         </div>
                                     </div>
                                 </div>

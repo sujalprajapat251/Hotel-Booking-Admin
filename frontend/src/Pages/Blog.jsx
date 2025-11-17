@@ -45,6 +45,8 @@ const Blog = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const dropdownRef = useRef(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState(null);
 
     const [visibleColumns, setVisibleColumns] = useState({
       no: true,
@@ -113,6 +115,23 @@ const Blog = () => {
         formik.resetForm();
     };
 
+    const handleDeleteClick = (item) => {
+        setItemToDelete(item);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleDeleteModalClose = () => {
+        setItemToDelete(null);
+        setIsDeleteModalOpen(false);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (itemToDelete) {
+            console.log('Deleting blog', itemToDelete);
+        }
+        handleDeleteModalClose();
+    };
+
     const getStatusColor = (status) => {
         switch (status) {
             case 'Paid':
@@ -171,7 +190,6 @@ const Blog = () => {
                     </div>
                   </div>
 
-                  <div>
                     {/* Action Buttons */}
                     <div className="flex items-center gap-1 justify-end mt-2">
                       <div className="relative" ref={dropdownRef}>
@@ -226,7 +244,6 @@ const Blog = () => {
                         <Download size={20} />
                       </button>
                     </div>
-                  </div>
                 </div>
 
                 {/* Table */}
@@ -235,25 +252,25 @@ const Blog = () => {
                         <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
                             <tr>
                             {visibleColumns.no && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">No</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
                             )}
                             {visibleColumns.image && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Image</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
                             )}
                             {visibleColumns.title && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Title</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Title</th>
                             )}
                             {visibleColumns.subtitle && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Sub Title</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Sub Title</th>
                             )}
                             {visibleColumns.description && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Description</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
                             )}
                             {visibleColumns.date && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Date</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
                             )}
                             {visibleColumns.actions && (
-                                <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Action</th>
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
                             )}
                             </tr>
                         </thead>
@@ -322,7 +339,7 @@ const Blog = () => {
                                                     formik.resetForm();
                                                     setIsAddModalOpen(true);
                                                 }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                                                <div><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                                                <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                                             </div>
                                         </td>
                                     )}
@@ -546,6 +563,40 @@ const Blog = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Modal */}
+            {isDeleteModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+                    <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+                        <div className="flex items-start justify-between mb-6">
+                            <h2 className="text-2xl font-semibold text-black">Delete Blog</h2>
+                            <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete?</p>
+                        <div className="flex items-center justify-center gap-3">
+                            <button
+                                type="button"
+                                onClick={handleDeleteModalClose}
+                                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleDeleteConfirm}
+                                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
