@@ -11,7 +11,6 @@ export const rootReducer = combineReducers({
     roomtypes:roomtypesSlice,
     features:featuresSlice,
     rooms:roomsSlice,
-    contact:contactSlice
     contact:contactSlice,
     user:userSlice
 });

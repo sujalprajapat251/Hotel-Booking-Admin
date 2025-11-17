@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiPlusCircle } from "react-icons/fi";
 import { IoEyeSharp } from 'react-icons/io5';
+import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail } from 'lucide-react';
 
 const bookings = [
     {
-        no: 1,
         name: "Smita Parikh",
         title: "Hello",
         subtitle: "Hello",
@@ -17,7 +17,6 @@ const bookings = [
         image: "https://i.pravatar.cc/40?img=1",
     },
     {
-        no: 2,
         name: "Sarah Smith",
         title: "Hello",
         subtitle: "Hello",
@@ -26,7 +25,6 @@ const bookings = [
         image: "https://i.pravatar.cc/40?img=12",
     },
     {
-        no: 3,
         name: "Pankaj Sinha",
         title: "Hello",
         subtitle: "Hello",
@@ -43,6 +41,38 @@ const Blog = () => {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const [visibleColumns, setVisibleColumns] = useState({
+      no: true,
+      image: true,
+      title: true,
+      subtitle: true,
+      description: true,
+      date: true,
+      actions: true,
+    });
+
+    const toggleColumn = (column) => {
+      setVisibleColumns(prev => ({
+        ...prev,
+        [column]: !prev[column]
+      }));
+    };
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+          setShowColumnDropdown(false);
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleViewClick = (item) => {
         setSelectedItem(item);
@@ -108,6 +138,11 @@ const Blog = () => {
         );
     });
 
+    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentData = filteredBookings.slice(startIndex, endIndex);
+
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
@@ -116,30 +151,82 @@ const Blog = () => {
             </section>
 
             {/* Header */}
-            <div className='shadow-md rounded-md'>
-                <div className="flex flex-col md:flex-row justify-between items-center bg-white py-3 px-4 rounded-md gap-3">
-                    <div>
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="p-2 rounded-sm border border-gray-300 w-full sm:w-64 focus:outline-none"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+            <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+
+                {/* Header */}
+                <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+                  <div className='flex gap-2 md:gap-5 sm:justify-between'>
+                    <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Contact</p>
+
+                    {/* Search Bar */}
+                    <div className="relative  max-w-md">
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+                      />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                     </div>
-                    <div className='flex'>
-                        {/* <Link className='me-3' to=''>
-                        <div className='mv_View_btn'><span>View</span></div>
-                    </Link> */}
-                        <button onClick={() => {
+                  </div>
+
+                  <div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-1 justify-end mt-2">
+                      <div className="relative" ref={dropdownRef}>
+                        <button
+                          onClick={() => {
                             setIsEditMode(false);
                             setEditingItem(null);
                             formik.resetForm();
                             setIsAddModalOpen(true);
-                        }}>
-                            <div className="mv_Add_btn bg-primary hover:bg-secondary"><span>+ Add</span></div>
+                          }}
+                          className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                          title="Show/Hide Columns"
+                        >
+                            <FiPlusCircle size={20}/>
                         </button>
+
+                        <button
+                          onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                          className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                          title="Show/Hide Columns"
+                        >
+                          <Filter size={20} />
+                        </button>
+
+                        {showColumnDropdown && (
+                          <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                            <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                              <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                            </div>
+                            <div className="max-h-44 overflow-y-auto">
+                              {Object.keys(visibleColumns).map((column) => (
+                                <label
+                                  key={column}
+                                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={visibleColumns[column]}
+                                    onChange={() => toggleColumn(column)}
+                                    className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                                  />
+                                  <span className="ml-2 text-sm text-gray-700 capitalize">
+                                    {column === 'joiningDate' ? 'Joining Date' : column}
+                                  </span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                        <Download size={20} />
+                      </button>
                     </div>
+                  </div>
                 </div>
 
                 {/* Table */}
@@ -147,76 +234,150 @@ const Blog = () => {
                     <table className="w-full min-w-[1000px]">
                         <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
                             <tr>
+                            {visibleColumns.no && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">No</th>
+                            )}
+                            {visibleColumns.image && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Image</th>
+                            )}
+                            {visibleColumns.title && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Title</th>
+                            )}
+                            {visibleColumns.subtitle && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Sub Title</th>
+                            )}
+                            {visibleColumns.description && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Description</th>
+                            )}
+                            {visibleColumns.date && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Date</th>
+                            )}
+                            {visibleColumns.actions && (
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Action</th>
+                            )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {filteredBookings.map((item, index) => (
+                            {currentData.map((item, index) => (
                                 <tr
                                     key={index}
                                     className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                 >
-                                    <td className="py-4 px-4">{item.no}</td>
+                                    {visibleColumns.no && (
+                                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                    )}
 
                                     {/* Guest Name */}
-                                    <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="relative">
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                                                />
-                                                <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
+                                    {visibleColumns.image && (
+                                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            <div className="flex items-center gap-3">
+                                                <div className="relative">
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
+                                                    />
+                                                    <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
+                                        </td>
+                                    )}
 
                                     {/* title */}
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            {item.title}
-                                        </div>
-                                    </td>
+                                    {visibleColumns.title && (
+                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            <div className="flex items-center gap-2">
+                                                {item.title}
+                                            </div>
+                                        </td>
+                                    )}
 
                                     {/* subtitle */}
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-2">
-                                            {item.subtitle}
-                                        </div>
-                                    </td>
+                                    {visibleColumns.subtitle && (
+                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            <div className="flex items-center gap-2">
+                                                {item.subtitle}
+                                            </div>
+                                        </td>
+                                    )}
 
-                                    {/* Arrival & Departure */}
-                                    <td className="py-4 px-4 whitespace-normal break-words max-w-[160px]">{item.description}</td>
-                                    <td className="py-4 px-4">{item.date}</td>
+                                    {/* description */}
+                                    {visibleColumns.description && (
+                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">{item.description}</td>
+                                    )}
+                                    
+                                    {/* date */}
+                                    {visibleColumns.date && (
+                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.date}</td>
+                                    )}
 
                                     {/* Actions */}
-                                    {/* <td className="items-center flex gap-3 text-lg">
-                                    
-                                </td> */}
-                                    <td className="py-4 px-4">
-                                        <div className="mv_table_action flex">
-                                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
-                                            <div onClick={() => {
-                                                setIsEditMode(true);
-                                                setEditingItem(item);
-                                                formik.resetForm();
-                                                setIsAddModalOpen(true);
-                                            }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                                            <div><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                                        </div>
-                                    </td>
+                                    {visibleColumns.actions && (
+                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            <div className="mv_table_action flex">
+                                                <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
+                                                <div onClick={() => {
+                                                    setIsEditMode(true);
+                                                    setEditingItem(item);
+                                                    formik.resetForm();
+                                                    setIsAddModalOpen(true);
+                                                }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                                                <div><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                                            </div>
+                                        </td>
+                                    )}
+
                                 </tr>
                             ))}
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                  <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+                    <span className="text-sm text-gray-600">Items per page:</span>
+                    <div className="relative">
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                          setItemsPerPage(Number(e.target.value));
+                          setCurrentPage(1);
+                        }}
+                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                      >
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={100}>100</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+                    <span className="text-sm text-gray-600">
+                      {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <ChevronRight size={20} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
             </div>
 
             {/* View Modal */}
