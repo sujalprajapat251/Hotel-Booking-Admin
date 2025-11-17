@@ -5,6 +5,7 @@ import featuresSlice from "./Slice/featuresSlice";
 import roomsSlice from "./Slice/createRoomSlice";
 import contactSlice from "./Slice/contactSlice";
 import userSlice from "./Slice/user.slice";
+import faqSlice from "./Slice/faq.slice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -12,5 +13,6 @@ export const rootReducer = combineReducers({
     features:featuresSlice,
     rooms:roomsSlice,
     contact:contactSlice,
-    user:userSlice
+    user:userSlice,
+    faq:faqSlice
 });
