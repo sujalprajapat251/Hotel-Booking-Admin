@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -21,6 +23,11 @@ const Header = ({ onMenuClick }) => {
   const toggleProfileMenu = () => {
     setIsProfileOpen((prev) => !prev);
   };
+
+  const handleClickProfile = () => {
+    navigate('/user-profile');
+    setIsProfileOpen(false);
+  }
 
   return (
     <header className="flex flex-col">
@@ -69,6 +76,7 @@ const Header = ({ onMenuClick }) => {
                   type="button"
                   role="menuitem"
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-senary transition hover:bg-primary/20"
+                  onClick={handleClickProfile}
                 >
                   <FiUser className="text-base" />
                   <span>Profile</span>

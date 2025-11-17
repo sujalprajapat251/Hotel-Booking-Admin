@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
-import { RiDeleteBin6Fill, RiEdit2Fill } from 'react-icons/ri';
-import { useDispatch, useSelector } from 'react-redux';
-import * as Yup from "yup";
-import ReactQuill from 'react-quill';
+import React, { useEffect, useRef, useState } from 'react'
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 export default function TermsConditions() {
+    const [value, setValue] = useState('');
+    const quillRef = useRef(null);
 
     // React Quill configuration
     const modules = {
@@ -32,20 +32,20 @@ export default function TermsConditions() {
         'align', 'script', 'code-block'
     ];
 
-
     return (
         <>
             <div className="mt-1">
                 <ReactQuill
+                    ref={quillRef}
                     theme="snow"
-                    // value={formik.values.description}
-                    // onChange={(value) => formik.setFieldValue('description', value)}
+                    value={value}
+                    onChange={setValue}
                     modules={modules}
                     formats={formats}
                     placeholder="Enter description..."
                     style={{
                         backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                        color: 'white',
+                        // color: 'white',
                         borderRadius: '6px',
                         minHeight: '200px'
                     }}
