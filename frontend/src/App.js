@@ -21,6 +21,7 @@ import Contact from './Pages/Contact';
 import Help from './Pages/Help';
 import LoginPage from './Pages/Login';
 import RoomType from './Pages/RoomType';
+import User from './Pages/User';
 
 function App() {
 
@@ -54,6 +55,8 @@ function App() {
               <Route path='/review' element={<Review />} />
               <Route path='/contact' element={<Contact />} />
               <Route path='/help' element={<Help />} />
+              <Route path='/user' element={<User />} />
+              <Route path='/user' element={<User />} />
             </Route>
           </Routes>
         </SnackbarProvider>

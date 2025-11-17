@@ -33,6 +33,7 @@ const sections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: RxDashboard, label: 'UserList', path: '/user' },
       { 
         icon: LuBed, 
         label: 'Rooms', 
