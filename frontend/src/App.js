@@ -22,6 +22,7 @@ import Help from './Pages/Help';
 import LoginPage from './Pages/Login';
 import RoomType from './Pages/RoomType';
 import StaffForm from './Pages/StaffForm';
+import User from './Pages/User';
 
 function App() {
 
@@ -56,6 +57,7 @@ function App() {
               <Route path='/contact' element={<Contact />} />
               <Route path='/help' element={<Help />} />
               <Route path='/addstaff' element={<StaffForm />} />
+              <Route path='/user' element={<User />} />
             </Route>
           </Routes>
         </SnackbarProvider>
