@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import viewImg from '../Images/view.png'
-import editImg from '../Images/edit.svg'
-import deleteImg from '../Images/delete.svg'
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
+import { IoEyeSharp } from 'react-icons/io5';
 
 const bookings = [
     {
@@ -42,6 +40,9 @@ const Blog = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     const handleViewClick = (item) => {
         setSelectedItem(item);
@@ -70,11 +71,15 @@ const Blog = () => {
             console.log('Submitting About Us form', values);
             resetForm();
             setIsAddModalOpen(false);
+            setIsEditMode(false);
+            setEditingItem(null);
         },
     });
 
     const handleAddModalClose = () => {
         setIsAddModalOpen(false);
+        setIsEditMode(false);
+        setEditingItem(null);
         formik.resetForm();
     };
 
@@ -91,6 +96,18 @@ const Blog = () => {
         }
     };
 
+    // Filter bookings based on search term
+    const filteredBookings = bookings.filter((item) => {
+        const searchLower = searchTerm.toLowerCase();
+        return (
+            item.title?.toLowerCase().includes(searchLower) ||
+            item.subtitle?.toLowerCase().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower) ||
+            item.date?.toLowerCase().includes(searchLower) ||
+            item.name?.toLowerCase().includes(searchLower)
+        );
+    });
+
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
@@ -106,13 +123,20 @@ const Blog = () => {
                             type="text"
                             placeholder="Search"
                             className="p-2 rounded-sm border border-gray-300 w-full sm:w-64 focus:outline-none"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
                     <div className='flex'>
                         {/* <Link className='me-3' to=''>
                         <div className='mv_View_btn'><span>View</span></div>
                     </Link> */}
-                        <button onClick={() => setIsAddModalOpen(true)}>
+                        <button onClick={() => {
+                            setIsEditMode(false);
+                            setEditingItem(null);
+                            formik.resetForm();
+                            setIsAddModalOpen(true);
+                        }}>
                             <div className="mv_Add_btn bg-primary hover:bg-secondary"><span>+ Add</span></div>
                         </button>
                     </div>
@@ -132,8 +156,8 @@ const Blog = () => {
                                 <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Action</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200">
-                            {bookings.map((item, index) => (
+                        <tbody className="divide-y divide-gray-200 bg-white">
+                            {filteredBookings.map((item, index) => (
                                 <tr
                                     key={index}
                                     className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
@@ -151,7 +175,6 @@ const Blog = () => {
                                                 />
                                                 <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
                                             </div>
-                                            <span className="text-sm font-semibold text-gray-800">{item.name}</span>
                                         </div>
                                     </td>
 
@@ -170,7 +193,7 @@ const Blog = () => {
                                     </td>
 
                                     {/* Arrival & Departure */}
-                                    <td className="py-4 px-4">{item.description}</td>
+                                    <td className="py-4 px-4 whitespace-normal break-words max-w-[160px]">{item.description}</td>
                                     <td className="py-4 px-4">{item.date}</td>
 
                                     {/* Actions */}
@@ -179,10 +202,13 @@ const Blog = () => {
                                 </td> */}
                                     <td className="py-4 px-4">
                                         <div className="mv_table_action flex">
-                                            {/* <FiEdit2 className="text-[#3f51b5] cursor-pointer" />
-                                        <MdDelete className="text-[#f44336] cursor-pointer" /> */}
-                                            <button onClick={() => handleViewClick(item)} className="cursor-pointer"><div><img src={viewImg} alt="view" /></div></button>
-                                            <div><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
+                                            <div onClick={() => {
+                                                setIsEditMode(true);
+                                                setEditingItem(item);
+                                                formik.resetForm();
+                                                setIsAddModalOpen(true);
+                                            }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                                             <div><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                                         </div>
                                     </td>
@@ -228,10 +254,6 @@ const Blog = () => {
                                     {/* Details */}
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[120px]">Name:</span>
-                                            <span className="text-gray-900">{selectedItem.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Title:</span>
                                             <span className="text-gray-900">{selectedItem.title}</span>
                                         </div>
@@ -261,7 +283,9 @@ const Blog = () => {
                     <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
                     <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
                         <div className="flex items-start justify-between mb-6">
-                            <h2 className="text-2xl font-semibold text-black">Add About Us</h2>
+                            <h2 className="text-2xl font-semibold text-black">
+                                {isEditMode ? 'Edit Blog' : 'Add Blog'}
+                            </h2>
                             <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -357,7 +381,7 @@ const Blog = () => {
                                     type="submit"
                                     className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                                 >
-                                    Add
+                                    {isEditMode ? 'Edit' : 'Add'}
                                 </button>
                             </div>
                         </form>
