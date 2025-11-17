@@ -1,16 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AiFillStar } from "react-icons/ai";
-import { IoFilterSharp } from "react-icons/io5";
-import { IoMdAddCircleOutline, IoMdRefresh } from "react-icons/io";
-import { MdOutlineFileDownload, MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
+import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Review = () => {
 
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(4);
+	const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+	const [visibleColumns, setVisibleColumns] = useState({
+		No: true,
+		Room: true,
+		Reviewer: true,
+		Review: true,
+		Date: true,
+		Status: true,
+		Actions: true
+	});
+	const dropdownRef = useRef(null);
 
 	const bookings = [
 		{
@@ -135,36 +144,37 @@ const Review = () => {
 		}
 	];
 
-
 	// Add filtering logic search functionallty
-	let filteredBookings;
-	filteredBookings = bookings.filter((item) => {
-		const query = searchQuery.toLowerCase();
-		return (
-			item.name.toLowerCase().includes(query) ||
-			item.room.toLowerCase().includes(query) ||
-			item.reviewTitle.toLowerCase().includes(query) ||
-			item.reviewText.toLowerCase().includes(query) ||
-			item.arrival.includes(query)
-		);
-	});
+	const filteredBookings = bookings.filter(staff =>
+		staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.reviewTitle.includes(searchQuery) ||
+		staff.reviewText.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.arrival.toLowerCase().includes(searchQuery.toLowerCase())
+	);
 
-	const totalItems = filteredBookings.length;
-	const totalPages = Math.ceil(totalItems / itemsPerPage);
+	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
 	const startIndex = (currentPage - 1) * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
 	const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
 
-	const handlePageChange = (page) => {
-		if (page >= 1 && page <= totalPages) {
-			setCurrentPage(page);
-		}
+	const toggleColumn = (column) => {
+		setVisibleColumns(prev => ({
+			...prev,
+			[column]: !prev[column]
+		}));
 	};
 
-	const handleItemsPerPageChange = (e) => {
-		setItemsPerPage(Number(e.target.value));
-		setCurrentPage(1); // Reset to first page when items per page changes
-	};
+	useEffect(() => {
+		const handleClickOutside = (event) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+				setShowColumnDropdown(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, []);
 
 	const ratingBreakdown = [
 		{ stars: 5, count: 90 },
@@ -205,7 +215,10 @@ const Review = () => {
 	}
 
 	return (
-		<section className="p-10">
+		<section className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+			<section className="py-5">
+                <h1 className="text-2xl font-semibold text-black">Review</h1>
+            </section>
 			<div className="w-full bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row gap-6">
 				<div className="flex flex-col md:flex-row gap-6 w-full md:w-1/2">
 					<div className="flex items-center flex-col">
@@ -265,144 +278,210 @@ const Review = () => {
 				</div>
 			</div>
 
-			<div className="w-full bg-white rounded-lg pt-6 shadow-md flex flex-col mt-8">
-				<div className="flex flex-col md:flex-row justify-between items-center px-4 gap-3 mb-3">
-					<div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-						<input
-							type="text"
-							placeholder="Search"
-							className="p-2 border border-gray-300 rounded-md w-full sm:w-64 focus:outline-none"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
+			<div className="w-full bg-white rounded-lg shadow-md flex flex-col mt-8">
+				<div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+					<div className='flex gap-2 md:gap-5 sm:justify-between'>
+						<p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Reviews</p>
+
+						{/* Search Bar */}
+						<div className="relative  max-w-md">
+							<input
+								type="text"
+								placeholder="Search..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+							/>
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+						</div>
 					</div>
-					<ul className="flex gap-4">
-						<li><IoFilterSharp className="text-[#3f51b5] text-2xl cursor-pointer" /></li>
-						<li><IoMdAddCircleOutline className="text-[#4caf50] text-2xl cursor-pointer" /></li>
-						<li><IoMdRefresh className="text-[#795548] text-2xl cursor-pointer" /></li>
-						<li><MdOutlineFileDownload className="text-[#2196f3] text-2xl cursor-pointer" /></li>
-					</ul>
+
+					<div>
+						{/* Action Buttons */}
+						<div className="flex items-center gap-1 justify-end mt-2">
+							<div className="relative" ref={dropdownRef}>
+								<button
+									onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+									className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+									title="Show/Hide Columns"
+								>
+									<Filter size={20} />
+								</button>
+
+								{showColumnDropdown && (
+									<div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+										<div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+											<h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+										</div>
+										<div className="max-h-44 overflow-y-auto">
+											{Object.keys(visibleColumns).map((column) => (
+												<label
+													key={column}
+													className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+												>
+													<input
+														type="checkbox"
+														checked={visibleColumns[column]}
+														onChange={() => toggleColumn(column)}
+														className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+													/>
+													<span className="ml-2 text-sm text-gray-700 capitalize">
+														{column === 'joiningDate' ? 'Joining Date' : column}
+													</span>
+												</label>
+											))}
+										</div>
+									</div>
+								)}
+							</div>
+							<button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh">
+								<RefreshCw size={20} />
+							</button>
+							<button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+								<Download size={20} />
+							</button>
+						</div>
+					</div>
 				</div>
 
 				<div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
 					<table className="w-full min-w-[1000px]">
-						<thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
-							<tr className="items-start">
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">
-									<input
-										type="checkbox"
-										class="w-4 h-4 mt-1 align-top bg-white bg-no-repeat bg-center bg-contain border border-[rgba(231,234,243,0.7)] cursor-pointer"
-									/>
-								</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Rooms</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Reviewer</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Review</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647] whitespace-nowrap">Date</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Status</th>
-								<th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Actions</th>
+						<thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
+							<tr>
+								{visibleColumns.No && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">#</th>
+								)}
+								{visibleColumns.Room && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Rooms</th>
+								)}
+								{visibleColumns.Reviewer && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Reviewer</th>
+								)}
+								{visibleColumns.Review && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Review</th>
+								)}
+								{visibleColumns.Date && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
+								)}
+								{visibleColumns.Status && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Status</th>
+								)}
+								{visibleColumns.Actions && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Actions</th>
+								)}
 							</tr>
 						</thead>
 
 						<tbody className="divide-y divide-gray-200">
 							{paginatedBookings.map((item, index) => (
-								<tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition">
-									<td className="px-4 py-3 align-center">
-										<input
-											type="checkbox"
-											class="w-4 h-4 mt-1 align-top bg-white bg-no-repeat bg-center bg-contain border border-[rgba(231,234,243,0.7)] cursor-pointer"
-										/>
-									</td>
+								<tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
+									{visibleColumns.No && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+									)}
 
-									<td className="px-4 py-3 text-[#333]">
-										{item.room}
-									</td>
+									{visibleColumns.Room && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+											{item.room}
+										</td>
+									)}
 
-									<td className="px-4 py-3">
-										<div className="flex items-center gap-3">
-											<img
-												src={item.image}
-												alt={item.name}
-												className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-											/>
-											<span className="font-semibold text-[#333]">{item.name}</span>
-										</div>
-									</td>
-
-									<td className="px-4 py-3">
-										<div className="flex flex-col gap-1">
-											<div className="flex items-center justify-between">
-												{renderStars(item.rating)}
+									{visibleColumns.Reviewer && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6">
+											<div className="flex items-center gap-3">
+												<img
+													src={item.image}
+													alt={item.name}
+													className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+												/>
+												<span className="text-sm font-medium text-gray-800">{item.name}</span>
 											</div>
-											<h4 className="text-sm font-semibold text-gray-900">
-												{item.reviewTitle}
-											</h4>
-											<p className="text-sm text-gray-600 leading-relaxed whitespace-normal">
-												{item.reviewText}
-											</p>
-										</div>
-									</td>
+										</td>
+									)}
 
-									<td className="px-4 py-3 whitespace-nowrap">
-										{item.arrival}
-									</td>
+									{visibleColumns.Review && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6">
+											<div className="flex flex-col gap-1">
+												<div className="flex items-center justify-between">
+													{renderStars(item.rating)}
+												</div>
+												<h4 className="text-sm font-semibold text-gray-900">
+													{item.reviewTitle}
+												</h4>
+												<p className="text-sm text-gray-600 leading-relaxed whitespace-normal">
+													{item.reviewText}
+												</p>
+											</div>
+										</td>
+									)}
 
-									<td className="px-4 py-3">
-										<span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(item.gender)}`}>
-											{item.gender}
-										</span>
-									</td>
+									{visibleColumns.Date && (
+										<td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+											{item.arrival}
+										</td>
+									)}
 
-									<td className="px-4 py-3">
-										<div className="flex gap-3 w-14">
-											<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-											<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-										</div>
-									</td>
+									{visibleColumns.Status && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6">
+											<span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(item.gender)}`}>
+												{item.gender}
+											</span>
+										</td>
+									)}
+
+									{visibleColumns.Actions && (
+										<td className="px-5 py-2 md600:py-3 lg:px-6">
+											<div className="flex gap-3 w-14">
+												<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+												<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+											</div>
+										</td>
+									)}
 								</tr>
 							))}
 						</tbody>
 					</table>
-					<div className="flex flex-col sm:flex-row justify-end items-center px-4 py-4 gap-4 border-t border-gray-200">
-						{/* Left side - Items per page */}
-						<div className="flex items-center gap-2">
-							<span className="text-sm text-gray-600">Items per page:</span>
-							<div className="relative">
-								<select
-									value={itemsPerPage}
-									onChange={handleItemsPerPageChange}
-									className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:outline-none focus:border-[#B79982] cursor-pointer"
-								>
-									<option value={5}>5</option>
-									<option value={10}>10</option>
-									<option value={20}>20</option>
-									<option value={50}>50</option>
-								</select>
-								<MdKeyboardArrowRight className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90" />
-							</div>
-						</div>
+				</div>
 
-						{/* Center - Page info */}
-						<div className="text-sm text-gray-600">
-							{startIndex + 1} – {Math.min(endIndex, totalItems)} of {totalItems}
-						</div>
-
-						{/* Right side - Navigation buttons */}
-						<div className="flex items-center gap-2">
-							<button
-								onClick={() => handlePageChange(currentPage - 1)}
-								disabled={currentPage === 1}
-								className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-									}`}
+				{/* Pagination */}
+				<div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+					<div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+						<span className="text-sm text-gray-600">Items per page:</span>
+						<div className="relative">
+							<select
+								value={itemsPerPage}
+								onChange={(e) => {
+									setItemsPerPage(Number(e.target.value));
+									setCurrentPage(1);
+								}}
+								className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
 							>
-								<MdKeyboardArrowLeft className="text-xl text-gray-600" />
+								<option value={5}>5</option>
+								<option value={10}>10</option>
+								<option value={25}>25</option>
+								<option value={100}>100</option>
+							</select>
+						</div>
+					</div>
+
+					<div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+						<span className="text-sm text-gray-600">
+							{startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+						</span>
+
+						<div className="flex items-center gap-1">
+							<button
+								onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+								disabled={currentPage === 1}
+								className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								<ChevronLeft size={20} />
 							</button>
 							<button
-								onClick={() => handlePageChange(currentPage + 1)}
-								disabled={currentPage === totalPages || totalPages === 0}
-								className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === totalPages || totalPages === 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-									}`}
+								onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+								disabled={currentPage === totalPages}
+								className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 							>
-								<MdKeyboardArrowRight className="text-xl text-gray-600" />
+								<ChevronRight size={20} />
 							</button>
 						</div>
 					</div>
