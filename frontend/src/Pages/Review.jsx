@@ -2,78 +2,139 @@ import React, { useState } from "react";
 import { AiFillStar } from "react-icons/ai";
 import { IoFilterSharp } from "react-icons/io5";
 import { IoMdAddCircleOutline, IoMdRefresh } from "react-icons/io";
-import { MdOutlineFileDownload } from "react-icons/md";
-import editImg from '../Images/edit.svg'
+import { MdOutlineFileDownload, MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
-import deleteImg from '../Images/delete.svg'
 
 const Review = () => {
 
 	const [searchQuery, setSearchQuery] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const [itemsPerPage, setItemsPerPage] = useState(4);
 
 	const bookings = [
 		{
 			id: 1,
-			name: "Amanda Harvey",
-			email: "amanda@site.com",
-			arrival: "07-02-2018",
-			review: "Good Service and friendly staff.",
+			name: "Liam Carter",
+			email: "liam.carter@example.com",
+			arrival: "14-03-2022",
+			review: "Very peaceful stay and excellent service.",
 			gender: "Published",
-			mobile: "1234567890",
-			room: "Delux",
+			mobile: "9876543210",
+			room: "Executive Suite",
 			payment: "Paid",
 			image: "https://i.pravatar.cc/40?img=5",
-			rating: 5,
-			reviewTitle: "I just love it!",
-			reviewText: 'I bought this hat for my boyfriend, but then i found out he cheated on me so I kept it and I love it! I wear it all the time and there is no problem with the fit even though its a mens" hat.'
+			rating: 4,
+			reviewTitle: "Great Experience!",
+			reviewText: "I really enjoyed the stay here. The staff was helpful and the room was clean. Highly recommended!"
 		},
 		{
 			id: 2,
-			name: "David Harrison",
-			email: "david@site.com",
-			arrival: "12-02-2021",
-			review: "Average experience, could be better.",
+			name: "Sophia Reed",
+			email: "sophia.reed@example.com",
+			arrival: "21-08-2020",
+			review: "Good room but service was slow.",
 			gender: "Pending",
-			mobile: "1234567890",
-			room: "Super Delux",
+			mobile: "9090909090",
+			room: "Luxury King",
 			payment: "Unpaid",
 			image: "https://i.pravatar.cc/40?img=9",
 			rating: 3,
-			reviewTitle: "Good product",
-			reviewText: "A really well built shoe. It looks great and wears just as well. A great staple in tall caps.",
+			reviewTitle: "Decent Stay",
+			reviewText: "The room was great but the food service took a long time. Needs improvement."
 		},
 		{
 			id: 3,
-			name: "Bob Dean",
-			email: "bob@site.com",
-			arrival: "23-05-2019",
-			review: "Excellent amenities and great location.",
+			name: "Nathan Brooks",
+			email: "nathan.brooks@example.com",
+			arrival: "10-01-2019",
+			review: "Amazing location and beautiful views.",
 			gender: "Pending",
-			mobile: "1234567890",
-			room: "Double",
+			mobile: "9988776655",
+			room: "Ocean View",
 			payment: "Unpaid",
 			image: "https://i.pravatar.cc/40?img=8",
-			rating: 4,
-			reviewTitle: "Very nice",
-			reviewText: "These boots are awesome! They look great and are super comfortable. I wear them all the time and get compliments on them constantly.",
+			rating: 5,
+			reviewTitle: "Loved It!",
+			reviewText: "The view from the balcony was incredible. I would stay here again for sure."
 		},
 		{
 			id: 4,
-			name: "Ella Lauda",
-			email: "ella@site.com",
-			arrival: "08-11-2020",
-			review: "pleasant stay with helpful staff.",
+			name: "Clara Jensen",
+			email: "clara.jensen@example.com",
+			arrival: "05-07-2023",
+			review: "Staff were friendly and helpful.",
 			gender: "Published",
-			mobile: "81234567890",
-			room: "Premium",
+			mobile: "8765432109",
+			room: "Premium Deluxe",
 			payment: "Paid",
 			image: "https://i.pravatar.cc/40?img=15",
-			rating: 2,
-			reviewTitle: "Amazing boots",
-			reviewText: "really comfortable and stylish. I get compliments on them all the time. Highly recommend to anyone looking for a great pair of boots!",
+			rating: 4,
+			reviewTitle: "Very Good",
+			reviewText: "Comfortable room and good food. I really liked the cleanliness of the property."
 		},
+		{
+			id: 5,
+			name: "Oliver Shaw",
+			email: "oliver.shaw@example.com",
+			arrival: "18-09-2021",
+			review: "Quiet environment and good ambience.",
+			gender: "Published",
+			mobile: "9123456789",
+			room: "Business Class",
+			payment: "Paid",
+			image: "https://i.pravatar.cc/40?img=16",
+			rating: 5,
+			reviewTitle: "Outstanding!",
+			reviewText: "Everything was perfect—from check-in to check-out. A very refreshing experience."
+		},
+		{
+			id: 6,
+			name: "Emily Stone",
+			email: "emily.stone@example.com",
+			arrival: "27-04-2020",
+			review: "Food quality can be improved.",
+			gender: "Pending",
+			mobile: "7001234567",
+			room: "Superior Twin",
+			payment: "Unpaid",
+			image: "https://i.pravatar.cc/40?img=21",
+			rating: 2,
+			reviewTitle: "Not Satisfied",
+			reviewText: "The room was good but the food didn’t meet expectations. Hoping they improve it."
+		},
+		{
+			id: 7,
+			name: "Henry Walsh",
+			email: "henry.walsh@example.com",
+			arrival: "30-11-2019",
+			review: "Good place for family stay.",
+			gender: "Pending",
+			mobile: "8654321900",
+			room: "Family Suite",
+			payment: "Unpaid",
+			image: "https://i.pravatar.cc/40?img=23",
+			rating: 4,
+			reviewTitle: "Comfortable Stay",
+			reviewText: "My family loved the stay. Spacious room and friendly service. Worth the price."
+		},
+		{
+			id: 8,
+			name: "Zara Mitchell",
+			email: "zara.mitch@example.com",
+			arrival: "19-02-2024",
+			review: "Loved the interior and facilities.",
+			gender: "Published",
+			mobile: "8080808080",
+			room: "Royal Suite",
+			payment: "Paid",
+			image: "https://i.pravatar.cc/40?img=25",
+			rating: 5,
+			reviewTitle: "Absolutely Wonderful",
+			reviewText: "Everything exceeded expectations. From decor to cleanliness—fantastic stay!"
+		}
 	];
+
 
 	// Add filtering logic search functionallty
 	let filteredBookings;
@@ -87,6 +148,23 @@ const Review = () => {
 			item.arrival.includes(query)
 		);
 	});
+
+	const totalItems = filteredBookings.length;
+	const totalPages = Math.ceil(totalItems / itemsPerPage);
+	const startIndex = (currentPage - 1) * itemsPerPage;
+	const endIndex = startIndex + itemsPerPage;
+	const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
+
+	const handlePageChange = (page) => {
+		if (page >= 1 && page <= totalPages) {
+			setCurrentPage(page);
+		}
+	};
+
+	const handleItemsPerPageChange = (e) => {
+		setItemsPerPage(Number(e.target.value));
+		setCurrentPage(1); // Reset to first page when items per page changes
+	};
 
 	const ratingBreakdown = [
 		{ stars: 5, count: 90 },
@@ -187,7 +265,7 @@ const Review = () => {
 				</div>
 			</div>
 
-			<div className="w-full bg-white rounded-lg py-6 shadow-md flex flex-col mt-8">
+			<div className="w-full bg-white rounded-lg pt-6 shadow-md flex flex-col mt-8">
 				<div className="flex flex-col md:flex-row justify-between items-center px-4 gap-3 mb-3">
 					<div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
 						<input
@@ -226,7 +304,7 @@ const Review = () => {
 						</thead>
 
 						<tbody className="divide-y divide-gray-200">
-							{filteredBookings.map((item, index) => (
+							{paginatedBookings.map((item, index) => (
 								<tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition">
 									<td className="px-4 py-3 align-center">
 										<input
@@ -244,7 +322,7 @@ const Review = () => {
 											<img
 												src={item.image}
 												alt={item.name}
-												className="w-10 h-10 rounded-full object-cover"
+												className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
 											/>
 											<span className="font-semibold text-[#333]">{item.name}</span>
 										</div>
@@ -284,6 +362,50 @@ const Review = () => {
 							))}
 						</tbody>
 					</table>
+					<div className="flex flex-col sm:flex-row justify-end items-center px-4 py-4 gap-4 border-t border-gray-200">
+						{/* Left side - Items per page */}
+						<div className="flex items-center gap-2">
+							<span className="text-sm text-gray-600">Items per page:</span>
+							<div className="relative">
+								<select
+									value={itemsPerPage}
+									onChange={handleItemsPerPageChange}
+									className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:outline-none focus:border-[#B79982] cursor-pointer"
+								>
+									<option value={5}>5</option>
+									<option value={10}>10</option>
+									<option value={20}>20</option>
+									<option value={50}>50</option>
+								</select>
+								<MdKeyboardArrowRight className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90" />
+							</div>
+						</div>
+
+						{/* Center - Page info */}
+						<div className="text-sm text-gray-600">
+							{startIndex + 1} – {Math.min(endIndex, totalItems)} of {totalItems}
+						</div>
+
+						{/* Right side - Navigation buttons */}
+						<div className="flex items-center gap-2">
+							<button
+								onClick={() => handlePageChange(currentPage - 1)}
+								disabled={currentPage === 1}
+								className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+									}`}
+							>
+								<MdKeyboardArrowLeft className="text-xl text-gray-600" />
+							</button>
+							<button
+								onClick={() => handlePageChange(currentPage + 1)}
+								disabled={currentPage === totalPages || totalPages === 0}
+								className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === totalPages || totalPages === 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
+									}`}
+							>
+								<MdKeyboardArrowRight className="text-xl text-gray-600" />
+							</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</section>
