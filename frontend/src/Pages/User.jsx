@@ -1,32 +1,38 @@
-import React, { useEffect, useState } from 'react';
-import viewImg from '../Images/view.png'
-import "../Style/vaidik.css"
+import React, { useState, useRef, useEffect } from 'react';
+import { Search, Filter, Plus, RefreshCw, Download, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllUser } from '../Redux/Slice/user.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
-import { MdOutlineFileDownload, MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
-import { IoFilterSharp } from 'react-icons/io5';
-
-const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-};
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 
 const User = () => {
 
     const dispatch = useDispatch();
 
-    const users = useSelector((state) => state.user.users);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(4);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+
+    const [visibleColumns, setVisibleColumns] = useState({
+        No: true,
+        name: true,
+        email: true,
+        date: true,
+    });
+
+    const users = useSelector((state) => state.user.users);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
 
     const filteredUsers = users.filter((user) => {
         if (!searchQuery.trim()) return true;
@@ -45,184 +51,273 @@ const User = () => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const paginatedUser = filteredUsers.slice(startIndex, endIndex);
+    const currentData = filteredUsers.slice(startIndex, endIndex);
 
-    const handlePageChange = (page) => {
-        if (page >= 1 && page <= totalPages) {
-            setCurrentPage(page);
-        }
+    const toggleColumn = (column) => {
+        setVisibleColumns(prev => ({
+            ...prev,
+            [column]: !prev[column]
+        }));
     };
 
-    const handleItemsPerPageChange = (e) => {
-        setItemsPerPage(Number(e.target.value));
-        setCurrentPage(1);
-    };
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowColumnDropdown(false);
+            }
+        };
 
-    const handleViewClick = (item) => {
-        setSelectedItem(item);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedItem(null);
-    };
-
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         dispatch(getAllUser());
-    }, [dispatch])
+    }, [dispatch]);
 
-    useEffect(() => {
+    const handleDownloadExcel = () => {
+        try {
+            // Prepare data for Excel
+            const excelData = filteredUsers.map((user, index) => {
+                const row = {};
+                
+                if (visibleColumns.No) {
+                    row['No.'] = index + 1;
+                }
+                if (visibleColumns.name) {
+                    row['Name'] = user.name || '';
+                }
+                if (visibleColumns.email) {
+                    row['Email'] = user.email || '';
+                }
+                if (visibleColumns.date) {
+                    row['Date'] = user.createdAt ? formatDate(user.createdAt) : '';
+                }
+                
+                return row;
+            });
+
+            // Create a new workbook
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+            // Auto-size columns
+            const maxWidth = 20;
+            const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+            worksheet['!cols'] = wscols;
+
+            // Generate file name with current date
+            const date = new Date();
+            const fileName = `Users_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+            // Download the file
+            XLSX.writeFile(workbook, fileName);
+            dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+        } catch (error) {
+            dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+        }
+    };
+
+    const handleRefresh = () => {
+        dispatch(getAllUser());
+        setSearchQuery("");
         setCurrentPage(1);
-    }, [searchQuery])
+    };
 
     return (
-        <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+        <>
+            <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB]'>
+                <p className=' text-[20px] font-semiboldtext-black '>All UserList</p>
+                <div className="w-full mt-3 md:mt-5">
+                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                        {/* Header */}
+                        <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+                            <div className='flex gap-2 md:gap-5 sm:justify-between'>
+                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All UserList</p>
 
-            <section className="py-5">
-                <h1 className="text-2xl font-semibold text-black">User</h1>
-            </section>
-
-            <div className="w-full bg-white rounded-lg pt-6 shadow-md flex flex-col">
-                <div className="flex flex-col md:flex-row justify-between items-center px-4 gap-3 mb-3">
-                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            className="p-2 border border-gray-300 rounded-md w-full sm:w-64 focus:outline-none"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <ul className="flex gap-4">
-                        <li title="Show/Hide Column"><IoFilterSharp className="text-[#3f51b5] text-2xl cursor-pointer" /></li>
-                        <li title="Xlsx Download"><MdOutlineFileDownload className="text-[#2196f3] text-2xl cursor-pointer" /></li>
-                    </ul>
-                </div>
-
-                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
-                    <table className="w-full min-w-[1000px]">
-                        <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
-                            <tr className="items-start">
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">
+                                {/* Search Bar */}
+                                <div className="relative  max-w-md">
                                     <input
-                                        type="checkbox"
-                                        class="w-4 h-4 mt-1 align-top bg-white bg-no-repeat bg-center bg-contain border border-[rgba(231,234,243,0.7)] cursor-pointer"
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
                                     />
-                                </th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">No</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Name</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Email</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647] whitespace-nowrap">Date</th>
-                                <th className="px-4 py-3 text-left text-sm font-bold text-[#755647]">Actions</th>
-                            </tr>
-                        </thead>
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                </div>
+                            </div>
 
-                        <tbody className="divide-y divide-gray-200">
-                            {paginatedUser.map((item, index) => (
-                                <tr key={index} className="border-b border-gray-200 hover:bg-gray-50 transition">
-                                    <td className="px-4 py-3 align-center">
-                                        <input
-                                            type="checkbox"
-                                            class="w-4 h-4 mt-1 align-top bg-white bg-no-repeat bg-center bg-contain border border-[rgba(231,234,243,0.7)] cursor-pointer"
-                                        />
-                                    </td>
+                            <div>
+                                {/* Action Buttons */}
+                                <div className="flex items-center gap-1 justify-end mt-2">
+                                    <div className="relative" ref={dropdownRef}>
+                                        <button
+                                            onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                                            className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                                            title="Show/Hide Columns"
+                                        >
+                                            <Filter size={20} />
+                                        </button>
 
-                                    <td className="px-4 py-3 text-[#333]">
-                                        {startIndex + index + 1}
-                                    </td>
-
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-3">
-                                            {item.photo ? (
-                                                <img
-                                                    src={`${IMAGE_URL}/photo/${item.photo}`}
-                                                    alt={item.name}
-                                                    className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                                                />
-                                            ) : (
-                                                <div className="w-11 h-11 rounded-full object-cover shadow-sm bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
-                                                    {(() => {
-                                                        if (item.name) {
-                                                            const words = item.name.trim().split(/\s+/);
-                                                            if (words.length >= 2) {
-                                                                return words[0][0] + words[1][0];
-                                                            } else {
-                                                                return words[0][0];
-                                                            }
-                                                        }
-                                                        return "";
-                                                    })()}
+                                        {showColumnDropdown && (
+                                            <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                                                <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                                                    <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                                                 </div>
-                                            )}
-                                            <span className="font-semibold text-[#333]">{item.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap">
-                                        {item.email}
-                                    </td>
-                                    <td className="px-4 py-3 whitespace-nowrap">
-                                        {item.createdAt ? formatDate(item.createdAt) : ''}
-                                    </td>
-                                    <td className="px-4 py-3">
-                                        <div className="flex gap-3 w-14">
-                                            <div className="cursor-pointer" onClick={() => handleViewClick(item)}><img src={viewImg} alt="view" /></div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <div className="flex flex-col sm:flex-row justify-end items-center px-4 py-4 gap-4 border-t border-gray-200">
-                        {/* Left side - Items per page */}
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-600">Items per page:</span>
-                            <div className="relative">
-                                <select
-                                    value={itemsPerPage}
-                                    onChange={handleItemsPerPageChange}
-                                    className="appearance-none bg-white border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm focus:outline-none focus:border-[#B79982] cursor-pointer"
-                                >
-                                    <option value={5}>5</option>
-                                    <option value={10}>10</option>
-                                    <option value={20}>20</option>
-                                    <option value={50}>50</option>
-                                </select>
-                                <MdKeyboardArrowRight className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none rotate-90" />
+                                                <div className="max-h-44 overflow-y-auto">
+                                                    {Object.keys(visibleColumns).map((column) => (
+                                                        <label
+                                                            key={column}
+                                                            className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={visibleColumns[column]}
+                                                                onChange={() => toggleColumn(column)}
+                                                                className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                                                            />
+                                                            <span className="ml-2 text-sm text-gray-700 capitalize">
+                                                                {column}
+                                                            </span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                                        <RefreshCw size={20} />
+                                    </button>
+                                    <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
+                                        <Download size={20} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Center - Page info */}
-                        <div className="text-sm text-gray-600">
-                            {startIndex + 1} – {Math.min(endIndex, totalItems)} of {totalItems}
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full whitespace-nowrap">
+                                <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
+                                    <tr>
+                                        {visibleColumns.No && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No.</th>
+                                        )}
+                                        {visibleColumns.name && (
+                                            <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Name</th>
+                                        )}
+                                        {visibleColumns.email && (
+                                            <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Email</th>
+                                        )}
+                                        {visibleColumns.date && (
+                                            <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {currentData.map((user, index) => (
+                                        <tr
+                                            key={user.id}
+                                            className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                                        >
+                                            {visibleColumns.No && (
+                                                <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                            )}
+                                            {visibleColumns.name && (
+                                                <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                    <div className="flex items-center gap-3">
+                                                        {user.photo ? (
+                                                            <img src={`${IMAGE_URL}/photo/${user.photo}`}
+                                                                alt={user.name}
+                                                                className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
+                                                                {(() => {
+                                                                    if (user.name) {
+                                                                        const words = user.name.trim().split(/\s+/);
+                                                                        if (words.length >= 2) {
+                                                                            return words[0][0] + words[1][0];
+                                                                        } else {
+                                                                            return words[0][0];
+                                                                        }
+                                                                    }
+                                                                    return "";
+                                                                })()}
+                                                            </div>
+                                                        )}
+                                                        <span className="text-sm font-medium text-gray-800">{user.name}</span>
+                                                    </div>
+                                                </td>
+                                            )}
+                                            {visibleColumns.email && (
+                                                <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <Mail size={16} className='text-red-600' />
+                                                        {user.email}
+                                                    </div>
+                                                </td>
+                                            )}
+                                            {visibleColumns.date && (
+                                                <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{user.createdAt ? formatDate(user.createdAt) : ''}</td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
 
-                        {/* Right side - Navigation buttons */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                                    }`}
-                            >
-                                <MdKeyboardArrowLeft className="text-xl text-gray-600" />
-                            </button>
-                            <button
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages || totalPages === 0}
-                                className={`p-1.5 rounded hover:bg-gray-100 transition ${currentPage === totalPages || totalPages === 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
-                                    }`}
-                            >
-                                <MdKeyboardArrowRight className="text-xl text-gray-600" />
-                            </button>
+                        {/* Pagination */}
+                        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                            <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+                                <span className="text-sm text-gray-600">Items per page:</span>
+                                <div className="relative">
+                                    <select
+                                        value={itemsPerPage}
+                                        onChange={(e) => {
+                                            setItemsPerPage(Number(e.target.value));
+                                            setCurrentPage(1);
+                                        }}
+                                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                                    >
+                                        <option value={5}>5</option>
+                                        <option value={10}>10</option>
+                                        <option value={25}>25</option>
+                                        <option value={100}>100</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+                                <span className="text-sm text-gray-600">
+                                    {startIndex + 1} - {Math.min(endIndex, totalItems)} of {totalItems}
+                                </span>
+
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronLeft size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronRight size={20} />
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
 export default User;
-
