@@ -3,9 +3,12 @@ import { AiFillStar } from "react-icons/ai";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit } from "react-icons/fi";
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { useDispatch } from "react-redux";
+import { setAlert } from '../Redux/Slice/alert.slice';
 
 const Review = () => {
-
+ 	const dispatch = useDispatch();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(4);
@@ -214,11 +217,80 @@ const Review = () => {
 		filteredBookings = filteredBookings.filter(booking => booking.id !== item.id);
 	}
 
+	const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return dateString.replace(/-/g, '/');
+    };
+
+	const handleDownloadExcel = () => {
+    try {
+        // Check if there's data to export
+        if (filteredBookings.length === 0) {
+            dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+            return;
+        }
+
+        // Prepare data for Excel
+        const excelData = filteredBookings.map((user, index) => {
+            const row = {};
+
+            if (visibleColumns.No) {
+                row['No.'] = startIndex + index + 1; // Use correct numbering
+            }
+            if (visibleColumns.Room) {
+                row['Room'] = user.room || '';
+            }
+            if (visibleColumns.Reviewer) {
+                row['Reviewer'] = user.name || '';
+            }
+            if (!visibleColumns.reviewText) {
+                row['ReviewText'] = user.reviewText || '';
+            }
+			if (!visibleColumns.reviewTitle) {
+                row['ReviewTitle'] = user.reviewTitle || '';
+            }
+            if (visibleColumns.Date) {
+                row['Date'] = formatDate(user.arrival) || '';
+            }
+            if (visibleColumns.Status) {
+                row['Status'] = user.gender || '';
+            }
+
+            return row;
+        });
+
+        // Create a new workbook
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Reviews');
+
+        // Auto-size columns
+        const maxWidth = 30;
+        const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+        worksheet['!cols'] = wscols;
+
+        // Generate file name with current date
+        const date = new Date();
+        const fileName = `Reviews_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+        // Download the file
+        XLSX.writeFile(workbook, fileName);
+        dispatch(setAlert({ text: "Export completed successfully!", color: 'success' }));
+    } catch (error) {
+        console.error('Export error:', error);
+        dispatch(setAlert({ text: "Export failed! Please try again.", color: 'error' }));
+    }
+};
+
 	return (
 		<section className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 			<section className="py-5">
-                <h1 className="text-2xl font-semibold text-black">Review</h1>
-            </section>
+				<h1 className="text-2xl font-semibold text-black">Review</h1>
+			</section>
 			<div className="w-full bg-white p-6 rounded-xl shadow-md flex flex-col md:flex-row gap-6">
 				<div className="flex flex-col md:flex-row gap-6 w-full md:w-1/2">
 					<div className="flex items-center flex-col">
@@ -337,7 +409,7 @@ const Review = () => {
 							<button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh">
 								<RefreshCw size={20} />
 							</button>
-							<button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+							<button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
 								<Download size={20} />
 							</button>
 						</div>
