@@ -44,7 +44,7 @@ indexRoutes.post('/resetpassword', resetPassword)
 
 // user Routes
 indexRoutes.post('/register', createUser);
-indexRoutes.put('/userUpdate', auth, upload.single("photo"), updateUser);
+indexRoutes.put('/userUpdate/:id', auth, upload.single("photo"), updateUser);
 indexRoutes.put('/changepassword', auth, changePassword);
 indexRoutes.get('/getalluser', auth, adminOnly, getAllUsers);
 indexRoutes.get('/getUserById', auth, getUserById);

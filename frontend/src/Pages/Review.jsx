@@ -213,8 +213,8 @@ const Review = () => {
 	};
 
 	const handleRemoveReview = (item) => {
-		alert(`Removing review of ${item.name}`);
-		filteredBookings = filteredBookings.filter(booking => booking.id !== item.id);
+		dispatch(setAlert({ text: `Removing review of ${item.name}`, color: 'success' }));
+		// filteredBookings = filteredBookings.filter(booking => booking.id !== item.id);
 	}
 
 	const formatDate = (dateString) => {
