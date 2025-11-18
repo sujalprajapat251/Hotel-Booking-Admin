@@ -155,8 +155,8 @@ const StaffForm = () => {
             </div>
 
             <div className="p-6">
-              <div className="flex flex-col lg:flex-row gap-6">
-                <div className="lg:w-1/4">
+              <div className="flex flex-col lg:flex-row gap-4 xl:gap-6 justify-between">
+                <div className="lg:w-1/3 xl:w-1/4">
                   <div className="flex flex-col items-center">
                     <label className="text-sm font-semibold text-gray-700 mb-2">Profile Image *</label>
                     <div className="relative w-48 h-48 border-2 border-dashed border-[#B79982] rounded-lg overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -197,7 +197,7 @@ const StaffForm = () => {
                 </div>
 
                 <div className="lg:w-2/3">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xl:gap-6">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
                       <input
@@ -207,7 +207,7 @@ const StaffForm = () => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         placeholder="Enter full name"
-                        className={`w-full px-4 py-2 border bg-[#FFF9E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-gray-300'
                           }`}
                       />
                       {formik.touched.name && formik.errors.name && (
@@ -220,7 +220,7 @@ const StaffForm = () => {
                       <button
                         type="button"
                         onClick={() => setShowDepartmentDropdown(!showDepartmentDropdown)}
-                        className={`w-full px-4 py-2 bg-[#FFF9E6] border rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.department && formik.errors.department ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 bg-gray-100 border rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.department && formik.errors.department ? 'border-red-500' : 'border-gray-300'
                           }`}
                       >
                         <span className={formik.values.department ? 'text-gray-800' : 'text-gray-400'}>
@@ -229,7 +229,7 @@ const StaffForm = () => {
                         <ChevronDown size={18} className="text-gray-600" />
                       </button>
                       {showDepartmentDropdown && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                           {departments.map((dept) => (
                             <div
                               key={dept}
@@ -254,7 +254,7 @@ const StaffForm = () => {
                       <button
                         type="button"
                         onClick={() => setShowGenderDropdown(!showGenderDropdown)}
-                        className={`w-full px-4 py-2 bg-[#FFF9E6] border rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.gender && formik.errors.gender ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.gender && formik.errors.gender ? 'border-red-500' : 'border-gray-300'
                           }`}
                       >
                         <span className={formik.values.gender ? 'text-gray-800' : 'text-gray-400'}>
@@ -263,7 +263,7 @@ const StaffForm = () => {
                         <ChevronDown size={18} className="text-gray-600" />
                       </button>
                       {showGenderDropdown && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg">
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg">
                           {genders.map((gender) => (
                             <div
                               key={gender}
@@ -292,7 +292,7 @@ const StaffForm = () => {
                         onBlur={formik.handleBlur}
                         placeholder="Enter full address"
                         rows="3"
-                        className={`w-full px-4 py-2 border bg-[#FFF9E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] resize-none ${formik.touched.address && formik.errors.address ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] resize-none ${formik.touched.address && formik.errors.address ? 'border-red-500' : 'border-gray-300'
                           }`}
                       />
                       {formik.touched.address && formik.errors.address && (
@@ -303,17 +303,17 @@ const StaffForm = () => {
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Mobile Number *</label>
                       <div className="flex gap-2">
-                        <div className="relative w-32" ref={countryCodeRef}>
+                        <div className="relative w-16" ref={countryCodeRef}>
                           <button
                             type="button"
                             onClick={() => setShowCountryCodeDropdown(!showCountryCodeDropdown)}
-                            className="w-full px-3 py-2 bg-[#FFF9E6] border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                            className="w-16 px-2 py-2.5 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                           >
                             <span className="text-gray-800 text-sm">{formik.values.countryCode}</span>
                             <ChevronDown size={16} className="text-gray-600" />
                           </button>
                           {showCountryCodeDropdown && (
-                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            <div className="absolute z-50 w-28 mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                               {countryCodes.map((item) => (
                                 <div
                                   key={item.code}
@@ -339,7 +339,7 @@ const StaffForm = () => {
                             onBlur={formik.handleBlur}
                             placeholder="Enter 10 digit mobile number"
                             maxLength="10"
-                            className={`w-full px-4 py-2 border bg-[#FFF9E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.mobile && formik.errors.mobile ? 'border-red-500' : 'border-gray-300'
+                            className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.mobile && formik.errors.mobile ? 'border-red-500' : 'border-gray-300'
                               }`}
                           />
                         </div>
@@ -358,7 +358,7 @@ const StaffForm = () => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         placeholder="Enter email address"
-                        className={`w-full px-4 py-2 border bg-[#FFF9E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.email && formik.errors.email ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.email && formik.errors.email ? 'border-red-500' : 'border-gray-300'
                           }`}
                       />
                       {formik.touched.email && formik.errors.email && (
@@ -375,7 +375,7 @@ const StaffForm = () => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         placeholder="Enter password"
-                        className={`w-full px-4 py-2 border bg-[#FFF9E6] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-gray-300'
                           }`}
                       />
                       {formik.touched.password && formik.errors.password && (
@@ -393,7 +393,7 @@ const StaffForm = () => {
                           max={new Date().toISOString().split('T')[0]}
                           onChange={(e) => handleDateSelect(e.target.value)}
                           onBlur={formik.handleBlur}
-                          className={`w-full px-4 py-2 border  bg-[#FFF9E6]  rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.joiningDate && formik.errors.joiningDate ? 'border-red-500' : 'border-gray-300'
+                          className={`w-full px-4 py-2 border  bg-gray-100  rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.joiningDate && formik.errors.joiningDate ? 'border-red-500' : 'border-gray-300'
                             }`}
                         />
                       </div>
@@ -405,21 +405,21 @@ const StaffForm = () => {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
+              <div className="flex justify-center gap-3 mt-6 pt-6 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={() => {
                     formik.resetForm();
                     setImagePreview(null);
                   }}
-                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-semibold"
+                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gray-50 transition-colors font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-lg hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-all font-semibold shadow-md"
+                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-all font-semibold shadow-md"
                 >
                   Submit
                 </button>
