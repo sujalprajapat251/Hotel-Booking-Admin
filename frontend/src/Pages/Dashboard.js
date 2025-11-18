@@ -1,106 +1,17 @@
 import React from 'react';
-import { PiCurrencyDollarSimpleBold } from "react-icons/pi";
-import { MdLocalHotel } from "react-icons/md";
-import { FaUsers } from "react-icons/fa";
-import { LuNotebook } from "react-icons/lu";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line } from 'recharts';
+import { LuCircleArrowDown, LuCircleArrowUp} from "react-icons/lu";
 import '../Style/Sujal.css';
-import { CustomActiveShapePieChart } from '../component/CustomActiveShapePieChart ';
 import { FaEllipsisV } from 'react-icons/fa';
 import { HiOutlineDocumentChartBar } from "react-icons/hi2";
 import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
-
-const CustomTooltip = ({ active, payload, label }) => {
-  console.log('payload', payload);
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-md">
-        <p className="font-bold text-gray-800">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={index} style={{ color: entry.color }} className="font-medium">
-            {entry.dataKey}: {entry.value}
-          </p>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
+import Newbookingchart from '../component/Newbookingchart';
+import Availablerooms from '../component/Availavleroomschart';
+import Revenuechart from '../component/Revenuechart';
+import Checkoutchart from '../component/Checkoutchart';
+import Reservationchart from '../component/Reservationchart';
 
 export const Dashboard = () => {
-
-  const data = [
-    {
-      id: 1,
-      Title: 'Occupied',
-      value: 20,
-      Icon: <LuNotebook />,
-      color: "#F7DF9C",  // pale yellow
-      barvalue: 50,
-      barcolor: '#E3C78A'  // tan
-    },
-    {
-      id: 2,
-      Title: 'Reserved',
-      value: 18,
-      Icon: <MdLocalHotel />,
-      color: "#B79982",  // muted sand
-      barvalue: 50,
-      barcolor: '#A3876A'  // taupe brown
-    },
-    {
-      id: 3,
-      Title: 'Avaliable',
-      value: 20,
-      Icon: <FaUsers />,
-      color: "#876B56",  // brown
-      barvalue: 75,
-      barcolor: '#755647'  // deep brown
-    },
-    {
-      id: 4,
-      Title: 'Not Ready',
-      value: 18,
-      Icon: <PiCurrencyDollarSimpleBold />,
-      color: "#A3876A",  // taupe brown
-      barvalue: 50,
-      barcolor: '#B79982'  // muted sand
-    }
-  ]
-
-  const areaData = [
-    {
-      name: 'A',
-      uv: 4000,
-      pv: 2400,
-      amt: 2400,
-    },
-    {
-      name: 'B',
-      uv: 3000,
-      pv: 1398,
-      amt: 2210,
-    },
-    {
-      name: 'C',
-      uv: 2000,
-      pv: 9800,
-      amt: 2290,
-    },
-    {
-      name: 'D',
-      uv: 2780,
-      pv: 3908,
-      amt: 2000,
-    },
-    {
-      name: 'E',
-      uv: 1890,
-      pv: 4800,
-      amt: 2181,
-    }
-  ];
 
   const bookings = [
     {
@@ -231,6 +142,88 @@ export const Dashboard = () => {
     }
   };
 
+  const roomData = {
+    occupied: 125,
+    reserved: 87,
+    available: 57,
+    notReady: 25
+  };
+
+  const total = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+  const percentages = {
+    occupied: (roomData.occupied / total) * 100,
+    reserved: (roomData.reserved / total) * 100,
+    available: (roomData.available / total) * 100,
+    notReady: (roomData.notReady / total) * 100
+  };
+
+  const colors = {
+    primary: '#F7DF9C',
+    secondary: '#E3C78A',
+    tertiary: '#B79982',
+    quaternary: '#A3876A',
+    quinary: '#876B56',
+    senary: '#755647',
+  };
+
+
+  const stats = [
+    {
+      label: 'Occupied',
+      value: roomData.occupied,
+      color: colors.primary
+    },
+    {
+      label: 'Reserved',
+      value: roomData.reserved,
+      color: colors.tertiary
+    },
+    {
+      label: 'Available',
+      value: roomData.available,
+      color: colors.quinary
+    },
+    {
+      label: 'Not Ready',
+      value: roomData.notReady,
+      color: colors.senary
+    }
+  ];
+
+  const dashboardData = {
+    quickAccess: [
+      { title: "Room Management", icon: "🏠", badge: 3 },
+      { title: "Staff Roster", icon: "👥" },
+      { title: "Reports", icon: "📊" },
+      { title: "Maintenance", icon: "🛠️", badge: 7 },
+      { title: "Housekeeping", icon: "🛡️", badge: 12 },
+      { title: "Guest Services", icon: "🧑‍💼" },
+      { title: "Billing", icon: "📄" },
+      { title: "Settings", icon: "⚙️" },
+    ],
+
+    serviceSummary: [
+      { label: "PENDING", count: 3, color: "text-yellow-500" },
+      { label: "IN PROGRESS", count: 2, color: "text-blue-500" },
+      { label: "HIGH PRIORITY", count: 2, color: "text-red-500" },
+    ],
+
+    recentRequests: [
+      { title: "Extra towels and pillows", room: "Room 205", time: "20m", status: "Pending", color: "border-yellow-400" },
+      { title: "Air conditioning not working", room: "Room 312", time: "45m", status: "In_progess", color: "border-blue-500" },
+      { title: "Urgent cleaning required", room: "Room 108", time: "10m", status: "Pending", color: "border-red-500" },
+    ],
+
+    guestPurpose: {
+      total: 252,
+      chartData: [
+        { name: "Business", value: 156, color: "#2F80ED" },
+        { name: "Leisure", value: 96, color: "#27AE60" },
+      ],
+    },
+  };
+
+
 
   return (
     <>
@@ -263,77 +256,136 @@ export const Dashboard = () => {
         </div>
 
 
-        <div className='grid grid-cols-1 md600:grid-cols-2 xl:grid-cols-4 mt-3 gap-5 md600:gap-4'>
-          {data.map((item) => (
-            <div className='bg-white rounded-lg shadow-md p-4 md600:p-3 md600:m-0'>
-              <div className='flex items-center justify-between'>
-                <div className='w-12 h-12 rounded-full flex items-center justify-center' style={{ backgroundColor: item.color }}>
-                  <div className='text-[22px] text-white'>{item.Icon}</div>
-                </div>
-                <div className='text-center'>
-                  <h2 className='text-lg font-bold text-gray-800'>{item.Title}</h2>
-                  <p className='text-lg font-bold text-gray-800'>{item.value}</p>
+        <div className='grid grid-cols-1  md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5'>
+          <div className='bg-white p-4  rounded-md'>
+            <div className='sm:flex justify-between items-end '> {/* items-end aligns to bottom */}
+              <div className='mb-5'>
+                <p className='text-[20px] font-semibold'>New Booking</p>
+                <p className='text-[16px] font-semibold'>1879</p>
+                <div className='flex gap-1 items-center mt-5'>
+                  <LuCircleArrowUp className='text-[20px] text-green-500' />
+                  <p className='text-green-500'>+7.5%</p>
                 </div>
               </div>
-              <div className='w-full h-4 bg-gray-200 rounded-full mt-10 relative overflow-hidden'>
-                <div
-                  className='h-full rounded-full progress-bar-fill'
-                  style={{
-                    '--target-width': `${item.barvalue}%`,
-                    width: `${item.barvalue}%`,
-                    background: `linear-gradient(90deg, ${item.barcolor} 0%, ${item.barcolor}80 100%)`,
-                    position: 'relative'
-                  }}
-                ></div>
-                <div className='absolute inset-0 flex items-center justify-start pl-2 text-xs text-white font-bold' style={{ width: `${item.barvalue}%` }}>
-                  {item.barvalue}%
-                </div>
+              <div className='w-[220px] ms-auto'> {/* Fixed width for chart */}
+                <Newbookingchart />
               </div>
             </div>
-          ))}
+          </div>
+          <div className='bg-white p-4 rounded-md'>
+            <div className='sm:flex justify-between items-end'> {/* items-end aligns to bottom */}
+              <div className='mb-5'>
+                <p className='text-[20px] font-semibold'>Available Rooms</p>
+                <p className='text-[16px] font-semibold'>55</p>
+                <div className='flex gap-1 items-center mt-5'>
+                  <LuCircleArrowDown className='text-[20px] text-red-500' />
+                  <p className='text-red-500'>-5.7%</p>
+                </div>
+              </div>
+              <div className='w-[180px] ms-auto'> {/* Fixed width for chart */}
+                <Availablerooms />
+              </div>
+            </div>
+          </div>
+          <div className='bg-white p-4 rounded-md'>
+            <div className='sm:flex justify-between items-end'>
+              <div className='mb-5'>
+                <p className='text-[20px] font-semibold'>Revenue</p>
+                <p className='text-[16px] font-semibold'>$2287</p>
+                <div className='flex gap-1 items-center mt-5'>
+                  <LuCircleArrowUp className='text-[20px] text-green-500' />
+                  <p className='text-green-500'>+5.3%</p>
+                </div>
+              </div>
+              <div className='w-[220px] h-[80px] ms-auto'> {/* Added height! */}
+                <Revenuechart />
+              </div>
+            </div>
+          </div>
+          <div className='bg-white p-4 rounded-md'>
+            <div className='sm:flex justify-between items-end'> {/* items-end aligns to bottom */}
+              <div className='mb-5'>
+                <p className='text-[20px] font-semibold'>Checkout</p>
+                <p className='text-[16px] font-semibold'>567</p>
+                <div className='flex gap-1 items-center mt-5'>
+                  <LuCircleArrowDown className='text-[20px] text-red-500' />
+                  <p className='text-red-500'>-2.4%</p>
+                </div>
+              </div>
+              <div className='w-[220px] ms-auto'> {/* Fixed width for chart */}
+                <Checkoutchart />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className='mt-5 xl:flex justify-between gap-5'>
-          <div className='bg-white rounded-lg p-5 V_chart_1_div'>
-            <div className='flex items-center justify-between'>
-              <p className='text-[20px] '>Title</p>
-              <p className='text-[20px] '>Actions</p>
+
+        <div className=' mt-5 rounded-lg shadow-sm w-full'>
+          <div className='lg:flex gap-5 justify-between'>
+            <div className='bg-white p-3 lg:p-5 rounded-lg  lg:w-[35%]'>
+              <h2 className="text-lg font-semibold mb-3 ">Room Availability</h2>
+              <div className="flex h-8 xl:h-10 2xl:h-12 rounded-lg overflow-hidden mb-8">
+                <div
+                  style={{
+                    width: `${percentages.occupied}%`,
+                    backgroundColor: colors.primary
+                  }}
+                ></div>
+                <div
+                  style={{
+                    width: `${percentages.reserved}%`,
+                    backgroundColor: colors.tertiary
+                  }}
+                ></div>
+                <div
+                  style={{
+                    width: `${percentages.available}%`,
+                    backgroundColor: colors.quinary
+                  }}
+                ></div>
+                <div
+                  style={{
+                    width: `${percentages.notReady}%`,
+                    backgroundColor: colors.senary
+                  }}
+                ></div>
+              </div>
+
+              <div className="grid grid-cols-2 md:gap-3 lg:gap-5">
+                {stats.map((stat, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col border-l-4 pl-3"
+                    style={{ borderColor: stat.color }}
+                  >
+                    <span className="text-sm text-gray-600 mb-1">{stat.label}</span>
+                    <p className="text-3xl font-semibold">{stat.value}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <AreaChart
-              className='V_chart_1'
-              // style={{ width: '100%', maxWidth: '700px', maxHeight: '70vh', aspectRatio: 1.618 }}
-              responsive
-              data={areaData}
-              margin={{
-                top: 20,
-                right: 0,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              {/* <CartesianGrid strokeDasharray="3 3" /> */}
-              <XAxis dataKey="name" />
-              <YAxis width="auto" />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              {/* <Line type="monotone" dataKey="uv" stackId="1" stroke="#B79982"  /> */}
-              <Area type="monotone" dataKey="pv" stackId="1" stroke="#E3C78A" fill="#E3C78A" />
-              <Area type="monotone" dataKey="amt" stackId="1" stroke="#ffc658" fill="#ffc658" />
-            </AreaChart>
-          </div>
-          <div className='bg-white rounded-lg p-5 V_chart_2_div'>
-            <div className='flex items-center justify-between'>
-              <p className='text-[20px] '>Title</p>
-              <p className='text-[20px] '>Actions</p>
+            <div className='bg-white p-3 lg:p-5 rounded-lg lg:w-[65%] mt-5 lg:mt-0'>
+              <h2 className="text-lg font-semibold ">Reservation</h2>
+              <Reservationchart />
             </div>
-            <CustomActiveShapePieChart />
           </div>
-        </div >
+        </div>
+
+
+        <div className='grid grid-cols-3 gap-3'>
+
+        </div>
+        <div className='grid grid-cols-3 gap-3'>
+
+        </div>
+        <div className='grid grid-cols-3 gap-3'>
+
+        </div>
+
 
 
         <div className="w-full bg-[#F0F3FB] mt-5">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-800">Booking Details</h2>
               <button className="text-gray-600 hover:text-[#876B56] transition-colors">
@@ -341,7 +393,6 @@ export const Dashboard = () => {
               </button>
             </div>
 
-            {/* Scrollable Table with Custom Scrollbar */}
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
               <table className="w-full min-w-[1000px]">
                 <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
@@ -414,7 +465,6 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          {/* Custom Scrollbar Styles */}
           <style>{`
         .scrollbar-thin::-webkit-scrollbar {
           width: 8px;
@@ -438,7 +488,7 @@ export const Dashboard = () => {
       `}</style>
         </div>
 
-      </div>
+      </div >
     </>
   )
 }
