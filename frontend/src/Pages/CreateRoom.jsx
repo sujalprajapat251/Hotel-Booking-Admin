@@ -24,8 +24,14 @@ const CreateRoom = () => {
     },
     features: [],
     bed: {
-      type: 'King',
-      count: ''
+      mainBed: {
+        type: 'Queen',
+        count: ''
+      },
+      childBed: {
+        type: 'Single',
+        count: ''
+      }
     },
     viewType: '',
     images: [],
@@ -65,14 +71,31 @@ const CreateRoom = () => {
     const { name, value, type, checked } = e.target;
     
     if (name.includes('.')) {
-      const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
-        [parent]: {
-          ...prev[parent],
-          [child]: type === 'checkbox' ? checked : value
-        }
-      }));
+      const parts = name.split('.');
+      if (parts.length === 2) {
+        // Handle one level nesting (e.g., price.base)
+        const [parent, child] = parts;
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [child]: type === 'checkbox' ? checked : value
+          }
+        }));
+      } else if (parts.length === 3) {
+        // Handle two level nesting (e.g., bed.mainBed.type)
+        const [parent, middle, child] = parts;
+        setFormData(prev => ({
+          ...prev,
+          [parent]: {
+            ...prev[parent],
+            [middle]: {
+              ...prev[parent][middle],
+              [child]: type === 'checkbox' ? checked : value
+            }
+          }
+        }));
+      }
     } else {
       setFormData(prev => ({
         ...prev,
@@ -124,7 +147,7 @@ const CreateRoom = () => {
     // Validate required fields
     if (!formData.roomNumber || !formData.roomType || !formData.floor || 
         !formData.price.base || !formData.price.weekend || 
-        !formData.capacity.adults || !formData.bed.count || !formData.viewType) {
+        !formData.capacity.adults || !formData.bed.mainBed.count || !formData.bed.childBed.count || !formData.viewType) {
       alert('Please fill in all required fields');
       return;
     }
@@ -142,8 +165,14 @@ const CreateRoom = () => {
       },
       features: selectedFeatures,
       bed: {
-        type: formData.bed.type,
-        count: parseInt(formData.bed.count)
+        mainBed: {
+          type: formData.bed.mainBed.type,
+          count: parseInt(formData.bed.mainBed.count)
+        },
+        childBed: {
+          type: formData.bed.childBed.type,
+          count: parseInt(formData.bed.childBed.count)
+        }
       }
     };
 
@@ -158,7 +187,10 @@ const CreateRoom = () => {
         price: { base: '', weekend: '' },
         capacity: { adults: '', children: '' },
         features: [],
-        bed: { type: 'King', count: '' },
+        bed: {
+          mainBed: { type: 'Queen', count: '' },
+          childBed: { type: 'Single', count: '' }
+        },
         viewType: '',
         images: [],
         status: 'Available',
@@ -341,41 +373,83 @@ const CreateRoom = () => {
           </div>
 
           {/* Bed Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="bed.type" className="block text-sm font-medium text-senary mb-2">
-                Bed Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="bed.type"
-                name="bed.type"
-                value={formData.bed.type}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
-                required
-              >
-                <option value="Single">Single</option>
-                <option value="Double">Double</option>
-                <option value="Queen">Queen</option>
-                <option value="King">King</option>
-                <option value="Twin">Twin</option>
-              </select>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-senary">Main Bed</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="bed.mainBed.type" className="block text-sm font-medium text-senary mb-2">
+                  Main Bed Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="bed.mainBed.type"
+                  name="bed.mainBed.type"
+                  value={formData.bed.mainBed.type}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
+                  required
+                >
+                  <option value="Single">Single</option>
+                  <option value="Double">Double</option>
+                  <option value="Queen">Queen</option>
+                  <option value="King">King</option>
+                  <option value="Twin">Twin</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="bed.mainBed.count" className="block text-sm font-medium text-senary mb-2">
+                  Main Bed Count <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="bed.mainBed.count"
+                  name="bed.mainBed.count"
+                  value={formData.bed.mainBed.count}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1"
+                  min="1"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
+                  required
+                />
+              </div>
             </div>
-            <div>
-              <label htmlFor="bed.count" className="block text-sm font-medium text-senary mb-2">
-                Bed Count <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                id="bed.count"
-                name="bed.count"
-                value={formData.bed.count}
-                onChange={handleInputChange}
-                placeholder="e.g., 1"
-                min="1"
-                className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
-                required
-              />
+
+            <h3 className="text-lg font-semibold text-senary mt-4">Child Bed</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="bed.childBed.type" className="block text-sm font-medium text-senary mb-2">
+                  Child Bed Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="bed.childBed.type"
+                  name="bed.childBed.type"
+                  value={formData.bed.childBed.type}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
+                  required
+                >
+                  <option value="Single">Single</option>
+                  <option value="Double">Double</option>
+                  <option value="Queen">Queen</option>
+                  <option value="King">King</option>
+                  <option value="Twin">Twin</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="bed.childBed.count" className="block text-sm font-medium text-senary mb-2">
+                  Child Bed Count <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="bed.childBed.count"
+                  name="bed.childBed.count"
+                  value={formData.bed.childBed.count}
+                  onChange={handleInputChange}
+                  placeholder="e.g., 1"
+                  min="1"
+                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
+                  required
+                />
+              </div>
             </div>
           </div>
 

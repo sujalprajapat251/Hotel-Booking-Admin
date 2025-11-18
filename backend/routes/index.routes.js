@@ -31,8 +31,16 @@ const {
     getRooms,
     getRoomById,
     updateRoom,
-    deleteRoom
+    deleteRoom,
+    autoUpdateRoomBeds
 } = require('../controller/createRoomController');
+const {
+    createBooking,
+    getBookings,
+    getBookingById,
+    updateBooking,
+    deleteBooking
+} = require('../controller/bookingController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -109,5 +117,13 @@ indexRoutes.get('/rooms', getRooms);
 indexRoutes.get('/rooms/:id', getRoomById);
 indexRoutes.put('/rooms/:id', auth, adminOnly, upload.array('images', 10), updateRoom);
 indexRoutes.delete('/rooms/:id', auth, adminOnly, deleteRoom);
+indexRoutes.post('/autoUpdateRoomBeds', autoUpdateRoomBeds);
+
+// booking routes
+indexRoutes.post('/bookings', auth, createBooking);
+indexRoutes.get('/bookings', auth, getBookings);
+indexRoutes.get('/bookings/:id', auth, getBookingById);
+indexRoutes.put('/bookings/:id', auth, updateBooking);
+indexRoutes.delete('/bookings/:id', auth, deleteBooking);
 
 module.exports = indexRoutes;

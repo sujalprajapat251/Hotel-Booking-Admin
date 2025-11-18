@@ -85,8 +85,11 @@ const createRoom = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Capacity (adults) is required' });
         }
 
-        if (!bed || !bed.type || !bed.count) {
-            return res.status(400).json({ success: false, message: 'Bed information (type and count) is required' });
+        if (!bed || !bed.mainBed || !bed.mainBed.type || !bed.mainBed.count) {
+            return res.status(400).json({ success: false, message: 'Bed information (mainBed type and count) is required' });
+        }
+        if (!bed.childBed || !bed.childBed.type || !bed.childBed.count) {
+            return res.status(400).json({ success: false, message: 'Bed information (childBed type and count) is required' });
         }
 
         if (!viewType || !viewType.trim()) {
@@ -135,8 +138,14 @@ const createRoom = async (req, res) => {
             },
             features: features || [],
             bed: {
-                type: bed.type,
-                count: parseInt(bed.count)
+                mainBed: {
+                    type: bed.mainBed.type,
+                    count: parseInt(bed.mainBed.count)
+                },
+                childBed: {
+                    type: bed.childBed.type,
+                    count: parseInt(bed.childBed.count)
+                }
             },
             viewType: viewType.trim(),
             images: imagePaths,
@@ -302,8 +311,14 @@ const updateRoom = async (req, res) => {
         if (features) updateData.features = features;
         if (bed) {
             updateData.bed = {
-                type: bed.type,
-                count: parseInt(bed.count)
+                mainBed: {
+                    type: bed.mainBed.type,
+                    count: parseInt(bed.mainBed.count)
+                },
+                childBed: {
+                    type: bed.childBed.type,
+                    count: parseInt(bed.childBed.count)
+                }
             };
         }
         if (viewType) updateData.viewType = viewType.trim();
@@ -348,11 +363,83 @@ const deleteRoom = async (req, res) => {
     }
 };
 
+const bedRules = {
+    "deluxe": [
+      { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 }},
+    ],
+  
+    "Super Deluxe Room": [
+      { 
+        mainBed: { type: "Queen", count: 1 },
+        childBed: { type: "Single", count: 1 }
+      }
+    ],
+  
+    "premium": [
+      { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { 
+        mainBed: { type: "Twin", count: 2 },
+        childBed: { type: "Double", count: 1 }
+      }
+    ]
+  };
+  
+  const autoUpdateRoomBeds = async (req, res) => {
+    try {
+      const rooms = await Room.find({}).populate("roomType");
+  
+      let updated = [];
+  
+      for (let room of rooms) {
+        const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
+  
+        if (!bedRules[typeName]) continue;
+  
+        // choose random rule if multiple
+        const ruleSet = bedRules[typeName];
+        const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
+  
+        await Room.updateOne(
+          { _id: room._id },
+          {
+            $set: {
+              bed: selectedRule,
+              capacity: {
+                adults: selectedRule.mainBed.count === 2 ? 2 : 1,
+                children: selectedRule.childBed.count
+              }
+            }
+          }
+        );
+  
+        updated.push({
+          roomNumber: room.roomNumber,
+          roomType: typeName,
+          bed: selectedRule
+        });
+      }
+  
+      res.status(200).json({
+        message: "Updated all rooms successfully!",
+        updatedCount: updated.length,
+        updatedRooms: updated
+      });
+  
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
+  
+
 module.exports = {
     createRoom,
     getRooms,
     getRoomById,
     updateRoom,
-    deleteRoom
+    deleteRoom,
+    autoUpdateRoomBeds
 };
 

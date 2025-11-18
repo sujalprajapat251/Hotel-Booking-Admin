@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   FiCalendar,
   FiGrid,
@@ -27,7 +28,8 @@ import { VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
 
 
-const sections = [
+// Admin menu items
+const adminSections = [
   {
     title: null,
     key: 'main',
@@ -55,40 +57,17 @@ const sections = [
       { icon: FiPlus, label: 'Terms & Conditions', path: '/terms' },
     ],
   },
-//   {
-//     title: 'Apps',
-//     key: 'apps',
-//     items: [
-//       {
-//         icon: FiCalendar,
-//         label: 'Calendar',
-//         badge: { text: 'New', tone: 'info' },
-//       },
-//       { icon: LuNotebookPen, label: 'Task' },
-//       { icon: LuContact, label: 'Contacts' },
-//       {
-//         icon: FiMail,
-//         label: 'Email',
-//         badge: { text: '3', tone: 'warning' },
-//       },
-//       { icon: LuAppWindow, label: 'More Apps' },
-//       { icon: FiGrid, label: 'Widgets' },
-//     ],
-//   },
-//   {
-//     title: 'Components',
-//     key: 'components',
-//     items: [
-//       { icon: TbLayoutDashboard, label: 'User Interface (UI)' },
-//       { icon: FiLayers, label: 'Forms' },
-//       { icon: FiLayers, label: 'Tables' },
-//       {
-//         icon: FiLayers,
-//         label: 'Charts',
-//         badge: { text: '5', tone: 'success' },
-//       },
-//     ],
-//   },
+];
+
+// Receptionist/User menu items - only Booking Dashboard
+const receptionistSections = [
+  {
+    title: null,
+    key: 'main',
+    items: [
+      { icon: RxDashboard, label: 'Booking Dashboard', path: '/booking-dashboard' },
+    ],
+  },
 ];
 
 const SidebarHeading = ({ title }) => (
@@ -190,6 +169,12 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
 };
 
 const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {
+  const authState = useSelector((state) => state.auth);
+  const user = authState?.user || null;
+  const userRole = user?.role || 'user';
+  
+  // Determine which sections to show based on user role
+  const sections = userRole === 'admin' ? adminSections : receptionistSections;
   const containerClasses = [
     'flex h-screen flex-col overflow-y-auto border-r border-secondary/20 bg-white shadow-sm transition-all duration-200 ease-in-out',
   ];
