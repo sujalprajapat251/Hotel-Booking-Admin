@@ -1,43 +1,92 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import "../Style/vaidik.css";
+import React, { useEffect, useRef, useState } from 'react';
 import { useFormik } from 'formik';
-import * as Yup from "yup";
+import * as Yup from 'yup';
+import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
-import { FiEdit } from "react-icons/fi";
-import { Search } from "lucide-react";
+import { FiEdit, FiPlusCircle } from "react-icons/fi";
+import { IoEyeSharp } from 'react-icons/io5';
+import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail, RefreshCw } from 'lucide-react';
 
-const initialData = [
-  { no: 1, name: "Smita Parikh", title: "Hiiu", description: "AAAAAAA", image: "https://i.pravatar.cc/40?img=1" },
-  { no: 2, name: "Sarah Smith", title: "yyuy", description: "BBBBB", image: "https://i.pravatar.cc/40?img=2" },
-  { no: 3, name: "Pankaj Sinha", title: "fgg", description: "CCCCCCCCC", image: "https://i.pravatar.cc/40?img=3" },
+const bookings = [
+  {
+    name: "Smita Parikh",
+    title: "Hello",
+    subtitle: "Hello",
+    date: "02/07/2018",
+    description: "AAAAAAA",
+    image: "https://i.pravatar.cc/40?img=1",
+  },
+  {
+    name: "Sarah Smith",
+    title: "Hello",
+    subtitle: "Hello",
+    date: "02/12/2018",
+    description: "BBBBB",
+    image: "https://i.pravatar.cc/40?img=12",
+  },
+  {
+    name: "Pankaj Sinha",
+    title: "Hello",
+    subtitle: "Hello",
+    date: "02/11/2018",
+    description: "CCCCCCCCC",
+    image: "https://i.pravatar.cc/40?img=13",
+  },
 ];
 
 const About = () => {
-  const [data, setData] = useState(initialData);
-  const [search, setSearch] = useState("");
-
-  // Edit modal state
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [editItem, setEditItem] = useState(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editImageFile, setEditImageFile] = useState(null);
-  const [editImagePreview, setEditImagePreview] = useState(null);
-
-  // Add modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-  const filteredData = data.filter((item) =>
-    item.title.toLowerCase().includes(search.toLowerCase()) ||
-    item.description.toLowerCase().includes(search.toLowerCase()) ||
-    item.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const [visibleColumns, setVisibleColumns] = useState({
+    no: true,
+    image: true,
+    title: true,
+    description: true,
+    actions: true,
+  });
+
+  const toggleColumn = (column) => {
+    setVisibleColumns(prev => ({
+      ...prev,
+      [column]: !prev[column]
+    }));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowColumnDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // const handleViewClick = (item) => {
+  //     setSelectedItem(item);
+  //     setIsModalOpen(true);
+  // };
+
+  const handleCloseModal = () => {
+      setIsModalOpen(false);
+      setSelectedItem(null);
+  };
 
   const formik = useFormik({
     initialValues: {
       title: '',
-      subtitle: '',
       description: '',
       image: null,
     },
@@ -47,231 +96,331 @@ const About = () => {
       image: Yup.mixed().required('Image is required'),
     }),
     onSubmit: (values, { resetForm }) => {
-      const nextNo = data && data.length ? Math.max(...data.map(d => d.no)) + 1 : 1;
-      const imageUrl = values.image ? URL.createObjectURL(values.image) : '';
-      const newItem = {
-        no: nextNo,
-        name: values.subtitle || 'Admin',
-        title: values.title,
-        description: values.description,
-        image: imageUrl,
-        status: 'Pending',
-      };
-      setData(prev => [...prev, newItem]);
+      console.log('Submitting About Us form', values);
       resetForm();
       setIsAddModalOpen(false);
+      setIsEditMode(false);
+      setEditingItem(null);
     },
   });
 
-  // const handleViewClick = (item) => {
-  //   setSelectedItem(item);
-  //   setIsModalOpen(true);
-  // };
-  
   const handleAddModalClose = () => {
     setIsAddModalOpen(false);
+    setIsEditMode(false);
+    setEditingItem(null);
     formik.resetForm();
+  };
+
+  const handleDeleteClick = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setItemToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (itemToDelete) {
+      console.log('Deleting about', itemToDelete);
+    }
+    handleDeleteModalClose();
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'Paid':
-          return '#4EB045';
+        return '#4EB045';
       case 'Unpaid':
-          return '#EC0927';
+        return '#EC0927';
       case 'Pending':
-          return '#F7DF9C';
+        return '#F7DF9C';
       default:
-          return '#gray';
+        return '#gray';
     }
   };
-  
+
+  // Filter bookings based on search term
+  const filteredBookings = bookings.filter((item) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      item.title?.toLowerCase().includes(searchLower) ||
+      item.description?.toLowerCase().includes(searchLower) ||
+      item.name?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredBookings.slice(startIndex, endIndex);
+
+  const handleRefresh = () => {
+    // dispatch(getAllUser());
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
-        <h1 className="text-2xl font-semibold text-black">About</h1>
+          <h1 className="text-2xl font-semibold text-black">About</h1>
       </section>
 
-      <div className='shadow-md rounded-md'>
-        <div className="flex flex-col md:flex-row justify-between items-center bg-white py-3 px-4 rounded-md gap-3">
+      {/* Header */}
+      <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+          {/* Header */}
+          <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+            <div className='flex gap-2 md:gap-5 sm:justify-between'>
+              <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">About</p>
 
-          <div className="relative max-w-md">
-            <input
-              type="text"
-              placeholder="Search Faq..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          </div>
-          <div className='flex'>
-            <Link className='me-3' to=''>
-              <div className='mv_Add_btn bg-primary hover:bg-secondary'><span>View</span></div>
-            </Link>
-            <button onClick={() => setIsAddModalOpen(true)}>
-                <div className="mv_Add_btn bg-primary hover:bg-secondary"><span>+ Add</span></div>
-            </button>
-          </div>
-        </div>
+              {/* Search Bar */}
+              <div className="relative max-w-md">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+              </div>
+            </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
-          <table className="w-full min-w-[1000px]">
-            <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
-              <tr>
-                  <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">No</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Image</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Title</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Description</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold text-[#755647]">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-white">
-              {filteredData.map((item, index) => (
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1 justify-end mt-2">
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => {
+                    setIsEditMode(false);
+                    setEditingItem(null);
+                    formik.resetForm();
+                    setIsAddModalOpen(true);
+                  }}
+                  className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                  title="Show/Hide Columns"
+                >
+                    <FiPlusCircle size={20}/>
+                </button>
+
+                <button
+                  onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                  className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                  title="Show/Hide Columns"
+                >
+                  <Filter size={20} />
+                </button>
+
+                {showColumnDropdown && (
+                  <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                    <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                    </div>
+                    <div className="max-h-44 overflow-y-auto">
+                      {Object.keys(visibleColumns).map((column) => (
+                        <label
+                          key={column}
+                          className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns[column]}
+                            onChange={() => toggleColumn(column)}
+                            className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                          />
+                          <span className="ml-2 text-sm text-gray-700 capitalize">
+                            {column === 'joiningDate' ? 'Joining Date' : column}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                <RefreshCw size={20} />
+              </button>
+              <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                <Download size={20} />
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
+            <table className="w-full min-w-[1000px]">
+              <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
+                <tr>
+                  {visibleColumns.no && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
+                  )}
+                  {visibleColumns.image && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
+                  )}
+                  {visibleColumns.title && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Title</th>
+                  )}
+                  {visibleColumns.description && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
+                  )}
+                  {visibleColumns.actions && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {currentData.map((item, index) => (
                   <tr
                       key={index}
                       className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                   >
-                    <td className="py-4 px-4">{item.no}</td>
+                    {visibleColumns.no && (
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                    )}
 
                     {/* Guest Name */}
-                    <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="relative">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                          />
-                          <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
+                    {visibleColumns.image && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
+                            />
+                            <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}>
+                            </div>
+                          </div>
                         </div>
-                        {/* <span className="text-sm font-semibold text-gray-800">{item.name}</span> */}
-                      </div>
-                    </td>
+                      </td>
+                    )}
 
                     {/* title */}
-                    <td className="py-4 px-4 whitespace-normal break-words max-w-[160px]">
-                      <div className="flex items-center gap-2">
-                          {item.title}
-                      </div>
-                    </td>
-
-                    <td className="py-4 px-4 whitespace-normal break-words max-w-[160px]">{item.description}</td>
-
-                    <td className="py-4 px-4">
-                      <div className="mv_table_action flex">
-                        {/* <button onClick={() => handleViewClick(item)} className="cursor-pointer"><div><img src={viewImg} alt="view" /></div></button> */}
-                        <div><FiEdit 
-                            className="text-[#6777ef] text-[18px] cursor-pointer" 
-                            onClick={() => {
-                              setEditItem(item);
-                              setEditTitle(item.title);
-                              setEditDescription(item.description);
-                              setEditImagePreview(item.image);
-                              setIsEditOpen(true);
-                            }}
-                          />
+                    {visibleColumns.title && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                            {item.title}
                         </div>
-                        <div><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                      </div>
-                    </td>
+                      </td>
+                    )}
+
+                    {/* description */}
+                    {visibleColumns.description && (
+                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">{item.description}</td>
+                    )}
+                    
+                    {/* Actions */}
+                    {visibleColumns.actions && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="mv_table_action flex">
+                          <div onClick={() => {
+                              setIsEditMode(true);
+                              setEditingItem(item);
+                              formik.resetForm();
+                              setIsAddModalOpen(true);
+                          }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+              <span className="text-sm text-gray-600">Items per page:</span>
+              <div className="relative">
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+              <span className="text-sm text-gray-600">
+                {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+              </span>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
       </div>
 
-      {/* Edit Modal */}
-      {isEditOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsEditOpen(false)} />
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
-            <div className='flex items-start justify-between mb-5'>
-              <h2 className="text-2xl font-semibold text-black">Edit About Us</h2>
-              <button
-                className="text-gray-500 hover:text-gray-800 text-3xl"
-                onClick={() => setIsEditOpen(false)}
-              >
-                &times;
-              </button>
-            </div>
+      {/* View Modal */}
+      {isModalOpen && selectedItem && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
 
-            <div className="flex flex-col mb-4">
-              <label className="text-sm font-medium text-black mb-1">Title</label>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-              />
-            </div>
+          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-md">
+              {/* Modal Header */}
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-black">About Details</h3>
+                  <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="inline-flex items-center justify-center p-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="md:flex justify-between">
 
-            <div className="flex flex-col mb-4">
-              <label className="text-sm font-medium text-black mb-1">Description</label>
-              <textarea
-                value={editDescription}
-                onChange={(e) => setEditDescription(e.target.value)}
-                className="w-full rounded-[4px] h-20 border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-              />
-            </div>
+                  {/* Image */}
+                  <div className="flex items-center me-4 md:mb-0 mb-4">
+                    <img
+                        src={selectedItem.image}
+                        alt={selectedItem.name}
+                        className="min-w-32 h-32 m-auto"
+                    />
+                  </div>
 
-            <div className="flex flex-col mb-4">
-              <label htmlFor="editImage" className="text-sm font-medium text-black mb-1">Image</label>
-              <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
-                <span className="truncate">
-                  {editImageFile ? editImageFile.name : (editImagePreview ? 'Current image selected' : 'Choose file')}
-                </span>
-                <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
-                <input
-                  id="editImage"
-                  name="editImage"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(event) => {
-                    const file = event.currentTarget.files && event.currentTarget.files[0];
-                    if (file) {
-                      setEditImageFile(file);
-                      setEditImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                />
-              </label>
-            </div>
-
-            <div className="flex items-center justify-center pt-4">
-              <button
-                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                onClick={() => {
-                  setIsEditOpen(false);
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                onClick={() => {
-                  // Apply update to data
-                  if (!editItem) return;
-                  const updated = data.map(d => {
-                    if (d.no === editItem.no) {
-                      return {
-                        ...d,
-                        title: editTitle,
-                        description: editDescription,
-                        image: editImagePreview || d.image,
-                      };
-                    }
-                    return d;
-                  });
-                  setData(updated);
-                  setIsEditOpen(false);
-                }}
-              >
-                Update
-              </button>
+                  {/* Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-gray-700 min-w-[120px]">Title:</span>
+                      <span className="text-gray-900">{selectedItem.title}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
+                      <span className="text-gray-900">{selectedItem.description}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -280,93 +429,128 @@ const About = () => {
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+            <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+            <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+                <div className="flex items-start justify-between mb-6">
+                    <h2 className="text-2xl font-semibold text-black">
+                        {isEditMode ? 'Edit About Us' : 'Add About Us'}
+                    </h2>
+                    <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                <form className="" onSubmit={formik.handleSubmit}>
+                    <div className="flex flex-col mb-4">
+                        <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
+                        <input
+                            id="title"
+                            name="title"
+                            type="text"
+                            placeholder="Enter Title"
+                            className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                            value={formik.values.title}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                        />
+                        {formik.touched.title && formik.errors.title ? (
+                            <p className="text-sm text-red-500">{formik.errors.title}</p>
+                        ) : null}
+                    </div>
+
+                    <div className="flex flex-col mb-4">
+                        <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="4"
+                            placeholder="Enter Description"
+                            className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                            value={formik.values.description}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                        ></textarea>
+                        {formik.touched.description && formik.errors.description ? (
+                            <p className="text-sm text-red-500">{formik.errors.description}</p>
+                        ) : null}
+                    </div>
+
+                    <div className="flex flex-col mb-4">
+                        <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
+                        <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
+                            <span className="truncate">
+                                {formik.values.image ? formik.values.image.name : 'Choose file'}
+                            </span>
+                            <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
+                            <input
+                                id="image"
+                                name="image"
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(event) => {
+                                    const file = event.currentTarget.files && event.currentTarget.files[0];
+                                    formik.setFieldValue('image', file);
+                                }}
+                                onBlur={formik.handleBlur}
+                            />
+                        </label>
+                        {formik.touched.image && formik.errors.image ? (
+                            <p className="text-sm text-red-500">{formik.errors.image}</p>
+                        ) : null}
+                    </div>
+
+                    <div className="flex items-center justify-center pt-4">
+                        <button
+                            type="button"
+                            onClick={handleAddModalClose}
+                            className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                        >
+                            {isEditMode ? 'Edit' : 'Add'}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+      )}
+
+      {/* Delete Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-black">Add About Us</h2>
-              <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <h2 className="text-2xl font-semibold text-black">Delete About</h2>
+                <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete?</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                  type="button"
+                  onClick={handleDeleteModalClose}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+              >
+                  Cancel
+              </button>
+              <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+              >
+                  Delete
               </button>
             </div>
-            <form className="" onSubmit={formik.handleSubmit}>
-              <div className="flex flex-col mb-4">
-                  <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
-                  <input
-                      id="title"
-                      name="title"
-                      type="text"
-                      placeholder="Enter Title"
-                      // className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#e3c78a1a]"
-                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                      value={formik.values.title}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.title && formik.errors.title ? (
-                      <p className="text-sm text-red-500">{formik.errors.title}</p>
-                  ) : null}
-              </div>
-
-              <div className="flex flex-col mb-4">
-                  <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                  <textarea
-                      id="description"
-                      name="description"
-                      rows="4"
-                      placeholder="Enter Description"
-                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                      value={formik.values.description}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                  ></textarea>
-                  {formik.touched.description && formik.errors.description ? (
-                      <p className="text-sm text-red-500">{formik.errors.description}</p>
-                  ) : null}
-              </div>
-
-              <div className="flex flex-col mb-4">
-                  <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
-                  <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
-                      <span className="truncate">
-                          {formik.values.image ? formik.values.image.name : 'Choose file'}
-                      </span>
-                      <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
-                      <input
-                          id="image"
-                          name="image"
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(event) => {
-                              const file = event.currentTarget.files && event.currentTarget.files[0];
-                              formik.setFieldValue('image', file);
-                          }}
-                          onBlur={formik.handleBlur}
-                      />
-                  </label>
-                  {formik.touched.image && formik.errors.image ? (
-                      <p className="text-sm text-red-500">{formik.errors.image}</p>
-                  ) : null}
-              </div>
-
-              <div className="flex items-center justify-center pt-4">
-                <button
-                    type="button"
-                    onClick={handleAddModalClose}
-                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                >
-                    Cancel
-                </button>
-                <button
-                    type="submit"
-                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                >
-                    Add
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
