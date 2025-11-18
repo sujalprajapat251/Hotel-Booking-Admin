@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { IoEyeSharp } from 'react-icons/io5';
 import { getAllContact } from '../Redux/Slice/contactSlice';
-import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail } from 'lucide-react';
+import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail, RefreshCw } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 
@@ -29,6 +27,7 @@ const Contact = () => {
       message: true,
       actions: true,
     });
+    const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
 
     const toggleColumn = (column) => {
       setVisibleColumns(prev => ({
@@ -134,6 +133,12 @@ const Contact = () => {
       }
   };
 
+  const handleRefresh = () => {
+    dispatch(getAllContact());
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
@@ -198,6 +203,9 @@ const Contact = () => {
                           </div>
                         )}
                       </div>
+                      <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                        <RefreshCw size={20} />
+                      </button>
                       <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
                         <Download size={20} />
                       </button>
@@ -231,59 +239,67 @@ const Contact = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                          {currentData.map((item, index) => (
-                                <tr
-                                    key={index}
-                                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                                >
-                                  {visibleColumns.no && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-                                  )}
+                          {currentData.length === 0 ? (
+                            <tr>
+                              <td colSpan={visibleColumnCount} className="px-6 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 text-center">
+                                No item found
+                              </td>
+                            </tr>
+                          ) : (
+                            currentData.map((item, index) => (
+                              <tr
+                                  key={index}
+                                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                              >
+                                {visibleColumns.no && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                )}
 
-                                  {/* Name */}
-                                  {visibleColumns.name && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm text-gray-800">{item.name}</span>
-                                        </div>
-                                    </td>
-                                  )}
+                                {/* Name */}
+                                {visibleColumns.name && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                      <div className="flex items-center gap-3">
+                                          <span className="text-sm text-gray-800">{item.name}</span>
+                                      </div>
+                                  </td>
+                                )}
 
-                                  {/* email */}
-                                  {visibleColumns.email && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                        <div className="flex items-center gap-2">
-                                            <Mail className="text-sm text-red-600" size={16} />
-                                            {item.email}
-                                        </div>
-                                    </td>
-                                  )}
+                                {/* email */}
+                                {visibleColumns.email && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                      <div className="flex items-center gap-2">
+                                          <Mail className="text-sm text-red-600" size={16} />
+                                          {item.email}
+                                      </div>
+                                  </td>
+                                )}
 
-                                  {/* email */}
-                                  {visibleColumns.mobileno && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                        <div className="flex items-center gap-2">
-                                            <Phone className='text-sm text-green-600' size={16} />
-                                            {Array.isArray(item.mobileno) ? item.mobileno.join(", ") : item.mobileno}
-                                        </div>
-                                    </td>
-                                  )}
+                                {/* email */}
+                                {visibleColumns.mobileno && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                      <div className="flex items-center gap-2">
+                                          <Phone className='text-sm text-green-600' size={16} />
+                                          {Array.isArray(item.mobileno) ? item.mobileno.join(", ") : item.mobileno}
+                                      </div>
+                                  </td>
+                                )}
 
-                                  {/* description */}
-                                  {visibleColumns.message && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.message}</td>
-                                  )}
+                                {/* description */}
+                                {visibleColumns.message && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.message}</td>
+                                )}
 
-                                  {/* Actions */}
-                                  {visibleColumns.actions && (
-                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                        <div className="mv_table_action flex">
-                                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
-                                        </div>
-                                    </td>
-                                  )}
-                                </tr>
-                            ))}
+                                {/* Actions */}
+                                {visibleColumns.actions && (
+                                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                      <div className="mv_table_action flex">
+                                          <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
+                                      </div>
+                                  </td>
+                                )}
+                              </tr>
+                            ))
+                          )}
                         </tbody>
                     </table>
                 </div>

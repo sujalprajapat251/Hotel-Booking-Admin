@@ -28,6 +28,7 @@ import TermsCondition from "./Pages/TermsCondition";
 import Profile from './Pages/Profile';
 import BookingDashboard from './Pages/BookingDashboard';
 import ProtectedRoute from './component/ProtectedRoute';
+import TermsConditions from './Pages/TermsConditions';
 
 function App() {
 
@@ -44,7 +45,7 @@ function App() {
           <Alert />
           <Routes>
             <Route path='/editor' element={<EditorDemo />}></Route>
-            <Route path='/data-table' element={<DataTable />}></Route>
+            <Route path='/data-table' element={<TermsConditions />}></Route>
             <Route path='/' element={<LoginPage/>}/>
             <Route element={<Layout />}>
               {/* Receptionist/User only route - Booking Dashboard */}
