@@ -5,7 +5,7 @@ import {
   FiGrid,
   FiLayers,
   FiMail,
-  FiPlus,
+  FiBookOpen,
   FiChevronDown,
   FiChevronRight,
 } from 'react-icons/fi';
@@ -52,7 +52,7 @@ const sections = [
       { icon: VscCodeReview, label: 'Review', path: '/review' },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
-      { icon: FiPlus, label: 'Terms & Conditions', path: '/terms' },
+      { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' }
     ],
   },
 //   {
