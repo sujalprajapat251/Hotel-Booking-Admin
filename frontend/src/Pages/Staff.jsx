@@ -2,8 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, Filter, Plus, RefreshCw, Download, ChevronLeft, ChevronRight, Edit2, Trash2, MapPin, Phone, Mail } from 'lucide-react';
 import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllStaff } from '../Redux/Slice/staff.slice';
+import { IMAGE_URL } from '../Utils/baseUrl';
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 
 const StaffTable = () => {
+
+  const dispatch = useDispatch();
+
+  const staff = useSelector((state) => state.staff.staff)
+
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -13,38 +23,30 @@ const StaffTable = () => {
   const [visibleColumns, setVisibleColumns] = useState({
     No: true,
     name: true,
-    designation: true,
-    mobile: true,
     email: true,
+    mobileno: true,
+    designation: true,
     joiningDate: true,
     address: true,
     actions: true
   });
 
-  const staffData = [
-    { id: 1, name: 'Bertie Jones', designation: 'Cook', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=1' },
-    { id: 2, name: 'Sarah Smith', designation: 'Kitchen Manager', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/12/2018', address: '22,tilak appt. surat', image: 'https://i.pravatar.cc/150?img=2' },
-    { id: 3, name: 'Bethaney Spence', designation: 'Casino Host', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '201, Shyamal, Puna', image: 'https://i.pravatar.cc/150?img=3' },
-    { id: 4, name: 'Jay Soni', designation: 'Driver', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=4' },
-    { id: 5, name: 'Pam Abbott', designation: 'Purchase Officer', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=5' },
-    { id: 6, name: 'Wesley Casey', designation: 'Receptionist', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=6' },
-    { id: 7, name: 'Ivan Bell', designation: 'Kitchen Manager', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=7' },
-    { id: 8, name: 'Jay Soni', designation: 'Events Manager', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=8' },
-    { id: 9, name: 'Robin Graves', designation: 'Driver', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=9' },
-    { id: 10, name: 'Elsie Cruz', designation: 'Driver', mobile: '1234567890', email: 'test@email.com', joiningDate: '02/25/2018', address: '11,Shyam appt. Rajkot', image: 'https://i.pravatar.cc/150?img=10' },
-    { id: 11, name: 'Mike Johnson', designation: 'Chef', mobile: '1234567890', email: 'test@email.com', joiningDate: '03/15/2018', address: '15,Park street, Mumbai', image: 'https://i.pravatar.cc/150?img=11' },
-    { id: 12, name: 'Lisa Anderson', designation: 'Manager', mobile: '1234567890', email: 'test@email.com', joiningDate: '04/10/2018', address: '28,Beach road, Goa', image: 'https://i.pravatar.cc/150?img=12' },
-    { id: 13, name: 'Tom Wilson', designation: 'Security', mobile: '1234567890', email: 'test@email.com', joiningDate: '05/20/2018', address: '33,Lake view, Pune', image: 'https://i.pravatar.cc/150?img=13' },
-    { id: 14, name: 'Emma Davis', designation: 'Housekeeping', mobile: '1234567890', email: 'test@email.com', joiningDate: '06/08/2018', address: '42,River side, Delhi', image: 'https://i.pravatar.cc/150?img=14' },
-    { id: 15, name: 'Chris Brown', designation: 'Waiter', mobile: '1234567890', email: 'test@email.com', joiningDate: '07/12/2018', address: '55,Hill top, Shimla', image: 'https://i.pravatar.cc/150?img=15' },
-    { id: 16, name: 'Anna Taylor', designation: 'Receptionist', mobile: '1234567890', email: 'test@email.com', joiningDate: '08/25/2018', address: '67,Market road, Jaipur', image: 'https://i.pravatar.cc/150?img=16' }
-  ];
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
 
-  const filteredData = staffData.filter(staff =>
-    staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.designation.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff.mobile.includes(searchTerm) ||
-    staff.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = staff.filter(staff =>
+    staff?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    staff?.mobileno?.toString().includes(searchTerm) ||
+    staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (staff?.joiningdate && formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase())) ||
+    staff?.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -69,6 +71,71 @@ const StaffTable = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleRefresh = () => {
+    dispatch(getAllStaff());
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  const handleDownloadExcel = () => {
+    try {
+      // Prepare data for Excel
+      const excelData = filteredData.map((staff, index) => {
+        const row = {};
+
+        if (visibleColumns.No) {
+          row['No.'] = index + 1;
+        }
+        if (visibleColumns.name) {
+          row['Name'] = staff.name || '';
+        }
+        if (visibleColumns.email) {
+          row['Email'] = staff.email || '';
+        }
+        if (visibleColumns.mobileno) {
+          row['mobileno'] = staff.mobileno || '';
+        }
+        if (visibleColumns.designation) {
+          row['designation'] = staff.designation || '';
+        }
+        if (visibleColumns.date) {
+          row['Date'] = staff.joiningdate ? formatDate(staff.joiningdate) : '';
+        }
+        if (visibleColumns.address) {
+          row['address'] = staff.address || '';
+        }
+        row['gender'] = staff.gender || '';
+        row['department'] = staff.department.name || ''
+
+        return row;
+      });
+
+      // Create a new workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+      // Auto-size columns
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
+
+      // Generate file name with current date
+      const date = new Date();
+      const fileName = `Staff_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      // Download the file
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+    } catch (error) {
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+    }
+  };
+
+  useEffect(() => {
+    dispatch(getAllStaff());
+  }, [dispatch]);
 
   return (
     <>
@@ -132,10 +199,10 @@ const StaffTable = () => {
                       </div>
                     )}
                   </div>
-                  <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh">
+                  <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
                     <RefreshCw size={20} />
                   </button>
-                  <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                  <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
                     <Download size={20} />
                   </button>
                 </div>
@@ -148,7 +215,7 @@ const StaffTable = () => {
                 <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
                   <tr>
                     {visibleColumns.No && (
-                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">NO.</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No.</th>
                     )}
                     {visibleColumns.name && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
@@ -156,8 +223,8 @@ const StaffTable = () => {
                     {visibleColumns.designation && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Designation</th>
                     )}
-                    {visibleColumns.mobile && (
-                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile</th>
+                    {visibleColumns.mobileno && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile No.</th>
                     )}
                     {visibleColumns.email && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Email</th>
@@ -187,7 +254,7 @@ const StaffTable = () => {
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-3">
                               <img
-                                src={staff.image}
+                                src={`${IMAGE_URL}${staff.image}`}
                                 alt={staff.name}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                               />
@@ -198,29 +265,29 @@ const StaffTable = () => {
                         {visibleColumns.designation && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
                         )}
-                        {visibleColumns.mobile && (
+                        {visibleColumns.mobileno && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2 text-sm text-green-600">
-                              <Phone size={16} />
-                              {staff.mobile}
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <Phone size={16} className='text-green-600' />
+                              {staff.mobileno}
                             </div>
                           </td>
                         )}
                         {visibleColumns.email && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2 text-sm text-red-600">
-                              <Mail size={16} />
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <Mail size={16} className='text-red-600' />
                               {staff.email}
                             </div>
                           </td>
                         )}
                         {visibleColumns.joiningDate && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.joiningDate}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.joiningdate ? formatDate(staff?.joiningdate) : ''}</td>
                         )}
                         {visibleColumns.address && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2 text-sm text-orange-600">
-                              <MapPin size={16} />
+                            <div className="flex items-center gap-2 text-sm text-gray-700">
+                              <MapPin size={16} className='text-orange-600' />
                               {staff.address}
                             </div>
                           </td>

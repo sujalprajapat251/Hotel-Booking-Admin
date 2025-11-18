@@ -5,7 +5,10 @@ const nodemailer = require("nodemailer");
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        let { name, email, password, role } = req.body;
+
+        role = role || "user";
+
 
         if (!name || !email || !password) {
             return res.status(400).json({ status: 400, message: 'Name, email and password are required.' });

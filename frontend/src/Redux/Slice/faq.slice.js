@@ -125,7 +125,7 @@ const faqSlice = createSlice({
             .addCase(getAllFaqs.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'faqs fetched successfully';
+                state.message = 'faqs fetched successfully..!';
                 state.faqs = action.payload;
                 state.isError = false;
             })
