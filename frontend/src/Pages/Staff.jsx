@@ -72,8 +72,8 @@ const StaffTable = () => {
 
   return (
     <>
-      <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB]'>
-        <p className=' text-[20px] font-semiboldtext-black '>All Staffs</p>
+      <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB]'>
+        <p className='text-[20px] font-semibold text-black'>All Staffs</p>
         <div className="w-full mt-3 md:mt-5">
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             {/* Header */}
@@ -82,7 +82,7 @@ const StaffTable = () => {
                 <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p>
 
                 {/* Search Bar */}
-                <div className="relative  max-w-md">
+                <div className="relative max-w-md">
                   <input
                     type="text"
                     placeholder="Search..."
@@ -107,11 +107,11 @@ const StaffTable = () => {
                     </button>
 
                     {showColumnDropdown && (
-                      <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
-                        <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                      <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
+                        <div className="px-3 py-2 border-b border-gray-200">
                           <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                         </div>
-                        <div className="max-h-44 overflow-y-auto">
+                        <div className="max-h-64 overflow-y-auto">
                           {Object.keys(visibleColumns).map((column) => (
                             <label
                               key={column}
@@ -148,96 +148,110 @@ const StaffTable = () => {
                 <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
                   <tr>
                     {visibleColumns.No && (
-                      <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">NO.</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">NO.</th>
                     )}
                     {visibleColumns.name && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Name</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                     )}
                     {visibleColumns.designation && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Designation</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Designation</th>
                     )}
                     {visibleColumns.mobile && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Mobile</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile</th>
                     )}
                     {visibleColumns.email && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Email</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Email</th>
                     )}
                     {visibleColumns.joiningDate && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Joining Date</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Joining Date</th>
                     )}
                     {visibleColumns.address && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Address</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Address</th>
                     )}
                     {visibleColumns.actions && (
-                      <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Actions</th>
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {currentData.map((staff, index) => (
-                    <tr
-                      key={staff.id}
-                      className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                    >
-                      {visibleColumns.No && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-                      )}
-                      {visibleColumns.name && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={staff.image}
-                              alt={staff.name}
-                              className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                            />
-                            <span className="text-sm font-medium text-gray-800">{staff.name}</span>
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.designation && (
-                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
-                      )}
-                      {visibleColumns.mobile && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6">
-                          <div className="flex items-center gap-2 text-sm text-green-600">
-                            <Phone size={16} />
-                            {staff.mobile}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.email && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6">
-                          <div className="flex items-center gap-2 text-sm text-red-600">
-                            <Mail size={16} />
-                            {staff.email}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.joiningDate && (
-                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.joiningDate}</td>
-                      )}
-                      {visibleColumns.address && (
-                        <td className="px-6 py-3">
-                          <div className="flex items-center gap-2 text-sm text-orange-600">
-                            <MapPin size={16} />
-                            {staff.address}
-                          </div>
-                        </td>
-                      )}
-                      {visibleColumns.actions && (
-                        <td className="px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
-                              <FiEdit size={16} />
-                            </button>
-                            <button className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
-                              <RiDeleteBinLine size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      )}
+                  {currentData.length > 0 ? (
+                    currentData.map((staff, index) => (
+                      <tr
+                        key={staff.id}
+                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                      >
+                        {visibleColumns.No && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                        )}
+                        {visibleColumns.name && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={staff.image}
+                                alt={staff.name}
+                                className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                              />
+                              <span className="text-sm font-medium text-gray-800">{staff.name}</span>
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.designation && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
+                        )}
+                        {visibleColumns.mobile && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                            <div className="flex items-center gap-2 text-sm text-green-600">
+                              <Phone size={16} />
+                              {staff.mobile}
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.email && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                            <div className="flex items-center gap-2 text-sm text-red-600">
+                              <Mail size={16} />
+                              {staff.email}
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.joiningDate && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.joiningDate}</td>
+                        )}
+                        {visibleColumns.address && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                            <div className="flex items-center gap-2 text-sm text-orange-600">
+                              <MapPin size={16} />
+                              {staff.address}
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.actions && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                            <div className="flex items-center gap-2">
+                              <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                                <FiEdit size={16} />
+                              </button>
+                              <button className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                                <RiDeleteBinLine size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          </svg>
+                          <p className="text-lg font-medium">No data available</p>
+                          <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                        </div>
+                      </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
@@ -263,9 +277,9 @@ const StaffTable = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+              <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                 <span className="text-sm text-gray-600">
-                  {startIndex + 1} - {Math.min(endIndex, filteredData.length)} of {filteredData.length}
+                  {filteredData.length > 0 ? `${startIndex + 1} - ${Math.min(endIndex, filteredData.length)} of ${filteredData.length}` : '0 - 0 of 0'}
                 </span>
 
                 <div className="flex items-center gap-1">

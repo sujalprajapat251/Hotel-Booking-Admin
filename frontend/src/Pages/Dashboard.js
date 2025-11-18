@@ -6,8 +6,10 @@ import { LuNotebook } from "react-icons/lu";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Line } from 'recharts';
 import '../Style/Sujal.css';
 import { CustomActiveShapePieChart } from '../component/CustomActiveShapePieChart ';
-import { FaEdit, FaTrash, FaEllipsisV } from 'react-icons/fa';
-import { IoDocumentText } from 'react-icons/io5';
+import { FaEllipsisV } from 'react-icons/fa';
+import { HiOutlineDocumentChartBar } from "react-icons/hi2";
+import { FiEdit } from 'react-icons/fi';
+import { RiDeleteBinLine } from 'react-icons/ri';
 
 const CustomTooltip = ({ active, payload, label }) => {
   console.log('payload', payload);
@@ -314,9 +316,9 @@ export const Dashboard = () => {
               <YAxis width="auto" />
               <Tooltip content={<CustomTooltip />} />
               <Legend />
-              <Line type="monotone" dataKey="uv" stackId="1" stroke="#B79982"  />
-              {/* <Area type="monotone" dataKey="pv" stackId="1" stroke="#E3C78A" fill="#E3C78A" /> */}
-              {/* <Area type="monotone" dataKey="amt" stackId="1" stroke="#ffc658" fill="#ffc658" /> */}
+              {/* <Line type="monotone" dataKey="uv" stackId="1" stroke="#B79982"  /> */}
+              <Area type="monotone" dataKey="pv" stackId="1" stroke="#E3C78A" fill="#E3C78A" />
+              <Area type="monotone" dataKey="amt" stackId="1" stroke="#ffc658" fill="#ffc658" />
             </AreaChart>
           </div>
           <div className='bg-white rounded-lg p-5 V_chart_2_div'>
@@ -392,16 +394,16 @@ export const Dashboard = () => {
                       </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <button className="text-[#EC5C09] hover:text-[#EC0927] transition-colors p-2 hover:bg-orange-50 rounded-md">
-                          <IoDocumentText size={22} />
+                          <HiOutlineDocumentChartBar size={22} />
                         </button>
                       </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
                           <button className="text-[#4F15E0] hover:text-[#3d0fb3] transition-colors p-2 hover:bg-purple-50 rounded-md">
-                            <FaEdit size={18} />
+                            <FiEdit size={18} />
                           </button>
                           <button className="text-[#EC5C09] hover:text-[#EC0927] transition-colors p-2 hover:bg-orange-50 rounded-md">
-                            <FaTrash size={18} />
+                            <RiDeleteBinLine size={18} />
                           </button>
                         </div>
                       </td>
