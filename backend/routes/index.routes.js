@@ -32,7 +32,8 @@ const {
     getRoomById,
     updateRoom,
     deleteRoom,
-    autoUpdateRoomBeds
+    autoUpdateRoomBeds,
+    getRoomsWithPagination
 } = require('../controller/createRoomController');
 const {
     createBooking,
@@ -116,6 +117,7 @@ indexRoutes.delete('/features/:id', deleteFeature);
 // room routes
 indexRoutes.post('/rooms', auth, adminOnly, upload.array('images', 10), createRoom);
 indexRoutes.get('/rooms', getRooms);
+indexRoutes.get('/rooms/pagination', getRoomsWithPagination);
 indexRoutes.get('/rooms/:id', getRoomById);
 indexRoutes.put('/rooms/:id', auth, adminOnly, upload.array('images', 10), updateRoom);
 indexRoutes.delete('/rooms/:id', auth, adminOnly, deleteRoom);

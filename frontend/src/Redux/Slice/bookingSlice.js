@@ -30,6 +30,8 @@ export const fetchBookings = createAsyncThunk(
 export const createBooking = createAsyncThunk(
   'booking/create',
   async (bookingData, { rejectWithValue }) => {
+    console.log(bookingData,"bookingData");
+    
     try {
       const response = await axios.post(`${BASE_URL}/bookings`, bookingData, {
         headers: {

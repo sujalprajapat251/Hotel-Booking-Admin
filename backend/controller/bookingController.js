@@ -71,6 +71,11 @@ const normalizePaymentPayload = (payload = {}) => ({
 });
 
 const ensureRoomAvailability = async ({ roomId, checkInDate, checkOutDate, excludeBookingId }) => {
+    console.log(roomId,"roomId");
+    console.log(checkInDate,"checkInDate");
+    console.log(checkOutDate,"checkOutDate");
+    console.log(excludeBookingId,"excludeBookingId");
+    
     if (!checkInDate || !checkOutDate) {
         return null;
     }
@@ -104,6 +109,9 @@ const createBooking = async (req, res) => {
         const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
+        
+        console.log(roomId,"roomId");
+        
 
         if (!roomId) {
             return res.status(400).json({ success: false, message: 'roomId is required' });
@@ -125,6 +133,8 @@ const createBooking = async (req, res) => {
         }
 
         const room = await Room.findById(roomId).select('roomNumber status');
+        console.log(room,"room");
+        
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
         }
@@ -134,6 +144,9 @@ const createBooking = async (req, res) => {
             checkInDate: reservationPayload.checkInDate,
             checkOutDate: reservationPayload.checkOutDate
         });
+
+        console.log(overlappingBooking,"overlappingBooking");
+        
 
         if (overlappingBooking) {
             return res.status(409).json({
@@ -161,9 +174,10 @@ const createBooking = async (req, res) => {
 
         await refreshRoomStatus(roomId);
 
-        const populated = await booking
-            .populate('room', 'roomNumber roomType status capacity')
-            .populate('createdBy', 'fullName email role');
+        const populated = await booking.populate([
+            { path: 'room', select: 'roomNumber roomType status capacity' },
+            { path: 'createdBy', select: 'fullName email role' }
+        ]);
 
         return res.status(201).json({
             success: true,

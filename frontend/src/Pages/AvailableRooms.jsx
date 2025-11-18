@@ -1,14 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRooms } from '../Redux/Slice/createRoomSlice';
+import { fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
-import { createBooking } from '../Redux/Slice/bookingSlice';
+import GuestModal from '../component/GuestModel';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
-  const { items: rooms } = useSelector((state) => state.rooms);
+  const {
+    items: rooms,
+    page,
+    total,
+    stats: aggregatedStats = {},
+    totalPages,
+    limit,
+    loading
+  } = useSelector((state) => state.rooms);
+
   const { items: roomTypes } = useSelector((state) => state.roomtypes);
-  const bookingState = useSelector((state) => state.booking || {});
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -23,10 +31,22 @@ const AvailableRooms = () => {
   });
 
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [isBookingModalOpen, setBookingModalOpen] = useState(false);
-
+  const [localPage, setLocalPage] = useState(1);
+  const [pageSize] = useState(12);
+  const [showModal, setShowModal] = useState(false);
+  // Initial data load + when page or filters change
   useEffect(() => {
-    dispatch(fetchRooms());
+    dispatch(
+      fetchRoomsPaginated({
+        page: localPage,
+        limit: pageSize,
+        filters
+      })
+    );
+  }, [dispatch, localPage, pageSize, filters]);
+
+  // Room types can be loaded once
+  useEffect(() => {
     dispatch(fetchRoomTypes());
   }, [dispatch]);
 
@@ -36,7 +56,9 @@ const AvailableRooms = () => {
     const floors = [...new Set(rooms.map(room => room.floor))].sort((a, b) => a - b);
     return floors;
   }, [rooms]);
-
+  
+  console.log(rooms,"rooms");
+  
   // Filter rooms based on filter criteria
   const filteredRooms = useMemo(() => {
     if (!rooms || rooms.length === 0) return [];
@@ -126,11 +148,11 @@ const AvailableRooms = () => {
       });
     }
 
-    const total = Object.values(stats).reduce((sum, val) => sum + val, 0);
-    const occupancyRate = total > 0 ? Math.round((stats.Occupied / total) * 100) : 0;
+    const totalFiltered = Object.values(stats).reduce((sum, val) => sum + val, 0);
+    const occupancyRate = totalFiltered > 0 ? Math.round((stats.Occupied / totalFiltered) * 100) : 0;
     
     return {
-      total,
+      total: totalFiltered,
       available: stats.Available,
       occupied: stats.Occupied,
       occupancyRate
@@ -139,50 +161,23 @@ const AvailableRooms = () => {
 
   const handleAddGuestClick = useCallback((room) => {
     setSelectedRoom(room);
-    setBookingModalOpen(true);
+    setShowModal(true);
   }, []);
 
-  const handleCloseBookingModal = useCallback(() => {
-    setBookingModalOpen(false);
+  const handleModalClose = useCallback(() => {
+    setShowModal(false);
     setSelectedRoom(null);
   }, []);
 
-  const handleBookingSubmit = useCallback(async (formData) => {
-    if (!selectedRoom) {
-      throw new Error('No room selected');
-    }
-
-    const payload = {
-      roomId: selectedRoom.id,
-      guest: {
-        fullName: formData.fullName.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
-        idNumber: formData.idNumber.trim(),
-        address: formData.address.trim()
-      },
-      reservation: {
-        checkInDate: formData.checkInDate,
-        checkOutDate: formData.checkOutDate,
-        bookingSource: formData.bookingSource,
-        bookingReference: formData.bookingReference,
-        occupancy: {
-          adults: selectedRoom.capacity?.adults || 1,
-          children: selectedRoom.capacity?.children || 0
-        }
-      },
-      payment: {
-        status: formData.paymentStatus,
-        totalAmount: Number(formData.totalAmount),
-        currency: selectedRoom.price?.currency || 'USD'
-      },
-      status: 'Pending'
-    };
-
-    const result = await dispatch(createBooking(payload)).unwrap();
-    dispatch(fetchRooms());
-    return result;
-  }, [dispatch, selectedRoom]);
+  const refreshRooms = useCallback(() => {
+    dispatch(
+      fetchRoomsPaginated({
+        page: localPage,
+        limit: pageSize,
+        filters
+      })
+    );
+  }, [dispatch, localPage, pageSize, filters]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -190,6 +185,8 @@ const AvailableRooms = () => {
       ...prev,
       [key]: value
     }));
+    // Reset to first page when filters change
+    setLocalPage(1);
   };
 
   // Clear all filters
@@ -204,6 +201,7 @@ const AvailableRooms = () => {
       checkOutTo: '',
       housekeeping: 'All Status'
     });
+    setLocalPage(1);
   };
 
   const handleRoomAction = (room) => {
@@ -213,11 +211,20 @@ const AvailableRooms = () => {
     handleAddGuestClick(room);
   };
 
+  const displayStats = useMemo(() => {
+    return {
+      total: aggregatedStats.total ?? roomStats.total ?? total,
+      available: aggregatedStats.available ?? roomStats.available ?? 0,
+      occupied: aggregatedStats.occupied ?? roomStats.occupied ?? 0,
+      occupancyRate: aggregatedStats.occupancyRate ?? roomStats.occupancyRate ?? 0
+    };
+  }, [aggregatedStats, roomStats, total]);
+
   // Card data configuration
   const cards = [
     {
       title: 'TOTAL ROOMS',
-      value: roomStats.total,
+      value: displayStats.total,
       color: '#755647', // senary - deep brown
       iconBg: '#876B56', // quinary - brown
       icon: (
@@ -229,7 +236,7 @@ const AvailableRooms = () => {
     },
     {
       title: 'AVAILABLE',
-      value: roomStats.available,
+      value: displayStats.available,
       color: '#A3876A', // quaternary - taupe brown
       iconBg: '#B79982', // tertiary - muted sand
       icon: (
@@ -240,7 +247,7 @@ const AvailableRooms = () => {
     },
     {
       title: 'OCCUPIED',
-      value: roomStats.occupied,
+      value: displayStats.occupied,
       color: '#876B56', // quinary - brown
       iconBg: '#A3876A', // quaternary - taupe brown
       icon: (
@@ -252,7 +259,7 @@ const AvailableRooms = () => {
     },
     {
       title: 'OCCUPANCY RATE',
-      value: `${roomStats.occupancyRate}%`,
+      value: `${displayStats.occupancyRate}%`,
       color: '#B79982', // tertiary - muted sand
       iconBg: '#E3C78A', // secondary - tan
       icon: (
@@ -309,8 +316,13 @@ const AvailableRooms = () => {
             </svg>
             <h2 className="text-xl font-bold text-senary">Room Filters</h2>
           </div>
-          <div className="px-4 py-1 rounded-full bg-secondary text-senary text-sm font-medium">
-            {filteredRooms.length} of {rooms.length} rooms
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-1 rounded-full bg-secondary text-senary text-sm font-medium">
+              {filteredRooms.length} of {total || rooms.length} rooms
+            </div>
+            <div className="text-xs text-quinary">
+              Page {page} of {totalPages}
+            </div>
           </div>
         </div>
 
@@ -457,16 +469,8 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkInFrom}
                   onChange={(e) => handleFilterChange('checkInFrom', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
               </div>
             </div>
 
@@ -478,16 +482,8 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkOutTo}
                   onChange={(e) => handleFilterChange('checkOutTo', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
               </div>
             </div>
 
@@ -545,7 +541,13 @@ const AvailableRooms = () => {
       </div>
 
       {/* Room Cards Grid */}
-      {filteredRooms.length > 0 && (
+      {loading && (
+        <div className="mt-6 bg-white rounded-lg shadow-md p-8 text-center text-quinary text-sm">
+          Loading rooms...
+        </div>
+      )}
+
+      {!loading && filteredRooms.length > 0 && (
         <div className="mt-6">
           <h2 className="text-xl font-bold text-senary mb-4">Rooms ({filteredRooms.length})</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -598,13 +600,6 @@ const AvailableRooms = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
-              const amenityIcons = {
-                'Wi-Fi': '📶',
-                'Air Conditioning': '❄️',
-                'Minibar': '🍸',
-                'View': '🏢',
-                'Eco-Friendly': '🌿'
-              };
 
               return (
                 <div key={room.id} className="bg-white rounded-lg shadow-md p-5 relative">
@@ -675,31 +670,25 @@ const AvailableRooms = () => {
                       </div>
                     </div>
                   )}
-
-                  {/* Cleanliness Status */}
-                  <div className="flex items-center gap-2 mb-4 text-sm text-quinary">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                      <path d="M16 17l5-5-5-5"></path>
-                      <path d="M21 12H9"></path>
-                    </svg>
-                    <span className={isClean ? 'text-quaternary' : 'text-senary'}>{isClean ? 'Clean' : 'Dirty'}</span>
-                  </div>
-
                   {/* Amenities */}
                   {amenities.length > 0 && (
                     <div className="flex items-center gap-2 mb-4">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-quinary">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                      </svg>
-                      <div className="flex items-center gap-1">
-                        {amenities.slice(0, 5).map((feature, idx) => (
-                          <span key={idx} className="text-lg" title={typeof feature === 'object' ? feature.feature : feature}>
-                            {typeof feature === 'object' && feature.feature ? 
-                              (amenityIcons[feature.feature] || '⭐') : 
-                              (amenityIcons[feature] || '⭐')}
-                          </span>
-                        ))}
+                      <div className="flex flex-wrap items-center gap-1 text-xs text-quinary">
+                        {amenities.slice(0, 5).map((feature, idx) => {
+                          const label =
+                            typeof feature === 'object' && feature.feature
+                              ? feature.feature
+                              : feature;
+                          return (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-full bg-secondary text-senary"
+                              title={label}
+                            >
+                              {label}
+                            </span>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -730,15 +719,15 @@ const AvailableRooms = () => {
                         Guest Details
                       </>
                     ) : (
-                      <>
+                      <div className="flex items-center gap-2">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                           <circle cx="8.5" cy="7" r="4"></circle>
                           <line x1="20" y1="8" x2="20" y2="14"></line>
                           <line x1="23" y1="11" x2="17" y2="11"></line>
                         </svg>
-                        Add Guest
-                      </>
+                        <span>Add Guest</span>
+                      </div>
                     )}
                   </button>
                 </div>
@@ -747,15 +736,63 @@ const AvailableRooms = () => {
           </div>
         </div>
       )}
-
+      {showModal && selectedRoom && (
+        <GuestModal
+          room={selectedRoom}
+          onClose={handleModalClose}
+          onBooked={refreshRooms}
+        />
+      )}
       {/* No Results Message */}
-      {filteredRooms.length === 0 && (
+      {!loading && filteredRooms.length === 0 && (
         <div className="mt-6 bg-white rounded-lg shadow-md p-12 text-center">
           <svg className="mx-auto h-12 w-12 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-senary">No rooms found</h3>
           <p className="mt-1 text-sm text-quinary">Try adjusting your filters to see more results.</p>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-between bg-white rounded-lg shadow-md px-4 py-3 text-sm text-quinary">
+          <div>
+            Showing{' '}
+            {total === 0
+              ? 0
+              : (page - 1) * limit + 1}{' '}
+            -{' '}
+            {Math.min(page * limit, total || (page * limit))}{' '}
+            of {total || 'many'} rooms
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setLocalPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page <= 1}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${
+                page <= 1
+                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                  : 'border-quinary text-senary hover:bg-secondary'
+              }`}
+            >
+              Prev
+            </button>
+            <span className="text-xs">
+              Page {page} / {totalPages}
+            </span>
+            <button
+              onClick={() => setLocalPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page >= totalPages}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${
+                page >= totalPages
+                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                  : 'border-quinary text-senary hover:bg-secondary'
+              }`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

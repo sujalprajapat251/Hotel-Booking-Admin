@@ -19,6 +19,29 @@ export const fetchRooms = createAsyncThunk(
   }
 );
 
+// Paginated rooms fetch (used in AvailableRooms to avoid loading all rooms at once)
+export const fetchRoomsPaginated = createAsyncThunk(
+  'rooms/fetchPaginated',
+  async ({ page = 1, limit = 12, filters = {} } = {}, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/rooms/pagination`, {
+        params: { page, limit, ...filters }
+      });
+
+      return {
+        items: response.data?.data || [],
+        page: response.data?.page || page,
+        total: response.data?.total || 0,
+        totalPages: response.data?.totalPages || 1,
+        limit,
+        stats: response.data?.stats || null
+      };
+    } catch (error) {
+      return rejectWithValue(buildError(error));
+    }
+  }
+);
+
 export const getRoomById = createAsyncThunk(
   'rooms/getById',
   async (id, { rejectWithValue }) => {
@@ -138,7 +161,21 @@ const initialState = {
   items: [],
   selectedRoom: null,
   loading: false,
-  error: null
+  error: null,
+  // pagination meta (used when fetching via fetchRoomsPaginated)
+  page: 1,
+  limit: 12,
+  total: 0,
+  totalPages: 1,
+  // aggregated stats from backend (for dashboard cards)
+  stats: {
+    total: 0,
+    available: 0,
+    occupied: 0,
+    reserved: 0,
+    maintenance: 0,
+    occupancyRate: 0
+  }
 };
 
 const roomsSlice = createSlice({
@@ -163,6 +200,28 @@ const roomsSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(fetchRooms.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchRoomsPaginated.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchRoomsPaginated.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload.items;
+        state.page = action.payload.page;
+        state.total = action.payload.total;
+        state.totalPages = action.payload.totalPages;
+        state.limit = action.payload.limit;
+        if (action.payload.stats) {
+          state.stats = {
+            ...state.stats,
+            ...action.payload.stats
+          };
+        }
+      })
+      .addCase(fetchRoomsPaginated.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
