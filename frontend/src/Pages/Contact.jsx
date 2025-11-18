@@ -353,60 +353,52 @@ const Contact = () => {
 
             {/* View Modal */}
             {isModalOpen && selectedItem && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                {/* Background Blur */}
+                <div className="absolute inset-0 backdrop-blur-sm bg-black/40" onClick={handleCloseModal}></div>
 
-                    <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                        <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-md max-h-[90vh] overflow-y-auto">
-                            {/* Modal Header */}
-                            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 overflow-wrap-anywhere">
-                                <div className="flex items-start justify-between mb-4">
-                                    <h3 className="text-lg font-semibold text-black">Contact Details</h3>
-                                    <button
-                                        type="button"
-                                        onClick={handleCloseModal}
-                                        className="inline-flex items-center justify-center p-2"
-                                    >
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                                <div className="md:flex justify-between gap-4">
-
-                                    {/* Image */}
-                                    {/* <div className="flex items-center me-4 md:mb-0 mb-4 flex-shrink-0">
-                                        <img
-                                            src={selectedItem.image}
-                                            alt={selectedItem.name}
-                                            className="min-w-32 h-32 m-auto"
-                                        />
-                                    </div> */}
-
-                                    {/* Details */}
-                                    <div className="space-y-3 flex-1 min-w-0">
-                                        <div className="flex items-start gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[100px] flex-shrink-0">Name:</span>
-                                            <span className="text-gray-900 break-words flex-1 min-w-0">{selectedItem.name}</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[100px] flex-shrink-0">Email:</span>
-                                            <span className="text-gray-900 break-all flex-1 min-w-0">{selectedItem.email}</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[100px] flex-shrink-0">Mobile No.:</span>
-                                            <span className="text-gray-900 break-words flex-1 min-w-0">{selectedItem.mobileno}</span>
-                                        </div>
-                                        <div className="flex items-start gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[100px] flex-shrink-0">Message:</span>
-                                            <span className="text-gray-900 break-words flex-1 min-w-0">{selectedItem.message}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                <div className="relative bg-white rounded-lg shadow-2xl w-full sm:w-[450px] max-h-[90vh] overflow-y-auto animate-fadeIn">        
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between px-6 py-4 border-b bg-primary">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-800">Contact Details</h3>
                     </div>
+
+                    <button
+                      onClick={handleCloseModal}
+                      className="p-2 rounded-full"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Image */}
+                  <div className="px-6 py-5 space-y-4">
+
+                    <div className="flex gap-3">
+                      <span className="font-medium text-gray-600 min-w-[100px]">Name:</span>
+                      <span className="text-gray-800">{selectedItem.name}</span>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <span className="font-medium text-gray-600 min-w-[100px]">Email:</span>
+                      <span className="text-gray-800 break-all">{selectedItem.email}</span>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <span className="font-medium text-gray-600 min-w-[100px]">Mobile:</span>
+                      <span className="text-gray-800">{Array.isArray(selectedItem.mobileno) ? selectedItem.mobileno.join(", ") : selectedItem.mobileno}</span>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <span className="font-medium text-gray-600 min-w-[100px]">Message:</span>
+                      <span className="text-gray-800 break-words flex-1">{selectedItem.message}</span>
+                    </div>
+                  </div>
                 </div>
+              </div>
             )}
 
         </div>

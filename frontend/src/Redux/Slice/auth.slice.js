@@ -98,6 +98,28 @@ export const resetPassword = createAsyncThunk(
     }
 );
 
+export const changePassword = createAsyncThunk(
+    'auth/changePassword',
+    async ({ oldPassword, newPassword, confirmPassword }, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.put(`${BASE_URL}/changepassword`, { oldPassword, newPassword, confirmPassword },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            if (response.status === 200) {
+                dispatch(setAlert({ text: response.data.message, color: 'success' }));
+                return response.data;
+            }
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 export const logoutUser = createAsyncThunk(
     'auth/logout',
     async (id, { dispatch, rejectWithValue }) => {
@@ -228,6 +250,17 @@ const authSlice = createSlice({
                 window.sessionStorage.clear();
                 window.localStorage.clear();
                 state.message = "Logged out successfully";
+            })
+
+            .addCase(changePassword.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+                state.message = action.payload;
+            })
+            .addCase(changePassword.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload.message;
+                state.message = action.payload?.message || "Change Password Failed";
             })
     },
 });

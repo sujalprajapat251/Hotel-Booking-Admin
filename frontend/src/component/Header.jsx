@@ -1,11 +1,33 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { getUserById } from '../Redux/Slice/user.slice';
+import userImg from "../Images/user.png";
+import { IMAGE_URL } from '../Utils/baseUrl';
 
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [imageUrl, setImageUrl] = useState(userImg);
+
+  const { currentUser, loading, success, message } = useSelector(
+    (state) => state.user
+  );
+
+  useEffect(() => {
+    dispatch(getUserById());
+  }, []);
+
+  useEffect(() => {
+    if (currentUser && currentUser.photo) {
+      setImageUrl(IMAGE_URL + currentUser.photo);
+    } else {
+      setImageUrl(userImg);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -27,6 +49,12 @@ const Header = ({ onMenuClick }) => {
   const handleClickProfile = () => {
     navigate('/user-profile');
     setIsProfileOpen(false);
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    navigate('/');
   }
 
   return (
@@ -52,16 +80,17 @@ const Header = ({ onMenuClick }) => {
               aria-expanded={isProfileOpen}
             >
               <div className="text-right">
-                <p className="text-sm font-semibold text-senary leading-tight">
-                  Ella Jones
+                <p className="text-sm font-semibold text-senary leading-tight capitalize">
+                  {currentUser?.name || "No Name"}
                 </p>
-                <p className="text-xs text-quaternary leading-tight">Admin</p>
+                <p className="text-xs text-quaternary leading-tight capitalize">{currentUser?.role || "No Role"}</p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white shadow-sm">
                 <img
-                  src="https://i.pravatar.cc/54?img=47"
-                  alt="Ella Jones"
+                  src={imageUrl}
+                  alt="Avatar"
                   className="h-full w-full rounded-full object-cover"
+                  onError={(e) => (e.target.src = userImg)}
                 />
               </div>
               <FiChevronDown className="text-lg text-quaternary transition-transform" />
@@ -85,6 +114,7 @@ const Header = ({ onMenuClick }) => {
                   type="button"
                   role="menuitem"
                   className="flex w-full items-center gap-3 px-4 py-2 text-sm text-red-600 transition hover:bg-red-50"
+                  onClick={handleLogout}
                 >
                   <FiLogOut className="text-base" />
                   <span>Logout</span>
