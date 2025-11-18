@@ -1,38 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit, FiPlusCircle } from "react-icons/fi";
 import { IoEyeSharp } from 'react-icons/io5';
-import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail } from 'lucide-react';
-
-const bookings = [
-    {
-        name: "Smita Parikh",
-        title: "Hello",
-        subtitle: "Hello",
-        date: "02/07/2018",
-        description: "AAAAAAA",
-        image: "https://i.pravatar.cc/40?img=1",
-    },
-    {
-        name: "Sarah Smith",
-        title: "Hello",
-        subtitle: "Hello",
-        date: "02/12/2018",
-        description: "BBBBB",
-        image: "https://i.pravatar.cc/40?img=12",
-    },
-    {
-        name: "Pankaj Sinha",
-        title: "Hello",
-        subtitle: "Hello",
-        date: "02/11/2018",
-        description: "CCCCCCCCC",
-        image: "https://i.pravatar.cc/40?img=13",
-    },
-];
+import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { getAllBlog, createBlog, updateBlog, deleteBlog } from '../Redux/Slice/blogSlice';
+import * as XLSX from 'xlsx';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import { setAlert } from '../Redux/Slice/alert.slice';
+import { IMAGE_URL } from '../Utils/baseUrl';
 
 const Blog = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,6 +27,8 @@ const Blog = () => {
     const dropdownRef = useRef(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+    const dispatch = useDispatch();
+    const blog = useSelector((state) => state.blog.blog)
 
     const [visibleColumns, setVisibleColumns] = useState({
       no: true,
@@ -57,6 +39,39 @@ const Blog = () => {
       date: true,
       actions: true,
     });
+    const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
+
+    const quillModules = useMemo(() => ({
+        toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ script: 'sub' }, { script: 'super' }],
+            [{ indent: '-1' }, { indent: '+1' }],
+            [{ direction: 'rtl' }],
+            [{ size: ['small', false, 'large', 'huge'] }],
+            [{ color: [] }, { background: [] }],
+            [{ font: [] }],
+            [{ align: [] }],
+            ['link', 'blockquote', 'code-block'],
+            ['clean']
+        ],
+    }), []);
+
+    const quillFormats = useMemo(() => ([
+        'header', 'font', 'size',
+        'bold', 'italic', 'underline', 'strike', 'blockquote',
+        'list', 'bullet', 'indent',
+        'link', 'color', 'background',
+        'align', 'script', 'code-block'
+    ]), []);
+
+    const getImageFileName = (path = '') => {
+        if (!path) return '';
+        const segments = path.split(/[/\\]/);
+        const fileName = segments[segments.length - 1] || '';
+        return fileName.replace(/^\d+-/, '');
+    };
 
     const toggleColumn = (column) => {
       setVisibleColumns(prev => ({
@@ -76,6 +91,10 @@ const Blog = () => {
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        dispatch(getAllBlog());
+      }, [dispatch]);
+
     const handleViewClick = (item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
@@ -86,25 +105,62 @@ const Blog = () => {
         setSelectedItem(null);
     };
 
+    const validationSchema = useMemo(() => (
+        Yup.object({
+            title: Yup.string().required('Title is required'),
+            subtitle: Yup.string().required('Sub Title is required'),
+            description: Yup.string().required('Description is required'),
+            tag: Yup.string().required('Tag is required'),
+            image: Yup.mixed()
+                .nullable()
+                .test('required', 'Image is required', function (value) {
+                    if (isEditMode) {
+                        return true;
+                    }
+                    return Boolean(value);
+                }),
+        })
+    ), [isEditMode]);
+
     const formik = useFormik({
         initialValues: {
             title: '',
             subtitle: '',
             description: '',
+            tag: '',
             image: null,
         },
-        validationSchema: Yup.object({
-            title: Yup.string().required('Title is required'),
-            subtitle: Yup.string().required('Sub Title is required'),
-            description: Yup.string().required('Description is required'),
-            image: Yup.mixed().required('Image is required'),
-        }),
-        onSubmit: (values, { resetForm }) => {
-            console.log('Submitting About Us form', values);
-            resetForm();
-            setIsAddModalOpen(false);
-            setIsEditMode(false);
-            setEditingItem(null);
+        validationSchema,
+        onSubmit: async (values, { resetForm }) => {
+            try {
+                if (isEditMode && editingItem) {
+                    const payload = {
+                        ...values,
+                        id: editingItem._id || editingItem.id,
+                    };
+                    const result = await dispatch(updateBlog(payload));
+                    if (updateBlog.fulfilled.match(result)) {
+                        dispatch(setAlert({ text: "Blog updated successfully..!", color: 'success' }));
+                        resetForm();
+                        setIsAddModalOpen(false);
+                        setIsEditMode(false);
+                        setEditingItem(null);
+                        dispatch(getAllBlog());
+                    }
+                } else {
+                    const result = await dispatch(createBlog(values));
+                    if (createBlog.fulfilled.match(result)) {
+                        dispatch(setAlert({ text: "Blog created successfully..!", color: 'success' }));
+                        resetForm();
+                        setIsAddModalOpen(false);
+                        setIsEditMode(false);
+                        setEditingItem(null);
+                        dispatch(getAllBlog());
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating blog:', error);
+            }
         },
     });
 
@@ -125,11 +181,21 @@ const Blog = () => {
         setIsDeleteModalOpen(false);
     };
 
-    const handleDeleteConfirm = () => {
-        if (itemToDelete) {
-            console.log('Deleting blog', itemToDelete);
+    const handleDeleteConfirm = async () => {
+        if (!itemToDelete) return;
+
+        try {
+            const result = await dispatch(deleteBlog({ id: itemToDelete._id || itemToDelete.id }));
+
+            if (deleteBlog.fulfilled.match(result)) {
+                dispatch(setAlert({ text: "Blog deleted successfully..!", color: 'success' }));
+                dispatch(getAllBlog());
+            }
+        } catch (error) {
+            dispatch(setAlert({ text: "Failed to delete blog", color: 'error' }));
+        } finally {
+            handleDeleteModalClose();
         }
-        handleDeleteModalClose();
     };
 
     const getStatusColor = (status) => {
@@ -145,15 +211,50 @@ const Blog = () => {
         }
     };
 
+    const formatDate = (dateInput) => {
+        if (!dateInput) return '';
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    const toIsoDate = (dateInput) => {
+        if (!dateInput) return '';
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+    };
+
+    const stripHtmlTags = (htmlString = '') => {
+        if (!htmlString) return '';
+        const tempElement = document.createElement('div');
+        tempElement.innerHTML = htmlString;
+        return tempElement.textContent || tempElement.innerText || '';
+    };
+
     // Filter bookings based on search term
-    const filteredBookings = bookings.filter((item) => {
-        const searchLower = searchTerm.toLowerCase();
+    const filteredBookings = blog.filter((item) => {
+        const searchLower = searchTerm.trim().toLowerCase();
+        if (!searchLower) return true;
+
+        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
+        const formattedDate = formatDate(item.date).toLowerCase();
+        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+        const isoDate = toIsoDate(item.date).toLowerCase();
+
         return (
             item.title?.toLowerCase().includes(searchLower) ||
             item.subtitle?.toLowerCase().includes(searchLower) ||
             item.description?.toLowerCase().includes(searchLower) ||
             item.date?.toLowerCase().includes(searchLower) ||
-            item.name?.toLowerCase().includes(searchLower)
+            item.name?.toLowerCase().includes(searchLower) ||
+            formattedCreatedAt.includes(searchLower) ||
+            formattedDate.includes(searchLower) ||
+            isoCreatedAt.includes(searchLower) ||
+            isoDate.includes(searchLower)
         );
     });
 
@@ -161,6 +262,62 @@ const Blog = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
+
+    const handleDownloadExcel = () => {
+        try {
+            // Prepare data for Excel
+            const excelData = filteredBookings.map((item, index) => {
+                const row = {};
+                
+                if (visibleColumns.no) {
+                    row['No.'] = startIndex + index + 1;
+                }
+                if (visibleColumns.image) {
+                    row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
+                }
+                if (visibleColumns.title) {
+                    row['Title'] = item.title || '';
+                }
+                if (visibleColumns.subtitle) {
+                    row['Sub Title'] = item.subtitle || '';
+                }
+                if (visibleColumns.description) {
+                    row['Description'] = stripHtmlTags(item.description);
+                }
+                // if (visibleColumns.date) {
+                //     row['Date'] = item.date || '';
+                // }
+                
+                return row;
+            });
+  
+            // Create a new workbook
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Blog');
+  
+            // Auto-size columns
+            const maxWidth = 20;
+            const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+            worksheet['!cols'] = wscols;
+  
+            // Generate file name with current date
+            const date = new Date();
+            const fileName = `Blog_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+  
+            // Download the file
+            XLSX.writeFile(workbook, fileName);
+            dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+        } catch (error) {
+            dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+        }
+    };
+
+    const handleRefresh = () => {
+        dispatch(getAllBlog());
+        setSearchTerm("");
+        setCurrentPage(1);
+    };
 
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -175,7 +332,7 @@ const Blog = () => {
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                   <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                    <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Contact</p>
+                    <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Blog</p>
 
                     {/* Search Bar */}
                     <div className="relative  max-w-md">
@@ -240,7 +397,10 @@ const Blog = () => {
                           </div>
                         )}
                       </div>
-                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+                        <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                            <RefreshCw size={20} />
+                        </button>
+                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
                         <Download size={20} />
                       </button>
                     </div>
@@ -275,77 +435,97 @@ const Blog = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {currentData.map((item, index) => (
-                                <tr
-                                    key={index}
-                                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                                >
-                                    {visibleColumns.no && (
-                                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-                                    )}
-
-                                    {/* Guest Name */}
-                                    {visibleColumns.image && (
-                                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                            <div className="flex items-center gap-3">
-                                                <div className="relative">
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                                                    />
-                                                    <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    )}
-
-                                    {/* title */}
-                                    {visibleColumns.title && (
-                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                            <div className="flex items-center gap-2">
-                                                {item.title}
-                                            </div>
-                                        </td>
-                                    )}
-
-                                    {/* subtitle */}
-                                    {visibleColumns.subtitle && (
-                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                            <div className="flex items-center gap-2">
-                                                {item.subtitle}
-                                            </div>
-                                        </td>
-                                    )}
-
-                                    {/* description */}
-                                    {visibleColumns.description && (
-                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">{item.description}</td>
-                                    )}
-                                    
-                                    {/* date */}
-                                    {visibleColumns.date && (
-                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.date}</td>
-                                    )}
-
-                                    {/* Actions */}
-                                    {visibleColumns.actions && (
-                                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                            <div className="mv_table_action flex">
-                                                <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
-                                                <div onClick={() => {
-                                                    setIsEditMode(true);
-                                                    setEditingItem(item);
-                                                    formik.resetForm();
-                                                    setIsAddModalOpen(true);
-                                                }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                                                <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                                            </div>
-                                        </td>
-                                    )}
-
+                            {currentData.length === 0 ? (
+                                <tr>
+                                    <td colSpan={visibleColumnCount} className="px-6 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 text-center">
+                                        No item found
+                                    </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                currentData.map((item, index) => (
+                                    <tr
+                                        key={index}
+                                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                                    >
+                                        {visibleColumns.no && (
+                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                        )}
+
+                                        {/* Guest Name */}
+                                        {visibleColumns.image && (
+                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="relative">
+                                                        <img
+                                                            src={`${IMAGE_URL}${item.image}`}
+                                                            alt={item.name}
+                                                            className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
+                                                        />
+                                                        <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        )}
+
+                                        {/* title */}
+                                        {visibleColumns.title && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                    {item.title}
+                                                </div>
+                                            </td>
+                                        )}
+
+                                        {/* subtitle */}
+                                        {visibleColumns.subtitle && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="flex items-center gap-2">
+                                                    {item.subtitle}
+                                                </div>
+                                            </td>
+                                        )}
+
+                                        {/* description */}
+                                        {visibleColumns.description && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
+                                                <div
+                                                    className="prose prose-sm max-w-none"
+                                                    dangerouslySetInnerHTML={{ __html: item.description || '' }}
+                                                />
+                                            </td>
+                                        )}
+                                        
+                                        {/* date */}
+                                        {visibleColumns.date && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.createdAt ? formatDate(item.createdAt) : ''}</td>
+                                        )}
+
+                                        {/* Actions */}
+                                        {visibleColumns.actions && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="mv_table_action flex">
+                                                    <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
+                                                    <div onClick={() => {
+                                                        setIsEditMode(true);
+                                                        setEditingItem(item);
+                                                        formik.setValues({
+                                                            title: item.title || '',
+                                                            subtitle: item.subtitle || '',
+                                                            description: item.description || '',
+                                                            tag: item.tag || '',
+                                                            image: null,
+                                                        });
+                                                        formik.setTouched({});
+                                                        setIsAddModalOpen(true);
+                                                    }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                                                    <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                                                </div>
+                                            </td>
+                                        )}
+
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -403,10 +583,10 @@ const Blog = () => {
                     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
 
                     <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                        <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-md">
+                        <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl">
                             {/* Modal Header */}
                             <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-                                <div className="flex items-start justify-between mb-4">
+                                <div className="flex items-start justify-between mb-4 border-b border-gray-200">
                                     <h3 className="text-lg font-semibold text-black">Blog Details</h3>
                                     <button
                                         type="button"
@@ -418,12 +598,12 @@ const Blog = () => {
                                         </svg>
                                     </button>
                                 </div>
-                                <div className="md:flex justify-between">
+                                <div className="">
 
                                     {/* Image */}
-                                    <div className="flex items-center me-4 md:mb-0 mb-4">
+                                    <div className="flex items-center mb-4">
                                         <img
-                                            src={selectedItem.image}
+                                            src={`${IMAGE_URL}${selectedItem.image}`}
                                             alt={selectedItem.name}
                                             className="min-w-32 h-32 m-auto"
                                         />
@@ -441,11 +621,10 @@ const Blog = () => {
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
-                                            <span className="text-gray-900">{selectedItem.description}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[120px]">Date:</span>
-                                            <span className="text-gray-900">{selectedItem.date}</span>
+                                            <div
+                                                className="text-gray-900"
+                                                dangerouslySetInnerHTML={{ __html: selectedItem.description || '' }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -459,8 +638,8 @@ const Blog = () => {
             {isAddModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
-                    <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
-                        <div className="flex items-start justify-between mb-6">
+                    <div className="relative w-full md:max-w-xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl">
+                        <div className="flex items-start justify-between mb-6 pb-2 border-b border-gray-200">
                             <h2 className="text-2xl font-semibold text-black">
                                 {isEditMode ? 'Edit Blog' : 'Add Blog'}
                             </h2>
@@ -506,17 +685,36 @@ const Blog = () => {
                             </div>
 
                             <div className="flex flex-col mb-4">
-                                <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                                <textarea
-                                    id="description"
-                                    name="description"
-                                    rows="4"
-                                    placeholder="Enter Description"
+                                <label htmlFor="tag" className="text-sm font-medium text-black mb-1">Tag</label>
+                                <input
+                                    id="tag"
+                                    name="tag"
+                                    type="text"
+                                    placeholder="Enter Tag"
                                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                    value={formik.values.description}
+                                    value={formik.values.tag}
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
-                                ></textarea>
+                                />
+                                {formik.touched.tag && formik.errors.tag ? (
+                                    <p className="text-sm text-red-500">{formik.errors.tag}</p>
+                                ) : null}
+                            </div>
+
+                            <div className="flex flex-col mb-4">
+                                <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
+                                <div className="rounded-[4px] border border-gray-200 bg-[#1414140F]">
+                                    <ReactQuill
+                                        id="description"
+                                        theme="snow"
+                                        value={formik.values.description}
+                                        onChange={(content) => formik.setFieldValue('description', content)}
+                                        onBlur={() => formik.setFieldTouched('description', true)}
+                                        modules={quillModules}
+                                        formats={quillFormats}
+                                        placeholder="Enter Description"
+                                    />
+                                </div>
                                 {formik.touched.description && formik.errors.description ? (
                                     <p className="text-sm text-red-500">{formik.errors.description}</p>
                                 ) : null}
@@ -526,7 +724,11 @@ const Blog = () => {
                                 <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
                                 <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
                                     <span className="truncate">
-                                        {formik.values.image ? formik.values.image.name : 'Choose file'}
+                                        {formik.values.image
+                                            ? formik.values.image.name
+                                            : (isEditMode && editingItem?.image
+                                                ? getImageFileName(editingItem.image)
+                                                : 'Choose file')}
                                     </span>
                                     <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
                                     <input
@@ -547,7 +749,7 @@ const Blog = () => {
                                 ) : null}
                             </div>
 
-                            <div className="flex items-center justify-center pt-4">
+                            <div className="flex items-center justify-center pt-4 border-t border-gray-200">
                                 <button
                                     type="button"
                                     onClick={handleAddModalClose}
