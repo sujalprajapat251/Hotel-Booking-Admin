@@ -26,10 +26,16 @@ exports.createUser = async (req, res) => {
             role
         });
 
+        let token = null;
+        if (role === "user") {
+            token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
+        }
+
         return res.status(200).json({
             status: 200,
             message: 'User created successfully..!',
             user: user,
+            token: token
         });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });

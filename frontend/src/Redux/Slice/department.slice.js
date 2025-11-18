@@ -11,12 +11,12 @@ const handleErrors = (error, dispatch, rejectWithValue) => {
     return rejectWithValue(error.response?.data || { message: errorMessage });
 };
 
-export const addFaq = createAsyncThunk(
-    'faq/addFaq',
-    async (faqData, { dispatch, rejectWithValue }) => {
+export const addDepartment = createAsyncThunk(
+    'department/addDepartment',
+    async (values, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.post(`${BASE_URL}/createfaq`, faqData,
+            const response = await axios.post(`${BASE_URL}/createdepartment`, values,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -31,12 +31,12 @@ export const addFaq = createAsyncThunk(
     }
 );
 
-export const getAllFaqs = createAsyncThunk(
-    'faq/getAllFaqs',
+export const getAllDepartment = createAsyncThunk(
+    'department/getAllDepartment',
     async (_, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getallfaqs`,
+            const response = await axios.get(`${BASE_URL}/getalldepartment`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -50,128 +50,129 @@ export const getAllFaqs = createAsyncThunk(
     }
 );
 
-export const updateFaq = createAsyncThunk(
-    'faq/updateFaq',
-    async ({ faqId, faqData }, { dispatch, rejectWithValue }) => {
+export const updateDepartment = createAsyncThunk(
+    'department/updateDepartment',
+    async ({ departmentId, departmentData }, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.put(`${BASE_URL}/updatefaq/${faqId}`,faqData,
+            const response = await axios.put(`${BASE_URL}/updatedepartment/${departmentId}`, departmentData,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     }
                 }
             );
-            dispatch(setAlert({ text: response.data.message || 'FAQ updated successfully', color: 'success' }));
-            return response.data.data; 
+            dispatch(setAlert({ text: response.data.message || 'Department updated successfully', color: 'success' }));
+            return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
 );
 
-
-export const deleteFaq = createAsyncThunk(
-    'faq/deleteFaq',
-    async (faqId, { dispatch, rejectWithValue }) => {
+export const deleteDepartment = createAsyncThunk(
+    'department/deleteDepartment',
+    async (departmentId, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.delete(`${BASE_URL}/deletetfaq/${faqId}`, {
+            const response = await axios.delete(`${BASE_URL}/deletetdepartment/${departmentId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }
             });
-            dispatch(setAlert({ text: response.data.message || 'FAQ deleted successfully', color: 'success' }));
-            return faqId; 
+            dispatch(setAlert({ text: response.data.message || 'Department deleted successfully', color: 'success' }));
+            return departmentId;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
 );
 
-const faqSlice = createSlice({
-    name: 'faq',
+const departmentSlice = createSlice({
+    name: 'department',
     initialState: {
-        faqs: [],
+        departments: [],
         message: '',
         loading: false,
         isError: false,
     },
     extraReducers: (builder) => {
         builder
-            .addCase(addFaq.pending, (state) => {
+            .addCase(addDepartment.pending, (state) => {
                 state.loading = true;
-                state.message = 'Adding FAQ...';
+                state.message = 'Adding Department...';
                 state.isError = false;
             })
-            .addCase(addFaq.fulfilled, (state, action) => {
+            .addCase(addDepartment.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'FAQ added successfully..!';
-                state.faqs.push(action.payload); 
+                state.message = 'Department added successfully..!';
+                state.departments.push(action.payload);
                 state.isError = false;
             })
-            .addCase(addFaq.rejected, (state, action) => {
+            .addCase(addDepartment.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to add FAQ';
+                state.message = action.payload?.message || 'Failed to add Department';
             })
-            .addCase(getAllFaqs.pending, (state) => {
+            .addCase(getAllDepartment.pending, (state) => {
                 state.loading = true;
-                state.message = 'Fetching faqs...';
+                state.message = 'Fetching Department...';
                 state.isError = false;
             })
-            .addCase(getAllFaqs.fulfilled, (state, action) => {
+            .addCase(getAllDepartment.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'faqs fetched successfully';
-                state.faqs = action.payload;
+                state.message = 'Department fetched successfully';
+                state.departments = action.payload;
                 state.isError = false;
             })
-            .addCase(getAllFaqs.rejected, (state, action) => {
+            .addCase(getAllDepartment.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to fetch faqs';
+                state.message = action.payload?.message || 'Failed to fetch Department';
             })
-            .addCase(updateFaq.pending, (state) => {
+            .addCase(updateDepartment.pending, (state) => {
                 state.loading = true;
-                state.message = 'Updating FAQ...';
+                state.message = 'Updating Department...';
                 state.isError = false;
             })
-            .addCase(updateFaq.fulfilled, (state, action) => {
+            .addCase(updateDepartment.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'FAQ updated successfully..!';
-                state.faqs = state.faqs.map(faq => faq._id === action.payload._id ? action.payload : faq);
+                state.message = 'Department updated successfully..!';
+                state.departments = state.departments.map(department => 
+                    department._id === action.payload._id ? action.payload : department);
                 state.isError = false;
             })
-            .addCase(updateFaq.rejected, (state, action) => {
+            .addCase(updateDepartment.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to update FAQ';
+                state.message = action.payload?.message || 'Failed to update Department';
             })
-            .addCase(deleteFaq.pending, (state) => {
+            .addCase(deleteDepartment.pending, (state) => {
                 state.loading = true;
-                state.message = 'Deleting FAQ...';
+                state.message = 'Deleting Department...';
                 state.isError = false;
             })
-            .addCase(deleteFaq.fulfilled, (state, action) => {
+            .addCase(deleteDepartment.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'FAQ deleted successfully..!';
-                state.faqs = state.faqs.filter(faq => faq._id !== action.payload);
+                state.message = 'Department deleted successfully..!';
+                state.departments = state.departments.filter(department => 
+                    department._id !== action.payload);
                 state.isError = false;
             })
-            .addCase(deleteFaq.rejected, (state, action) => {
+            .addCase(deleteDepartment.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to delete FAQ';
+                state.message = action.payload?.message || 'Failed to delete Department';
             });
     },
 });
 
-export default faqSlice.reducer;
+export default departmentSlice.reducer;

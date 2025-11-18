@@ -8,6 +8,7 @@ import userSlice from "./Slice/user.slice";
 import faqSlice from "./Slice/faq.slice";
 import authSlice from "./Slice/auth.slice";
 import bookingSlice from "./Slice/bookingSlice";
+import departmentSlice from "./Slice/department.slice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -18,5 +19,6 @@ export const rootReducer = combineReducers({
     contact:contactSlice,
     user:userSlice,
     faq:faqSlice,
-    booking:bookingSlice
+    booking:bookingSlice,
+    department:departmentSlice,
 });
