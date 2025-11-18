@@ -41,6 +41,8 @@ const {
     updateBooking,
     deleteBooking
 } = require('../controller/bookingController');
+const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
+const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -65,21 +67,21 @@ indexRoutes.get('/getallcontact', auth, adminOnly, getAllContact);
 indexRoutes.post('/createblog', auth, adminOnly, upload.single("image"), createBlog);
 indexRoutes.get('/getallblog', getAllBlogs);
 indexRoutes.get('/getblog/:id', getBlogById);
-indexRoutes.put('/updateblog/:id', auth, adminOnly, upload.single("image"),updateBlog);
+indexRoutes.put('/updateblog/:id', auth, adminOnly, upload.single("image"), updateBlog);
 indexRoutes.delete('/deleteblog/:id', auth, adminOnly, deleteBlog);
 
 // department Routes
 indexRoutes.post('/createdepartment', auth, adminOnly, createDepartment);
 indexRoutes.get('/getalldepartment', auth, adminOnly, getAllDepartments);
-indexRoutes.get('/getdepartment/:id',auth, adminOnly, getDepartmentById);
+indexRoutes.get('/getdepartment/:id', auth, adminOnly, getDepartmentById);
 indexRoutes.put('/updatedepartment/:id', auth, adminOnly, updateDepartment);
 indexRoutes.delete('/deletetdepartment/:id', auth, adminOnly, deleteDepartment);
 
 // staff Routes
-indexRoutes.post('/createstaff', auth, adminOnly,upload.single("image"), createStaff);
+indexRoutes.post('/createstaff', auth, adminOnly, upload.single("image"), createStaff);
 indexRoutes.get('/getallstaff', auth, adminOnly, getAllStaff);
-indexRoutes.get('/getstaff/:id',auth, adminOnly, getStaffById);
-indexRoutes.put('/updatestaff/:id', auth, adminOnly,upload.single("image"), updateStaff);
+indexRoutes.get('/getstaff/:id', auth, adminOnly, getStaffById);
+indexRoutes.put('/updatestaff/:id', auth, adminOnly, upload.single("image"), updateStaff);
 indexRoutes.delete('/deletetstaff/:id', auth, adminOnly, deleteStaff);
 
 // Terms & Condition Routes
@@ -125,5 +127,20 @@ indexRoutes.get('/bookings', auth, getBookings);
 indexRoutes.get('/bookings/:id', auth, getBookingById);
 indexRoutes.put('/bookings/:id', auth, updateBooking);
 indexRoutes.delete('/bookings/:id', auth, deleteBooking);
+
+// ------------------------------- Cafe -------------------------------
+// Cafe Category routes
+indexRoutes.post('/createcafecategory', auth, adminOnly, createCafeCategory);
+indexRoutes.get('/getallcafecategory', auth, adminOnly, getAllCafeCategories);
+indexRoutes.get('/getcafecategory/:id', auth, adminOnly, getSingleCafeCategory);
+indexRoutes.put('/updatecafecategory/:id', auth, adminOnly, updateCafeCategory);
+indexRoutes.delete('/deletetcafecategory/:id', auth, adminOnly, deleteCafeCategory);
+
+// Cafe Item routes
+indexRoutes.post('/createcafeitem', auth, adminOnly, upload.single("image"), createCafeItem);
+indexRoutes.get('/getallcafeitem', getAllCafeItems);
+indexRoutes.get('/getcafeitem/:id', getSingleCafeItem);
+indexRoutes.put('/updatecafeitem/:id', auth, adminOnly, upload.single("image"), updateCafeItem);
+indexRoutes.delete('/deletetcafeitem/:id', auth, adminOnly, deleteCafeItem);
 
 module.exports = indexRoutes;

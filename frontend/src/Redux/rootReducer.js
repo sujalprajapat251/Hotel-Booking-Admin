@@ -9,6 +9,7 @@ import faqSlice from "./Slice/faq.slice";
 import authSlice from "./Slice/auth.slice";
 import bookingSlice from "./Slice/bookingSlice";
 import departmentSlice from "./Slice/department.slice";
+import staffSlice from "./Slice/staff.slice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -16,9 +17,10 @@ export const rootReducer = combineReducers({
     roomtypes:roomtypesSlice,
     features:featuresSlice,
     rooms:roomsSlice,
-    contact:contactSlice,
+    contact:contactSlice, 
     user:userSlice,
     faq:faqSlice,
     booking:bookingSlice,
     department:departmentSlice,
+    staff:staffSlice,
 });
