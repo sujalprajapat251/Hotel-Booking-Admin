@@ -48,7 +48,14 @@ const LoginPage = () => {
             dispatch(login(values))
                 .then((response) => {
                     if (response.meta?.requestStatus === "fulfilled") {
-                        navigate("/dashboard")
+                        // Check user role and navigate accordingly
+                        const userRole = response.payload?.user?.role || 'user';
+                        if (userRole === 'admin') {
+                            navigate("/dashboard");
+                        } else {
+                            // Receptionist or user role - go to booking dashboard
+                            navigate("/booking-dashboard");
+                        }
                     }
                 })
             action.resetForm()

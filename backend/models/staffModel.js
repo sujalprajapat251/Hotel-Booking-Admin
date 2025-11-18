@@ -22,9 +22,17 @@ const staffSchema = mongoose.Schema({
         type: String,
         require: true
     },
-    departmentId: {
+    department: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "department"
+    },
+    designation:{
+        type: String,
+        require: true
+    },
+    gender:{
+        type: String,
+        require: true
     },
     image: {
         type: String,

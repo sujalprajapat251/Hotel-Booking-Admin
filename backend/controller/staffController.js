@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 exports.createStaff = async (req, res) => {
     try {
-        const { name, email, password, mobileno, address, departmentId, joiningdate } = req.body;
+        const { name, email, password, mobileno, address, department, joiningdate,gender,designation } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -13,8 +13,10 @@ exports.createStaff = async (req, res) => {
             password: hashedPassword,
             mobileno,
             address,
-            departmentId,
+            department,
             joiningdate,
+            gender,
+            designation,
             image: req.file ? req.file.path : null
         });
 
@@ -31,7 +33,7 @@ exports.createStaff = async (req, res) => {
 
 exports.getAllStaff = async (req, res) => {
     try {
-        const Staffs = await Staff.find().populate("departmentId");
+        const Staffs = await Staff.find().populate("department");
 
         res.status(200).json({
             success: true,
@@ -45,7 +47,7 @@ exports.getAllStaff = async (req, res) => {
 
 exports.getStaffById = async (req, res) => {
     try {
-        const staff = await Staff.findById(req.params.id).populate("departmentId");
+        const staff = await Staff.findById(req.params.id).populate("department");
 
         if (!staff) {
             return res.status(404).json({
@@ -66,15 +68,17 @@ exports.getStaffById = async (req, res) => {
 
 exports.updateStaff = async (req, res) => {
     try {
-        const { name, email, mobileno, address, departmentId, joiningdate, password } = req.body;
+        const { name, email, mobileno, address, department, joiningdate, password,gender,designation } = req.body;
 
         const updatedData = {
             name,
             email,
             mobileno,
             address,
-            departmentId,
-            joiningdate
+            department,
+            joiningdate,
+            gender,
+            designation
         };
 
         if (req.file) {

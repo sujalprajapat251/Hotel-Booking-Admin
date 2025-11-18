@@ -47,15 +47,29 @@ const RoomSchema = mongoose.Schema({
         ref: 'feature'
     }],
     bed: {
-        type: {
-            type: String,
-            required: true,
-            enum: ['Single', 'Double', 'Queen', 'King', 'Twin']
+        mainBed: {
+            type: {
+                type: String,
+                required: true,
+                enum: ['Single', 'Double', 'Queen', 'King', 'Twin']
+            },
+            count: {
+                type: Number,
+                required: true,
+                min: 1
+            }
         },
-        count: {
-            type: Number,
-            required: true,
-            min: 1
+        childBed: {
+            type: {
+                type: String,
+                required: true,
+                enum: ['Single', 'Double', 'Queen', 'King', 'Twin']
+            },
+            count: {
+                type: Number,
+                required: true,
+                min: 1
+            }
         }
     },
     viewType: {
