@@ -1,53 +1,33 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit, FiPlusCircle } from "react-icons/fi";
-import { IoEyeSharp } from 'react-icons/io5';
-import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail, RefreshCw } from 'lucide-react';
-
-const bookings = [
-  {
-    name: "Smita Parikh",
-    title: "Hello",
-    subtitle: "Hello",
-    date: "02/07/2018",
-    description: "AAAAAAA",
-    image: "https://i.pravatar.cc/40?img=1",
-  },
-  {
-    name: "Sarah Smith",
-    title: "Hello",
-    subtitle: "Hello",
-    date: "02/12/2018",
-    description: "BBBBB",
-    image: "https://i.pravatar.cc/40?img=12",
-  },
-  {
-    name: "Pankaj Sinha",
-    title: "Hello",
-    subtitle: "Hello",
-    date: "02/11/2018",
-    description: "CCCCCCCCC",
-    image: "https://i.pravatar.cc/40?img=13",
-  },
-];
+import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import {getAllAbout, createAbout, updateAbout, deleteAbout} from '../Redux/Slice/about.slice';
+import * as XLSX from 'xlsx';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import { setAlert } from '../Redux/Slice/alert.slice';
+import { IMAGE_URL } from '../Utils/baseUrl';
 
 const About = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const dispatch = useDispatch();
+  const {about} = useSelector((state) => state.about);
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-
+  
   const [visibleColumns, setVisibleColumns] = useState({
     no: true,
     image: true,
@@ -55,6 +35,39 @@ const About = () => {
     description: true,
     actions: true,
   });
+  const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
+
+  const quillModules = useMemo(() => ({
+    toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ script: 'sub' }, { script: 'super' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        [{ direction: 'rtl' }],
+        [{ size: ['small', false, 'large', 'huge'] }],
+        [{ color: [] }, { background: [] }],
+        [{ font: [] }],
+        [{ align: [] }],
+        ['link', 'blockquote', 'code-block'],
+        ['clean']
+    ],
+  }), []);
+
+  const quillFormats = useMemo(() => ([
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'color', 'background',
+    'align', 'script', 'code-block'
+  ]), []);
+
+  const getImageFileName = (path = '') => {
+    if (!path) return '';
+    const segments = path.split(/[/\\]/);
+    const fileName = segments[segments.length - 1] || '';
+    return fileName.replace(/^\d+-/, '');
+  };
 
   const toggleColumn = (column) => {
     setVisibleColumns(prev => ({
@@ -74,15 +87,15 @@ const About = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // const handleViewClick = (item) => {
-  //     setSelectedItem(item);
-  //     setIsModalOpen(true);
-  // };
-
-  const handleCloseModal = () => {
-      setIsModalOpen(false);
-      setSelectedItem(null);
-  };
+  useEffect(() => {
+    dispatch(getAllAbout());
+  }, [dispatch]);
+  
+  const filteredAbout = about?.filter(
+    (item) =>
+      item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item?.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const formik = useFormik({
     initialValues: {
@@ -91,41 +104,59 @@ const About = () => {
       image: null,
     },
     validationSchema: Yup.object({
-      title: Yup.string().required('Title is required'),
-      description: Yup.string().required('Description is required'),
-      image: Yup.mixed().required('Image is required'),
-    }),
-    onSubmit: (values, { resetForm }) => {
-      console.log('Submitting About Us form', values);
-      resetForm();
-      setIsAddModalOpen(false);
-      setIsEditMode(false);
-      setEditingItem(null);
-    },
-  });
+        title: Yup.string().required('Title is required'),
+        description: Yup.string().required('Description is required'),
+        image: Yup.mixed()
+          .nullable()
+          .test('required', 'Image is required', function (value) {
+              if (isEditMode) {
+                  return true;
+              }
+              return Boolean(value);
+          }),
+      }),
+      onSubmit: (values, { resetForm }) => {
+        if (isEditMode) {
+          const targetId = editingItem?._id || editingItem?.id;
+          dispatch(updateAbout({ id: targetId, ...values })).then(() => {
+            dispatch(getAllAbout());
+          });
+        } else {
+          dispatch(createAbout(values)).then(() => {
+            dispatch(getAllAbout());
+          });
+        }
+        resetForm();
+        setIsAddModalOpen(false);
+        setIsEditMode(false);
+        setEditingItem(null);
+      },
+    });
 
-  const handleAddModalClose = () => {
-    setIsAddModalOpen(false);
-    setIsEditMode(false);
-    setEditingItem(null);
-    formik.resetForm();
-  };
+    const handleEditClick = (item) => {
+    setIsEditMode(true);
+    setEditingItem(item);
+    formik.setValues({
+      title: item.title,
+      description: item.description,
+      image: null,
+    });
+    setIsAddModalOpen(true);
+  }
 
   const handleDeleteClick = (item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteModalClose = () => {
-    setItemToDelete(null);
-    setIsDeleteModalOpen(false);
-  };
-
   const handleDeleteConfirm = () => {
     if (itemToDelete) {
-      console.log('Deleting about', itemToDelete);
+      const targetId = itemToDelete._id || itemToDelete.id;
+      dispatch(deleteAbout({ id: targetId })).then(() => {
+        dispatch(getAllAbout());
+      });
     }
-    handleDeleteModalClose();
+    setIsDeleteModalOpen(false);
   };
 
   const getStatusColor = (status) => {
@@ -141,23 +172,62 @@ const About = () => {
     }
   };
 
-  // Filter bookings based on search term
-  const filteredBookings = bookings.filter((item) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      item.title?.toLowerCase().includes(searchLower) ||
-      item.description?.toLowerCase().includes(searchLower) ||
-      item.name?.toLowerCase().includes(searchLower)
-    );
-  });
+  const stripHtmlTags = (htmlString = '') => {
+      if (!htmlString) return '';
+      const tempElement = document.createElement('div');
+      tempElement.innerHTML = htmlString;
+      return tempElement.textContent || tempElement.innerText || '';
+    };
 
-  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredAbout.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredBookings.slice(startIndex, endIndex);
+  const currentData = filteredAbout.slice(startIndex, endIndex);
 
+  const handleDownloadExcel = () => {
+    try {
+        const excelData = filteredAbout.map((item, index) => {
+            const row = {};
+            
+            if (visibleColumns.no) {
+                row['No.'] = startIndex + index + 1;
+            }
+            if (visibleColumns.image) {
+                row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
+            }
+            if (visibleColumns.title) {
+                row['Title'] = item.title || '';
+            }
+            if (visibleColumns.description) {
+                row['Description'] = stripHtmlTags(item.description);
+            }
+            return row;
+        });
+
+        // Create a new workbook
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'About List');
+
+        // Auto-size columns
+        const maxWidth = 20;
+        const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+        worksheet['!cols'] = wscols;
+
+        // Generate file name with current date
+        const date = new Date();
+        const fileName = `About_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+        // Download the file
+        XLSX.writeFile(workbook, fileName);
+        dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+    } catch (error) {
+        dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+    }
+  };
+  
   const handleRefresh = () => {
-    // dispatch(getAllUser());
+    dispatch(getAllAbout());
     setSearchTerm("");
     setCurrentPage(1);
   };
@@ -241,7 +311,7 @@ const About = () => {
               <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
                 <RefreshCw size={20} />
               </button>
-              <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+              <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
                 <Download size={20} />
               </button>
             </div>
@@ -270,62 +340,75 @@ const About = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 bg-white">
-                {currentData.map((item, index) => (
-                  <tr
-                      key={index}
-                      className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                  >
-                    {visibleColumns.no && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-                    )}
+                  {currentData.map((item, index) => (
+                    <tr
+                        key={index}
+                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                    >
+                      {visibleColumns.no && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                      )}
 
-                    {/* Guest Name */}
-                    {visibleColumns.image && (
-                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                            />
-                            <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}>
+                      {/* Guest Name */}
+                      {visibleColumns.image && (
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <img
+                                src={`${IMAGE_URL}${item.image}`}
+                                alt={item.name}
+                                className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
+                              />
+                              <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                    )}
+                        </td>
+                      )}
+        
+                      {/* title */}
+                      {visibleColumns.title && (
+                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                          <div className="flex items-center gap-2">
+                              {item.title}
+                          </div>
+                        </td>
+                      )}
 
-                    {/* title */}
-                    {visibleColumns.title && (
-                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                        <div className="flex items-center gap-2">
-                            {item.title}
-                        </div>
-                      </td>
-                    )}
-
-                    {/* description */}
-                    {visibleColumns.description && (
-                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">{item.description}</td>
-                    )}
-                    
-                    {/* Actions */}
-                    {visibleColumns.actions && (
-                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                        <div className="mv_table_action flex">
-                          <div onClick={() => {
-                              setIsEditMode(true);
-                              setEditingItem(item);
-                              formik.resetForm();
-                              setIsAddModalOpen(true);
-                          }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                          <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                        </div>
-                      </td>
-                    )}
+                      {/* description */}
+                      {visibleColumns.description && (
+                          <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
+                            <div
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{ __html: item.description || '' }}
+                            />
+                          </td>
+                      )}
+                      
+                      {/* Actions */}
+                      {visibleColumns.actions && (
+                        <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                          <div className="mv_table_action flex">
+                            <div onClick={() => handleEditClick(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                            <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center text-gray-500">
+                          <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          </svg>
+                          <p className="text-lg font-medium">No data available</p>
+                          <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                      </div>
+                    </td>
                   </tr>
-                ))}
+                  ) : null}
               </tbody>
             </table>
           </div>
@@ -353,7 +436,7 @@ const About = () => {
 
             <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
               <span className="text-sm text-gray-600">
-                {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+                {startIndex + 1} - {Math.min(endIndex, filteredAbout.length)} of {filteredAbout.length}
               </span>
 
               <div className="flex items-center gap-1">
@@ -376,66 +459,16 @@ const About = () => {
           </div>
       </div>
 
-      {/* View Modal */}
-      {isModalOpen && selectedItem && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
-
-          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-md">
-              {/* Modal Header */}
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-black">About Details</h3>
-                  <button
-                      type="button"
-                      onClick={handleCloseModal}
-                      className="inline-flex items-center justify-center p-2"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="md:flex justify-between">
-
-                  {/* Image */}
-                  <div className="flex items-center me-4 md:mb-0 mb-4">
-                    <img
-                        src={selectedItem.image}
-                        alt={selectedItem.name}
-                        className="min-w-32 h-32 m-auto"
-                    />
-                  </div>
-
-                  {/* Details */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-gray-700 min-w-[120px]">Title:</span>
-                      <span className="text-gray-900">{selectedItem.title}</span>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
-                      <span className="text-gray-900">{selectedItem.description}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+            <div className="absolute inset-0 bg-black/40" onClick={() =>setIsAddModalOpen(false)}></div>
             <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
                 <div className="flex items-start justify-between mb-6">
                     <h2 className="text-2xl font-semibold text-black">
                         {isEditMode ? 'Edit About Us' : 'Add About Us'}
                     </h2>
-                    <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
+                    <button onClick={() =>setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -461,16 +494,18 @@ const About = () => {
 
                     <div className="flex flex-col mb-4">
                         <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                        <textarea
-                            id="description"
-                            name="description"
-                            rows="4"
-                            placeholder="Enter Description"
-                            className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                            value={formik.values.description}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                        ></textarea>
+                          <div className="rounded-[4px] border border-gray-200 bg-[#1414140F]">
+                              <ReactQuill
+                                  id="description"
+                                  theme="snow"
+                                  value={formik.values.description}
+                                  onChange={(content) => formik.setFieldValue('description', content)}
+                                  onBlur={() => formik.setFieldTouched('description', true)}
+                                  modules={quillModules}
+                                  formats={quillFormats}
+                                  placeholder="Enter Description"
+                              />
+                          </div>
                         {formik.touched.description && formik.errors.description ? (
                             <p className="text-sm text-red-500">{formik.errors.description}</p>
                         ) : null}
@@ -480,7 +515,11 @@ const About = () => {
                         <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
                         <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
                             <span className="truncate">
-                                {formik.values.image ? formik.values.image.name : 'Choose file'}
+                                {formik.values.image
+                                  ? formik.values.image.name
+                                  : (isEditMode && editingItem?.image
+                                      ? getImageFileName(editingItem.image)
+                                      : 'Choose file')}
                             </span>
                             <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
                             <input
@@ -504,7 +543,7 @@ const About = () => {
                     <div className="flex items-center justify-center pt-4">
                         <button
                             type="button"
-                            onClick={handleAddModalClose}
+                            onClick={() => setIsAddModalOpen(false)}
                             className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                         >
                             Cancel
@@ -524,11 +563,11 @@ const About = () => {
       {/* Delete Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setIsDeleteModalOpen(false)}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-black">Delete About</h2>
-                <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-black">Delete About Us</h2>
+                <button onClick={() => setIsDeleteModalOpen(false)} className="text-gray-500 hover:text-gray-800">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -538,7 +577,7 @@ const About = () => {
             <div className="flex items-center justify-center gap-3">
               <button
                   type="button"
-                  onClick={handleDeleteModalClose}
+                  onClick={() => setIsDeleteModalOpen(false)}
                   className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
               >
                   Cancel
