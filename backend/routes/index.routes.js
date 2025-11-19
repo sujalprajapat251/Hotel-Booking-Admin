@@ -45,6 +45,7 @@ const {
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
+const { createCafeTable, getCafeTables, getCafeTableById, updateCafeTable, deleteCafeTable } = require('../controller/cafeTableController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -152,5 +153,14 @@ indexRoutes.get('/getallcafeitem', getAllCafeItems);
 indexRoutes.get('/getcafeitem/:id', getSingleCafeItem);
 indexRoutes.put('/updatecafeitem/:id', auth, adminOnly, upload.single("image"), updateCafeItem);
 indexRoutes.delete('/deletetcafeitem/:id', auth, adminOnly, deleteCafeItem);
+
+
+// cafe table Routes 
+indexRoutes.post('/addCafeTable',auth,createCafeTable)
+indexRoutes.get('/getAllCafeTable',auth,getCafeTables)
+indexRoutes.get('/getCafeTable/:id',auth,getCafeTableById)
+indexRoutes.put('/updateCafeTable/:id',auth,updateCafeTable)
+indexRoutes.delete('/deleteCafeTable/:id',auth,deleteCafeTable)
+
 
 module.exports = indexRoutes;
