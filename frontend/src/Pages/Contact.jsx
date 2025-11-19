@@ -241,8 +241,14 @@ const Contact = () => {
                         <tbody className="divide-y divide-gray-200 bg-white">
                           {currentData.length === 0 ? (
                             <tr>
-                              <td colSpan={visibleColumnCount} className="px-6 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 text-center">
-                                No item found
+                              <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                <div className="flex flex-col items-center justify-center text-gray-500">
+                                  <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                  </svg>
+                                  <p className="text-lg font-medium">No data available</p>
+                                  <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                </div>
                               </td>
                             </tr>
                           ) : (
@@ -357,16 +363,16 @@ const Contact = () => {
                 {/* Background Blur */}
                 <div className="absolute inset-0 backdrop-blur-sm bg-black/40" onClick={handleCloseModal}></div>
 
-                <div className="relative bg-white rounded-lg shadow-2xl w-full sm:w-[450px] max-h-[90vh] overflow-y-auto animate-fadeIn">        
+                <div className="relative bg-white rounded-[4px] shadow-2xl w-full sm:w-[450px] max-h-[90vh] overflow-y-auto animate-fadeIn px-4 pt-5 pb-4 sm:p-6">        
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between px-6 py-4 border-b bg-primary">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
                     <div className="flex items-center gap-2">
                       <h3 className="text-lg font-semibold text-gray-800">Contact Details</h3>
                     </div>
 
                     <button
                       onClick={handleCloseModal}
-                      className="p-2 rounded-full"
+                      className="p-1 rounded-full"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -375,7 +381,7 @@ const Contact = () => {
                   </div>
 
                   {/* Image */}
-                  <div className="px-6 py-5 space-y-4">
+                  <div className="space-y-4">
 
                     <div className="flex gap-3">
                       <span className="font-medium text-gray-600 min-w-[100px]">Name:</span>
