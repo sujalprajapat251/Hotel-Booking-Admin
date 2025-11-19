@@ -32,6 +32,12 @@ import TermsConditions from './Pages/TermsConditions';
 import Cafe from './Pages/Cafe';
 import Cafecategory from './Pages/Cafecategory';
 import CafeItems from './Pages/CafeItems';
+import HODLayout from './Pages/HODLayout';
+import HODDashboard from './Pages/HODDashboard';
+import HODStaff from './Pages/HODStaff';
+import HODTable from './Pages/HODTable';
+import HODHistory from './Pages/HODHistory';
+import HODProfile from './Pages/HODProfile';
 
 function App() {
 
@@ -185,12 +191,63 @@ function App() {
                 } 
               />
               
-              {/* Catch-all route - redirect based on role */}
+            </Route>
+            
+            {/* HOD Panel Routes */}
+            <Route element={<HODLayout />}>
               <Route 
-                path='*' 
-                element={<ProtectedRoute allowedRoles={[]}><Navigate to="/booking-dashboard" replace /></ProtectedRoute>} 
+                path='/hod/dashboard' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path='/hod/staff' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODStaff />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path='/hod/table' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODTable />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path='/hod/history' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODHistory />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path='/hod/profile' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Default HOD route */}
+              <Route 
+                path='/hod' 
+                element={<Navigate to="/hod/dashboard" replace />} 
               />
             </Route>
+            
+            {/* Catch-all route - redirect based on role */}
+            <Route 
+              path='*' 
+              element={<ProtectedRoute allowedRoles={[]}><Navigate to="/booking-dashboard" replace /></ProtectedRoute>} 
+            />
           </Routes>
         </SnackbarProvider>
         </PersistGate>

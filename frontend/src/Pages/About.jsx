@@ -430,7 +430,7 @@ const About = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
-            <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+            <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
                 <div className="flex items-start justify-between mb-6">
                     <h2 className="text-2xl font-semibold text-black">
                         {isEditMode ? 'Edit About Us' : 'Add About Us'}
@@ -525,7 +525,7 @@ const About = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-black">Delete About</h2>
                 <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">

@@ -445,71 +445,85 @@ const Review = () => {
 						</thead>
 
 						<tbody className="divide-y divide-gray-200">
-							{paginatedBookings.map((item, index) => (
-								<tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
-									{visibleColumns.No && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-									)}
-
-									{visibleColumns.Room && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-											{item.room}
-										</td>
-									)}
-
-									{visibleColumns.Reviewer && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6">
-											<div className="flex items-center gap-3">
-												<img
-													src={item.image}
-													alt={item.name}
-													className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-												/>
-												<span className="text-sm font-medium text-gray-800">{item.name}</span>
-											</div>
-										</td>
-									)}
-
-									{visibleColumns.Review && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6">
-											<div className="flex flex-col gap-1">
-												<div className="flex items-center justify-between">
-													{renderStars(item.rating)}
-												</div>
-												<h4 className="text-sm font-semibold text-gray-900">
-													{item.reviewTitle}
-												</h4>
-												<p className="text-sm text-gray-600 leading-relaxed whitespace-normal">
-													{item.reviewText}
-												</p>
-											</div>
-										</td>
-									)}
-
-									{visibleColumns.Date && (
-										<td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-											{item.arrival}
-										</td>
-									)}
-
-									{visibleColumns.Status && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6">
-											<span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(item.gender)}`}>
-												{item.gender}
-											</span>
-										</td>
-									)}
-
-									{visibleColumns.Actions && (
-										<td className="px-5 py-2 md600:py-3 lg:px-6">
-											<div className="flex gap-3 w-14">
-												<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-												<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-											</div>
-										</td>
-									)}
+							{paginatedBookings.length === 0 ? (
+								<tr>
+									<td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+										<div className="flex flex-col items-center justify-center text-gray-500">
+											<svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+											</svg>
+											<p className="text-lg font-medium">No data available</p>
+											<p className="text-sm mt-1">Try adjusting your search or filters</p>
+										</div>
+									</td>
 								</tr>
-							))}
+							) : (
+								paginatedBookings.map((item, index) => (
+									<tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
+										{visibleColumns.No && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+										)}
+
+										{visibleColumns.Room && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+												{item.room}
+											</td>
+										)}
+
+										{visibleColumns.Reviewer && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6">
+												<div className="flex items-center gap-3">
+													<img
+														src={item.image}
+														alt={item.name}
+														className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+													/>
+													<span className="text-sm font-medium text-gray-800">{item.name}</span>
+												</div>
+											</td>
+										)}
+
+										{visibleColumns.Review && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6">
+												<div className="flex flex-col gap-1">
+													<div className="flex items-center justify-between">
+														{renderStars(item.rating)}
+													</div>
+													<h4 className="text-sm font-semibold text-gray-900">
+														{item.reviewTitle}
+													</h4>
+													<p className="text-sm text-gray-600 leading-relaxed whitespace-normal">
+														{item.reviewText}
+													</p>
+												</div>
+											</td>
+										)}
+
+										{visibleColumns.Date && (
+											<td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
+												{item.arrival}
+											</td>
+										)}
+
+										{visibleColumns.Status && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6">
+												<span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(item.gender)}`}>
+													{item.gender}
+												</span>
+											</td>
+										)}
+
+										{visibleColumns.Actions && (
+											<td className="px-5 py-2 md600:py-3 lg:px-6">
+												<div className="flex gap-3 w-14">
+													<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+													<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+												</div>
+											</td>
+										)}
+									</tr>
+								))
+							)}
 						</tbody>
 					</table>
 				</div>

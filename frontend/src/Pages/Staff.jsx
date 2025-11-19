@@ -244,7 +244,7 @@ const StaffTable = () => {
                   {currentData.length > 0 ? (
                     currentData.map((staff, index) => (
                       <tr
-                        key={staff.id}
+                        key={index}
                         className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                       >
                         {visibleColumns.No && (
