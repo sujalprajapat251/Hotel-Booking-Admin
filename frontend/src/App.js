@@ -29,6 +29,9 @@ import Profile from './Pages/Profile';
 import BookingDashboard from './Pages/BookingDashboard';
 import ProtectedRoute from './component/ProtectedRoute';
 import TermsConditions from './Pages/TermsConditions';
+import Cafe from './Pages/Cafe';
+import Cafecategory from './Pages/Cafecategory';
+import CafeItems from './Pages/CafeItems';
 
 function App() {
 
@@ -80,6 +83,18 @@ function App() {
                 <Route path='available' element={<AvailableRooms />} />
                 <Route path='features' element={<RoomFeatures />} />
                 <Route path='room-type' element={<RoomType />} />
+              </Route>
+              <Route 
+                path='/cafe' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Cafe />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/cafe/cafecategory" replace />} />
+                <Route path='cafecategory' element={<Cafecategory />} />
+                <Route path='cafeitems' element={<CafeItems />} />
               </Route>
               <Route 
                 path='/staff' 

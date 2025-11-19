@@ -8,6 +8,14 @@ exports.createCafeCategory = async (req, res) => {
             return res.status(400).json({ success: false, message: "Name is required" });
         }
 
+        const existing = await CafeCategory.findOne({ name: name.trim() });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: "Category name already exists"
+            });
+        }
+
         const category = await CafeCategory.create({ name });
 
         return res.status(201).json({
@@ -50,8 +58,21 @@ exports.getSingleCafeCategory = async (req, res) => {
     }
 };
 
-exports.updateCafeCategory = async (req, res) => {
+exports.updateCafeCategory = async (req, res) => {po
     try {
+
+        const duplicate = await CafeCategory.findOne({
+            name: req.body.name.trim(),
+            _id: { $ne: req.params.id }
+        });
+
+        if (duplicate) {
+            return res.status(400).json({
+                success: false,
+                message: "Category name already exists"
+            });
+        }
+
         const updated = await CafeCategory.findByIdAndUpdate(
             req.params.id,
             { name: req.body.name },
