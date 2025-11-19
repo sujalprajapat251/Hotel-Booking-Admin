@@ -464,28 +464,6 @@ export const Dashboard = () => {
               </table>
             </div>
           </div>
-
-          <style>{`
-        .scrollbar-thin::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-track {
-          background: rgba(247, 223, 156, 0.2);
-          border-radius: 10px;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-          background: #B79982;
-          border-radius: 10px;
-          transition: background 0.3s ease;
-        }
-        
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-          background: #876B56;
-        }
-      `}</style>
         </div>
 
       </div >

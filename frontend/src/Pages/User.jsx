@@ -219,7 +219,7 @@ const User = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {currentData.map((user, index) => (
                                         <tr
-                                            key={user.id}
+                                            key={index}
                                             className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                         >
                                             {visibleColumns.No && (

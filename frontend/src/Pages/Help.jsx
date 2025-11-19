@@ -99,12 +99,12 @@ const FAQPage = () => {
           <h1 className="text-2xl md:text-3xl font-bold">Faq</h1>
         </div>
 
-        <div className="md600:flex items-center justify-between p-3 border-b border-gray-200 bg-white rounded-[4x]">
-          <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Faqs</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between p-3 border-b border-gray-200 bg-white rounded-[4px]">
+          <div className='flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
+            <p className="text-[16px] font-semibold text-gray-800">Faqs</p>
 
             {/* Search Bar */}
-            <div className="relative  max-w-md">
+            <div className="relative w-full sm:max-w-xs">
               <input
                 type="text"
                 placeholder="Search..."
@@ -115,7 +115,7 @@ const FAQPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
           </div>
-          <div className='flex'>
+          <div className='flex justify-end mt-3 md:mt-0 w-full md:w-auto'>
             <button onClick={() => setIsAddModalOpen(true)}>
               <div className="mv_Add_btn bg-primary hover:bg-secondary"><span>+ Add</span></div>
             </button>
@@ -148,7 +148,7 @@ const FAQPage = () => {
                 </div>
 
                 {openIndex === index && faq.faqAnswer && (
-                  <div className="mt-3 ml-14 text-gray-600 text-sm md:text-base pr-6 flex justify-between items-start animate-fadeIn">
+                  <div className="mt-3 ml-1 md:ml-14 text-gray-600 text-sm md:text-base pr-6 flex justify-between items-start animate-fadeIn">
                     <p className="max-w-[90%]">{faq.faqAnswer}</p>
                     <div className="mv_table_action flex gap-2">
                       <button
@@ -191,7 +191,7 @@ const FAQPage = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Add Faq </h2>
               <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
@@ -258,7 +258,7 @@ const FAQPage = () => {
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setIsEditModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Edit FAQ</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-800">
@@ -303,7 +303,7 @@ const FAQPage = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Blog</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
