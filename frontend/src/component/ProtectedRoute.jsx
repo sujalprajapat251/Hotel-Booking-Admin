@@ -1,6 +1,6 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const authState = useSelector((state) => state.auth);
@@ -12,11 +12,11 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/" replace />;
   }
 
-  const userRole = user.role || 'user';
+  const userRole = user.role || "user";
 
   // If no role restrictions, redirect based on user role
   if (allowedRoles.length === 0) {
-    if (userRole === 'admin') {
+    if (userRole === "admin") {
       return <Navigate to="/dashboard" replace />;
     } else {
       return <Navigate to="/booking-dashboard" replace />;
@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   // Check if user's role is allowed
   if (!allowedRoles.includes(userRole)) {
     // If user is receptionist (user role), redirect to booking dashboard
-    if (userRole === 'receptionist') {
+    if (userRole === "receptionist") {
       return <Navigate to="/booking-dashboard" replace />;
     }
     // Otherwise redirect to dashboard
@@ -37,4 +37,3 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 };
 
 export default ProtectedRoute;
-

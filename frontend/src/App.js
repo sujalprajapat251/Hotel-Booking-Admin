@@ -39,10 +39,8 @@ import HODTable from './Pages/HODTable';
 import HODHistory from './Pages/HODHistory';
 import HODProfile from './Pages/HODProfile';
 
+const { store, persistor } = configureStore();
 function App() {
-
-  const { store, persistor } = configureStore();
-
   return (
     <>
       <Provider store={store}>

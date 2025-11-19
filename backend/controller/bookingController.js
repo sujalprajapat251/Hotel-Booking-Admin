@@ -346,6 +346,7 @@ const updateBooking = async (req, res) => {
         if (req.body.status) {
             booking.status = req.body.status;
         }
+        
 
         if (req.body.notes !== undefined || req.body.additionalNotes !== undefined) {
             booking.notes = req.body.notes ?? req.body.additionalNotes;
@@ -353,14 +354,18 @@ const updateBooking = async (req, res) => {
 
         await booking.save();
 
+        console.log("booking0",booking);
+        
+
         await refreshRoomStatus(booking.room);
         if (roomChanged && originalRoomId) {
             await refreshRoomStatus(originalRoomId);
         }
 
-        const populated = await booking
-            .populate('room', 'roomNumber roomType status capacity price')
-            .populate('createdBy', 'fullName email role');
+            const populated = await booking.populate([
+                { path: 'room', select: 'roomNumber roomType status capacity price' },
+                { path: 'createdBy', select: 'fullName email role' }
+            ]);
 
         res.json({
             success: true,
