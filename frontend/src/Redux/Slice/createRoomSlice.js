@@ -27,6 +27,7 @@ export const fetchRoomsPaginated = createAsyncThunk(
       const response = await axios.get(`${BASE_URL}/rooms/pagination`, {
         params: { page, limit, ...filters }
       });
+      console.log(response.data,"response");
 
       return {
         items: response.data?.data || [],
@@ -34,7 +35,8 @@ export const fetchRoomsPaginated = createAsyncThunk(
         total: response.data?.total || 0,
         totalPages: response.data?.totalPages || 1,
         limit,
-        stats: response.data?.stats || null
+        stats: response.data?.stats || null,
+        floors: response.data?.floors || []
       };
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -159,6 +161,7 @@ export const deleteRoom = createAsyncThunk(
 
 const initialState = {
   items: [],
+  floors: [],
   selectedRoom: null,
   loading: false,
   error: null,
@@ -214,6 +217,7 @@ const roomsSlice = createSlice({
         state.total = action.payload.total;
         state.totalPages = action.payload.totalPages;
         state.limit = action.payload.limit;
+        state.floors = action.payload.floors;
         if (action.payload.stats) {
           state.stats = {
             ...state.stats,

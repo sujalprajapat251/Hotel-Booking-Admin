@@ -8,30 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllTerms, createTerms, updateTerms, deleteTerms } from '../Redux/Slice/terms.slice';
 
 const TermsTable = () => {
-  // const initialTerms = [
-  //   {
-  //     title: 'Acceptance of Terms',
-  //     description:
-  //       'To use our platform, you must be at least 18 years of age or the age of majority in your jurisdiction. If you are under 18, you may use our services only with the involvement and consent of a parent or legal guardian. By using our platform, you represent and warrant that you meet the eligibility requirements and that you have the legal capacity to enter into a binding agreement with us.',
-  //   },
-  //   {
-  //     title: 'User Accounts',
-  //     description:
-  //       'When you create an account on our platform, you agree to provide accurate, complete, and current information at all times. You are responsible for maintaining the confidentiality of your login credentials and all activities that occur under your account. If you believe your account has been compromised, you must notify us immediately. We reserve the right to suspend or terminate accounts that provide false information or violate these Terms.',
-  //   },
-  //   {
-  //     title: 'Subscription and Billing',
-  //     description:
-  //       'Access to premium content requires a valid subscription. Fees, renewal terms, and cancellation policies are clearly outlined at the time of subscription. We reserve the right to change pricing with prior notice.',
-  //   },
-  //   {
-  //     title: 'Termination of Service',
-  //     description:
-  //       'We reserve the right to suspend, restrict, or permanently terminate your access to our platform at any time and for any reason, including but not limited to violations of these Terms, fraudulent or abusive behavior, non-payment of subscription fees, or any conduct that harms or threatens the integrity of our services or other users. Such termination may occur with or without prior notice, and we are not liable for any resulting loss of access to content or services.',
-  //   },
-  // ];
-
-  // const [terms, setTerms] = useState(initialTerms);
 
   const dispatch = useDispatch();
   const { terms } = useSelector((state) => state.terms);
@@ -250,9 +226,9 @@ const handleDeleteConfirm = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setIsDeleteModalOpen(false)}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
-            <div className="flex items-start justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-black">Delete Term</h2>
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">Delete Terms</h2>
               <button onClick={() => setIsDeleteModalOpen(false)} className="text-gray-500 hover:text-gray-800">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

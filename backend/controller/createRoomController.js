@@ -201,28 +201,28 @@ const getRoomsWithPagination = async (req, res) => {
         bedSize,
         housekeeping
       } = req.query;
-
+  
       page = parseInt(page);
       limit = parseInt(limit);
-
+  
       // Build query
       const query = {};
-
+  
       // Filter by roomType
       if (roomType && roomType !== 'all' && roomType !== 'All Types') {
         query.roomType = roomType;
       }
-
+  
       // Status filter
       if (status && status !== 'All Status') {
         query.status = status;
       }
-
+  
       // Housekeeping filter (maps to status)
       if (housekeeping && housekeeping !== 'All Status') {
         query.status = housekeeping;
       }
-
+  
       // Floor filter
       if (floor && floor !== 'All Floors') {
         const floorNum = parseInt(floor, 10);
@@ -230,28 +230,30 @@ const getRoomsWithPagination = async (req, res) => {
           query.floor = floorNum;
         }
       }
-
-      // Bed Size filter (main bed type)
+  
+      // Bed Size filter
       if (bedSize && bedSize !== 'All Bed Sizes') {
         query['bed.mainBed.type'] = bedSize;
       }
-
+  
       // Search by roomNumber or floor
       if (search && search.trim() !== '') {
         const term = search.trim();
         const regex = new RegExp(term, 'i');
         const searchConditions = [{ roomNumber: { $regex: regex } }];
         const asNumber = Number(term);
+  
         if (!Number.isNaN(asNumber)) {
           searchConditions.push({ floor: asNumber });
         }
+  
         query.$or = searchConditions;
       }
-
+  
       // Count total documents for pagination
       const total = await Room.countDocuments(query);
-
-      // Build status statistics (across *all* matched rooms, not just current page)
+  
+      // Build status statistics
       const statusAggregation = await Room.aggregate([
         { $match: query },
         {
@@ -261,44 +263,50 @@ const getRoomsWithPagination = async (req, res) => {
           }
         }
       ]);
-
+  
       const statusStats = {
         Occupied: 0,
         Reserved: 0,
         Available: 0,
         Maintenance: 0
       };
-
+  
       statusAggregation.forEach((item) => {
         if (item && item._id && statusStats.hasOwnProperty(item._id)) {
           statusStats[item._id] = item.count;
         }
       });
-
+  
       const totalFiltered =
         statusStats.Occupied +
         statusStats.Reserved +
         statusStats.Available +
         statusStats.Maintenance;
-
+  
       const occupancyRate =
         totalFiltered > 0
           ? Math.round((statusStats.Occupied / totalFiltered) * 100)
           : 0;
-
-      // Fetch paginated rooms
+  
+      // Fetch paginated rooms with sorting
       const rooms = await Room.find(query)
         .populate('roomType', 'roomType')
         .populate('features', 'feature')
+        .collation({ locale: 'en', numericOrdering: true }) // numeric order sorting
+        .sort({ floor: 1, roomNumber: 1 })                  // first by floor, then by room number
         .skip((page - 1) * limit)
         .limit(limit);
-
+  
+      //  Fetch all floors (unique)
+      const floors = await Room.distinct("floor");
+  
       res.json({
         success: true,
         data: rooms.map(formatRoom),
         total,
         page,
         totalPages: Math.ceil(total / (limit || 1)),
+        floors: floors.sort((a, b) => a - b), // sorted floors
         stats: {
           total: totalFiltered,
           available: statusStats.Available,

@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
+import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
+import GuestDetailsModal from '../component/GuestDetailsModal';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
@@ -13,11 +15,15 @@ const AvailableRooms = () => {
     stats: aggregatedStats = {},
     totalPages,
     limit,
-    loading
+    loading,
+    floors
   } = useSelector((state) => state.rooms);
 
   const { items: roomTypes } = useSelector((state) => state.roomtypes);
-
+  const {
+    items: bookings = [],
+    loading: bookingLoading
+  } = useSelector((state) => state.booking || {});
   // Filter state
   const [filters, setFilters] = useState({
     search: '',
@@ -34,6 +40,22 @@ const AvailableRooms = () => {
   const [localPage, setLocalPage] = useState(1);
   const [pageSize] = useState(12);
   const [showModal, setShowModal] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [detailsRoom, setDetailsRoom] = useState(null);
+  const formatDateTimeLabel = useCallback((value) => {
+    if (!value) return '—';
+    try {
+      return new Date(value).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return value;
+    }
+  }, []);
   // Initial data load + when page or filters change
   useEffect(() => {
     dispatch(
@@ -50,13 +72,10 @@ const AvailableRooms = () => {
     dispatch(fetchRoomTypes());
   }, [dispatch]);
 
-  // Get unique floors from rooms
-  const uniqueFloors = useMemo(() => {
-    if (!rooms || rooms.length === 0) return [];
-    const floors = [...new Set(rooms.map(room => room.floor))].sort((a, b) => a - b);
-    return floors;
-  }, [rooms]);
-  
+  useEffect(() => {
+    dispatch(fetchBookings());
+  }, [dispatch]);
+
   console.log(rooms,"rooms");
   
   // Filter rooms based on filter criteria
@@ -170,7 +189,7 @@ const AvailableRooms = () => {
   }, []);
 
   const refreshRooms = useCallback(() => {
-    dispatch(
+    return dispatch(
       fetchRoomsPaginated({
         page: localPage,
         limit: pageSize,
@@ -178,6 +197,62 @@ const AvailableRooms = () => {
       })
     );
   }, [dispatch, localPage, pageSize, filters]);
+
+  const getBookingForRoom = useCallback(
+    (roomData) => {
+      if (!roomData || !bookings.length) return null;
+      const detailRoomId = roomData.id || roomData._id;
+      const detailRoomNumber = roomData.roomNumber;
+
+      return (
+        bookings.find((booking) => {
+          const bookingRoomId = booking.room?.id || booking.room?._id || booking.room;
+          const bookingRoomNumber = booking.roomNumber || booking.room?.roomNumber;
+
+          if (detailRoomId && bookingRoomId && bookingRoomId === detailRoomId) {
+            return true;
+          }
+
+          if (detailRoomNumber && bookingRoomNumber) {
+            return String(bookingRoomNumber) === String(detailRoomNumber);
+          }
+
+          return false;
+        }) || null
+      );
+    },
+    [bookings]
+  );
+
+  const bookingForDetailsRoom = useMemo(
+    () => getBookingForRoom(detailsRoom),
+    [detailsRoom, getBookingForRoom]
+  );
+
+  const handleDetailsClose = useCallback(() => {
+    setOpen(false);
+    setDetailsRoom(null);
+  }, []);
+
+  const handleBookingStatusChange = useCallback(
+    async (status) => {
+      if (!bookingForDetailsRoom?.id) return;
+      try {
+        await dispatch(
+          updateBooking({
+            id: bookingForDetailsRoom.id,
+            updates: { status }
+          })
+        ).unwrap();
+        await dispatch(fetchBookings());
+        await refreshRooms();
+        handleDetailsClose();
+      } catch (error) {
+        console.error('Failed to update booking status', error);
+      }
+    },
+    [bookingForDetailsRoom, dispatch, refreshRooms, handleDetailsClose]
+  );
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -206,6 +281,8 @@ const AvailableRooms = () => {
 
   const handleRoomAction = (room) => {
     if (room.status === 'Occupied' || room.status === 'Reserved') {
+      setDetailsRoom(room);
+      setOpen(true);
       return;
     }
     handleAddGuestClick(room);
@@ -414,7 +491,7 @@ const AvailableRooms = () => {
                   className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
                 >
                   <option>All Floors</option>
-                  {uniqueFloors.map((floor) => (
+                  {floors.map((floor) => (
                     <option key={floor} value={floor}>
                       Floor {floor}
                     </option>
@@ -556,7 +633,7 @@ const AvailableRooms = () => {
                 switch (status) {
                   case 'Occupied':
                     return { color: 'bg-senary', text: 'OCCUPIED', icon: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" q="2">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                         <circle cx="12" cy="7" r="4"></circle>
                       </svg>
@@ -600,6 +677,17 @@ const AvailableRooms = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
+              console.log(amenities,"amenities");
+              const roomBooking = getBookingForRoom(room);
+              const guestName = roomBooking?.guest?.fullName || '—';
+              const bookingReference =
+                roomBooking?.reservation?.bookingReference ||
+                roomBooking?.id?.slice(-10)?.toUpperCase() ||
+                '—';
+              const bookingStatusLabel = roomBooking?.status || '';
+              const checkInLabel = formatDateTimeLabel(roomBooking?.reservation?.checkInDate);
+              const checkOutLabel = formatDateTimeLabel(roomBooking?.reservation?.checkOutDate);
+              
 
               return (
                 <div key={room.id} className="bg-white rounded-lg shadow-md p-5 relative">
@@ -645,9 +733,18 @@ const AvailableRooms = () => {
                     <div className="mb-4 p-3 bg-secondary rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-sm font-medium text-senary">Guest Name</span>
-                        <span className="px-2 py-0.5 bg-primary text-senary text-xs font-semibold rounded">VIP</span>
+                        <span className="px-2 py-0.5 bg-primary text-senary text-xs font-semibold rounded">
+                          {guestName}
+                        </span>
                       </div>
-                      <div className="text-xs text-quinary">Booking ID: {room.id?.slice(-12).toUpperCase()}</div>
+                      <div className="flex items-center justify-between text-xs text-quinary gap-2">
+                        <span>Booking Ref: {bookingReference}</span>
+                        {bookingStatusLabel && (
+                          <span className="px-2 py-0.5 rounded bg-white text-senary font-semibold">
+                            {bookingStatusLabel}
+                          </span>
+                        )}
+                      </div>
                       <div className="mt-2 space-y-1">
                         <div className="flex items-center gap-2 text-xs text-tertiary">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -656,7 +753,7 @@ const AvailableRooms = () => {
                             <line x1="8" y1="2" x2="8" y2="6"></line>
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                           </svg>
-                          Check-in: {new Date().toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}, 12:00 AM
+                          Check-in: {checkInLabel}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-tertiary">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -665,7 +762,7 @@ const AvailableRooms = () => {
                             <line x1="8" y1="2" x2="8" y2="6"></line>
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                           </svg>
-                          Check-out: {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })}, 12:00 AM
+                          Check-out: {checkOutLabel}
                         </div>
                       </div>
                     </div>
@@ -674,7 +771,7 @@ const AvailableRooms = () => {
                   {amenities.length > 0 && (
                     <div className="flex items-center gap-2 mb-4">
                       <div className="flex flex-wrap items-center gap-1 text-xs text-quinary">
-                        {amenities.slice(0, 5).map((feature, idx) => {
+                        {amenities.map((feature, idx) => {
                           const label =
                             typeof feature === 'object' && feature.feature
                               ? feature.feature
@@ -703,21 +800,20 @@ const AvailableRooms = () => {
                   {/* Action Button */}
                   <button
                     onClick={() => handleRoomAction(room)}
-                    disabled={!isAddGuestAction}
                     className={`w-full py-2.5 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition-colors ${
                       isAddGuestAction
                         ? 'bg-senary hover:bg-quinary'
-                        : 'bg-quinary cursor-not-allowed opacity-60'
+                        : 'bg-quinary'
                     }`}
                   >
                     {room.status === 'Occupied' || room.status === 'Reserved' ? (
-                      <>
+                      <div className='flex items-center gap-2'>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                           <circle cx="12" cy="12" r="3"></circle>
                         </svg>
                         Guest Details
-                      </>
+                      </div>
                     ) : (
                       <div className="flex items-center gap-2">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -741,6 +837,16 @@ const AvailableRooms = () => {
           room={selectedRoom}
           onClose={handleModalClose}
           onBooked={refreshRooms}
+        />
+      )}
+      {open && (
+        <GuestDetailsModal
+          room={detailsRoom}
+          booking={bookingForDetailsRoom}
+          loading={bookingLoading}
+          onClose={handleDetailsClose}
+          onCheckOut={() => handleBookingStatusChange('CheckedOut')}
+          onCancelRoom={() => handleBookingStatusChange('Cancelled')}
         />
       )}
       {/* No Results Message */}

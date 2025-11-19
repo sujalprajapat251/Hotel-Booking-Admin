@@ -1,6 +1,15 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { BASE_URL } from '../../Utils/baseUrl';
+import { setAlert } from './alert.slice';
+import { useDispatch } from 'react-redux';
+
+const handleErrors = (error, dispatch, rejectWithValue) => {
+  const errorMessage = error.response?.data?.message || 'An error occurred';
+  dispatch(setAlert({ text: errorMessage, color: 'error' }));
+  return rejectWithValue(error.response?.data || { message: errorMessage });
+};
+
 
 const buildError = (error) => {
   if (error?.response?.data?.message) return error.response.data.message;
@@ -14,7 +23,7 @@ const getAuthHeaders = () => {
 
 export const fetchBookings = createAsyncThunk(
   'booking/fetchAll',
-  async (params = {}, { rejectWithValue }) => {
+  async (params = {}, {dispatch , rejectWithValue }) => {
     try {
       const response = await axios.get(`${BASE_URL}/bookings`, {
         params,
@@ -22,16 +31,15 @@ export const fetchBookings = createAsyncThunk(
       });
       return response.data?.data || [];
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const createBooking = createAsyncThunk(
   'booking/create',
-  async (bookingData, { rejectWithValue }) => {
+  async (bookingData, { dispatch , rejectWithValue }) => {
     console.log(bookingData,"bookingData");
-    
     try {
       const response = await axios.post(`${BASE_URL}/bookings`, bookingData, {
         headers: {
@@ -39,16 +47,17 @@ export const createBooking = createAsyncThunk(
           ...getAuthHeaders()
         }
       });
+      dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return response.data?.data;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const getBookingById = createAsyncThunk(
   'booking/getById',
-  async (id, { rejectWithValue }) => {
+  async (id, {dispatch , rejectWithValue }) => {
     try {
       const response = await axios.get(`${BASE_URL}/bookings/${id}`, {
         headers: getAuthHeaders()
@@ -62,7 +71,7 @@ export const getBookingById = createAsyncThunk(
 
 export const updateBooking = createAsyncThunk(
   'booking/update',
-  async ({ id, updates }, { rejectWithValue }) => {
+  async ({ id, updates }, {dispatch, rejectWithValue }) => {
     try {
       const response = await axios.put(`${BASE_URL}/bookings/${id}`, updates, {
         headers: {
@@ -70,6 +79,7 @@ export const updateBooking = createAsyncThunk(
           ...getAuthHeaders()
         }
       });
+      dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -79,14 +89,17 @@ export const updateBooking = createAsyncThunk(
 
 export const deleteBooking = createAsyncThunk(
   'booking/delete',
-  async (id, { rejectWithValue }) => {
+  async (id, {dispatch , rejectWithValue }) => {
     try {
-      await axios.delete(`${BASE_URL}/bookings/${id}`, {
+      const response = await axios.delete(`${BASE_URL}/bookings/${id}`, {
         headers: getAuthHeaders()
       });
+      
+      dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return id;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
