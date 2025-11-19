@@ -45,6 +45,7 @@ const {
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
+const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -152,5 +153,6 @@ indexRoutes.get('/getallcafeitem', getAllCafeItems);
 indexRoutes.get('/getcafeitem/:id', getSingleCafeItem);
 indexRoutes.put('/updatecafeitem/:id', auth, adminOnly, upload.single("image"), updateCafeItem);
 indexRoutes.delete('/deletetcafeitem/:id', auth, adminOnly, deleteCafeItem);
+indexRoutes.put('/togglecafeitem/:id', auth, adminOnly, changeAvailability);
 
 module.exports = indexRoutes;

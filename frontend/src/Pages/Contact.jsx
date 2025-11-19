@@ -37,6 +37,19 @@ const Contact = () => {
     };
 
     useEffect(() => {
+      const shouldDisableScroll = isModalOpen;
+      if (shouldDisableScroll) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }, [isModalOpen]);
+
+    useEffect(() => {
       const handleClickOutside = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
           setShowColumnDropdown(false);

@@ -58,7 +58,7 @@ exports.getSingleCafeCategory = async (req, res) => {
     }
 };
 
-exports.updateCafeCategory = async (req, res) => {po
+exports.updateCafeCategory = async (req, res) => {
     try {
 
         const duplicate = await CafeCategory.findOne({

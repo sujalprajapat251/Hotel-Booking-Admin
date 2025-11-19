@@ -92,6 +92,19 @@ const Blog = () => {
     }, []);
 
     useEffect(() => {
+      const shouldDisableScroll = isModalOpen || isAddModalOpen || isDeleteModalOpen;
+      if (shouldDisableScroll) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }, [isModalOpen, isAddModalOpen, isDeleteModalOpen]);
+
+    useEffect(() => {
         dispatch(getAllBlog());
       }, [dispatch]);
 
@@ -592,7 +605,7 @@ const Blog = () => {
                         <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl">
                             {/* Modal Header */}
                             <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
-                                <div className="flex items-start justify-between border-b border-gray-200 pb-2 mb-4">
+                                <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
                                     <h3 className="text-lg font-semibold text-black">Blog Details</h3>
                                     <button
                                         type="button"
@@ -645,7 +658,7 @@ const Blog = () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
                     <div className="relative w-full md:max-w-xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl">
-                        <div className="flex items-start justify-between mb-6 pb-2 border-b border-gray-200">
+                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
                             <h2 className="text-2xl font-semibold text-black">
                                 {isEditMode ? 'Edit Blog' : 'Add Blog'}
                             </h2>
@@ -779,8 +792,8 @@ const Blog = () => {
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
-                    <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
-                        <div className="flex items-start justify-between mb-6">
+                    <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+                        <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold text-black">Delete Blog</h2>
                             <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -788,7 +801,7 @@ const Blog = () => {
                                 </svg>
                             </button>
                         </div>
-                        <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete?</p>
+                        <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this blog?</p>
                         <div className="flex items-center justify-center gap-3">
                             <button
                                 type="button"
