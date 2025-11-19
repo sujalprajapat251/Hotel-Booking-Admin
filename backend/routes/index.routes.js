@@ -44,6 +44,7 @@ const {
 } = require('../controller/bookingController');
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
+const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -70,6 +71,13 @@ indexRoutes.get('/getallblog', getAllBlogs);
 indexRoutes.get('/getblog/:id', getBlogById);
 indexRoutes.put('/updateblog/:id', auth, adminOnly, upload.single("image"), updateBlog);
 indexRoutes.delete('/deleteblog/:id', auth, adminOnly, deleteBlog);
+
+// about us 
+indexRoutes.post('/createAbout', auth, adminOnly, upload.single("image"), createAbout);
+indexRoutes.get('/getallAbout', getAllAbout);
+indexRoutes.get('/getAbout/:id', getAboutById);
+indexRoutes.put('/updateAbout/:id', auth, adminOnly, upload.single("image"), updateAbout);
+indexRoutes.delete('/deleteAbout/:id', auth, adminOnly, deleteAbout);
 
 // department Routes
 indexRoutes.post('/createdepartment', auth, adminOnly, createDepartment);
