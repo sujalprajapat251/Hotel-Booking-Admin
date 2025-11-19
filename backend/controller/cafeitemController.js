@@ -2,10 +2,18 @@ const CafeItem = require("../models/cafeitemModel");
 
 exports.createCafeItem = async (req, res) => {
     try {
-        const { name, category, price , description } = req.body;
+        const { name, category, price, description } = req.body;
 
         if (!name || !category || !price || !description) {
             return res.status(400).json({ success: false, message: "All fields required" });
+        }
+
+        const existing = await CafeItem.findOne({ name: name.trim() });
+        if (existing) {
+            return res.status(400).json({
+                success: false,
+                message: "Item name already exists"
+            });
         }
 
         if (req.file) {
@@ -56,6 +64,19 @@ exports.getSingleCafeItem = async (req, res) => {
 
 exports.updateCafeItem = async (req, res) => {
     try {
+
+        const duplicate = await CafeItem.findOne({
+            name: req.body.name.trim(),
+            _id: { $ne: req.params.id }
+        });
+
+        if (duplicate) {
+            return res.status(400).json({
+                success: false,
+                message: "Item name already exists"
+            });
+        }
+
         if (req.file) {
             req.body.image = req.file.path;
         }

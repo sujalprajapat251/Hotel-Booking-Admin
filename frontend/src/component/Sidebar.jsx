@@ -47,6 +47,15 @@ const adminSections = [
           { label: 'Room Features', path: '/rooms/features' },
         ]
       },
+      { 
+        icon: LuBed, 
+        label: 'Cafe', 
+        path: '/cafe',
+        subMenus: [
+          { label: 'Cafe Category', path: '/cafe/cafecategory' },
+          { label: 'Cafe Items', path: '/cafe/cafeitems' },
+        ]
+      },
       { icon: LuUsers, label: 'Staff', path: '/staff' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       { icon: LuInfo, label: 'About', path: '/about' },
@@ -54,7 +63,8 @@ const adminSections = [
       { icon: VscCodeReview, label: 'Review', path: '/review' },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
-      { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' }
+      { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' },
+      
     ],
   },
 ];
