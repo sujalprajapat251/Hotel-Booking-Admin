@@ -7,7 +7,7 @@ import { FiEdit, FiPlusCircle } from "react-icons/fi";
 import { IoEyeSharp } from 'react-icons/io5';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, Phone, Mail, RefreshCw } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addDepartment, getAllDepartment, updateDepartment, deleteDepartment } from '../Redux/Slice/department.slice';
+import { addCafecategory, getAllCafecategory, updateCafecategory, deleteCafecategory } from '../Redux/Slice/cafecategorySlice';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 
@@ -15,7 +15,7 @@ const Cafecategory = () => {
 
   const dispatch = useDispatch();
 
-  const departments = useSelector((state) => state.department.departments);
+  const cafecategory = useSelector((state) => state.cafecategory.cafecategory);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -30,7 +30,7 @@ const Cafecategory = () => {
 
   const [visibleColumns, setVisibleColumns] = useState({
     no: true,
-    name: true,
+    cafecategoryname: true,
     actions: true,
   });
 
@@ -52,27 +52,40 @@ const Cafecategory = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const shouldDisableScroll = isAddModalOpen || isDeleteModalOpen;
+    if (shouldDisableScroll) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAddModalOpen, isDeleteModalOpen]);
+
   const formik = useFormik({
     initialValues: {
       name: '',
     },
     validationSchema: Yup.object({
-      name: Yup.string().required('Department Name is required'),
+      name: Yup.string().required('Cafe Category Name is required'),
     }),
     onSubmit: (values, { resetForm }) => {
       if (isEditMode && editingItem) {
-        dispatch(updateDepartment({ departmentId: editingItem._id, departmentData: values }))
+        dispatch(updateCafecategory({ cafecategorytId: editingItem._id, cafecategoryData: values }))
           .then(() => {
-            dispatch(getAllDepartment());
+            dispatch(getAllCafecategory());
             resetForm();
             setIsAddModalOpen(false);
             setEditingItem(null);
             setIsEditMode(false);
           });
       } else {
-        dispatch(addDepartment(values))
+        dispatch(addCafecategory(values))
           .then(() => {
-            dispatch(getAllDepartment());
+            dispatch(getAllCafecategory());
             resetForm();
             setIsAddModalOpen(false);
           });
@@ -99,28 +112,28 @@ const Cafecategory = () => {
 
   const handleDeleteConfirm = () => {
     if (itemToDelete) {
-      dispatch(deleteDepartment(itemToDelete._id))
+      dispatch(deleteCafecategory(itemToDelete._id))
         .then(() => {
-          dispatch(getAllDepartment());
+          dispatch(getAllCafecategory());
         });
     }
     handleDeleteModalClose();
   };
 
-  const filtereDepartment = departments.filter((item) => {
+  const filtereCafecategory = cafecategory.filter((item) => {
     const searchLower = searchTerm.toLowerCase();
     return (
       item.name?.toLowerCase().includes(searchLower)
     );
   });
 
-  const totalPages = Math.ceil(filtereDepartment.length / itemsPerPage);
+  const totalPages = Math.ceil(filtereCafecategory.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filtereDepartment.slice(startIndex, endIndex);
+  const currentData = filtereCafecategory.slice(startIndex, endIndex);
 
   const handleRefresh = () => {
-    dispatch(getAllDepartment());
+    dispatch(getAllCafecategory());
     setSearchTerm("");
     setCurrentPage(1);
   };
@@ -128,13 +141,13 @@ const Cafecategory = () => {
   const handleDownloadExcel = () => {
     try {
         // Prepare data for Excel
-        const excelData = filtereDepartment.map((user, index) => {
+        const excelData = filtereCafecategory.map((user, index) => {
             const row = {};
             
-            if (visibleColumns.No) {
+            if (visibleColumns.no) {
                 row['No.'] = index + 1;
             }
-            if (visibleColumns.name) {
+            if (visibleColumns.cafecategoryname) {
                 row['Name'] = user.name || '';
             }
             return row;
@@ -152,7 +165,7 @@ const Cafecategory = () => {
 
         // Generate file name with current date
         const date = new Date();
-        const fileName = `Department_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+        const fileName = `Cafe_Category_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
 
         // Download the file
         XLSX.writeFile(workbook, fileName);
@@ -163,7 +176,7 @@ const Cafecategory = () => {
 };
 
   useEffect(() => {
-    dispatch(getAllDepartment());
+    dispatch(getAllCafecategory());
   }, [dispatch])
 
   return (
@@ -178,7 +191,7 @@ const Cafecategory = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Departments</p>
+            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Cafe Category</p>
 
             {/* Search Bar */}
             <div className="relative  max-w-md">
@@ -204,7 +217,7 @@ const Cafecategory = () => {
                   setIsAddModalOpen(true);
                 }}
                 className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-                title="Add Department"
+                title="Add Cafe Category"
               >
                 <FiPlusCircle size={20} />
               </button>
@@ -261,8 +274,8 @@ const Cafecategory = () => {
                   <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
                 )}
 
-                {visibleColumns.name && (
-                  <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Department Name</th>
+                {visibleColumns.cafecategoryname && (
+                  <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Cafe Category Name</th>
                 )}
 
                 {visibleColumns.actions && (
@@ -271,39 +284,53 @@ const Cafecategory = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentData.map((item, index) => (
-                <tr
-                  key={item._id || index}
-                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                >
-                  {visibleColumns.no && (
-                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
-                  )}
-                  {/* title */}
-                  {visibleColumns.name && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
-                        {item.name}
-                      </div>
-                    </td>
-                  )}
-                  {/* Actions */}
-                  {visibleColumns.actions && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="mv_table_action flex">
-                        <div onClick={() => {
-                          setIsEditMode(true);
-                          setEditingItem(item);
-                          formik.setValues({ name: item.name });
-                          setIsAddModalOpen(true);
-                        }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                        <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                      </div>
-                    </td>
-                  )}
-
+              {currentData.length === 0 ? (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                [...currentData].reverse().map((item, index) => (
+                  <tr
+                    key={item._id || index}
+                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                  >
+                    {visibleColumns.no && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                    )}
+                    {/* title */}
+                    {visibleColumns.cafecategoryname && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                          {item.name}
+                        </div>
+                      </td>
+                    )}
+                    {/* Actions */}
+                    {visibleColumns.actions && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="mv_table_action flex">
+                          <div onClick={() => {
+                            setIsEditMode(true);
+                            setEditingItem(item);
+                            formik.setValues({ name: item.name });
+                            setIsAddModalOpen(true);
+                          }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                        </div>
+                      </td>
+                    )}
+
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -331,7 +358,7 @@ const Cafecategory = () => {
 
           <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">
-              {startIndex + 1} - {Math.min(endIndex, filtereDepartment.length)} of {filtereDepartment.length}
+              {startIndex + 1} - {Math.min(endIndex, filtereCafecategory.length)} of {filtereCafecategory.length}
             </span>
 
             <div className="flex items-center gap-1">
@@ -355,14 +382,14 @@ const Cafecategory = () => {
 
       </div>
 
-      {/* Add Modal */}
+      {/* Add & Edit Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
           <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-semibold text-black">
-                {isEditMode ? 'Edit Department' : 'Add Department'}
+                {isEditMode ? 'Edit Cafe Category' : 'Add Cafe Category'}
               </h2>
               <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,7 +399,7 @@ const Cafecategory = () => {
             </div>
             <form className="" onSubmit={formik.handleSubmit}>
               <div className="flex flex-col mb-4">
-                <label htmlFor="name" className="text-sm font-medium text-black mb-1">Department Name</label>
+                <label htmlFor="name" className="text-sm font-medium text-black mb-1">Cafe Category Name</label>
                 <input
                   id="name"
                   name="name"
@@ -387,7 +414,7 @@ const Cafecategory = () => {
                   <p className="text-sm text-red-500">{formik.errors.name}</p>
                 ) : null}
               </div>
-              <div className="flex items-center justify-center pt-4">
+              <div className="flex items-center justify-center pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={handleAddModalClose}
@@ -413,14 +440,14 @@ const Cafecategory = () => {
           <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between mb-6">
-              <h2 className="text-2xl font-semibold text-black">Delete Department</h2>
+              <h2 className="text-2xl font-semibold text-black">Delete Cafe Category</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this department?</p>
+            <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this cafe category?</p>
             <div className="flex items-center justify-center gap-3">
               <button
                 type="button"
