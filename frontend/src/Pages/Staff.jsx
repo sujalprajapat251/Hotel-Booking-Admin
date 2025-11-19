@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Filter, Plus, RefreshCw, Download, ChevronLeft, ChevronRight, Edit2, Trash2, MapPin, Phone, Mail } from 'lucide-react';
-import { FiEdit } from 'react-icons/fi';
+import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, MapPin, Phone, Mail } from 'lucide-react';
+import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllStaff } from '../Redux/Slice/staff.slice';
@@ -16,6 +16,11 @@ const StaffTable = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -165,6 +170,9 @@ const StaffTable = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1 justify-end mt-2">
                   <div className="relative" ref={dropdownRef}>
+                    <button className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" title="Show/Hide Columns">
+                        <FiPlusCircle size={20}/>
+                    </button>
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
                       className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
@@ -369,6 +377,38 @@ const StaffTable = () => {
             </div>
           </div>
         </div>
+
+        {/* Delete Modal */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-semibold text-black">Delete About Us</h2>
+                  <button className="text-gray-500 hover:text-gray-800">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                  </button>
+              </div>
+              <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete?</p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                    type="button"
+                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                >
+                    Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

@@ -5,10 +5,6 @@ const AboutUs = mongoose.Schema({
         type:String,
         require:true
     },
-    subtitle: {
-        type: String,
-        required: true,
-    },
     description: {
         type: String,
         required: true,

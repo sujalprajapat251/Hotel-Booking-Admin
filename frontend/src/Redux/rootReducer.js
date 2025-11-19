@@ -12,6 +12,7 @@ import departmentSlice from "./Slice/department.slice";
 import staffSlice from "./Slice/staff.slice";
 import blogSlice from "./Slice/blogSlice";
 import termsSlice from "./Slice/terms.slice";
+import aboutSlice from "./Slice/about.slice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -26,5 +27,6 @@ export const rootReducer = combineReducers({
     department:departmentSlice,
     staff:staffSlice,
     blog:blogSlice,
-    terms:termsSlice
+    terms:termsSlice,
+    about:aboutSlice,
 });
