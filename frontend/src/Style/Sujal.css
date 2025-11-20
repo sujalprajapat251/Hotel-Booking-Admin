@@ -154,3 +154,14 @@
     height: 35vh;
   }
 }
+
+
+.recharts-surface:focus{
+  outline: none;
+}
+
+.recharts-layer:focus,
+.recharts-area-_r_2u_:focus,
+.recharts-zindex--100-_r_2s_:focus {
+  outline: none;
+}
