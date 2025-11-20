@@ -38,7 +38,10 @@ import HODStaff from './Pages/HODStaff';
 import HODTable from './Pages/HODTable';
 import HODHistory from './Pages/HODHistory';
 import HODProfile from './Pages/HODProfile';
-
+import WaiterDashboard from './component/Waiter/Dashboard'
+import WaiterLayout from './component/Waiter/Layout'
+import WaiterTable from './component/Waiter/Table';
+import CafeOrder from './component/Waiter/TableOrder';
 const { store, persistor } = configureStore();
 function App() {
   return (
@@ -246,6 +249,13 @@ function App() {
               path='*' 
               element={<ProtectedRoute allowedRoles={[]}><Navigate to="/booking-dashboard" replace /></ProtectedRoute>} 
             />
+
+            <Route path='/waiter' element={<WaiterLayout/>}>
+                <Route path='dashboard' element={<WaiterDashboard/>}></Route>
+                <Route path='table' element={<WaiterTable/>}></Route>
+                <Route path='table/:id' element={<CafeOrder/>}></Route>
+            </Route>
+
           </Routes>
         </SnackbarProvider>
         </PersistGate>

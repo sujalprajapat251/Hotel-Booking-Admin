@@ -96,10 +96,32 @@ export const deleteCafeTable = createAsyncThunk(
     }
 );
 
+export const getCafeTableById = createAsyncThunk(
+    'cafeTable/getCafeTableById',
+    async (id, { dispatch, rejectWithValue }) => {
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/getCafeTable/${id}`,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const cafeTableSlice = createSlice({
     name: 'cafeTable',
     initialState: {
         cafeTable: [],
+        singleTable: null,
+        currentOrder: null,
         message: '',
         loading: false,
         isError: false,
@@ -177,6 +199,25 @@ const cafeTableSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to delete Cafe Table';
+            })
+            .addCase(getCafeTableById.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching Cafe Table...';
+                state.isError = false;
+            })
+            .addCase(getCafeTableById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'Cafe Table fetched successfully';
+                state.singleTable = action.payload?.data || null;
+                state.currentOrder = action.payload?.order || null;
+                state.isError = false;
+            })
+            .addCase(getCafeTableById.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch Cafe Table';
             });
     },
 });
