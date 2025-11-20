@@ -13,7 +13,9 @@ import staffSlice from "./Slice/staff.slice";
 import blogSlice from "./Slice/blogSlice";
 import termsSlice from "./Slice/terms.slice";
 import cafeSlice from "./Slice/cafeitemSlice";
+import barSlice from "./Slice/baritemSlice";
 import cafecategorySlice from "./Slice/cafecategorySlice";
+import barcategorySlice from "./Slice/barcategorySlice";
 import aboutSlice from "./Slice/about.slice";
 import cafeTableSlice from "./Slice/cafeTable.slice";
 import waiterSlice from "./Slice/Waiter.slice"
@@ -32,7 +34,9 @@ export const rootReducer = combineReducers({
     blog:blogSlice,
     terms:termsSlice,
     cafe:cafeSlice,
+    bar:barSlice,
     cafecategory:cafecategorySlice,
+    barcategory:barcategorySlice,
     about:aboutSlice,
     cafeTable:cafeTableSlice,
     waiter:waiterSlice

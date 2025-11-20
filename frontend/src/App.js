@@ -42,6 +42,10 @@ import WaiterDashboard from './component/Waiter/Dashboard'
 import WaiterLayout from './component/Waiter/Layout'
 import WaiterTable from './component/Waiter/Table';
 import CafeOrder from './component/Waiter/TableOrder';
+import BarSection from './Pages/BarSection';
+import Barcategory from './Pages/Barcategory';
+import BarItems from './Pages/BarItems';
+
 const { store, persistor } = configureStore();
 function App() {
   return (
@@ -103,6 +107,20 @@ function App() {
                 <Route path='cafecategory' element={<Cafecategory />} />
                 <Route path='cafeitems' element={<CafeItems />} />
               </Route>
+
+              <Route 
+                path='/bar' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <BarSection />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/bar/barcategory" replace />} />
+                <Route path='barcategory' element={<Barcategory />} />
+                <Route path='baritems' element={<BarItems />} />
+              </Route>
+
               <Route 
                 path='/staff' 
                 element={

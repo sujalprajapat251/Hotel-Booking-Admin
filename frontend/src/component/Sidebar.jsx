@@ -26,6 +26,9 @@ import { RxDashboard } from "react-icons/rx";
 import { IoHelpCircleOutline , IoPhonePortraitOutline  } from "react-icons/io5";
 import { VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
+import { CiCoffeeCup } from "react-icons/ci";
+import { GiMartini } from "react-icons/gi";
+import { HiOutlineUserGroup } from "react-icons/hi";
 
 
 // Admin menu items
@@ -35,7 +38,7 @@ const adminSections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
-      { icon: RxDashboard, label: 'UserList', path: '/user' },
+      { icon: HiOutlineUserGroup, label: 'UserList', path: '/user' },
       { 
         icon: LuBed, 
         label: 'Rooms', 
@@ -48,12 +51,21 @@ const adminSections = [
         ]
       },
       { 
-        icon: LuBed, 
+        icon: CiCoffeeCup, 
         label: 'Cafe', 
         path: '/cafe',
         subMenus: [
           { label: 'Cafe Category', path: '/cafe/cafecategory' },
           { label: 'Cafe Items', path: '/cafe/cafeitems' },
+        ]
+      },
+      { 
+        icon: GiMartini, 
+        label: 'Bar', 
+        path: '/bar',
+        subMenus: [
+          { label: 'Bar Category', path: '/bar/barcategory' },
+          { label: 'Bar Items', path: '/bar/baritems' },
         ]
       },
       { icon: LuUsers, label: 'Staff', path: '/staff' },
