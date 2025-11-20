@@ -15,6 +15,7 @@ import termsSlice from "./Slice/terms.slice";
 import cafeSlice from "./Slice/cafeitemSlice";
 import cafecategorySlice from "./Slice/cafecategorySlice";
 import aboutSlice from "./Slice/about.slice";
+import cafeTableSlice from "./Slice/cafeTable.slice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -33,4 +34,5 @@ export const rootReducer = combineReducers({
     cafe:cafeSlice,
     cafecategory:cafecategorySlice,
     about:aboutSlice,
+    cafeTable:cafeTableSlice,
 });
