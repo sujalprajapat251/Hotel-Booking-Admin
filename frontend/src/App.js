@@ -45,6 +45,7 @@ import CafeOrder from './component/Waiter/TableOrder';
 import BarSection from './Pages/BarSection';
 import Barcategory from './Pages/Barcategory';
 import BarItems from './Pages/BarItems';
+import HODStaffForm from './Pages/HODStaffForm';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -253,6 +254,14 @@ function App() {
                     <Profile />
                   </ProtectedRoute>
                 }
+              />
+              <Route 
+                path='/hod/addstaff' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODStaffForm />
+                  </ProtectedRoute>
+                } 
               />
               
               {/* Default HOD route */}

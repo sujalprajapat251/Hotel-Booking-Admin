@@ -9,8 +9,6 @@ import { IoEyeSharp } from 'react-icons/io5';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw, ChevronDown } from 'lucide-react';
 import { getAllCafeitem, createCafeitem, updateCafeitem, deleteCafeitem, toggleCafeitemStatus } from '../Redux/Slice/cafeitemSlice';
 import * as XLSX from 'xlsx';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
@@ -44,31 +42,6 @@ const CafeItems = () => {
       actions: true,
     });
     const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
-
-    const quillModules = useMemo(() => ({
-        toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            [{ script: 'sub' }, { script: 'super' }],
-            [{ indent: '-1' }, { indent: '+1' }],
-            [{ direction: 'rtl' }],
-            [{ size: ['small', false, 'large', 'huge'] }],
-            [{ color: [] }, { background: [] }],
-            [{ font: [] }],
-            [{ align: [] }],
-            ['link', 'blockquote', 'code-block'],
-            ['clean']
-        ],
-    }), []);
-
-    const quillFormats = useMemo(() => ([
-        'header', 'font', 'size',
-        'bold', 'italic', 'underline', 'strike', 'blockquote',
-        'list', 'bullet', 'indent',
-        'link', 'color', 'background',
-        'align', 'script', 'code-block'
-    ]), []);
 
     const getImageFileName = (path = '') => {
         if (!path) return '';
@@ -267,12 +240,6 @@ const CafeItems = () => {
         return date.toISOString().split('T')[0];
     };
 
-    const stripHtmlTags = (htmlString = '') => {
-        if (!htmlString) return '';
-        const tempElement = document.createElement('div');
-        tempElement.innerHTML = htmlString;
-        return tempElement.textContent || tempElement.innerText || '';
-    };
 
     // Filter bookings based on search term
     const filteredBookings = cafe.filter((item) => {
@@ -303,6 +270,11 @@ const CafeItems = () => {
 
     const handleDownloadExcel = () => {
         try {
+            if (filteredBookings.length === 0) {
+                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+                return;
+            }
+ 
             // Prepare data for Excel
             const excelData = filteredBookings.map((item, index) => {
                 const row = {};
@@ -322,7 +294,7 @@ const CafeItems = () => {
                     row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
                 }
                 if (visibleColumns.description) {
-                  row['Description'] = stripHtmlTags(item.description);
+                  row['Description'] = item.description || '';
                 }
                 
                 return row;
@@ -363,7 +335,7 @@ const CafeItems = () => {
                 <h1 className="text-2xl font-semibold text-black">Cafe Items</h1>
             </section>
 
-            <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+            <div className='bg-white rounded-lg shadow-md'>
 
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
@@ -542,10 +514,7 @@ const CafeItems = () => {
                                         {/* description */}
                                         {visibleColumns.description && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
-                                                <div
-                                                    className="prose prose-sm max-w-none"
-                                                    dangerouslySetInnerHTML={{ __html: item.description || '' }}
-                                                />
+                                                {item.description || ''}
                                             </td>
                                         )}
                                         
@@ -608,7 +577,7 @@ const CafeItems = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                   <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                     <span className="text-sm text-gray-600">Items per page:</span>
                     <div className="relative">
@@ -702,10 +671,7 @@ const CafeItems = () => {
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
-                                            <div
-                                                className="text-gray-900"
-                                                dangerouslySetInnerHTML={{ __html: selectedItem.description || '' }}
-                                            />
+                                            <span className="text-gray-900">{selectedItem.description || ''}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -823,18 +789,16 @@ const CafeItems = () => {
 
                             <div className="flex flex-col mb-4">
                                 <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                                <div className="rounded-[4px] border border-gray-200 bg-[#1414140F]">
-                                    <ReactQuill
-                                        id="description"
-                                        theme="snow"
-                                        value={formik.values.description}
-                                        onChange={(content) => formik.setFieldValue('description', content)}
-                                        onBlur={() => formik.setFieldTouched('description', true)}
-                                        modules={quillModules}
-                                        formats={quillFormats}
-                                        placeholder="Enter Description"
-                                    />
-                                </div>
+                                <textarea
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter Description"
+                                    rows="4"
+                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F] resize-none"
+                                    value={formik.values.description}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                />
                                 {formik.touched.description && formik.errors.description ? (
                                     <p className="text-sm text-red-500">{formik.errors.description}</p>
                                 ) : null}
