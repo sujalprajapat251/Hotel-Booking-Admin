@@ -77,6 +77,10 @@ const User = () => {
 
     const handleDownloadExcel = () => {
         try {
+            if (currentData.length === 0) {
+                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+                return;
+            }
             // Prepare data for Excel
             const excelData = filteredUsers.map((user, index) => {
                 const row = {};
@@ -130,7 +134,7 @@ const User = () => {
             <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB]'>
                 <p className=' text-[20px] font-semibold text-black '>All User</p>
                 <div className="w-full mt-3 md:mt-5">
-                    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div className="bg-white rounded-lg shadow-md">
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
@@ -265,12 +269,25 @@ const User = () => {
                                             )}
                                         </tr>
                                     ))}
+                                    {currentData.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                                <div className="flex flex-col items-center justify-center text-gray-500">
+                                                    <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                    </svg>
+                                                    <p className="text-lg font-medium">No data available</p>
+                                                    <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : null}
                                 </tbody>
                             </table>
                         </div>
 
                         {/* Pagination */}
-                        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">Items per page:</span>
                                 <div className="relative">
