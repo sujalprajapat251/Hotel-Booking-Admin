@@ -50,6 +50,7 @@ const { createCafeTable, getCafeTables, getCafeTableById, updateCafeTable, delet
 const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
 const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
+const { createCafeOrder, addItemToTableOrder, removeItemFromOrder } = require('../controller/cafeOrderController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -159,7 +160,6 @@ indexRoutes.put('/updatecafeitem/:id', auth, adminOnly, upload.single("image"), 
 indexRoutes.delete('/deletetcafeitem/:id', auth, adminOnly, deleteCafeItem);
 indexRoutes.put('/togglecafeitem/:id', auth, adminOnly, changeAvailability);
 
-
 // cafe table Routes 
 indexRoutes.post('/addCafeTable',auth,createCafeTable)
 indexRoutes.get('/getAllCafeTable',auth,getCafeTables)
@@ -193,4 +193,8 @@ indexRoutes.put('/updaterestaurantcategory/:id', auth, adminOnly, updateRestaura
 indexRoutes.delete('/deletetrestaurantcategory/:id', auth, adminOnly, deleteRestaurantCategory);
 
 
+// cafe order management 
+indexRoutes.post('/addCafeOrder',createCafeOrder)
+indexRoutes.post('/cafe/tables/:tableId/order/items', addItemToTableOrder)
+indexRoutes.delete('/cafe/orders/:id/items/:itemId', removeItemFromOrder)
 module.exports = indexRoutes;

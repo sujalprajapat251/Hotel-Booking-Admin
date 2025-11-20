@@ -1,4 +1,5 @@
 const cafeTable = require("../models/cafeTableModel");
+const cafeOrder = require('../models/cafeOrderModal');
 
 exports.createCafeTable = async (req, res) => {
     try {
@@ -50,7 +51,12 @@ exports.getCafeTableById = async (req, res) => {
         if (!table) {
             return res.status(404).json({ status: 404, message: "Table not found" });
         }
-        res.status(200).json({ status: 200, data: table });
+        const lastUnpaidOrder = await cafeOrder
+            .findOne({ from: 'cafe', table: req.params.id, payment: 'Pending' })
+            .sort({ createdAt: -1, _id: -1 })
+            .populate({ path: 'items.product', model: 'cafeitem' });
+
+        res.status(200).json({ status: 200, data: table, order:lastUnpaidOrder });
     } catch (error) {
         res.status(500).json({ status: 500, message: error.message });
     }
