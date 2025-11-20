@@ -46,6 +46,10 @@ import BarSection from './Pages/BarSection';
 import Barcategory from './Pages/Barcategory';
 import BarItems from './Pages/BarItems';
 import HODStaffForm from './Pages/HODStaffForm';
+import CabsDetails from './Pages/CabsDetails';
+import DriverDetails from './Pages/DriverDetails';
+import Cabs from './Pages/Cabs';
+import CabBookingDetail from './Pages/CabBookingDetail';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -122,6 +126,19 @@ function App() {
                 <Route path='baritems' element={<BarItems />} />
               </Route>
 
+              <Route 
+                path='/cabs' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <Cabs />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/cabs/cabdetails" replace />} />
+                <Route path='cabdetails' element={<CabsDetails />} />
+                <Route path='cabbooking' element={<CabBookingDetail />} />
+                <Route path='drivwerdetails' element={<DriverDetails />} />
+              </Route>
               <Route 
                 path='/staff' 
                 element={

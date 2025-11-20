@@ -63,7 +63,7 @@ const normalizeReservationPayload = (payload = {}) => ({
 });
 
 const normalizePaymentPayload = (payload = {}) => ({
-    status: payload.status || payload.paymentStatus || 'Pending',
+    status: payload.paymentStatus || (payload.payment?.status) || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined) || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
@@ -334,14 +334,20 @@ const updateBooking = async (req, res) => {
             }
         }
 
-        const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
-        if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
-            booking.payment.totalAmount = paymentPayload.totalAmount;
+        // Only process payment updates if payment data is explicitly provided
+        if (req.body.payment || req.body.paymentStatus || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency) {
+            const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
+            if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
+                booking.payment.totalAmount = paymentPayload.totalAmount;
+            }
+            // Only update payment status if it's explicitly provided and valid
+            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
+                booking.payment.status = paymentPayload.status;
+            }
+            if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
+            if (paymentPayload.method) booking.payment.method = paymentPayload.method;
+            if (Array.isArray(paymentPayload.transactions)) booking.payment.transactions = paymentPayload.transactions;
         }
-        if (paymentPayload.status) booking.payment.status = paymentPayload.status;
-        if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
-        if (paymentPayload.method) booking.payment.method = paymentPayload.method;
-        if (Array.isArray(paymentPayload.transactions)) booking.payment.transactions = paymentPayload.transactions;
 
         if (req.body.status) {
             booking.status = req.body.status;

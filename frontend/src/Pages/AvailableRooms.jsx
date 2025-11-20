@@ -738,7 +738,7 @@ const AvailableRooms = () => {
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs text-quinary gap-2">
-                        <span>Booking Ref: {bookingReference}</span>
+                        <span>Booking Status:</span>
                         {bookingStatusLabel && (
                           <span className="px-2 py-0.5 rounded bg-white text-senary font-semibold">
                             {bookingStatusLabel}

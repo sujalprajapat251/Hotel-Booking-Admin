@@ -23,7 +23,8 @@ import {
   LuInfo ,
 } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
-import { IoHelpCircleOutline , IoPhonePortraitOutline  } from "react-icons/io5";
+import { IoHelpCircleOutline , IoPhonePortraitOutline , IoCarSportOutline  } from "react-icons/io5";
+import { MdOutlineLocalCafe } from "react-icons/md";
 import { VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
 import { CiCoffeeCup } from "react-icons/ci";
@@ -66,6 +67,16 @@ const adminSections = [
         subMenus: [
           { label: 'Bar Category', path: '/bar/barcategory' },
           { label: 'Bar Items', path: '/bar/baritems' },
+
+    ]},
+    {
+        icon: IoCarSportOutline, 
+        label: 'Cabs', 
+        path: '/cabs',
+        subMenus: [
+          { label: 'Cab details', path: '/cabs/cabdetails' },
+          { label: 'Driver Details', path: '/cabs/drivwerdetails' },
+          { label: 'Cab Bookings', path: '/cabs/cabbooking' },
         ]
       },
       { icon: LuUsers, label: 'Staff', path: '/staff' },

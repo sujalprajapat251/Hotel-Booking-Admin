@@ -84,7 +84,7 @@ const RoomSchema = mongoose.Schema({
     status: {
         type: String,
         required: true,
-        enum: ['Available', 'Occupied', 'Maintenance', 'Reserved' , 'CheckedOut'],
+        enum: ['Available', 'Occupied', 'Maintenance', 'Reserved'],
         default: 'Available'
     },
     isSmokingAllowed: {
