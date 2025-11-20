@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/user.slice';
 import userImg from "../Images/user.png";
 import { IMAGE_URL } from '../Utils/baseUrl';
@@ -10,6 +10,7 @@ const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const [imageUrl, setImageUrl] = useState(userImg);
 
@@ -47,7 +48,16 @@ const Header = ({ onMenuClick }) => {
   };
 
   const handleClickProfile = () => {
-    navigate('/user-profile');
+    // Check if we're in the HOD panel or normal panel
+    const isHODPanel = location.pathname.startsWith('/hod/');
+   
+    // Navigate to the appropriate profile page
+    if (isHODPanel) {
+      navigate('/hod/user-profile');
+    } else {
+      navigate('/user-profile');
+    }
+   
     setIsProfileOpen(false);
   }
 

@@ -47,6 +47,9 @@ const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateC
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
 const { createCafeTable, getCafeTables, getCafeTableById, updateCafeTable, deleteCafeTable } = require('../controller/cafeTableController');
+const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
+const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
+const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -163,6 +166,31 @@ indexRoutes.get('/getAllCafeTable',auth,getCafeTables)
 indexRoutes.get('/getCafeTable/:id',auth,getCafeTableById)
 indexRoutes.put('/updateCafeTable/:id',auth,updateCafeTable)
 indexRoutes.delete('/deleteCafeTable/:id',auth,deleteCafeTable)
+
+
+// ------------------------------- Bar -------------------------------
+// Bar Category routes
+indexRoutes.post('/createbarcategory', auth, adminOnly, createBarCategory);
+indexRoutes.get('/getallbarcategory', getAllBarCategories);
+indexRoutes.get('/getbarcategory/:id', getSingleBarCategory);
+indexRoutes.put('/updatebarcategory/:id', auth, adminOnly, updateBarCategory);
+indexRoutes.delete('/deletetbarcategory/:id', auth, adminOnly, deleteBarCategory);
+
+// Bar Item routes
+indexRoutes.post('/createbaritem', auth, adminOnly, upload.single("image"), createBarItem);
+indexRoutes.get('/getallbaritem', getAllBarItems);
+indexRoutes.get('/getbaritem/:id', getSingleBarItem);
+indexRoutes.put('/updatebaritem/:id', auth, adminOnly, upload.single("image"), updateBarItem);
+indexRoutes.delete('/deletetbaritem/:id', auth, adminOnly, deleteBarItem);
+indexRoutes.put('/togglebaritem/:id', auth, adminOnly, changeAvailabilityBarItem);
+
+// ------------------------------- Restaurant -------------------------------
+// Bar Category routes
+indexRoutes.post('/createrestaurantcategory', auth, adminOnly,createRestaurantCategory);
+indexRoutes.get('/getallrestaurantcategory', getAllRestaurantCategories);
+indexRoutes.get('/getrestaurantcategory/:id', getSingleRestaurantCategory);
+indexRoutes.put('/updaterestaurantcategory/:id', auth, adminOnly, updateRestaurantCategory);
+indexRoutes.delete('/deletetrestaurantcategory/:id', auth, adminOnly, deleteRestaurantCategory);
 
 
 module.exports = indexRoutes;

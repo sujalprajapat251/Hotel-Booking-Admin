@@ -225,13 +225,13 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              <Route 
-                path='/hod/profile' 
+              <Route
+                path='/hod/user-profile'
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
-                    <HODProfile />
+                    <Profile />
                   </ProtectedRoute>
-                } 
+                }
               />
               
               {/* Default HOD route */}

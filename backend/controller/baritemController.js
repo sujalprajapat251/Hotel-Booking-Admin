@@ -1,6 +1,6 @@
-const CafeItem = require("../models/cafeitemModel");
+const BarItem = require("../models/baritemModel");
 
-exports.createCafeItem = async (req, res) => {
+exports.createBarItem = async (req, res) => {
     try {
         const { name, category, price, description } = req.body;
 
@@ -8,7 +8,7 @@ exports.createCafeItem = async (req, res) => {
             return res.status(400).json({ success: false, message: "All fields required" });
         }
 
-        const existing = await CafeItem.findOne({ name: name.trim() });
+        const existing = await BarItem.findOne({ name: name.trim() });
         if (existing) {
             return res.status(400).json({
                 success: false,
@@ -20,11 +20,11 @@ exports.createCafeItem = async (req, res) => {
             req.body.image = req.file.path;
         }
 
-        const item = await CafeItem.create(req.body);
+        const item = await BarItem.create(req.body);
 
         return res.status(201).json({
             success: true,
-            message: "Cafe Item created..!",
+            message: "Bar Item created..!",
             data: item
         });
 
@@ -33,9 +33,9 @@ exports.createCafeItem = async (req, res) => {
     }
 };
 
-exports.getAllCafeItems = async (req, res) => {
+exports.getAllBarItems = async (req, res) => {
     try {
-        const items = await CafeItem.find().populate("category")
+        const items = await BarItem.find().populate("category")
 
         return res.status(200).json({
             success: true,
@@ -47,9 +47,9 @@ exports.getAllCafeItems = async (req, res) => {
     }
 };
 
-exports.getSingleCafeItem = async (req, res) => {
+exports.getSingleBarItem = async (req, res) => {
     try {
-        const item = await CafeItem.findById(req.params.id).populate("category");
+        const item = await BarItem.findById(req.params.id).populate("category");
 
         if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
@@ -62,10 +62,10 @@ exports.getSingleCafeItem = async (req, res) => {
     }
 };
 
-exports.updateCafeItem = async (req, res) => {
+exports.updateBarItem = async (req, res) => {
     try {
 
-        const duplicate = await CafeItem.findOne({
+        const duplicate = await BarItem.findOne({
             name: req.body.name.trim(),
             _id: { $ne: req.params.id }
         });
@@ -81,7 +81,7 @@ exports.updateCafeItem = async (req, res) => {
             req.body.image = req.file.path;
         }
 
-        const updated = await CafeItem.findByIdAndUpdate(
+        const updated = await BarItem.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true, runValidators: true }
@@ -93,7 +93,7 @@ exports.updateCafeItem = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Cafe Item updated..!",
+            message: "Bar Item updated..!",
             data: updated
         });
 
@@ -102,9 +102,9 @@ exports.updateCafeItem = async (req, res) => {
     }
 };
 
-exports.deleteCafeItem = async (req, res) => {
+exports.deleteBarItem = async (req, res) => {
     try {
-        const deleted = await CafeItem.findByIdAndDelete(req.params.id);
+        const deleted = await BarItem.findByIdAndDelete(req.params.id);
 
         if (!deleted) {
             return res.status(404).json({ success: false, message: "Item not found" });
@@ -112,7 +112,7 @@ exports.deleteCafeItem = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Cafe Item deleted ..!"
+            message: "Bar Item deleted ..!"
         });
 
     } catch (error) {
@@ -120,9 +120,9 @@ exports.deleteCafeItem = async (req, res) => {
     }
 };
 
-exports.changeAvailability = async (req, res) => {
+exports.changeAvailabilityBarItem = async (req, res) => {
     try {
-        const item = await CafeItem.findById(req.params.id);
+        const item = await BarItem.findById(req.params.id);
 
         if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
