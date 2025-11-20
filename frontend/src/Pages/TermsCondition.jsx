@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { RiDeleteBinLine } from 'react-icons/ri';
-import { FiEdit } from 'react-icons/fi';
+import { FiEdit, FiPlusCircle} from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Search } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllTerms, createTerms, updateTerms, deleteTerms } from '../Redux/Slice/terms.slice';
 
@@ -18,6 +18,16 @@ const TermsTable = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const dropdownRef = useRef(null);
+
+  const [visibleColumns, setVisibleColumns] = useState({
+    title: true,
+    description: true,
+    actions: true,
+  });
+  const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
 
   // 🔹 Initial API Call
   useEffect(() => {
@@ -72,7 +82,7 @@ const TermsTable = () => {
     setIsDeleteModalOpen(true);
   };
 
-const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = () => {
     if (itemToDelete) {
       const targetId = itemToDelete._id || itemToDelete.id;
       dispatch(deleteTerms({ id: targetId })).then(() => {
@@ -82,43 +92,63 @@ const handleDeleteConfirm = () => {
     setIsDeleteModalOpen(false);
   };
 
+  const totalPages = Math.ceil(filteredTerms.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredTerms.slice(startIndex, endIndex);
+
+  const handleRefresh = () => {
+    dispatch(getAllTerms());
+    setSearch("");
+    setCurrentPage(1);
+  };
+
   return (
     <div className="w-full min-h-screen bg-[#F0F3FB] text-black p-4 md:p-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-2xl font-bold">Terms & Conditions</h1>
       </div>
 
-      <div className="md600:flex items-center justify-between p-4 border-b border-gray-200 bg-white rounded-[4x]">
-        <div className='flex gap-2 md:gap-6 sm:justify-between'>
-          <p className="text-[15px] font-semibold text-gray-800 text-nowrap content-center">Terms & Conditions</p>
+      <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+        {/* Header */}
+        <div className="md600:flex items-center justify-between p-4 border-b border-gray-200">
+          <div className='flex gap-2 md:gap-6 sm:justify-between'>
+            <p className="text-[15px] font-semibold text-gray-800 text-nowrap content-center">Terms & Conditions</p>
 
-          <div className="relative max-w-md">
-            <input
-              type="text"
-              placeholder="Search Terms..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <div className="relative max-w-md">
+              <input
+                type="text"
+                placeholder="Search Terms..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            </div>
+          </div>
+          <div className='flex'>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => {
+                  setIsEditMode(false);
+                  setEditingItem(null);
+                  formik.resetForm();
+                  setIsAddModalOpen(true);
+                }}
+                className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                title="Show/Hide Columns"
+              >
+                  <FiPlusCircle size={20}/>
+              </button>
+              <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                <RefreshCw size={20} />
+              </button>
+            </div>
           </div>
         </div>
-        <div className='flex'>
-          <button
-            onClick={() => {
-              setIsEditMode(false);
-              setEditingItem(null);
-              formik.resetForm();
-              setIsAddModalOpen(true);
-            }}
-          >
-            <div className="mv_Add_btn bg-primary hover:bg-secondary"><span>+ Add Term</span></div>
-          </button>
-        </div>
-      </div>
 
-      <div className="block mt-4">
-        <div className="overflow-x-auto border border-gray-300 rounded-lg shadow-md">
+        {/* Table */}
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
           <table className="w-full min-w-[1000px]">
             <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
               <tr>
@@ -142,15 +172,66 @@ const handleDeleteConfirm = () => {
                   </td>
                 </tr>
               ))}
-              {filteredTerms?.length === 0 && (
+              {filteredTerms.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="text-center py-4">
-                    No terms found.
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
                   </td>
                 </tr>
-              )}
+                ) : null}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">Items per page:</span>
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">
+              {startIndex + 1} - {Math.min(endIndex, filteredTerms.length)} of {filteredTerms.length}
+            </span>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

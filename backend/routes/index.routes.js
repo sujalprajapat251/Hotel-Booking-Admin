@@ -51,6 +51,7 @@ const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCat
 const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
 const { createCafeOrder, addItemToTableOrder, removeItemFromOrder } = require('../controller/cafeOrderController');
+const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -147,8 +148,8 @@ indexRoutes.delete('/bookings/:id', auth, deleteBooking);
 // ------------------------------- Cafe -------------------------------
 // Cafe Category routes
 indexRoutes.post('/createcafecategory', auth, adminOnly, createCafeCategory);
-indexRoutes.get('/getallcafecategory', auth, adminOnly, getAllCafeCategories);
-indexRoutes.get('/getcafecategory/:id', auth, adminOnly, getSingleCafeCategory);
+indexRoutes.get('/getallcafecategory', getAllCafeCategories);
+indexRoutes.get('/getcafecategory/:id', getSingleCafeCategory);
 indexRoutes.put('/updatecafecategory/:id', auth, adminOnly, updateCafeCategory);
 indexRoutes.delete('/deletetcafecategory/:id', auth, adminOnly, deleteCafeCategory);
 
@@ -185,12 +186,20 @@ indexRoutes.delete('/deletetbaritem/:id', auth, adminOnly, deleteBarItem);
 indexRoutes.put('/togglebaritem/:id', auth, adminOnly, changeAvailabilityBarItem);
 
 // ------------------------------- Restaurant -------------------------------
-// Bar Category routes
+// Restaurant Category routes
 indexRoutes.post('/createrestaurantcategory', auth, adminOnly,createRestaurantCategory);
 indexRoutes.get('/getallrestaurantcategory', getAllRestaurantCategories);
 indexRoutes.get('/getrestaurantcategory/:id', getSingleRestaurantCategory);
 indexRoutes.put('/updaterestaurantcategory/:id', auth, adminOnly, updateRestaurantCategory);
 indexRoutes.delete('/deletetrestaurantcategory/:id', auth, adminOnly, deleteRestaurantCategory);
+
+// Restaurant Item routes
+indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);
+indexRoutes.get('/getallrestaurantitem', getAllRestaurantItems);
+indexRoutes.get('/getrestaurantitem/:id', getSingleRestaurantItem);
+indexRoutes.put('/updaterestaurantitem/:id', auth, adminOnly, upload.single("image"), updateRestaurantItem);
+indexRoutes.delete('/deletetrestaurantitem/:id', auth, adminOnly, deleteRestaurantItem);
+indexRoutes.put('/togglerestaurantitem/:id', auth, adminOnly, changeAvailabilityRestaurantItem);
 
 
 // cafe order management 

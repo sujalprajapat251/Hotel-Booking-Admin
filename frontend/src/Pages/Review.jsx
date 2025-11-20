@@ -227,64 +227,69 @@ const Review = () => {
     };
 
 	const handleDownloadExcel = () => {
-    try {
-        // Check if there's data to export
-        if (filteredBookings.length === 0) {
-            dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
-            return;
-        }
+		try {
+			// Check if there's data to export
+			if (filteredBookings.length === 0) {
+				dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+				return;
+			}
+			// Prepare data for Excel
+			const excelData = filteredBookings.map((user, index) => {
+				const row = {};
 
-        // Prepare data for Excel
-        const excelData = filteredBookings.map((user, index) => {
-            const row = {};
+				if (visibleColumns.No) {
+					row['No.'] = startIndex + index + 1; // Use correct numbering
+				}
+				if (visibleColumns.Room) {
+					row['Room'] = user.room || '';
+				}
+				if (visibleColumns.Reviewer) {
+					row['Reviewer'] = user.name || '';
+				}
+				if (!visibleColumns.reviewText) {
+					row['ReviewText'] = user.reviewText || '';
+				}
+				if (!visibleColumns.reviewTitle) {
+					row['ReviewTitle'] = user.reviewTitle || '';
+				}
+				if (visibleColumns.Date) {
+					row['Date'] = formatDate(user.arrival) || '';
+				}
+				if (visibleColumns.Status) {
+					row['Status'] = user.gender || '';
+				}
 
-            if (visibleColumns.No) {
-                row['No.'] = startIndex + index + 1; // Use correct numbering
-            }
-            if (visibleColumns.Room) {
-                row['Room'] = user.room || '';
-            }
-            if (visibleColumns.Reviewer) {
-                row['Reviewer'] = user.name || '';
-            }
-            if (!visibleColumns.reviewText) {
-                row['ReviewText'] = user.reviewText || '';
-            }
-			if (!visibleColumns.reviewTitle) {
-                row['ReviewTitle'] = user.reviewTitle || '';
-            }
-            if (visibleColumns.Date) {
-                row['Date'] = formatDate(user.arrival) || '';
-            }
-            if (visibleColumns.Status) {
-                row['Status'] = user.gender || '';
-            }
+				return row;
+			});
 
-            return row;
-        });
+			// Create a new workbook
+			const worksheet = XLSX.utils.json_to_sheet(excelData);
+			const workbook = XLSX.utils.book_new();
+			XLSX.utils.book_append_sheet(workbook, worksheet, 'Reviews');
 
-        // Create a new workbook
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Reviews');
+			// Auto-size columns
+			const maxWidth = 30;
+			const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+			worksheet['!cols'] = wscols;
 
-        // Auto-size columns
-        const maxWidth = 30;
-        const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
-        worksheet['!cols'] = wscols;
+			// Generate file name with current date
+			const date = new Date();
+			const fileName = `Reviews_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
 
-        // Generate file name with current date
-        const date = new Date();
-        const fileName = `Reviews_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+			// Download the file
+			XLSX.writeFile(workbook, fileName);
+			dispatch(setAlert({ text: "Export completed successfully!", color: 'success' }));
+		} catch (error) {
+			console.error('Export error:', error);
+			dispatch(setAlert({ text: "Export failed! Please try again.", color: 'error' }));
+		}
+	};
 
-        // Download the file
-        XLSX.writeFile(workbook, fileName);
-        dispatch(setAlert({ text: "Export completed successfully!", color: 'success' }));
-    } catch (error) {
-        console.error('Export error:', error);
-        dispatch(setAlert({ text: "Export failed! Please try again.", color: 'error' }));
-    }
-};
+	const handleRefresh = () => {
+		// dispatch(getAllReview());
+		setSearchQuery("");
+		setCurrentPage(1);
+	};
 
 	return (
 		<section className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -406,7 +411,7 @@ const Review = () => {
 									</div>
 								)}
 							</div>
-							<button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh">
+							<button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
 								<RefreshCw size={20} />
 							</button>
 							<button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
@@ -421,7 +426,7 @@ const Review = () => {
 						<thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
 							<tr>
 								{visibleColumns.No && (
-									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">#</th>
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
 								)}
 								{visibleColumns.Room && (
 									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Rooms</th>
