@@ -38,6 +38,7 @@ import HODStaff from './Pages/HODStaff';
 import HODTable from './Pages/HODTable';
 import HODHistory from './Pages/HODHistory';
 import HODProfile from './Pages/HODProfile';
+import HODStaffForm from './Pages/HODStaffForm';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -230,6 +231,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
                     <HODProfile />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path='/hod/addstaff' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <HODStaffForm />
                   </ProtectedRoute>
                 } 
               />

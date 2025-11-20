@@ -3,7 +3,8 @@ import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, MapPin,
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
-import { getAllStaff } from '../Redux/Slice/staff.slice';
+import { useNavigate } from 'react-router-dom';
+import { getAllStaff, deleteStaff } from '../Redux/Slice/staff.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
@@ -11,6 +12,7 @@ import { setAlert } from '../Redux/Slice/alert.slice';
 const StaffTable = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const staff = useSelector((state) => state.staff.staff)
 
@@ -27,10 +29,12 @@ const StaffTable = () => {
 
   const [visibleColumns, setVisibleColumns] = useState({
     No: true,
+    image: true,
     name: true,
-    email: true,
-    mobileno: true,
     designation: true,
+    mobileno: true,
+    email: true,
+    gender: true,
     joiningDate: true,
     address: true,
     actions: true
@@ -92,26 +96,31 @@ const StaffTable = () => {
         if (visibleColumns.No) {
           row['No.'] = index + 1;
         }
+        if (visibleColumns.image) {
+          row['Image'] = staff.image ? `${IMAGE_URL}${staff.image}` : '';
+        }
         if (visibleColumns.name) {
           row['Name'] = staff.name || '';
+        }
+        if (visibleColumns.designation) {
+          row['Designation'] = staff.designation || '';
+        }
+        if (visibleColumns.mobileno) {
+          row['Mobile No.'] = staff.mobileno || '';
         }
         if (visibleColumns.email) {
           row['Email'] = staff.email || '';
         }
-        if (visibleColumns.mobileno) {
-          row['mobileno'] = staff.mobileno || '';
+        if (visibleColumns.gender) {
+          row['Gender'] = staff.gender || '';
         }
-        if (visibleColumns.designation) {
-          row['designation'] = staff.designation || '';
-        }
-        if (visibleColumns.date) {
+        if (visibleColumns.joiningDate) {
           row['Date'] = staff.joiningdate ? formatDate(staff.joiningdate) : '';
         }
         if (visibleColumns.address) {
-          row['address'] = staff.address || '';
+          row['Address'] = staff.address || '';
         }
-        row['gender'] = staff.gender || '';
-        row['department'] = staff.department.name || ''
+        row['Department'] = staff.department.name || ''
 
         return row;
       });
@@ -138,16 +147,39 @@ const StaffTable = () => {
     }
   };
 
+  const handleDeleteClick = (staffItem) => {
+    setItemToDelete(staffItem);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (itemToDelete && itemToDelete._id) {
+      try {
+        await dispatch(deleteStaff(itemToDelete._id)).unwrap();
+        await dispatch(getAllStaff());
+        setIsDeleteModalOpen(false);
+        setItemToDelete(null);
+      } catch (error) {
+        console.error('Error deleting staff:', error);
+      }
+    }
+  };
+
   useEffect(() => {
     dispatch(getAllStaff());
   }, [dispatch]);
 
   return (
     <>
-      <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB]'>
+      <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
         <p className='text-[20px] font-semibold text-black'>All Staffs</p>
         <div className="w-full mt-3 md:mt-5">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-white rounded-lg shadow-md">
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
@@ -170,7 +202,11 @@ const StaffTable = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1 justify-end mt-2">
                   <div className="relative" ref={dropdownRef}>
-                    <button className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" title="Show/Hide Columns">
+                    <button 
+                      onClick={() => navigate('/addstaff', { state: { mode: 'add' } })}
+                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" 
+                      title="Add New Staff"
+                    >
                         <FiPlusCircle size={20}/>
                     </button>
                     <button
@@ -237,6 +273,9 @@ const StaffTable = () => {
                     {visibleColumns.email && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Email</th>
                     )}
+                    {visibleColumns.gender && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Gender</th>
+                    )}
                     {visibleColumns.joiningDate && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Joining Date</th>
                     )}
@@ -289,6 +328,9 @@ const StaffTable = () => {
                             </div>
                           </td>
                         )}
+                        {visibleColumns.gender && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.gender}</td>
+                        )}
                         {visibleColumns.joiningDate && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.joiningdate ? formatDate(staff?.joiningdate) : ''}</td>
                         )}
@@ -303,10 +345,17 @@ const StaffTable = () => {
                         {visibleColumns.actions && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-2">
-                              <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
+                              <button
+                                onClick={() => navigate('/addstaff', { state: { mode: 'edit', staff } })}
+                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                title="Edit Staff"
+                              >
                                 <FiEdit size={16} />
                               </button>
-                              <button className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+                              <button
+                                onClick={() => handleDeleteClick(staff)}
+                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              >
                                 <RiDeleteBinLine size={16} />
                               </button>
                             </div>
@@ -332,7 +381,7 @@ const StaffTable = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                 <span className="text-sm text-gray-600">Items per page:</span>
                 <div className="relative">
@@ -381,26 +430,31 @@ const StaffTable = () => {
         {/* Delete Modal */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
             <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-black">Delete About Us</h2>
-                  <button className="text-gray-500 hover:text-gray-800">
+                  <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
+                  <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       </svg>
                   </button>
               </div>
-              <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete?</p>
+              <p className="text-gray-700 mb-8 text-center">
+                Are you sure you want to delete{' '}
+                <span className="font-semibold">{itemToDelete?.name || 'this staff member'}</span>?
+              </p>
               <div className="flex items-center justify-center gap-3">
                 <button
                     type="button"
+                    onClick={handleDeleteModalClose}
                     className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
                     Cancel
                 </button>
                 <button
                     type="button"
+                    onClick={handleDeleteConfirm}
                     className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
                     Delete

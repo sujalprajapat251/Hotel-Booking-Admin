@@ -14,11 +14,12 @@ const StaffForm = () => {
   const dispatch = useDispatch();
   const isEditMode = location?.state?.mode === 'edit';
   const staffData = location?.state?.staff || null;
-  const pageTitle = isEditMode ? 'Edit New Staff' : 'Add New Staff';
+  const pageTitle = isEditMode ? 'Edit New HOD Staff' : 'Add New HOD Staff';
 
   const departments = useSelector((state) => state.department.departments);
 
   const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
+  const [showDesignationDropdown, setShowDesignationDropdown] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const [showCountryCodeDropdown, setShowCountryCodeDropdown] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -27,6 +28,7 @@ const StaffForm = () => {
   const [selectedDepartmentName, setSelectedDepartmentName] = useState('');
 
   const departmentRef = useRef(null);
+  const designationRef = useRef(null);
   const genderRef = useRef(null);
   const countryCodeRef = useRef(null);
   const calendarRef = useRef(null);
@@ -35,14 +37,9 @@ const StaffForm = () => {
   const genders = ['Male', 'Female', 'Other'];
 
   const designations = [
-    'Manager',
-    'Supervisor',
-    'Executive',
-    'Assistant',
-    'Coordinator',
-    'Officer',
-    'Staff',
-    'Intern'
+    'Waiter',
+    'Chef',
+    'Accountant',
   ];
 
   const countryCodes = [
@@ -82,7 +79,7 @@ const StaffForm = () => {
             if (!value) return false;
             return ['image/jpg', 'image/jpeg', 'image/png'].includes(value.type);
           }),
-    department: Yup.string().required('Department is required'),
+    // department: Yup.string().required('Department is required'),
     designation: Yup.string().required('Designation is required'),
     gender: Yup.string().required('Gender is required'),
     address: Yup.string()
@@ -138,7 +135,7 @@ const StaffForm = () => {
     initialValues: {
       name: staffData?.name || '',
       image: staffData?.image || null,
-      department: staffData?.department?._id || staffData?.department || '',
+      // department: staffData?.department?._id || staffData?.department || '',
       designation: staffData?.designation || '',
       gender: staffData?.gender || '',
       address: staffData?.address || '',
@@ -160,7 +157,7 @@ const StaffForm = () => {
           email: values.email,
           mobileno: values.mobile,
           address: values.address,
-          department: values.department,
+          department: "6916fac3cd8e354b48cfa99c",
           designation: values.designation,
           gender: values.gender,
           joiningdate: values.joiningDate,
@@ -183,7 +180,7 @@ const StaffForm = () => {
         }
         
         await dispatch(getAllStaff());
-        navigate('/staff');
+        navigate('/hod/staff');
       } catch (error) {
         console.error(`Error ${isEditMode ? 'updating' : 'creating'} staff:`, error);
       } finally {
@@ -238,6 +235,9 @@ const StaffForm = () => {
     const handleClickOutside = (event) => {
       if (departmentRef.current && !departmentRef.current.contains(event.target)) {
         setShowDepartmentDropdown(false);
+      }
+      if (designationRef.current && !designationRef.current.contains(event.target)) {
+        setShowDesignationDropdown(false);
       }
       if (genderRef.current && !genderRef.current.contains(event.target)) {
         setShowGenderDropdown(false);
@@ -327,12 +327,12 @@ const StaffForm = () => {
                       )}
                     </div>
 
-                    <div className="relative" ref={departmentRef}>
+                    {/* <div className="relative" ref={departmentRef}>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Department *</label>
                       <button
                         type="button"
                         onClick={() => setShowDepartmentDropdown(!showDepartmentDropdown)}
-                        className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.department && formik.errors.department ? 'border-red-500' : 'border-gray-300'
+                        className={`w-full px-4 py-2 bg-gray-100 border rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.department && formik.errors.department ? 'border-red-500' : 'border-gray-300'
                           }`}
                       >
                         <span className={selectedDepartmentName || formik.values.department ? 'text-gray-800' : 'text-gray-400'}>
@@ -341,7 +341,7 @@ const StaffForm = () => {
                         <ChevronDown size={18} className="text-gray-600" />
                       </button>
                       {showDepartmentDropdown && (
-                        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                           {departments && departments.length > 0 ? (
                             [...departments].reverse().map((dept) => (
                               <div
@@ -351,7 +351,7 @@ const StaffForm = () => {
                                   setSelectedDepartmentName(dept.name);
                                   setShowDepartmentDropdown(false);
                                 }}
-                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                                className="px-4 py-2 hover:bg-[#F7DF9C]/20 cursor-pointer text-sm text-gray-800"
                               >
                                 {dept.name}
                               </div>
@@ -364,20 +364,38 @@ const StaffForm = () => {
                       {formik.touched.department && formik.errors.department && (
                         <div className="text-red-500 text-xs mt-1">{formik.errors.department}</div>
                       )}
-                    </div>
+                    </div> */}
 
-                    <div className="relative">
+                    <div className="relative" ref={designationRef}>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Designation *</label>
-                      <input
-                        type="text"
-                        name="designation"
-                        value={formik.values.designation}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="Enter designation"
-                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.designation && formik.errors.designation ? 'border-red-500' : 'border-gray-300'
+                      <button
+                        type="button"
+                        onClick={() => setShowDesignationDropdown(!showDesignationDropdown)}
+                        className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.designation && formik.errors.designation ? 'border-red-500' : 'border-gray-300'
                           }`}
-                      />
+                      >
+                        <span className={formik.values.designation ? 'text-gray-800' : 'text-gray-400'}>
+                          {formik.values.designation || 'Select designation'}
+                        </span>
+                        <ChevronDown size={18} className="text-gray-600" />
+                      </button>
+                      {showDesignationDropdown && (
+                        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                          {designations.map((designation) => (
+                            <div
+                              key={designation}
+                              onClick={() => {
+                                formik.setFieldValue('designation', designation);
+                                formik.setFieldTouched('designation', true, false);
+                                setShowDesignationDropdown(false);
+                              }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              {designation}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       {formik.touched.designation && formik.errors.designation && (
                         <div className="text-red-500 text-xs mt-1">{formik.errors.designation}</div>
                       )}
