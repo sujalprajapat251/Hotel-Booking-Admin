@@ -39,6 +39,7 @@ const CafeItems = () => {
       price: true,
     //   image: true,
       description: true,
+      status: true,
       actions: true,
     });
     const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
