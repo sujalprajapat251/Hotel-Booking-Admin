@@ -1,68 +1,75 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { BASE_URL } from '../../Utils/baseUrl';
+import { setAlert } from './alert.slice';
 
-const buildError = (error) => {
-  if (error.response?.data?.message) return error.response.data.message;
-  return error.message || 'Something went wrong';
+const handleErrors = (error, dispatch, rejectWithValue) => {
+  const errorMessage = error.response?.data?.message || 'An error occurred';
+  if (dispatch) {
+      dispatch(setAlert({ text: errorMessage, color: 'error' }));
+  }
+  return rejectWithValue(error.response?.data || { message: errorMessage });
 };
 
 export const fetchRoomTypes = createAsyncThunk(
   'roomtypes/fetchAll',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue,dispatch }) => {
     try {
       const response = await axios.get(`${BASE_URL}/roomtypes`);
       return response.data?.data || [];
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const getRoomTypeById = createAsyncThunk(
   'roomtypes/getById',
-  async (id, { rejectWithValue }) => {
+  async (id, { rejectWithValue,dispatch }) => {
     try {
       const response = await axios.get(`${BASE_URL}/roomtypes/${id}`);
       return response.data?.data;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const createRoomType = createAsyncThunk(
   'roomtypes/create',
-  async ({ roomType }, { rejectWithValue }) => {
+  async ({ roomType }, { rejectWithValue,dispatch }) => {
     try {
       const response = await axios.post(`${BASE_URL}/roomtypes`, { roomType });
+      dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return response.data?.data;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const updateRoomType = createAsyncThunk(
   'roomtypes/update',
-  async ({ id, roomType }, { rejectWithValue }) => {
+  async ({ id, roomType }, { rejectWithValue, dispatch }) => {
     try {
       const response = await axios.put(`${BASE_URL}/roomtypes/${id}`, { roomType });
+      dispatch(setAlert({ text: "Room Type Update Successfull..!", color: 'success' }));
       return response.data?.data;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
 
 export const deleteRoomType = createAsyncThunk(
   'roomtypes/delete',
-  async (id, { rejectWithValue }) => {
+  async (id, { rejectWithValue,dispatch }) => {
     try {
-      await axios.delete(`${BASE_URL}/roomtypes/${id}`);
+      const response = await axios.delete(`${BASE_URL}/roomtypes/${id}`);
+      dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return id;
     } catch (error) {
-      return rejectWithValue(buildError(error));
+      return handleErrors(error, dispatch, rejectWithValue);
     }
   }
 );
@@ -129,9 +136,11 @@ const roomtypesSlice = createSlice({
       })
       .addCase(updateRoomType.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = state.items.map((item) =>
-          item.id === action.payload.id ? action.payload : item
-        );
+        state.items = state.items.map((item) => {
+          const currentId = item._id || item.id;
+          const updatedId = action.payload?._id || action.payload?.id;
+          return currentId === updatedId ? action.payload : item;
+        });
       })
       .addCase(updateRoomType.rejected, (state, action) => {
         state.loading = false;
@@ -143,7 +152,7 @@ const roomtypesSlice = createSlice({
       })
       .addCase(deleteRoomType.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.items = state.items.filter((item) => (item._id || item.id) !== action.payload);
       })
       .addCase(deleteRoomType.rejected, (state, action) => {
         state.loading = false;
