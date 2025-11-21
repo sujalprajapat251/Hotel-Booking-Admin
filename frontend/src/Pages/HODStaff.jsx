@@ -347,21 +347,18 @@ const HODStaff = () => {
                           </td>
                         )}
                         {visibleColumns.actions && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2">
-                              <button
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                            <div className="mv_table_action flex">
+                              <div
                                 onClick={() => navigate('/hod/addstaff', { state: { mode: 'edit', staff } })}
-                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                title="Edit Staff"
                               >
-                                <FiEdit size={16} />
-                              </button>
-                              <button
+                                <FiEdit className="text-[#6777ef] text-[18px]" />
+                              </div>
+                              <div
                                 onClick={() => handleDeleteClick(staff)}
-                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                               >
-                                <RiDeleteBinLine size={16} />
-                              </button>
+                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                              </div>
                             </div>
                           </td>
                         )}

@@ -395,7 +395,7 @@ const About = () => {
                       {visibleColumns.description && (
                           <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
                             <div
-                              className="prose prose-sm max-w-none"
+                              className="prose prose-sm max-w-none line-clamp-3"
                               dangerouslySetInnerHTML={{ __html: item.description || '' }}
                             />
                           </td>
@@ -533,7 +533,7 @@ const About = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40"></div>
-            <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+            <div className="relative w-full md:max-w-xl max-w-[90%] rounded-md bg-white p-6 shadow-xl">
                 <div className="flex items-start justify-between mb-6">
                     <h2 className="text-2xl font-semibold text-black">
                         {isEditMode ? 'Edit About Us' : 'Add About Us'}

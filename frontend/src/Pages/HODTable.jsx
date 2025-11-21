@@ -329,9 +329,9 @@ const HODTable = () => {
                         </td>
                       )}
                       {visibleColumns.actions && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6">
-                          <div className="flex items-center gap-2">
-                            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                          <div className="mv_table_action flex">
+                            <div
                               onClick={() => {
                                 setIsEditMode(true);
                                 setEditingItem(about);
@@ -342,11 +342,11 @@ const HODTable = () => {
                                 formik.setTouched({});
                                 setIsAddModalOpen(true);
                               }}>
-                              <FiEdit size={16} />
-                            </button>
-                            <button className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors" onClick={() => handleDeleteClick(about)}>
-                              <RiDeleteBinLine size={16} />
-                            </button>
+                              <FiEdit className="text-[#6777ef] text-[18px]" />
+                            </div>
+                            <div onClick={() => handleDeleteClick(about)}>
+                              <RiDeleteBinLine className='text-[#ff5200] text-[18px]' />
+                            </div>
                           </div>
                         </td>
                       )}

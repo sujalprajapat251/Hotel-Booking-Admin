@@ -503,7 +503,9 @@ const BarItems = () => {
                                         {/* description */}
                                         {visibleColumns.description && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
-                                                {item.description || ''}
+                                                <div className="line-clamp-3">
+                                                    {item.description || ''}
+                                                </div>
                                             </td>
                                         )}
 

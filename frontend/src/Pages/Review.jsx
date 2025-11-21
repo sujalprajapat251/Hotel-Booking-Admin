@@ -520,7 +520,7 @@ const Review = () => {
 
 										{visibleColumns.Actions && (
 											<td className="px-5 py-2 md600:py-3 lg:px-6">
-												<div className="flex gap-3 w-14">
+												<div className="mv_table_action flex">
 													<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
 													<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
 												</div>

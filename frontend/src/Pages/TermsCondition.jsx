@@ -162,7 +162,11 @@ const TermsTable = () => {
               {[...filteredTerms].reverse().map((item, index) => (
                 <tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10">
                   <td className="px-10 py-6 font-medium text-gray-800 align-top text-[15px]">{item.title}</td>
-                  <td className="px-10 py-6 text-gray-700 align-top leading-relaxed text-[15px]">{item.description}</td>
+                  <td className="px-10 py-6 text-gray-700 align-top leading-relaxed text-[15px]">
+                    <div className="line-clamp-3">
+                      {item.description || ''}
+                    </div>
+                  </td>
                   <td className="px-2 py-6 align-top">
                     <div className="mv_table_action flex">
                       <div onClick={() => handleEditClick(item)}>
