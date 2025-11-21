@@ -8,6 +8,7 @@ import { getAllStaff, deleteStaff } from '../Redux/Slice/staff.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
+import { IoEyeSharp } from 'react-icons/io5';
 
 const StaffTable = () => {
 
@@ -17,6 +18,9 @@ const StaffTable = () => {
   const staff = useSelector((state) => state.staff.staff)
 
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  console.log('selectedItem', selectedItem);
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -39,6 +43,16 @@ const StaffTable = () => {
     address: true,
     actions: true
   });
+
+  const handleViewClick = (staff) => {
+    setSelectedItem(staff);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -206,12 +220,12 @@ const StaffTable = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1 justify-end mt-2">
                   <div className="relative" ref={dropdownRef}>
-                    <button 
+                    <button
                       onClick={() => navigate('/addstaff', { state: { mode: 'add' } })}
-                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" 
+                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
                       title="Add New Staff"
                     >
-                        <FiPlusCircle size={20}/>
+                      <FiPlusCircle size={20} />
                     </button>
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
@@ -349,6 +363,7 @@ const StaffTable = () => {
                         {visibleColumns.actions && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-2">
+                              <div onClick={() => handleViewClick(staff)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
                               <button
                                 onClick={() => navigate('/addstaff', { state: { mode: 'edit', staff } })}
                                 className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
@@ -437,12 +452,12 @@ const StaffTable = () => {
             <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
             <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
-                  <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                  </button>
+                <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
+                <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
               <p className="text-gray-700 mb-8 text-center">
                 Are you sure you want to delete{' '}
@@ -450,24 +465,137 @@ const StaffTable = () => {
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
-                    type="button"
-                    onClick={handleDeleteModalClose}
-                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                  type="button"
+                  onClick={handleDeleteModalClose}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
-                    Cancel
+                  Cancel
                 </button>
                 <button
-                    type="button"
-                    onClick={handleDeleteConfirm}
-                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
-                    Delete
+                  Delete
                 </button>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {isModalOpen && selectedItem && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div
+            className="fixed inset-0 transition-opacity"
+            style={{ backgroundColor: '#000000bf' }}
+            onClick={handleCloseModal}
+          ></div>
+
+          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl border-2" style={{
+              borderColor: '#E3C78A',
+              boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+            }}>
+              {/* Modal Header */}
+              <div className="px-4 pt-5 pb-4 sm:p-6" style={{
+                background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
+              }}>
+                <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
+                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Blog Details</h3>
+                  <button
+                    type="button"
+                    onClick={handleCloseModal}
+                    className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                    style={{ color: '#876B56' }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
+                      e.currentTarget.style.color = '#755647';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#876B56';
+                    }}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="">
+
+                  {/* Image */}
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={`${IMAGE_URL}${selectedItem.image}`}
+                      alt={selectedItem.name}
+                      className="min-w-32 h-32 m-auto rounded-lg border-2"
+                      style={{ borderColor: '#E3C78A' }}
+                    />
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Name:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Designation:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.designation}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Mobile No.:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.mobileno}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.email}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Gender:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.gender}</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Joining Date:</span>
+                      <span style={{ color: '#876B56' }}>{selectedItem.joiningdate?.split('T')[0]}</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Address:</span>
+                      <div
+                        style={{ color: '#876B56' }}
+                        dangerouslySetInnerHTML={{ __html: selectedItem.address || '' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </>
   );
 };

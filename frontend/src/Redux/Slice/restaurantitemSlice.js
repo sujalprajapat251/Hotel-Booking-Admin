@@ -107,12 +107,12 @@ export const deleteRestaurantitem = createAsyncThunk(
     }
 );
 
-export const toggleCafeitemStatus = createAsyncThunk(
-    'user/toggleCafeitemStatus',
+export const toggleRestaurantitemStatus = createAsyncThunk(
+    'user/toggleRestaurantitemStatus',
     async (cafeData, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.put(`${BASE_URL}/togglecafeitem/${cafeData.id}`,
+            const response = await axios.put(`${BASE_URL}/togglerestaurantitem/${cafeData.id}`,
                 {},
                 {
                     headers: {
@@ -211,12 +211,12 @@ const restaurantSlice = createSlice({
                 state.message = action.payload?.message || 'Failed to delete restaurant';
             })
 
-            .addCase(toggleCafeitemStatus.pending, (state) => {
+            .addCase(toggleRestaurantitemStatus.pending, (state) => {
                 state.loading = true;
                 state.message = 'Toggling status...';
                 state.isError = false;
             })
-            .addCase(toggleCafeitemStatus.fulfilled, (state, action) => {
+            .addCase(toggleRestaurantitemStatus.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
                 state.message = 'Status updated successfully';
@@ -227,7 +227,7 @@ const restaurantSlice = createSlice({
                 }
                 state.isError = false;
             })
-            .addCase(toggleCafeitemStatus.rejected, (state, action) => {
+            .addCase(toggleRestaurantitemStatus.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
