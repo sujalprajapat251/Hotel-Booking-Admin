@@ -405,7 +405,7 @@ const About = () => {
                       {visibleColumns.actions && (
                         <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="mv_table_action flex">
-                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
+                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
                             <div onClick={() => handleEditClick(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                             <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                           </div>

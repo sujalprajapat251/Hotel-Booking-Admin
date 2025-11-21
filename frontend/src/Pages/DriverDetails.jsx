@@ -263,7 +263,7 @@ const DriverDetails = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 text-lg">
-                      <button className="text-[#3B82F6] hover:text-[#1D4ED8]" title="View">
+                      <button className="text-[#3B82F6] hover:text-[#1D4ED8] text-quaternary" title="View">
                         <IoEyeSharp />
                       </button>
                       <button className="text-[#F59E0B] hover:text-[#D97706]" title="Edit">
