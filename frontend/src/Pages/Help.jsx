@@ -123,8 +123,8 @@ const FAQPage = () => {
           <div className='flex justify-end mt-3 md:mt-0 w-full md:w-auto'>
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-              title="Show/Hide Columns"
+              className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+              title="Add Faq"
             >
               <FiPlusCircle size={20}/>
             </button>

@@ -1,55 +1,68 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { FiEdit2 } from 'react-icons/fi';
-import { MdDelete } from 'react-icons/md';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import "../Style/vaidik.css"
+import { RiDeleteBinLine } from "react-icons/ri";
+import { FiEdit, FiPlusCircle } from "react-icons/fi";
 import { IoAddCircleOutline } from 'react-icons/io5';
-import { Search, Filter, RefreshCw, Download } from 'lucide-react';
+import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchRoomTypes,
   createRoomType,
   updateRoomType,
   deleteRoomType
 } from '../Redux/Slice/roomtypesSlice';
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 
 const RoomType = () => {
+
   const dispatch = useDispatch();
-  const { items: roomTypes, loading, error } = useSelector((state) => state.roomtypes);
-  const [roomType, setRoomType] = useState('');
+
+  const { items: roomTypes } = useSelector((state) => state.roomtypes);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState({
-    No: true,
-    roomType: true,
-    actions: true
-  });
   const dropdownRef = useRef(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-  useEffect(() => {
-    dispatch(fetchRoomTypes());
-  }, [dispatch]);
+  const [visibleColumns, setVisibleColumns] = useState({
+    no: true,
+    roomType: true,
+    actions: true,
+  });
 
-  const filteredRoomTypes = roomTypes.filter((item) =>
-    item.roomType?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredRoomTypes.length / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentRoomTypes = filteredRoomTypes.slice(startIndex, endIndex);
-
-  useEffect(() => {
-    // Ensure currentPage stays within bounds if data size changes
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages);
+  const formik = useFormik({
+    initialValues: { roomType: '' },
+    validationSchema: Yup.object({
+      roomType: Yup.string().trim().required('Room type name is required')
+    }),
+    onSubmit: async (values, { resetForm }) => {
+      const cleanedRoomType = values.roomType.trim();
+      console.log(editingId)
+      try {
+        if (editingId) {
+          await dispatch(updateRoomType({ id: editingId, roomType: cleanedRoomType })).unwrap();
+        } else {
+          await dispatch(createRoomType({ roomType: cleanedRoomType })).unwrap();
+        }
+        resetForm();
+        setEditingId(null);
+        setIsAddModalOpen(false);
+      } catch (err) {
+        console.error(err);
+      }
     }
-  }, [currentPage, totalPages]);
+  });
 
   const toggleColumn = (column) => {
-    setVisibleColumns((prev) => ({
+    setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
@@ -66,328 +79,373 @@ const RoomType = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!roomType.trim()) return;
-
-    try {
-      if (editingId) {
-        await dispatch(updateRoomType({ id: editingId, roomType: roomType.trim() })).unwrap();
-      } else {
-        await dispatch(createRoomType({ roomType: roomType.trim() })).unwrap();
-      }
-      setRoomType('');
-      setEditingId(null);
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const handleEdit = (item) => {
-    setEditingId(item.id);
-    setRoomType(item.roomType);
-    setIsModalOpen(true);
+    setEditingId(item._id || item.id);
+    setIsAddModalOpen(true);
+    formik.setValues({ roomType: item.roomType || '' });
+    formik.setTouched({});
   };
 
-  const handleCancelEdit = () => {
+  const handleAddModalClose = () => {
+    setIsAddModalOpen(false);
     setEditingId(null);
-    setRoomType('');
-    setIsModalOpen(false);
+    formik.resetForm();
   };
 
-  const handleOpenModal = () => {
+  const handleOpenAddModal = () => {
     setEditingId(null);
-    setRoomType('');
-    setIsModalOpen(true);
+    formik.resetForm();
+    setIsAddModalOpen(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this room type?')) return;
+  const handleDelete = (id) => {
+    setItemToDelete(id);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setItemToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleDeleteConfirm = () => {
+    dispatch(deleteRoomType(itemToDelete))
+      .then(() => {
+        dispatch(fetchRoomTypes());
+      });
+    handleDeleteModalClose();
+  };
+
+  const filteredRoomTypes = roomTypes.filter((item) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      item.roomType?.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredRoomTypes.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentRoomTypes = filteredRoomTypes.slice(startIndex, endIndex);
+
+  const handleRefresh = () => {
+    dispatch(fetchRoomTypes());
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  const handleDownloadExcel = () => {
     try {
-      await dispatch(deleteRoomType(id)).unwrap();
-      if (editingId === id) {
-        handleCancelEdit();
+      if (filteredRoomTypes.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
       }
-    } catch (err) {
-      console.error(err);
+      // Prepare data for Excel
+      const excelData = filteredRoomTypes.map((user, index) => {
+        const row = {};
+        row['No.'] = index + 1;
+        row['Room Type'] = user.roomType || '';
+        return row;
+      });
+
+      // Create a new workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+
+      // Auto-size columns
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
+
+      // Generate file name with current date
+      const date = new Date();
+      const fileName = `Room_Type_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      // Download the file
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+    } catch (error) {
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchRoomTypes());
+  }, [dispatch])
 
   return (
-    <div className="p-3 md:p-4 lg:p-5 bg-[#F0F3FB]">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3 border-b border-gray-200">
-          <div className="md600:flex items-center justify-between w-full">
-            <div className="flex gap-2 md:gap-5 sm:justify-between items-center">
-              <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
-                All Room Types
-              </p>
-              {/* Search Bar */}
-              <div className="relative max-w-md">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-                />
-                <Search
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                  size={18}
-                />
-              </div>
+    <div className="px-4 md:px-8 py-6 h-full">
+      <section className="py-5">
+        <h1 className="text-2xl font-semibold text-black">All Room Types</h1>
+      </section>
+
+      {/* Header */}
+      <div className='bg-white rounded-lg shadow-md'>
+
+        {/* Header */}
+        <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+          <div className='flex gap-2 md:gap-5 sm:justify-between'>
+            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Room Types</p>
+
+            {/* Search Bar */}
+            <div className="relative  max-w-md">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
+          </div>
 
-            <div>
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1 justify-end mt-2">
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                    className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-                    title="Show/Hide Columns"
-                  >
-                    <Filter size={20} />
-                  </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1 justify-end mt-2">
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={handleOpenAddModal}
+                className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+                title="Add Room Type"
+              >
+                <FiPlusCircle size={20} />
+              </button>
 
-                  {showColumnDropdown && (
-                    <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
-                      <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
-                      </div>
-                      <div className="max-h-44 overflow-y-auto">
-                        {Object.keys(visibleColumns).map((column) => (
-                          <label
-                            key={column}
-                            className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={visibleColumns[column]}
-                              onChange={() => toggleColumn(column)}
-                              className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
-                            />
-                            <span className="ml-2 text-sm text-gray-700 capitalize">
-                              {column}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              <button
+                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                title="Show/Hide Columns"
+              >
+                <Filter size={20} />
+              </button>
+
+              {showColumnDropdown && (
+                <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                  <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                    <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                  </div>
+                  <div className="max-h-44 overflow-y-auto">
+                    {Object.keys(visibleColumns).map((column) => (
+                      <label
+                        key={column}
+                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[column]}
+                          onChange={() => toggleColumn(column)}
+                          className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                        />
+                        <span className="ml-2 text-sm text-gray-700 capitalize">
+                          {column}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                {/* Add Room Type Button (icon) */}
-                <button
-                  type="button"
-                  onClick={handleOpenModal}
-                  className="inline-flex items-center px-1 text-green-600"
-                  title="Add Room Type"
-                >
-                  <span className="text-lg leading-none">
-                    <IoAddCircleOutline size={20} />
-                  </span>
-                </button>
-                <button
-                  className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                  title="Refresh"
-                  type="button"
-                  onClick={() => {
-                    setSearchTerm('');
-                    dispatch(fetchRoomTypes());
-                  }}
-                >
-                  <RefreshCw size={20} />
-                </button>
-                <button
-                  className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
-                  title="Download"
-                  type="button"
-                  onClick={() => {
-                    // Simple CSV download of current filtered room types
-                    const header = ['No', 'Room Type'];
-                    const rows = filteredRoomTypes.map((item, index) => [
-                      index + 1,
-                      item.roomType
-                    ]);
-                    const csvContent =
-                      [header, ...rows]
-                        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-                        .join('\n');
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.setAttribute('download', 'room-types.csv');
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  <Download size={20} />
-                </button>
-              </div>
+              )}
             </div>
+            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+              <RefreshCw size={20} />
+            </button>
+            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
+              <Download size={20} />
+            </button>
           </div>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="p-6 text-center text-gray-500">Loading room types...</div>
-        )}
-
         {/* Table */}
-        {!loading && currentRoomTypes.length > 0 && (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full whitespace-nowrap">
-                <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-left text-xs font-semibold uppercase text-[#755647]">
-                  <tr>
-                    {visibleColumns.No && <th className="px-5 py-3">No.</th>}
-                    {visibleColumns.roomType && <th className="px-5 py-3">Room Type Name</th>}
-                    {visibleColumns.actions && <th className="px-5 py-3">Actions</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {currentRoomTypes.map((item, index) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-colors"
-                    >
-                      {visibleColumns.No && (
-                        <td className="px-5 py-3 text-sm text-gray-700">{startIndex + index + 1}</td>
-                      )}
-                      {visibleColumns.roomType && (
-                        <td className="px-5 py-3 text-sm font-medium text-gray-800">{item.roomType}</td>
-                      )}
-                      {visibleColumns.actions && (
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => handleEdit(item)}
-                              className="rounded-lg p-2 text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
-                              title="Edit"
-                            >
-                              <FiEdit2 size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDelete(item.id)}
-                              className="rounded-lg p-2 text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
-                              title="Delete"
-                            >
-                              <MdDelete size={18} />
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Items per page:</span>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] bg-white"
+        <div className="overflow-x-auto">
+          <table className="w-full whitespace-nowrap">
+            <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
+              <tr>
+                {visibleColumns.no && (
+                  <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No.</th>
+                )}
+                {visibleColumns.roomType && (
+                  <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Room Type Name</th>
+                )}
+                {visibleColumns.actions && (
+                  <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
+                )}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {currentRoomTypes.map((item, index) => (
+                <tr
+                  key={item._id}
+                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                 >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={25}>25</option>
-                  <option value={100}>100</option>
-                </select>
-              </div>
+                  {visibleColumns.no && (
+                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                  )}
+                  {visibleColumns.roomType && (
+                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <div className="flex items-center gap-2">
+                        {item.roomType}
+                      </div>
+                    </td>
+                  )}
+                  {/* Actions */}
+                  {visibleColumns.actions && (
+                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <div className="mv_table_action flex">
+                        <div onClick={() => handleEdit(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                        <div onClick={() => handleDelete(item._id || item.id)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+              {currentRoomTypes.length === 0 ? (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600">
-                  {filteredRoomTypes.length === 0
-                    ? '0 of 0'
-                    : `${startIndex + 1} - ${Math.min(endIndex, filteredRoomTypes.length)} of ${
-                        filteredRoomTypes.length
-                      }`}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="px-2 py-1 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages || filteredRoomTypes.length === 0}
-                    className="px-2 py-1 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    ›
-                  </button>
-                </div>
-              </div>
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">Items per page:</span>
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={100}>100</option>
+              </select>
             </div>
-          </>
-        )}
-
-        {/* Empty State */}
-        {!loading && roomTypes.length === 0 && (
-          <div className="p-8 text-center text-sm text-gray-500">
-            No room types added yet. Add your first room type above.
           </div>
-        )}
-      </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 relative">
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-800"
-            >
-              ×
-            </button>
-            <h2 className="text-xl font-semibold text-senary mb-4">
-              {editingId ? 'Update Room Type' : 'Add New Room Type'}
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="roomType" className="block text-sm font-medium text-senary mb-2">
-                  Room Type Name
-                </label>
+          <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">
+              {startIndex + 1} - {Math.min(endIndex, filteredRoomTypes.length)} of {filteredRoomTypes.length}
+            </span>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">
+                {editingId ? 'Edit Room Type' : 'Add Room Type'}
+              </h2>
+              <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form className="" onSubmit={formik.handleSubmit}>
+              <div className="flex flex-col mb-4">
+                <label htmlFor="name" className="text-sm font-medium text-black mb-1">Room Type Name</label>
                 <input
+                  id="name"
+                  name="roomType"
                   type="text"
-                  id="roomType"
-                  value={roomType}
-                  onChange={(e) => setRoomType(e.target.value)}
-                  placeholder="Enter room type name"
-                  className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-secondary transition-colors"
-                  required
+                  placeholder="Enter Name"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                  value={formik.values.roomType}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                 />
+                {formik.touched.roomType && formik.errors.roomType && (
+                  <p className="text-sm text-red-500">{formik.errors.roomType}</p>
+                )}
               </div>
-              <div className="flex gap-3">
+              <div className="flex items-center justify-center pt-4">
+                <button
+                  type="button"
+                  onClick={handleAddModalClose}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                >
+                  Cancel
+                </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-tertiary text-white rounded-lg font-medium hover:bg-quaternary transition-colors focus:outline-none focus:ring-2 focus:ring-tertiary focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
-                  disabled={loading}
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
-                  {editingId ? 'Update' : 'Submit'}
+                  {editingId ? 'Edit' : 'Add'}
                 </button>
               </div>
             </form>
-            {error && <p className="text-sm text-red-500 mt-4">{error}</p>}
           </div>
         </div>
       )}
+
+      {/* Room Type Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">Delete Room Type</h2>
+              <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this room type?</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteModalClose}
+                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
