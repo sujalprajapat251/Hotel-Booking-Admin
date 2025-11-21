@@ -557,26 +557,7 @@ const StaffForm = () => {
                   Submit
                 </button>
               </div>
-
-              {/* <div className="flex justify-center gap-3 mt-6 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('/staff');
-                  }}
-                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gray-50 transition-colors font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </button>
-              </div> */}
+              
             </div>
           </div>
         </div>

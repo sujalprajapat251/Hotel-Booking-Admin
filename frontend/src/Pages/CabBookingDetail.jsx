@@ -127,7 +127,7 @@ const CabBookingDetail = () => {
   }, [searchTerm, statusFilter]);
 
   return (
-    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 min-h-screen">
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Cab Bookings</h1>
       </section>

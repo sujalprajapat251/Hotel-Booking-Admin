@@ -104,7 +104,7 @@ const TermsTable = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#F0F3FB] text-black p-4 md:p-10">
+    <div className="w-full h-full bg-[#F0F3FB] text-black p-4 md:p-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl md:text-2xl font-bold">Terms & Conditions</h1>
       </div>

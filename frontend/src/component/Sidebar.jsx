@@ -20,10 +20,10 @@ import {
   LuContact,
   LuNotebookPen,
   LuUsers,
-  LuInfo ,
+  LuInfo,
 } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
-import { IoHelpCircleOutline , IoPhonePortraitOutline , IoCarSportOutline  } from "react-icons/io5";
+import { IoHelpCircleOutline, IoPhonePortraitOutline, IoCarSportOutline } from "react-icons/io5";
 import { MdOutlineLocalCafe } from "react-icons/md";
 import { VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
@@ -40,9 +40,9 @@ const adminSections = [
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: HiOutlineUserGroup, label: 'UserList', path: '/user' },
-      { 
-        icon: LuBed, 
-        label: 'Rooms', 
+      {
+        icon: LuBed,
+        label: 'Rooms',
         path: '/rooms',
         subMenus: [
           { label: 'Create Room', path: '/rooms/create' },
@@ -51,35 +51,37 @@ const adminSections = [
           { label: 'Room Features', path: '/rooms/features' },
         ]
       },
-      { 
-        icon: CiCoffeeCup, 
-        label: 'Cafe', 
+      {
+        icon: CiCoffeeCup,
+        label: 'Cafe',
         path: '/cafe',
         subMenus: [
           { label: 'Cafe Category', path: '/cafe/cafecategory' },
           { label: 'Cafe Items', path: '/cafe/cafeitems' },
         ]
       },
-      { 
-        icon: GiMartini, 
-        label: 'Bar', 
+      {
+        icon: GiMartini,
+        label: 'Bar',
         path: '/bar',
         subMenus: [
           { label: 'Bar Category', path: '/bar/barcategory' },
           { label: 'Bar Items', path: '/bar/baritems' },
 
-    ]},
-      { 
-        icon: IoIosRestaurant, 
-        label: 'Restaurant', 
+        ]
+      },
+      {
+        icon: IoIosRestaurant,
+        label: 'Restaurant',
         path: '/restaurant',
         subMenus: [
           { label: 'Restaurant Category', path: '/restaurant/restaurantcategory' },
           { label: 'Restaurant Items', path: '/restaurant/restaurantitems' },
-    ]},
-    {
-        icon: IoCarSportOutline, 
-        label: 'Cabs', 
+        ]
+      },
+      {
+        icon: IoCarSportOutline,
+        label: 'Cabs',
         path: '/cabs',
         subMenus: [
           { label: 'Cab details', path: '/cabs/cabdetails' },
@@ -87,7 +89,16 @@ const adminSections = [
           { label: 'Cab Bookings', path: '/cabs/cabbooking' },
         ]
       },
-      { icon: LuUsers, label: 'Staff', path: '/staff' },
+      {
+        icon: IoCarSportOutline,
+        label: 'Staff',
+        path: '/staff',
+        subMenus: [
+          { label: 'Staff Details', path: '/staff/staffdetails' },
+          { label: 'Add Staff', path: '/staff/addstaff' },
+        ]
+      },
+      // { icon: LuUsers, label: 'Staff', path: '/staff' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       { icon: LuInfo, label: 'About', path: '/about' },
       { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
@@ -95,7 +106,7 @@ const adminSections = [
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
       { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' },
-      
+
     ],
   },
 ];
@@ -213,7 +224,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
   const authState = useSelector((state) => state.auth);
   const user = authState?.user || null;
   const userRole = user?.role || 'user';
-  
+
   // Determine which sections to show based on user role
   const sections = userRole === 'admin' ? adminSections : receptionistSections;
   const containerClasses = [
@@ -242,9 +253,8 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
       data-compact={isCompact ? 'true' : 'false'}
     >
       <div
-        className={`flex items-center gap-3 ${
-          open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
-        }`}
+        className={`flex items-center gap-3 ${open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
+          }`}
       >
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
           <HiOutlineLocationMarker className="text-2xl" />
@@ -256,7 +266,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         ) : null}
       </div>
 
-      <nav className="pb-10">
+      <nav className="">
         {sections.map(({ title, key, items }) => (
           <React.Fragment key={key}>
             {open && title ? <SidebarHeading title={title} /> : null}
