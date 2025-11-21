@@ -11,9 +11,9 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
-import { createBaritem, deleteBaritem, getAllBaritem, updateBaritem } from '../Redux/Slice/baritemSlice';
+import { createRestaurantitem, deleteRestaurantitem, getAllRestaurantitem, updateRestaurantitem } from '../Redux/Slice/restaurantitemSlice';
 
-const BarItems = () => {
+const RestaurantItems = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -30,14 +30,14 @@ const BarItems = () => {
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const categoryDropdownRef = useRef(null);
     const dispatch = useDispatch();
-    const getBarItemData = useSelector((state) => state.bar.barItem);
+    const restaurant = useSelector((state) => state.restaurant.restaurant);
 
     const [visibleColumns, setVisibleColumns] = useState({
         no: true,
         name: true,
         category: true,
         price: true,
-        image: true,
+        // image: true,
         description: true,
         actions: true,
     });
@@ -85,14 +85,14 @@ const BarItems = () => {
     }, [isModalOpen, isAddModalOpen, isDeleteModalOpen]);
 
     useEffect(() => {
-        dispatch(getAllBaritem());
+        dispatch(getAllRestaurantitem());
     }, [dispatch]);
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const token = await localStorage.getItem("token");
-                const response = await axios.get(`${BASE_URL}/getallbarcategory`, {
+                const response = await axios.get(`${BASE_URL}/getallrestaurantcategory`, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     }
@@ -150,28 +150,28 @@ const BarItems = () => {
                         ...values,
                         id: editingItem._id || editingItem.id,
                     };
-                    const result = await dispatch(updateBaritem(payload));
-                    if (updateBaritem.fulfilled.match(result)) {
-                        dispatch(setAlert({ text: "Bar Item updated successfully..!", color: 'success' }));
+                    const result = await dispatch(updateRestaurantitem(payload));
+                    if (updateRestaurantitem.fulfilled.match(result)) {
+                        dispatch(setAlert({ text: "Restaurant Item updated successfully..!", color: 'success' }));
                         resetForm();
                         setIsAddModalOpen(false);
                         setIsEditMode(false);
                         setEditingItem(null);
-                        dispatch(getAllBaritem());
+                        dispatch(getAllRestaurantitem());
                     }
                 } else {
-                    const result = await dispatch(createBaritem(values));
-                    if (createBaritem.fulfilled.match(result)) {
-                        dispatch(setAlert({ text: "Bar Item created successfully..!", color: 'success' }));
+                    const result = await dispatch(createRestaurantitem(values));
+                    if (createRestaurantitem.fulfilled.match(result)) {
+                        dispatch(setAlert({ text: "Restaurant Item created successfully..!", color: 'success' }));
                         resetForm();
                         setIsAddModalOpen(false);
                         setIsEditMode(false);
                         setEditingItem(null);
-                        dispatch(getAllBaritem());
+                        dispatch(getAllRestaurantitem());
                     }
                 }
             } catch (error) {
-                console.error('Error creating bar item:', error);
+                console.error('Error creating restaurant item:', error);
             }
         },
     });
@@ -197,14 +197,14 @@ const BarItems = () => {
         if (!itemToDelete) return;
 
         try {
-            const result = await dispatch(deleteBaritem({ id: itemToDelete._id || itemToDelete.id }));
+            const result = await dispatch(deleteRestaurantitem({ id: itemToDelete._id || itemToDelete.id }));
 
-            if (deleteBaritem.fulfilled.match(result)) {
-                dispatch(setAlert({ text: "Bar Item deleted successfully..!", color: 'success' }));
-                dispatch(getAllBaritem());
+            if (deleteRestaurantitem.fulfilled.match(result)) {
+                dispatch(setAlert({ text: "Restaurant Item deleted successfully..!", color: 'success' }));
+                dispatch(getAllRestaurantitem());
             }
         } catch (error) {
-            dispatch(setAlert({ text: "Failed to delete bar item", color: 'error' }));
+            dispatch(setAlert({ text: "Failed to delete restaurant item", color: 'error' }));
         } finally {
             handleDeleteModalClose();
         }
@@ -242,7 +242,7 @@ const BarItems = () => {
 
 
     // Filter bookings based on search term
-    const filteredBookings = getBarItemData.filter((item) => {
+    const filteredBookings = restaurant.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
@@ -298,7 +298,7 @@ const BarItems = () => {
             // Create a new workbook
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Barlist');
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Restaurantlist');
 
             // Auto-size columns
             const maxWidth = 20;
@@ -307,7 +307,7 @@ const BarItems = () => {
 
             // Generate file name with current date
             const date = new Date();
-            const fileName = `Bar_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+            const fileName = `Restaurant_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
 
             // Download the file
             XLSX.writeFile(workbook, fileName);
@@ -318,7 +318,7 @@ const BarItems = () => {
     };
 
     const handleRefresh = () => {
-        dispatch(getAllBaritem());
+        dispatch(getAllRestaurantitem());
         setSearchTerm("");
         setCurrentPage(1);
     };
@@ -327,15 +327,15 @@ const BarItems = () => {
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
             <section className="py-5">
-                <h1 className="text-2xl font-semibold text-black">Bar Items</h1>
+                <h1 className="text-2xl font-semibold text-black">Restaurant Items</h1>
             </section>
 
-            <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+            <div className='bg-white rounded-lg shadow-md'>
 
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                     <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                        <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Bar Items</p>
+                        <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Restaurant Items</p>
 
                         {/* Search Bar */}
                         <div className="relative  max-w-md">
@@ -535,7 +535,7 @@ const BarItems = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                     <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                         <span className="text-sm text-gray-600">Items per page:</span>
                         <div className="relative">
@@ -591,7 +591,7 @@ const BarItems = () => {
                             {/* Modal Header */}
                             <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                                 <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
-                                    <h3 className="text-lg font-semibold text-black">Bar Item Details</h3>
+                                    <h3 className="text-lg font-semibold text-black">Restaurant Item Details</h3>
                                     <button
                                         type="button"
                                         onClick={handleCloseModal}
@@ -646,7 +646,7 @@ const BarItems = () => {
                     <div className="relative w-full md:max-w-xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
                             <h2 className="text-2xl font-semibold text-black">
-                                {isEditMode ? 'Edit Bar Item' : 'Add Bar Item'}
+                                {isEditMode ? 'Edit Restaurant Item' : 'Add Restaurant Item'}
                             </h2>
                             <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -815,14 +815,14 @@ const BarItems = () => {
                     <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
                     <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
                         <div className="flex items- justify-between mb-6">
-                            <h2 className="text-2xl font-semibold text-black">Delete Bar Item</h2>
+                            <h2 className="text-2xl font-semibold text-black">Delete Restaurant Item</h2>
                             <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                         </div>
-                        <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this bar item?</p>
+                        <p className="text-gray-700 mb-8 text-center">Are you sure you want to delete this restaurant item?</p>
                         <div className="flex items-center justify-center gap-3">
                             <button
                                 type="button"
@@ -847,4 +847,4 @@ const BarItems = () => {
     );
 };
 
-export default BarItems;
+export default RestaurantItems;
