@@ -50,6 +50,9 @@ import CabsDetails from './Pages/CabsDetails';
 import DriverDetails from './Pages/DriverDetails';
 import Cabs from './Pages/Cabs';
 import CabBookingDetail from './Pages/CabBookingDetail';
+import RestaurantSection from './Pages/Restaurant';
+import Restaurantcategory from './Pages/Restaurantcategory';
+import Restaurantitem from './Pages/Restaurantitem';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -124,6 +127,19 @@ function App() {
                 <Route index element={<Navigate to="/bar/barcategory" replace />} />
                 <Route path='barcategory' element={<Barcategory />} />
                 <Route path='baritems' element={<BarItems />} />
+              </Route>
+
+              <Route 
+                path='/restaurant' 
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <RestaurantSection />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/restaurant/restaurantcategory" replace />} />
+                <Route path='restaurantcategory' element={<Restaurantcategory />} />
+                <Route path='restaurantitems' element={<Restaurantitem />} />
               </Route>
 
               <Route 

@@ -37,7 +37,7 @@ const CafeItems = () => {
       name: true,
       category: true,
       price: true,
-      image: true,
+    //   image: true,
       description: true,
       actions: true,
     });
@@ -431,9 +431,9 @@ const CafeItems = () => {
                             {visibleColumns.price && (
                                 <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Price</th>
                             )}
-                            {visibleColumns.image && (
+                            {/* {visibleColumns.image && (
                                 <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
-                            )}
+                            )} */}
                             {visibleColumns.description && (
                                 <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
                             )}
@@ -470,9 +470,14 @@ const CafeItems = () => {
 
                                         {/* name */}
                                         {visibleColumns.name && (
-                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                <div className="flex items-center gap-2">
-                                                    {item.name}
+                                            <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                <div className="flex items-center gap-3">
+                                                <img
+                                                    src={`${IMAGE_URL}${item.image}`}
+                                                    alt={item.name}
+                                                    className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                                                />
+                                                <span className="text-sm font-medium text-gray-800">{item.name}</span>
                                                 </div>
                                             </td>
                                         )}
@@ -491,22 +496,6 @@ const CafeItems = () => {
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="flex items-center gap-2">
                                                     {item.price}
-                                                </div>
-                                            </td>
-                                        )}
-
-                                        {/* Image */}
-                                        {visibleColumns.image && (
-                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="relative">
-                                                        <img
-                                                            src={`${IMAGE_URL}${item.image}`}
-                                                            alt={item.name}
-                                                            className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
-                                                        />
-                                                        <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(item.status) }}></div>
-                                                    </div>
                                                 </div>
                                             </td>
                                         )}

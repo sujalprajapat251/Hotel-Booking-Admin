@@ -30,7 +30,7 @@ import { RiBloggerLine } from "react-icons/ri";
 import { CiCoffeeCup } from "react-icons/ci";
 import { GiMartini } from "react-icons/gi";
 import { HiOutlineUserGroup } from "react-icons/hi";
-
+import { IoIosRestaurant } from "react-icons/io";
 
 // Admin menu items
 const adminSections = [
@@ -68,6 +68,14 @@ const adminSections = [
           { label: 'Bar Category', path: '/bar/barcategory' },
           { label: 'Bar Items', path: '/bar/baritems' },
 
+    ]},
+      { 
+        icon: IoIosRestaurant, 
+        label: 'Restaurant', 
+        path: '/restaurant',
+        subMenus: [
+          { label: 'Restaurant Category', path: '/restaurant/restaurantcategory' },
+          { label: 'Restaurant Items', path: '/restaurant/restaurantitems' },
     ]},
     {
         icon: IoCarSportOutline, 
