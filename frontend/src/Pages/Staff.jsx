@@ -502,7 +502,7 @@ const StaffTable = () => {
                 background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
               }}>
                 <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Blog Details</h3>
+                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Staff Details</h3>
                   <button
                     type="button"
                     onClick={handleCloseModal}

@@ -9,6 +9,9 @@
     margin-right: 10px;
     cursor: pointer;
 }
+.mv_table_action div:last-child{
+    margin-right: 0px;
+}
 .mv_table_action div:hover {
     background-color: rgba(0, 0, 0, 0.1);
 }
