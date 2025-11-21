@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LuCircleArrowDown, LuCircleArrowUp } from "react-icons/lu";
 import '../Style/Sujal.css';
 import { FaEllipsisV, FaWrench } from 'react-icons/fa';
@@ -15,6 +15,8 @@ import { BrickWallShield, BrickWallShieldIcon, LucideBrickWallShield } from 'luc
 import Purpose from '../component/Purpose.jsx';
 import HotelOccupancyDashboard from '../component/Hoteloccupancyratechart.jsx';
 import BookingTrendsChart from '../component/Bookingtrendschart.jsx';
+import { Home, Coffee, Heart, MoreHorizontal } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 
 export const Dashboard = () => {
 
@@ -245,7 +247,149 @@ export const Dashboard = () => {
     },
   ];
 
+  const revenueItems = [
+    {
+      icon: <Home className="w-6 h-6" />,
+      name: 'Room Bookings',
+      amount: '$89,520',
+      percentage: '69.7%',
+      growth: '+8.5%',
+      bgColor: '#F7DF9C',
+      iconColor: '#755647',
+      isPositive: true
+    },
+    {
+      icon: <Coffee className="w-6 h-6" />,
+      name: 'Food & Beverage',
+      amount: '$23,680',
+      percentage: '18.4%',
+      growth: '+12.3%',
+      bgColor: '#E3C78A',
+      iconColor: '#876B56',
+      isPositive: true
+    },
+    {
+      icon: <Heart className="w-6 h-6" />,
+      name: 'Spa & Wellness',
+      amount: '$8,750',
+      percentage: '6.8%',
+      growth: '-2.1%',
+      bgColor: '#B79982',
+      iconColor: '#FAF7F2',
+      isPositive: false
+    },
+    {
+      icon: <MoreHorizontal className="w-6 h-6" />,
+      name: 'Other Services',
+      amount: '$6,500',
+      percentage: '5.1%',
+      growth: '+5.7%',
+      bgColor: '#A3876A',
+      iconColor: '#FAF7F2',
+      isPositive: true
+    }
+  ];
 
+  const [reviews, setReviews] = useState([
+    {
+      id: 1,
+      name: 'Alis Smith',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+      time: 'a week ago',
+      rating: 3.5,
+      review: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam vel rutrum ex, at ornare mi. In quis scelerisque dui, eget rhoncus orci. Fusce et sodales ipsum. Nam id nunc euismod, aliquet arcu quis, mattis nisi.',
+      likes: 0,
+      dislikes: 0,
+      userLiked: null // null = no action, true = liked, false = disliked
+    },
+    {
+      id: 2,
+      name: 'John Dio',
+      avatar: 'https://i.pravatar.cc/150?img=2',
+      time: 'a week ago',
+      rating: 2.5,
+      review: 'Nam quis ligula est. Nunc sed risus non turpis tristique tempor. Ut sollicitudin faucibus magna nec gravida. Suspendisse ullamcorper justo vel porta imperdiet. Nunc nec ipsum vel augue placerat faucibus.',
+      likes: 0,
+      dislikes: 0,
+      userLiked: null
+    }
+  ]);
+
+  const renderStars = (rating) => {
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (i <= Math.floor(rating)) {
+        // Full star
+        stars.push(
+          <svg key={i} className="w-5 h-5" viewBox="0 0 24 24" style={{ fill: '#755647' }}>
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        );
+      } else if (i === Math.ceil(rating) && rating % 1 !== 0) {
+        // Half star
+        stars.push(
+          <svg key={i} className="w-5 h-5" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id={`half-${i}`}>
+                <stop offset="50%" style={{ stopColor: '#755647' }} />
+                <stop offset="50%" style={{ stopColor: '#755647', stopOpacity: 0 }} />
+              </linearGradient>
+            </defs>
+            <path
+              d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+              fill={`url(#half-${i})`}
+              stroke="#755647"
+              strokeWidth="1"
+            />
+          </svg>
+        );
+      } else {
+        // Empty star
+        stars.push(
+          <svg key={i} className="w-5 h-5 fill-none" viewBox="0 0 24 24" strokeWidth="1.5" style={{ stroke: '#755647' }}>
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+        );
+      }
+    }
+    return stars;
+  };
+
+  const handleLike = (reviewId) => {
+    setReviews(reviews.map(review => {
+      if (review.id === reviewId) {
+        if (review.userLiked === true) {
+          // Already liked, remove like
+          return { ...review, likes: review.likes - 1, userLiked: null };
+        } else if (review.userLiked === false) {
+          // Was disliked, switch to like
+          return { ...review, likes: review.likes + 1, dislikes: review.dislikes - 1, userLiked: true };
+        } else {
+          // No action yet, add like
+          return { ...review, likes: review.likes + 1, userLiked: true };
+        }
+      }
+      return review;
+    }));
+  };
+
+  const handleDislike = (reviewId) => {
+    setReviews(reviews.map(review => {
+      if (review.id === reviewId) {
+        if (review.userLiked === false) {
+          // Already disliked, remove dislike
+          return { ...review, dislikes: review.dislikes - 1, userLiked: null };
+        } else if (review.userLiked === true) {
+          // Was liked, switch to dislike
+          return { ...review, likes: review.likes - 1, dislikes: review.dislikes + 1, userLiked: false };
+        } else {
+          // No action yet, add dislike
+          return { ...review, dislikes: review.dislikes + 1, userLiked: false };
+        }
+      }
+      return review;
+    }));
+  };
 
   return (
     <>
@@ -731,8 +875,151 @@ export const Dashboard = () => {
           </div>
         </div>
 
+        {/* <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm"> */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5'>
+          <div className="bg-white rounded-xl border-2 p-3 md:p-5" style={{
+            borderColor: '#E3C78A',
+            boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+          }}>
+            <h2 className="text-lg font-semibold" style={{ color: '#755647' }}>Revenue Summary</h2>
+            <div className="text-center py-3">
+              <div className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: '#755647' }}>$128,450</div>
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <span className="font-medium" style={{ color: '#4EB045' }}>↗ +$13,220 (+11.5%)</span>
+              </div>
+              <div className="text-sm mt-1" style={{ color: '#A3876A' }}>vs. Previous Month</div>
+            </div>
 
-      </div >
+            <hr className='py-2' style={{ borderColor: '#E3C78A' }}></hr>
+
+            {/* Revenue Breakdown Section */}
+            <div>
+              <h2 className="text-lg font-semibold mb-2" style={{ color: '#755647' }}>Revenue Breakdown</h2>
+              {revenueItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  {/* Icon */}
+                  <div className="p-3 rounded-lg flex-shrink-0" style={{
+                    backgroundColor: item.bgColor,
+                    color: item.iconColor
+                  }}>
+                    {item.icon}
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-sm font-medium" style={{ color: '#755647' }}>{item.name}</h3>
+                      <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#876B56' }}>{item.percentage}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 mt-1">
+                      <div className="text-lg font-bold" style={{ color: '#755647' }}>{item.amount}</div>
+                      <span className={`text-xs font-medium whitespace-nowrap`} style={{
+                        color: item.isPositive ? '#4EB045' : '#EC0927'
+                      }}>
+                        {item.isPositive ? '↗' : '↘'} {item.growth}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className=" bg-white rounded-xl shadow-lg p-3 md:p-5 border-2" style={{
+            borderColor: '#E3C78A',
+            boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+          }}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Customer Review</h2>
+              <a href="#" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
+              >
+                View All
+              </a>
+            </div>
+
+            <hr className="mb-6" style={{ borderColor: '#E3C78A' }} />
+
+            <div className="space-y-6">
+              {reviews.map((review) => (
+                <div key={review.id} className="pb-6">
+                  <div className="flex items-start gap-3 mb-3">
+                    <img
+                      src={review.avatar}
+                      alt={review.name}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2"
+                      style={{ borderColor: '#E3C78A' }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium px-3 py-1 rounded text-sm" style={{
+                          color: '#755647',
+                          backgroundColor: '#F7DF9C'
+                        }}>
+                          {review.name}
+                        </span>
+                        <span className="text-sm" style={{ color: '#A3876A' }}>{review.time}</span>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {renderStars(review.rating)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-sm leading-relaxed mb-3 ml-0" style={{ color: '#755647' }}>
+                    {review.review}
+                  </p>
+
+                  <div className="flex items-center gap-2 ml-0">
+                    <button
+                      onClick={() => handleLike(review.id)}
+                      className="flex items-center gap-1 transition-colors"
+                      style={{
+                        color: review.userLiked === true ? '#876B56' : '#A3876A'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#876B56'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = review.userLiked === true ? '#876B56' : '#A3876A'}
+                    >
+                      <ThumbsUp className="w-5 h-5" fill={review.userLiked === true ? 'currentColor' : 'none'} />
+                      {review.likes > 0 && <span className="text-xs">{review.likes}</span>}
+                    </button>
+                    <button
+                      onClick={() => handleDislike(review.id)}
+                      className="flex items-center gap-1 transition-colors"
+                      style={{
+                        color: review.userLiked === false ? '#EC0927' : '#A3876A'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#EC0927'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = review.userLiked === false ? '#EC0927' : '#A3876A'}
+                    >
+                      <ThumbsDown className="w-5 h-5" fill={review.userLiked === false ? 'currentColor' : 'none'} />
+                      {review.dislikes > 0 && <span className="text-xs">{review.dislikes}</span>}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-6 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
+              <a href="#" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
+              >
+                View all Customer Reviews
+              </a>
+            </div>
+          </div>
+
+        </div>
+        {/* </div> */}
+
+      </div>
     </>
   )
 }
