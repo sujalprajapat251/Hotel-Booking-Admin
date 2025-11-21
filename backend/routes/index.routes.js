@@ -52,6 +52,8 @@ const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBa
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
 const { createCafeOrder, addItemToTableOrder, removeItemFromOrder } = require('../controller/cafeOrderController');
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
+const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
+const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -115,19 +117,19 @@ indexRoutes.put('/updatefaq/:id', auth, adminOnly, updateFAQ);
 indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 
 // room type routes
-indexRoutes.post('/roomtypes', createRoomType);
+indexRoutes.post('/roomtypes', auth, createRoomType);
 indexRoutes.get('/roomtypes', getRoomTypes);
 indexRoutes.get('/roomtypes/:id', getRoomTypeById);
-indexRoutes.put('/roomtypes/:id', updateRoomType);
-indexRoutes.delete('/roomtypes/:id', deleteRoomType);
+indexRoutes.put('/roomtypes/:id', auth, updateRoomType);
+indexRoutes.delete('/roomtypes/:id', auth, deleteRoomType);
 
 // feature routes
-indexRoutes.post('/features', createFeature);
+indexRoutes.post('/features', auth, createFeature);
 indexRoutes.get('/features', getFeatures);
 indexRoutes.get('/features/roomtype/:roomTypeId', getFeaturesByRoomType);
 indexRoutes.get('/features/:id', getFeatureById);
-indexRoutes.put('/features/:id', updateFeature);
-indexRoutes.delete('/features/:id', deleteFeature);
+indexRoutes.put('/features/:id', auth, updateFeature);
+indexRoutes.delete('/features/:id', auth, deleteFeature);
 
 // room routes
 indexRoutes.post('/rooms', auth, adminOnly, upload.array('images', 10), createRoom);
@@ -192,6 +194,20 @@ indexRoutes.get('/getallrestaurantcategory', getAllRestaurantCategories);
 indexRoutes.get('/getrestaurantcategory/:id', getSingleRestaurantCategory);
 indexRoutes.put('/updaterestaurantcategory/:id', auth, adminOnly, updateRestaurantCategory);
 indexRoutes.delete('/deletetrestaurantcategory/:id', auth, adminOnly, deleteRestaurantCategory);
+
+// Cab routes
+indexRoutes.post('/createcab', auth, adminOnly, upload.single("cabImage"), addCab);
+indexRoutes.get('/getallcab', getAllCabs);
+indexRoutes.get('/getcab/:id', getCabById);
+indexRoutes.put('/updatecab/:id', auth, adminOnly, upload.single("cabImage"), updateCab);
+indexRoutes.delete('/deletecab/:id', auth, adminOnly, deleteCab);
+
+// Driver routes
+indexRoutes.post('/createdriver', auth, adminOnly, upload.single("image"), createDriver);
+indexRoutes.get('/getalldriver', getAllDrivers);
+indexRoutes.get('/getdriver/:id', getDriverById);
+indexRoutes.put('/updatedriver/:id', auth, adminOnly, upload.single("image"), updateDriver);
+indexRoutes.delete('/deletetdriver/:id', auth, adminOnly, deleteDriver);
 
 // Restaurant Item routes
 indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);
