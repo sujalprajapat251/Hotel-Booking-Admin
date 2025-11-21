@@ -11,7 +11,7 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
-import { createBaritem, deleteBaritem, getAllBaritem, updateBaritem } from '../Redux/Slice/baritemSlice';
+import { createBaritem, deleteBaritem, getAllBaritem, updateBaritem,toggleBaritemStatus } from '../Redux/Slice/baritemSlice';
 
 const BarItems = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +39,7 @@ const BarItems = () => {
         price: true,
         image: true,
         description: true,
+        status: true,
         actions: true,
     });
 
@@ -270,6 +271,10 @@ const BarItems = () => {
 
     const handleDownloadExcel = () => {
         try {
+            if (filteredBookings.length === 0) {
+                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+                return;
+            }
             // Prepare data for Excel
             const excelData = filteredBookings.map((item, index) => {
                 const row = {};
@@ -330,7 +335,7 @@ const BarItems = () => {
                 <h1 className="text-2xl font-semibold text-black">Bar Items</h1>
             </section>
 
-            <div className='bg-white rounded-lg shadow-md overflow-hidden'>
+            <div className='bg-white rounded-lg shadow-md'>
 
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
@@ -502,6 +507,34 @@ const BarItems = () => {
                                             </td>
                                         )}
 
+                                        {/* Status */}
+                                        {visibleColumns.status && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <div className="w-full"></div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={item.available || false}
+                                                            onChange={async () => {
+                                                                try {
+                                                                    const result = await dispatch(toggleBaritemStatus({ id: item._id || item.id }));
+                                                                    if (toggleBaritemStatus.fulfilled.match(result)) {
+                                                                        dispatch(setAlert({ text: "Status updated successfully", color: 'success' }));
+                                                                        dispatch(getAllBaritem());
+                                                                    }
+                                                                } catch (error) {
+                                                                    dispatch(setAlert({ text: "Failed to update status", color: 'error' }));
+                                                                }
+                                                            }}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#B79982] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4CAF50]"></div>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                        )}
+
                                         {/* Actions */}
                                         {visibleColumns.actions && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
@@ -526,7 +559,6 @@ const BarItems = () => {
                                                 </div>
                                             </td>
                                         )}
-
                                     </tr>
                                 ))
                             )}
@@ -535,7 +567,7 @@ const BarItems = () => {
                 </div>
 
                 {/* Pagination */}
-                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
                     <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                         <span className="text-sm text-gray-600">Items per page:</span>
                         <div className="relative">

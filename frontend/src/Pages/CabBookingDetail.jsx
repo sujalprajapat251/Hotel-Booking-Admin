@@ -153,7 +153,7 @@ const CabBookingDetail = () => {
             </button>
             <div className="relative">
               <button
-                className="p-2 text-[#6A4DFF] hover:bg-[#6A4DFF]/10 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
                 title="Filter Status"
                 onClick={() => setShowFilterMenu((prev) => !prev)}
               >
@@ -182,10 +182,10 @@ const CabBookingDetail = () => {
                 </div>
               )}
             </div>
-            <button className="p-2 text-[#0EA5E9] hover:bg-[#0EA5E9]/10 rounded-lg transition-colors" title="Refresh">
+            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh">
               <RefreshCw size={20} />
             </button>
-            <button className="p-2 text-[#FF6B6B] hover:bg-[#FF6B6B]/10 rounded-lg transition-colors" title="Download">
+            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
               <Download size={20} />
             </button>
           </div>

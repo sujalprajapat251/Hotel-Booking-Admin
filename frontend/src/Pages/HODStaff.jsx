@@ -89,6 +89,10 @@ const HODStaff = () => {
 
   const handleDownloadExcel = () => {
     try {
+      if (filteredData.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
+      }
       // Prepare data for Excel
       const excelData = filteredData.map((staff, index) => {
         const row = {};

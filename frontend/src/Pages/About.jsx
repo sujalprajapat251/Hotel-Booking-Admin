@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit, FiPlusCircle } from "react-icons/fi";
+import { IoEyeSharp } from 'react-icons/io5';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import {getAllAbout, createAbout, updateAbout, deleteAbout} from '../Redux/Slice/about.slice';
 import * as XLSX from 'xlsx';
@@ -16,7 +17,8 @@ import { IMAGE_URL } from '../Utils/baseUrl';
 const About = () => {
   const dispatch = useDispatch();
   const {about} = useSelector((state) => state.about);
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,7 +92,17 @@ const About = () => {
   useEffect(() => {
     dispatch(getAllAbout());
   }, [dispatch]);
-  
+
+  const handleViewClick = (item) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
+
   const filteredAbout = about?.filter(
     (item) =>
       item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -393,6 +405,7 @@ const About = () => {
                       {visibleColumns.actions && (
                         <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="mv_table_action flex">
+                            <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px]' /></div>
                             <div onClick={() => handleEditClick(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                             <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                           </div>
@@ -462,6 +475,59 @@ const About = () => {
             </div>
           </div>
       </div>
+
+      {/* View Modal */}
+      {isModalOpen && selectedItem && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+
+          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl">
+              {/* Modal Header */}
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                  <h3 className="text-lg font-semibold text-black">About Details</h3>
+                  <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="inline-flex items-center justify-center p-1"
+                  >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                  </button>
+                </div>
+                <div className="">
+
+                  {/* Image */}
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={`${IMAGE_URL}${selectedItem.image}`}
+                      alt={selectedItem.name}
+                      className="min-w-32 h-32 m-auto"
+                    />
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                        <span className="font-semibold text-gray-700 min-w-[120px]">Title:</span>
+                        <span className="text-gray-900">{selectedItem.title}</span>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
+                      <div
+                          className="text-gray-900"
+                          dangerouslySetInnerHTML={{ __html: selectedItem.description || '' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Modal */}
       {isAddModalOpen && (

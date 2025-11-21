@@ -125,6 +125,10 @@ const HODTable = () => {
 
   const handleDownloadExcel = () => {
     try {
+      if (filteredData.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
+      }
       // Prepare data for Excel
       const excelData = filteredData.map((about, index) => {
         const row = {};
@@ -202,7 +206,7 @@ const HODTable = () => {
         <p className="text-gray-600 mt-2">Manage Cafe Table and seating arrangements</p>
       </div>
       <div className="w-full mt-3 md:mt-5">
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-white rounded-lg shadow-md">
           {/* Header */}
           <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
             <div className='flex gap-2 md:gap-5 sm:justify-between'>
@@ -366,7 +370,7 @@ const HODTable = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
               <span className="text-sm text-gray-600">Items per page:</span>
               <div className="relative">
