@@ -11,7 +11,7 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
-import { createRestaurantitem, deleteRestaurantitem, getAllRestaurantitem, updateRestaurantitem } from '../Redux/Slice/restaurantitemSlice';
+import { createRestaurantitem, deleteRestaurantitem, getAllRestaurantitem, updateRestaurantitem, toggleRestaurantitemStatus } from '../Redux/Slice/restaurantitemSlice';
 
 const RestaurantItems = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,6 +39,7 @@ const RestaurantItems = () => {
         price: true,
         // image: true,
         description: true,
+        status: true,
         actions: true,
     });
 
@@ -499,6 +500,34 @@ const RestaurantItems = () => {
                                         {visibleColumns.description && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 whitespace-normal break-words max-w-[160px]">
                                                 {item.description || ''}
+                                            </td>
+                                        )}
+
+                                         {/* Status */}
+                                         {visibleColumns.status && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <div className="w-full"></div>
+                                                    <label className="relative inline-flex items-center cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={item.available || false}
+                                                            onChange={async () => {
+                                                                try {
+                                                                    const result = await dispatch(toggleRestaurantitemStatus({ id: item._id || item.id }));
+                                                                    if (toggleRestaurantitemStatus.fulfilled.match(result)) {
+                                                                        dispatch(setAlert({ text: "Status updated successfully", color: 'success' }));
+                                                                        dispatch(getAllRestaurantitem());
+                                                                    }
+                                                                } catch (error) {
+                                                                    dispatch(setAlert({ text: "Failed to update status", color: 'error' }));
+                                                                }
+                                                            }}
+                                                            className="sr-only peer"
+                                                        />
+                                                        <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#B79982] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4CAF50]"></div>
+                                                    </label>
+                                                </div>
                                             </td>
                                         )}
 
