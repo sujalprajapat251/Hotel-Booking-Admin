@@ -2,6 +2,7 @@ const CabBooking = require("../models/cabBookingModel");
 const Booking = require("../models/bookingModel");
 const Cab = require("../models/cabModel");
 const Driver = require("../models/driverModel");
+const { findAvailableDriver } = require("../utils/driverAssignment");
 
 // Create Cab Booking
 exports.createCabBooking = async (req, res) => {
@@ -61,7 +62,9 @@ exports.createCabBooking = async (req, res) => {
             }
         }
 
-        // Verify driver exists if assigned
+        let resolvedDriverId = assignedDriver || null;
+
+        // Verify driver exists if assigned & fallback to available driver when needed
         if (assignedDriver) {
             const driver = await Driver.findById(assignedDriver);
             if (!driver) {
@@ -69,6 +72,28 @@ exports.createCabBooking = async (req, res) => {
                     success: false,
                     message: "Driver not found"
                 });
+            }
+
+            if (driver.status !== "Available") {
+                const alternativeDriver = await findAvailableDriver({
+                    preferredCabId: assignedCab,
+                    excludeDriverIds: [assignedDriver]
+                });
+
+                if (!alternativeDriver) {
+                    return res.status(409).json({
+                        success: false,
+                        message: "Requested driver is unavailable and no alternative drivers are free right now"
+                    });
+                }
+
+                resolvedDriverId = alternativeDriver._id;
+            }
+        } else {
+            const autoDriver = await findAvailableDriver({ preferredCabId: assignedCab });
+
+            if (autoDriver) {
+                resolvedDriverId = autoDriver._id;
             }
         }
 
@@ -85,7 +110,7 @@ exports.createCabBooking = async (req, res) => {
             pickUpLocation,
             dropLocation: finalDropLocation,
             assignedCab: assignedCab || null,
-            assignedDriver: assignedDriver || null,
+            assignedDriver: resolvedDriverId || null,
             bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
             pickUpTime: new Date(pickUpTime),
             estimatedDistance: estimatedDistance || null,
@@ -309,7 +334,9 @@ exports.updateCabBooking = async (req, res) => {
         }
 
         if (assignedDriver !== undefined) {
-            if (assignedDriver) {
+            if (assignedDriver === null) {
+                cabBooking.assignedDriver = null;
+            } else if (assignedDriver) {
                 const driver = await Driver.findById(assignedDriver);
                 if (!driver) {
                     return res.status(404).json({
@@ -317,8 +344,30 @@ exports.updateCabBooking = async (req, res) => {
                         message: "Driver not found"
                     });
                 }
+
+                if (driver.status !== "Available") {
+                    const alternativeDriver = await findAvailableDriver({
+                        preferredCabId: assignedCab || cabBooking.assignedCab,
+                        excludeDriverIds: [assignedDriver]
+                    });
+
+                    if (!alternativeDriver) {
+                        return res.status(409).json({
+                            success: false,
+                            message: "Requested driver is unavailable and no alternative drivers are free right now"
+                        });
+                    }
+
+                    cabBooking.assignedDriver = alternativeDriver._id;
+                } else {
+                    cabBooking.assignedDriver = assignedDriver;
+                }
+            } else {
+                const autoDriver = await findAvailableDriver({
+                    preferredCabId: assignedCab || cabBooking.assignedCab
+                });
+                cabBooking.assignedDriver = autoDriver ? autoDriver._id : null;
             }
-            cabBooking.assignedDriver = assignedDriver || null;
         }
 
         if (bookingDate) cabBooking.bookingDate = new Date(bookingDate);

@@ -31,7 +31,7 @@ const driverSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum: ["Available" , "Unavailable"]
+        enum: ["Available" , "Unavailable", "Leave","onTrip"]
     }
 }, { timestamps: true });
 

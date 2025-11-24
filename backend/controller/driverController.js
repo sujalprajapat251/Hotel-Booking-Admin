@@ -1,4 +1,5 @@
 const Driver = require("../models/driverModel");
+const { reassignBookingsForDriver } = require("../utils/driverAssignment");
 
 // Create Driver
 exports.createDriver = async (req, res) => {
@@ -52,14 +53,24 @@ exports.updateDriver = async (req, res) => {
             updateData.image = req.file.path;
         }
 
+        const existingDriver = await Driver.findById(req.params.id);
+
+        if (!existingDriver) {
+            return res.status(404).json({ message: "Driver not found" });
+        }
+
         const updatedDriver = await Driver.findByIdAndUpdate(
             req.params.id,
             updateData,
             { new: true }
         ).populate("AssignedCab");
 
-        if (!updatedDriver) {
-            return res.status(404).json({ message: "Driver not found" });
+        // Trigger auto reassignment logic when driver is marked unavailable or removed from service
+        if (
+            updateData.status === "Unavailable" &&
+            existingDriver.status !== "Unavailable"
+        ) {
+            await reassignBookingsForDriver(updatedDriver._id);
         }
 
         res.status(200).json({ message: "Driver updated successfully", driver: updatedDriver });
@@ -76,6 +87,8 @@ exports.deleteDriver = async (req, res) => {
         if (!deletedDriver) {
             return res.status(404).json({ message: "Driver not found" });
         }
+
+        await reassignBookingsForDriver(req.params.id);
 
         res.status(200).json({ message: "Driver deleted successfully" });
     } catch (error) {

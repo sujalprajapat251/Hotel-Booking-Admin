@@ -9,7 +9,7 @@ import { getAllCabs } from "../Redux/Slice/cab.slice";
 
 const statusColors = {
   Available: "bg-green-50 text-green-600 border-green-200",
-  // Unvailable: "bg-blue-50 text-blue-600 border-blue-200",
+  Leave: "bg-blue-50 text-blue-600 border-blue-200",
   Unavailable: "bg-yellow-50 text-yellow-600 border-yellow-200",
 };
 
@@ -18,7 +18,7 @@ const DriverDetails = () => {
   const { drivers, loading, error } = useSelector((state) => state.driver);
   const { cabs } = useSelector((state) => state.cab);
 
-  // console.log(drivers);
+  console.log(drivers);
   
 
   useEffect(() => {
@@ -471,6 +471,8 @@ const DriverDetails = () => {
                   >
                     <option value="Available">Available</option>
                     <option value="Unavailable">Unavailable</option>
+                    <option value="Leave">Leave</option>
+                    <option value="onTrip">onTrip</option>
                   </select>
                 </div>
               </div>
