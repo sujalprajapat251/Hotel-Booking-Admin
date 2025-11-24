@@ -1,118 +1,169 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
 import { Search, Filter, Download, RefreshCw, Star, MapPin, Phone } from "lucide-react";
-
-const dummyDrivers = [
-  {
-    driverId: "DRV-001",
-    profileImage:
-      "https://randomuser.me/api/portraits/men/65.jpg",
-    driverName: "Ramesh Patel",
-    phoneNumber: "9876543210",
-    licenseNumber: "GJ06-2021223344",
-    licenseExpiry: "2025-12-30",
-    assignedVehicleId: "CAB-002",
-    rating: 4.7,
-    status: "Available",
-    emergencyContact: "9876512345",
-    address: "Vasna, Ahmedabad",
-  },
-  {
-    driverId: "DRV-002",
-    profileImage:
-      "https://randomuser.me/api/portraits/men/12.jpg",
-    driverName: "Suresh Kumar",
-    phoneNumber: "9876500122",
-    licenseNumber: "DL11-9988773412",
-    licenseExpiry: "2024-06-15",
-    assignedVehicleId: "CAB-001",
-    rating: 4.3,
-    status: "On Trip",
-    emergencyContact: "7523987432",
-    address: "Dwarka, New Delhi",
-  },
-  {
-    driverId: "DRV-003",
-    profileImage:
-      "https://randomuser.me/api/portraits/women/44.jpg",
-    driverName: "Maya Bhosle",
-    phoneNumber: "9765432189",
-    licenseNumber: "MH02-8811992277",
-    licenseExpiry: "2027-02-09",
-    assignedVehicleId: "CAB-003",
-    rating: 5.0,
-    status: "Leave",
-    emergencyContact: "9543221188",
-    address: "Pimpri, Pune",
-  },
-  {
-    driverId: "DRV-004",
-    profileImage:
-      "https://randomuser.me/api/portraits/men/24.jpg",
-    driverName: "Harish Singh",
-    phoneNumber: "9012563288",
-    licenseNumber: "UP56-9988994422",
-    licenseExpiry: "2024-10-11",
-    assignedVehicleId: "CAB-005",
-    rating: 3.8,
-    status: "Available",
-    emergencyContact: "9456123456",
-    address: "Gomti Nagar, Lucknow",
-  },
-  {
-    driverId: "DRV-005",
-    profileImage:
-      "https://randomuser.me/api/portraits/women/68.jpg",
-    driverName: "Jyoti Vishwakarma",
-    phoneNumber: "9900112233",
-    licenseNumber: "KA41-5511883344",
-    licenseExpiry: "2029-07-26",
-    assignedVehicleId: "CAB-004",
-    rating: 4.9,
-    status: "On Trip",
-    emergencyContact: "9988772233",
-    address: "BTM Layout, Bangalore",
-  },
-];
+import { useDispatch, useSelector } from "react-redux";
+import { getAllDrivers, createDriver, updateDriver, deleteDriver } from "../Redux/Slice/driverSlice";
+import { getAllCabs } from "../Redux/Slice/cab.slice";
 
 const statusColors = {
   Available: "bg-green-50 text-green-600 border-green-200",
-  "On Trip": "bg-blue-50 text-blue-600 border-blue-200",
-  Leave: "bg-yellow-50 text-yellow-600 border-yellow-200",
+  // Unvailable: "bg-blue-50 text-blue-600 border-blue-200",
+  Unavailable: "bg-yellow-50 text-yellow-600 border-yellow-200",
 };
 
 const DriverDetails = () => {
+  const dispatch = useDispatch();
+  const { drivers, loading, error } = useSelector((state) => state.driver);
+  const { cabs } = useSelector((state) => state.cab);
+
+  // console.log(drivers);
+  
+
+  useEffect(() => {
+    dispatch(getAllDrivers());
+    dispatch(getAllCabs());
+  }, [dispatch]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
+  const [driverModalMode, setDriverModalMode] = useState("add"); // "add" or "edit"
+  const [driverLoading, setDriverLoading] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState(null);
+  
+  const defaultDriverFields = {
+    _id: null,
+    name: "",
+    email: "",
+    password: "",
+    mobileno: "",
+    address: "",
+    gender: "",
+    joiningdate: "",
+    AssignedCab: "",
+    status: "Available",
+    image: null,
+    existingImage: null,
+  };
 
-  const filteredDrivers = useMemo(() => {
-    return dummyDrivers.filter((d) => {
-      const matchesSearch =
-        d.driverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.driverId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.phoneNumber.includes(searchTerm) ||
-        d.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.assignedVehicleId.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "All" ? true : d.status === statusFilter;
-      return matchesSearch && matchesStatus;
+  const [driverForm, setDriverForm] = useState(defaultDriverFields);
+
+  const filteredDrivers = drivers.filter((d) => {
+    const matchesSearch =
+      d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      d.mobileno?.includes(searchTerm) ||
+      (d.AssignedCab?.vehicleId?.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "All" ? true : d.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (isDriverModalOpen || isDeleteModalOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isDriverModalOpen, isDeleteModalOpen]);
+
+  // Unified Driver Modal Handlers
+  const handleOpenAddModal = () => {
+    setDriverForm(defaultDriverFields);
+    setDriverModalMode("add");
+    setIsDriverModalOpen(true);
+  };
+
+  const handleOpenEditModal = (driver) => {
+    // Format joining date for input field (YYYY-MM-DD)
+    const joiningDate = driver.joiningdate 
+      ? new Date(driver.joiningdate).toISOString().split('T')[0]
+      : "";
+    
+    setDriverForm({
+      _id: driver._id,
+      name: driver.name || "",
+      email: driver.email || "",
+      password: "", // Don't pre-fill password
+      mobileno: driver.mobileno || "",
+      address: driver.address || "",
+      gender: driver.gender || "",
+      joiningdate: joiningDate,
+      AssignedCab: driver.AssignedCab?._id || "",
+      status: driver.status || "Available",
+      image: null,
+      existingImage: driver.image || null,
     });
-  }, [searchTerm, statusFilter]);
+    setDriverModalMode("edit");
+    setIsDriverModalOpen(true);
+  };
 
-  const renderRatingStars = (rating) => {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
-    return (
-      <span className="flex items-center gap-0.5">
-        {[...Array(fullStars)].map((_, i) => (
-          <Star key={i} size={16} fill="#fbbf24" className="text-yellow-400" />
-        ))}
-        {halfStar && <Star size={16} fill="#fde68a" className="text-yellow-300" />}
-        <span className="ml-1 text-xs text-gray-600 font-medium">{rating.toFixed(1)}</span>
-      </span>
-    );
+  const handleDriverInputChange = (e) => {
+    const { name, value, type, files } = e.target;
+    setDriverForm((prev) => ({
+      ...prev,
+      [name]: type === "file" ? files[0] : value,
+    }));
+  };
+
+  const handleDriverSubmit = async (e) => {
+    e.preventDefault();
+    setDriverLoading(true);
+    try {
+      if (driverModalMode === "add") {
+        // Add mode - create new driver
+        await dispatch(createDriver(driverForm));
+      } else {
+        // Edit mode - update existing driver
+        const driverData = { ...driverForm };
+        // Remove empty password and image if not changed
+        if (!driverData.password || driverData.password.trim() === "") {
+          delete driverData.password;
+        }
+        if (!driverData.image) {
+          delete driverData.image;
+        }
+        delete driverData.existingImage; // Remove preview field
+        
+        await dispatch(updateDriver(driverData));
+      }
+      setIsDriverModalOpen(false);
+      setDriverForm(defaultDriverFields);
+      dispatch(getAllDrivers()); // Refresh the list
+    } finally {
+      setDriverLoading(false);
+    }
+  };
+
+  const handleDriverModalCancel = () => {
+    setIsDriverModalOpen(false);
+    setDriverForm(defaultDriverFields);
+  };
+
+  // Delete Driver Handlers
+  const handleDeleteClick = (driver) => {
+    setDriverToDelete(driver);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (driverToDelete && driverToDelete._id) {
+      await dispatch(deleteDriver(driverToDelete._id));
+      dispatch(getAllDrivers()); // Refresh the list
+    }
+    setIsDeleteModalOpen(false);
+    setDriverToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false);
+    setDriverToDelete(null);
   };
 
   return (
@@ -141,6 +192,7 @@ const DriverDetails = () => {
             <button
               className="p-2 text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
               title="Add Driver"
+              onClick={handleOpenAddModal}
             >
               <FiPlusCircle size={20} />
             </button>
@@ -154,7 +206,7 @@ const DriverDetails = () => {
               </button>
               {showFilterMenu && (
                 <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                  {["All", "Available", "On Trip", "Leave"].map((status) => (
+                  {["All", "Available","Unavailable"].map((status) => (
                     <button
                       key={status}
                       onClick={() => {
@@ -194,14 +246,10 @@ const DriverDetails = () => {
               <tr>
                 {[
                   "No",
-                  "Driver ID",
                   "Photo",
                   "Name",
                   "Phone",
-                  "License #",
-                  "Expiry",
                   "Assigned Cab",
-                  "Rating",
                   "Status",
                   "Emergency Contact",
                   "Address",
@@ -216,37 +264,33 @@ const DriverDetails = () => {
             <tbody>
               {filteredDrivers.map((driver, idx) => (
                 <tr
-                  key={driver.driverId}
+                  key={driver._id || idx}
                   className="border-b border-gray-100 text-gray-700 hover:bg-gray-50"
                 >
                   <td className="px-4 py-3">{idx + 1}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-900">
-                    {driver.driverId}
-                  </td>
                   <td className="px-4 py-3">
-                    <img
-                      src={driver.profileImage}
-                      alt={driver.driverName}
-                      className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                    />
+                    {driver.image ? (
+                      <img
+                        src={`http://localhost:5000/${driver.image.replace(/\\/g, '/')}`}
+                        alt={driver.name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-[#E3C78A] flex items-center justify-center text-xs text-gray-500">
+                        No Image
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-medium text-gray-900">
-                    {driver.driverName}
+                    {driver.name}
                   </td>
                   <td className="px-4 py-3 text-green-600">
                     <span className="inline-flex items-center gap-1">
                       <Phone size={14} className="inline-block" />
-                      {driver.phoneNumber}
+                      {driver.mobileno}
                     </span>
                   </td>
-                  <td className="px-4 py-3 font-mono text-xs text-gray-600">
-                    {driver.licenseNumber}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(driver.licenseExpiry).toLocaleDateString("en-GB")}
-                  </td>
-                  <td className="px-4 py-3">{driver.assignedVehicleId}</td>
-                  <td className="px-4 py-3">{renderRatingStars(driver.rating)}</td>
+                  <td className="px-4 py-3">{driver.AssignedCab?.vehicleId || "Not Assigned"}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[driver.status]}`}
@@ -254,7 +298,7 @@ const DriverDetails = () => {
                       {driver.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-700">{driver.emergencyContact}</td>
+                  <td className="px-4 py-3 text-gray-700">Hotel Number</td>
                   <td className="px-4 py-3 text-gray-600">
                     <span className="inline-flex items-center gap-1">
                       <MapPin size={14} className="text-orange-600" />
@@ -263,13 +307,18 @@ const DriverDetails = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 text-lg">
-                      <button className="text-[#3B82F6] hover:text-[#1D4ED8] text-quaternary" title="View">
-                        <IoEyeSharp />
-                      </button>
-                      <button className="text-[#F59E0B] hover:text-[#D97706]" title="Edit">
+                      <button 
+                        className="text-[#F59E0B] hover:text-[#D97706]" 
+                        title="Edit"
+                        onClick={() => handleOpenEditModal(driver)}
+                      >
                         <FiEdit />
                       </button>
-                      <button className="text-[#EF4444] hover:text-[#DC2626]" title="Delete">
+                      <button 
+                        className="text-[#EF4444] hover:text-[#DC2626]" 
+                        title="Delete"
+                        onClick={() => handleDeleteClick(driver)}
+                      >
                         <RiDeleteBinLine />
                       </button>
                     </div>
@@ -279,7 +328,7 @@ const DriverDetails = () => {
               {filteredDrivers.length === 0 && (
                 <tr>
                   <td
-                    colSpan={13}
+                    colSpan={9}
                     className="text-center text-gray-500 py-6 text-sm"
                   >
                     No drivers match your filters.
@@ -301,6 +350,232 @@ const DriverDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Unified Add/Edit Driver Modal */}
+      {isDriverModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={handleDriverModalCancel}></div>
+          <div className="relative w-full max-w-2xl rounded-md bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">
+                {driverModalMode === "add" ? "Add Driver" : "Edit Driver"}
+              </h2>
+              <button onClick={handleDriverModalCancel} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleDriverSubmit} className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={driverForm.name}
+                    onChange={handleDriverInputChange}
+                    placeholder="Driver Name"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={driverForm.email}
+                    onChange={handleDriverInputChange}
+                    placeholder="driver@example.com"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password {driverModalMode === "add" ? "*" : ""}
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={driverForm.password}
+                    onChange={handleDriverInputChange}
+                    placeholder={driverModalMode === "add" ? "Password" : "Leave blank to keep current password"}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required={driverModalMode === "add"}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
+                  <input
+                    type="tel"
+                    name="mobileno"
+                    value={driverForm.mobileno}
+                    onChange={handleDriverInputChange}
+                    placeholder="1234567890"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
+                  <select
+                    name="gender"
+                    value={driverForm.gender}
+                    onChange={handleDriverInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  >
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Joining Date *</label>
+                  <input
+                    type="date"
+                    name="joiningdate"
+                    value={driverForm.joiningdate}
+                    onChange={handleDriverInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Cab</label>
+                  <select
+                    name="AssignedCab"
+                    value={driverForm.AssignedCab}
+                    onChange={handleDriverInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  >
+                    <option value="">Select Cab (Optional)</option>
+                    {cabs && cabs.map((cab) => (
+                      <option key={cab._id} value={cab._id}>
+                        {cab.vehicleId} - {cab.modelName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                  <select
+                    name="status"
+                    value={driverForm.status}
+                    onChange={handleDriverInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    required
+                  >
+                    <option value="Available">Available</option>
+                    <option value="Unavailable">Unavailable</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                <textarea
+                  name="address"
+                  value={driverForm.address}
+                  onChange={handleDriverInputChange}
+                  placeholder="Driver Address"
+                  rows="3"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                {driverModalMode === "edit" && driverForm.existingImage && (
+                  <div className="mb-2">
+                    <p className="text-xs text-gray-500 mb-1">Current Image:</p>
+                    <img
+                      src={`http://localhost:5000/${driverForm.existingImage.replace(/\\/g, '/')}`}
+                      alt="Current"
+                      className="w-20 h-20 rounded-full object-cover border-2 border-gray-300"
+                    />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  name="image"
+                  onChange={handleDriverInputChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                />
+                {driverModalMode === "edit" && (
+                  <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
+                )}
+              </div>
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={handleDriverModalCancel}
+                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  disabled={driverLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-gray-900 rounded-lg hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-colors font-medium"
+                  disabled={driverLoading}
+                >
+                  {driverLoading 
+                    ? (driverModalMode === "add" ? "Adding..." : "Updating...") 
+                    : (driverModalMode === "add" ? "Add Driver" : "Update Driver")
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteCancel}></div>
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">Delete Driver</h2>
+              <button onClick={handleDeleteCancel} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="text-gray-700 mb-8 text-center">
+              Are you sure you want to delete
+              <span className="font-semibold mx-1">
+                {driverToDelete?.name || "this driver"}
+              </span>
+              ?
+            </p>
+            <p className="text-sm text-gray-500 mb-8 text-center">
+              This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleDeleteCancel}
+                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirm}
+                className="px-6 py-2 bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white rounded-lg hover:from-[#DC2626] hover:to-[#EF4444] transition-colors font-medium"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

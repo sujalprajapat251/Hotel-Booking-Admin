@@ -1,6 +1,7 @@
 const Room = require('../models/createRoomModel');
 const RoomType = require('../models/roomtypeModel');
 const Feature = require('../models/featuresModel');
+const { Types } = require('mongoose');
 
 const formatRoom = (doc) => ({
     id: doc._id,
@@ -208,9 +209,17 @@ const getRoomsWithPagination = async (req, res) => {
       // Build query
       const query = {};
   
-      // Filter by roomType
+      // Filter by roomType (accept both ids and human readable names)
       if (roomType && roomType !== 'all' && roomType !== 'All Types') {
-        query.roomType = roomType;
+        if (Types.ObjectId.isValid(roomType)) {
+          query.roomType = roomType;
+        } else {
+          const normalizedRoomType = typeof roomType === 'string' ? roomType.trim() : roomType;
+          const matchedRoomType = await RoomType.findOne({ roomType: normalizedRoomType });
+          if (matchedRoomType) {
+            query.roomType = matchedRoomType._id;
+          }
+        }
       }
   
       // Status filter

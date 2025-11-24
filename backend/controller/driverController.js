@@ -3,9 +3,9 @@ const Driver = require("../models/driverModel");
 // Create Driver
 exports.createDriver = async (req, res) => {
     try {   
-        const { name, email, password, mobileno, address, gender, joiningdate } = req.body;
+        const { name, email, password, mobileno, address, gender, joiningdate , status , AssignedCab } = req.body;
 
-        const newDriver = await Driver.create({ name, email, password, mobileno, address, gender, joiningdate, image: req.file?.path || null });
+        const newDriver = await Driver.create({ name, email, password, mobileno, address, gender, joiningdate,status,AssignedCab, image: req.file?.path || null });
 
         res.status(201).json({
             success: true,

@@ -28,6 +28,10 @@ const driverSchema = new mongoose.Schema({
     AssignedCab: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "cab"
+    },
+    status:{
+        type:String,
+        enum: ["Available" , "Unavailable"]
     }
 }, { timestamps: true });
 
