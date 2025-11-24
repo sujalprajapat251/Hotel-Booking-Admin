@@ -271,6 +271,10 @@ const RestaurantItems = () => {
 
     const handleDownloadExcel = () => {
         try {
+            if (filteredBookings.length === 0) {
+                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+                return;
+            }
             // Prepare data for Excel
             const excelData = filteredBookings.map((item, index) => {
                 const row = {};

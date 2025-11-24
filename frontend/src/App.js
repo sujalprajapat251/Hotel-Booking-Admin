@@ -55,6 +55,9 @@ import Restaurantitem from './Pages/Restaurantitem';
 import StaffDetails from './Pages/StaffDetails.jsx';
 import ChefLayout from './component/Chef/Layout'
 import ChefDashboard from './component/Chef/Dashboard'
+import AccountantLayout from './component/Accountant/Layout.js'
+import AccountantDashboard from './component/Accountant/Dashboard.js'
+import AccountantTable from './component/Accountant/Table.js'
 
 const { store, persistor } = configureStore();
 function App() {
@@ -369,6 +372,11 @@ function App() {
               <Route path='/chef' element={<ChefLayout />} >
                   <Route path='dashboard' element={<ChefDashboard />}></Route>
               </Route>
+
+              <Route path='/accountant' element={<AccountantLayout />} >
+                  <Route path='dashboard' element={<AccountantDashboard />}></Route>
+                  <Route path='table' element={<AccountantTable />}></Route>
+              </Route> 
 
             </Routes>
           </SnackbarProvider>
