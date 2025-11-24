@@ -15,8 +15,7 @@ const hodSections = [
       { icon: LuUsers, label: 'Staff', path: '/hod/staff' },
       { icon: FiGrid, label: 'Table', path: '/hod/table' },
       { icon: FiLayers, label: 'History', path: '/hod/history' },
-      { icon: LuContact, label: 'Profile', path: '/hod/profile' },
-    ],
+      ],
   },
 ];
 

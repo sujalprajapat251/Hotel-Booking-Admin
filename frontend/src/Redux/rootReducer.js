@@ -25,6 +25,8 @@ import restaurantcategorySlice from "./Slice/restaurantcategorySlice"
 import cabSlice from "./Slice/cab.slice";
 import driverSlice from "./Slice/driverSlice";
 import cabBookingSlice from "./Slice/cabBookingSlice";
+import hodSlice from "./Slice/hod.slice";
+
 export const rootReducer = combineReducers({
     alert:alertSlice,
     auth:authSlice,
@@ -51,5 +53,6 @@ export const rootReducer = combineReducers({
     restaurantcategory:restaurantcategorySlice,
     cab:cabSlice,
     driver:driverSlice,
-    cabBooking:cabBookingSlice
+    cabBooking:cabBookingSlice,
+    hod:hodSlice
 });
