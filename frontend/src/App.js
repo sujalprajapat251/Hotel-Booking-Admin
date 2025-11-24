@@ -334,14 +334,6 @@ function App() {
                   }
                 />
                 <Route
-                  path='/hod/user-profile'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Profile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path='/hod/addstaff'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>

@@ -33,10 +33,11 @@ exports.createCafeOrder = async (req, res) => {
 
 exports.getAllCafeOrders = async (req, res) => {
     try {
-        const orders = await cafeOrder.find()
+        const orders = await cafeOrder.find().sort({ createdAt: -1 })
             .populate("items")
             .populate("table")
-            .populate("room");
+            .populate("room")
+            .populate("items.product");
 
         res.status(200).json({
             status: 200,

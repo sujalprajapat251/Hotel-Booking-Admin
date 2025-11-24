@@ -162,8 +162,8 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
           [
             'group relative flex w-full items-center text-left text-sm font-medium transition-all duration-300 rounded-xl overflow-hidden',
             open ? 'px-4 py-3' : 'px-3 py-3 justify-center',
-            (navActive || isActive) 
-              ? 'text-white bg-gradient-to-r from-[#b6a67f] to-[#725e32] shadow-lg shadow-primary/30' 
+            (navActive || isActive)
+              ? 'text-senary font-semibold bg-primary/100 shadow-lg shadow-primary/30'
               : 'text-senary hover:bg-primary/30',
           ].join(' ')
         }
@@ -172,13 +172,12 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
       >
         {/* Animated shine effect on hover */}
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-        
+
         <div className={`relative flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}>
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition-all duration-300 ${
-            (isActive) 
-              ? 'bg-primary text-senary scale-110' 
+          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition-all duration-300 ${(isActive)
+              ? 'bg-primary text-senary scale-110'
               : 'bg-primary/25 text-senary group-hover:bg-primary group-hover:scale-105'
-          }`}>
+            }`}>
             <Icon />
           </span>
           {open ? (
@@ -199,12 +198,11 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
           {!open ? <span className="sr-only">{label}</span> : null}
         </div>
       </NavLink>
-      
+
       {/* Animated submenu */}
       {subMenus && open && (
-        <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-500 ease-in-out ${
-          isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-        }`}>
+        <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-500 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+          }`}>
           <div className="ml-8 pl-4 border-l-2 border-senary/25 space-y-0.5 py-1">
             {subMenus.map((subMenu, index) => (
               <NavLink
@@ -213,22 +211,21 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
                 className={({ isActive }) =>
                   [
                     'group flex w-full items-center text-left text-sm font-medium transition-all duration-200 px-3 py-2.5 rounded-lg relative',
-                    isActive 
-                      ? 'text-senary bg-primary/50 font-semibold' 
+                    isActive
+                      ? 'text-senary bg-primary/50 font-semibold'
                       : 'text-quinary hover:bg-primary/30',
                   ].join(' ')
                 }
                 onClick={onItemClick}
-                style={{ 
+                style={{
                   animationDelay: `${index * 50}ms`,
                   animation: isExpanded ? 'slideIn 0.3s ease-out forwards' : 'none'
                 }}
               >
                 {({ isActive }) => (
                   <>
-                    <span className={`w-1.5 h-1.5 rounded-full mr-3 transition-all duration-200 ${
-                      isActive ? 'bg-senary scale-125' : 'bg-quinary/30 group-hover:bg-senary'
-                    }`} />
+                    <span className={`w-1.5 h-1.5 rounded-full mr-3 transition-all duration-200 ${isActive ? 'bg-senary scale-125' : 'bg-quinary/30 group-hover:bg-senary'
+                      }`} />
                     <span className="truncate">{subMenu.label}</span>
                     {isActive && (
                       <span className="ml-auto">
@@ -281,28 +278,18 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         data-compact={isCompact ? 'true' : 'false'}
       >
         {/* Premium Header */}
-        <div className={`relative overflow-hidden bg-gradient-to-r from-[#b6a67f] to-[#725e32] ${
-          open ? 'px-6 py-6' : 'px-3 py-6'
-        }`}>
-          {/* Animated background shapes */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl animate-pulse" />
-            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div
+          className={`flex items-center gap-3 ${open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
+            }`}
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
+            <HiOutlineLocationMarker className="text-2xl" />
           </div>
-          
-          <div className={`relative flex items-center ${open ? 'gap-4' : 'justify-center'}`}>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-primary/50 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl">
-                <HiOutlineLocationMarker className="text-3xl text-senary" />
-              </div>
+          {open ? (
+            <div>
+              <p className="text-xl font-semibold text-senary">Taj Hotel</p>  
             </div>
-            {open && (
-              <div className="flex-1">
-                <p className="text-2xl font-bold text-white tracking-tight">Taj Hotel</p>
-              </div>
-            )}
-          </div>
+          ) : null}
         </div>
 
         {/* Navigation */}
