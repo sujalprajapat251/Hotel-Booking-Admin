@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { createRoom, clearRoomError } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchFeatures } from '../Redux/Slice/featuresSlice';
+import { ChevronDown } from 'lucide-react';
 
 const CreateRoom = () => {
   const dispatch = useDispatch();
@@ -44,6 +45,14 @@ const CreateRoom = () => {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [filteredFeatures, setFilteredFeatures] = useState([]);
+  const [showRoomTypeDropdown, setShowRoomTypeDropdown] = useState(false);
+  const roomTypeRef = useRef(null);
+  const [showMainBedTypeDropdown, setShowMainBedTypeDropdown] = useState(false);
+  const mainBedTypeRef = useRef(null);
+  const [showChildBedTypeDropdown, setShowChildBedTypeDropdown] = useState(false);
+  const childBedTypeRef = useRef(null);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const statusRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchRoomTypes());
@@ -67,9 +76,48 @@ const CreateRoom = () => {
     }
   }, [formData.roomType, dispatch]);
 
+  // Close room type dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (roomTypeRef.current && !roomTypeRef.current.contains(event.target)) {
+        setShowRoomTypeDropdown(false);
+      }
+      if (mainBedTypeRef.current && !mainBedTypeRef.current.contains(event.target)) {
+        setShowMainBedTypeDropdown(false);
+      }
+      if (childBedTypeRef.current && !childBedTypeRef.current.contains(event.target)) {
+        setShowChildBedTypeDropdown(false);
+      }
+      if (statusRef.current && !statusRef.current.contains(event.target)) {
+        setShowStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+
+  // Close status dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (statusRef.current && !statusRef.current.contains(event.target)) {
+        setShowStatusDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
+  const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     if (name.includes('.')) {
       const parts = name.split('.');
       if (parts.length === 2) {
@@ -145,9 +193,9 @@ const CreateRoom = () => {
     dispatch(clearRoomError());
 
     // Validate required fields
-    if (!formData.roomNumber || !formData.roomType || !formData.floor || 
-        !formData.price.base || !formData.price.weekend || 
-        !formData.capacity.adults || !formData.bed.mainBed.count || !formData.bed.childBed.count || !formData.viewType) {
+    if (!formData.roomNumber || !formData.roomType || !formData.floor ||
+      !formData.price.base || !formData.price.weekend ||
+      !formData.capacity.adults || !formData.bed.mainBed.count || !formData.bed.childBed.count || !formData.viewType) {
       alert('Please fill in all required fields');
       return;
     }
@@ -232,7 +280,7 @@ const CreateRoom = () => {
                 />
               </div>
 
-              {/* Room Type Dropdown */}
+              {/* Room Type Dropdown
               <div>
                 <label htmlFor="roomType" className="block text-sm font-semibold text-gray-700 mb-2">
                   Room Type <span className="text-red-500">*</span>
@@ -252,6 +300,40 @@ const CreateRoom = () => {
                     </option>
                   ))}
                 </select>
+              </div> */}
+              {/* Room Type Dropdown */}
+              <div className="relative" ref={roomTypeRef}>
+                <label htmlFor="roomType" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Room Type <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowRoomTypeDropdown(!showRoomTypeDropdown)}
+                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                >
+                  <span className={formData.roomType ? 'text-gray-800' : 'text-gray-400'}>
+                    {formData.roomType
+                      ? roomTypes.find(type => type.id === formData.roomType)?.roomType
+                      : 'Select Room Type'}
+                  </span>
+                  <ChevronDown size={18} className="text-gray-600" />
+                </button>
+                {showRoomTypeDropdown && (
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                    {roomTypes.map((type) => (
+                      <div
+                        key={type.id}
+                        onClick={() => {
+                          handleInputChange({ target: { name: 'roomType', value: type.id } });
+                          setShowRoomTypeDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        {type.roomType}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Floor */}
@@ -380,24 +462,36 @@ const CreateRoom = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">Main Bed</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="relative" ref={mainBedTypeRef}>
                     <label htmlFor="bed.mainBed.type" className="block text-sm font-semibold text-gray-700 mb-2">
                       Main Bed Type <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      id="bed.mainBed.type"
-                      name="bed.mainBed.type"
-                      value={formData.bed.mainBed.type}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                      required
+                    <button
+                      type="button"
+                      onClick={() => setShowMainBedTypeDropdown(!showMainBedTypeDropdown)}
+                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                     >
-                      <option value="Single">Single</option>
-                      <option value="Double">Double</option>
-                      <option value="Queen">Queen</option>
-                      <option value="King">King</option>
-                      <option value="Twin">Twin</option>
-                    </select>
+                      <span className="text-gray-800">
+                        {formData.bed.mainBed.type}
+                      </span>
+                      <ChevronDown size={18} className="text-gray-600" />
+                    </button>
+                    {showMainBedTypeDropdown && (
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                        {bedTypes.map((type) => (
+                          <div
+                            key={type}
+                            onClick={() => {
+                              handleInputChange({ target: { name: 'bed.mainBed.type', value: type } });
+                              setShowMainBedTypeDropdown(false);
+                            }}
+                            className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                          >
+                            {type}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="bed.mainBed.count" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -419,24 +513,36 @@ const CreateRoom = () => {
 
                 <h3 className="text-lg font-semibold text-gray-800 mt-4">Child Bed</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="relative" ref={childBedTypeRef}>
                     <label htmlFor="bed.childBed.type" className="block text-sm font-semibold text-gray-700 mb-2">
                       Child Bed Type <span className="text-red-500">*</span>
                     </label>
-                    <select
-                      id="bed.childBed.type"
-                      name="bed.childBed.type"
-                      value={formData.bed.childBed.type}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                      required
+                    <button
+                      type="button"
+                      onClick={() => setShowChildBedTypeDropdown(!showChildBedTypeDropdown)}
+                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                     >
-                      <option value="Single">Single</option>
-                      <option value="Double">Double</option>
-                      <option value="Queen">Queen</option>
-                      <option value="King">King</option>
-                      <option value="Twin">Twin</option>
-                    </select>
+                      <span className="text-gray-800">
+                        {formData.bed.childBed.type}
+                      </span>
+                      <ChevronDown size={18} className="text-gray-600" />
+                    </button>
+                    {showChildBedTypeDropdown && (
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                        {bedTypes.map((type) => (
+                          <div
+                            key={type}
+                            onClick={() => {
+                              handleInputChange({ target: { name: 'bed.childBed.type', value: type } });
+                              setShowChildBedTypeDropdown(false);
+                            }}
+                            className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                          >
+                            {type}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label htmlFor="bed.childBed.count" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -475,23 +581,36 @@ const CreateRoom = () => {
               </div>
 
               {/* Status */}
-              <div>
+              <div className="relative" ref={statusRef}>
                 <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
                   Status <span className="text-red-500">*</span>
                 </label>
-                <select
-                  id="status"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                  required
+                <button
+                  type="button"
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                 >
-                  <option value="Available">Available</option>
-                  <option value="Occupied">Occupied</option>
-                  <option value="Maintenance">Maintenance</option>
-                  <option value="Reserved">Reserved</option>
-                </select>
+                  <span className="text-gray-800">
+                    {formData.status}
+                  </span>
+                  <ChevronDown size={18} className="text-gray-600" />
+                </button>
+                {showStatusDropdown && (
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                    {statusOptions.map((status) => (
+                      <div
+                        key={status}
+                        onClick={() => {
+                          handleInputChange({ target: { name: 'status', value: status } });
+                          setShowStatusDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        {status}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Images Upload */}
@@ -600,8 +719,8 @@ const CreateRoom = () => {
             </form>
           </div>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

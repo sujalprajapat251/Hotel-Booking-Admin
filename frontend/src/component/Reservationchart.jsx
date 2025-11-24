@@ -73,7 +73,7 @@ const StackedBarChart = () => {
         if (width < 600) return 16; 
         if (601 < width < 768) return 24     
         if (769 < width < 1024) return 30;   
-        return 36;                     
+        return 40;                     
     };
 
     const getfontsize = () => {
@@ -81,7 +81,7 @@ const StackedBarChart = () => {
         if (width < 600) return 8;
         if (601 < width < 768) return 12;
         if (769 < width < 1024) return 14;
-        return 14;
+        return 20;
     };
 
     return (
