@@ -67,7 +67,6 @@ const adminSections = [
         subMenus: [
           { label: 'Bar Category', path: '/bar/barcategory' },
           { label: 'Bar Items', path: '/bar/baritems' },
-
         ]
       },
       {
@@ -90,7 +89,7 @@ const adminSections = [
         ]
       },
       {
-        icon: IoCarSportOutline,
+        icon: LuUsers,
         label: 'Staff',
         path: '/staff',
         subMenus: [
@@ -98,7 +97,6 @@ const adminSections = [
           { label: 'Add Staff', path: '/staff/addstaff' },
         ]
       },
-      // { icon: LuUsers, label: 'Staff', path: '/staff' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       { icon: LuInfo, label: 'About', path: '/about' },
       { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
@@ -106,12 +104,11 @@ const adminSections = [
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
       { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' },
-
     ],
   },
 ];
 
-// Receptionist/User menu items - only Booking Dashboard
+// Receptionist/User menu items
 const receptionistSections = [
   {
     title: null,
@@ -158,37 +155,42 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
   };
 
   return (
-    <div>
+    <div className="px-3 mb-1">
       <NavLink
         to={path}
         className={({ isActive: navActive }) =>
           [
-            'group flex w-full items-center text-left text-sm font-medium transition',
-            open ? 'px-6 py-3' : 'px-3 py-3 justify-center',
-            (navActive || isActive) ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
+            'group relative flex w-full items-center text-left text-sm font-medium transition-all duration-300 rounded-xl overflow-hidden',
+            open ? 'px-4 py-3' : 'px-3 py-3 justify-center',
+            (navActive || isActive) 
+              ? 'text-white bg-gradient-to-r from-[#b6a67f] to-[#725e32] shadow-lg shadow-primary/30' 
+              : 'text-senary hover:bg-primary/30',
           ].join(' ')
         }
         aria-label={!open ? label : undefined}
         onClick={handleClick}
       >
-        <div
-          className={`flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}
-        >
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/40 text-lg text-senary transition group-hover:bg-primary group-hover:text-senary">
+        {/* Animated shine effect on hover */}
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+        
+        <div className={`relative flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}>
+          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition-all duration-300 ${
+            (isActive) 
+              ? 'bg-primary text-senary scale-110' 
+              : 'bg-primary/25 text-senary group-hover:bg-primary group-hover:scale-105'
+          }`}>
             <Icon />
           </span>
           {open ? (
             <>
               <span className="truncate flex-1">{label}</span>
               {subMenus ? (
-                <span className="text-senary">
-                  {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+                <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
+                  <FiChevronDown className="w-4 h-4" />
                 </span>
               ) : null}
               {badge ? (
-                <span
-                  className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyles[badge.tone]}`}
-                >
+                <span className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeStyles[badge.tone]}`}>
                   {badge.text}
                 </span>
               ) : null}
@@ -197,23 +199,49 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
           {!open ? <span className="sr-only">{label}</span> : null}
         </div>
       </NavLink>
-      {subMenus && open && isExpanded && (
-        <div className="ml-6 space-y-1 border-l-2 border-primary/20">
-          {subMenus.map((subMenu) => (
-            <NavLink
-              key={subMenu.path}
-              to={subMenu.path}
-              className={({ isActive }) =>
-                [
-                  'group flex w-full items-center text-left text-sm font-medium transition px-4 py-2 rounded-lg',
-                  isActive ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
-                ].join(' ')
-              }
-              onClick={onItemClick}
-            >
-              <span className="truncate">{subMenu.label}</span>
-            </NavLink>
-          ))}
+      
+      {/* Animated submenu */}
+      {subMenus && open && (
+        <div className={`mt-1 space-y-1 overflow-hidden transition-all duration-500 ease-in-out ${
+          isExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <div className="ml-8 pl-4 border-l-2 border-senary/25 space-y-0.5 py-1">
+            {subMenus.map((subMenu, index) => (
+              <NavLink
+                key={subMenu.path}
+                to={subMenu.path}
+                className={({ isActive }) =>
+                  [
+                    'group flex w-full items-center text-left text-sm font-medium transition-all duration-200 px-3 py-2.5 rounded-lg relative',
+                    isActive 
+                      ? 'text-senary bg-primary/50 font-semibold' 
+                      : 'text-quinary hover:bg-primary/30',
+                  ].join(' ')
+                }
+                onClick={onItemClick}
+                style={{ 
+                  animationDelay: `${index * 50}ms`,
+                  animation: isExpanded ? 'slideIn 0.3s ease-out forwards' : 'none'
+                }}
+              >
+                {({ isActive }) => (
+                  <>
+                    <span className={`w-1.5 h-1.5 rounded-full mr-3 transition-all duration-200 ${
+                      isActive ? 'bg-senary scale-125' : 'bg-quinary/30 group-hover:bg-senary'
+                    }`} />
+                    <span className="truncate">{subMenu.label}</span>
+                    {isActive && (
+                      <span className="ml-auto">
+                        <svg className="w-4 h-4 text-senary" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </span>
+                    )}
+                  </>
+                )}
+              </NavLink>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -225,10 +253,9 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
   const user = authState?.user || null;
   const userRole = user?.role || 'user';
 
-  // Determine which sections to show based on user role
   const sections = userRole === 'admin' ? adminSections : receptionistSections;
   const containerClasses = [
-    'flex h-screen flex-col overflow-y-auto border-r border-secondary/20 bg-white shadow-sm transition-all duration-200 ease-in-out',
+    'flex h-screen flex-col bg-gradient-to-b from-slate-50 to-white border-r border-slate-200 shadow-xl transition-all duration-300 ease-in-out',
   ];
 
   if (isMobile) {
@@ -247,43 +274,85 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
   };
 
   return (
-    <aside
-      className={containerClasses.join(' ')}
-      aria-hidden={isMobile && !open}
-      data-compact={isCompact ? 'true' : 'false'}
-    >
-      <div
-        className={`flex items-center gap-3 ${open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
-          }`}
+    <>
+      <aside
+        className={containerClasses.join(' ')}
+        aria-hidden={isMobile && !open}
+        data-compact={isCompact ? 'true' : 'false'}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
-          <HiOutlineLocationMarker className="text-2xl" />
-        </div>
-        {open ? (
-          <div>
-            <p className="text-xl font-semibold text-senary">Taj Hotel</p>
+        {/* Premium Header */}
+        <div className={`relative overflow-hidden bg-gradient-to-r from-[#b6a67f] to-[#725e32] ${
+          open ? 'px-6 py-6' : 'px-3 py-6'
+        }`}>
+          {/* Animated background shapes */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl animate-pulse" />
+            <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-white/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
           </div>
-        ) : null}
-      </div>
-
-      <nav className="">
-        {sections.map(({ title, key, items }) => (
-          <React.Fragment key={key}>
-            {open && title ? <SidebarHeading title={title} /> : null}
-            <div className="space-y-1">
-              {items.map((item) => (
-                <MenuItem
-                  key={item.label}
-                  {...item}
-                  open={open}
-                  onItemClick={isMobile ? handleItemClick : undefined}
-                />
-              ))}
+          
+          <div className={`relative flex items-center ${open ? 'gap-4' : 'justify-center'}`}>
+            <div className="relative group">
+              <div className="absolute inset-0 bg-primary/50 rounded-2xl blur-md group-hover:blur-lg transition-all duration-300" />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 shadow-xl">
+                <HiOutlineLocationMarker className="text-3xl text-senary" />
+              </div>
             </div>
-          </React.Fragment>
-        ))}
-      </nav>
-    </aside>
+            {open && (
+              <div className="flex-1">
+                <p className="text-2xl font-bold text-white tracking-tight">Taj Hotel</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+          {sections.map(({ title, key, items }) => (
+            <React.Fragment key={key}>
+              {open && title && <SidebarHeading title={title} />}
+              <div>
+                {items.map((item) => (
+                  <MenuItem
+                    key={item.label}
+                    {...item}
+                    open={open}
+                    onItemClick={isMobile ? handleItemClick : undefined}
+                  />
+                ))}
+              </div>
+            </React.Fragment>
+          ))}
+        </nav>
+
+        {/* Styles */}
+        {/* <style jsx>{`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateX(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #3b82f6, #6366f1);
+            border-radius: 10px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #2563eb, #4f46e5);
+          }
+        `}</style> */}
+      </aside>
+    </>
   );
 };
 

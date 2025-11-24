@@ -11,10 +11,17 @@ export const fetchFeatures = createAsyncThunk(
   'features/fetchAll',
   async (roomTypeId, { rejectWithValue }) => {
     try {
-      const url = roomTypeId 
+      const token = await localStorage.getItem("token");
+      const url = roomTypeId
         ? `${BASE_URL}/features/roomtype/${roomTypeId}`
         : `${BASE_URL}/features`;
-      const response = await axios.get(url);
+      const response = await axios.get(url,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data || [];
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -25,8 +32,15 @@ export const fetchFeatures = createAsyncThunk(
 export const getFeatureById = createAsyncThunk(
   'features/getById',
   async (id, { rejectWithValue }) => {
+    const token = await localStorage.getItem("token");
     try {
-      const response = await axios.get(`${BASE_URL}/features/${id}`);
+      const response = await axios.get(`${BASE_URL}/features/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -38,7 +52,14 @@ export const createFeature = createAsyncThunk(
   'features/create',
   async ({ feature, roomType }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${BASE_URL}/features`, { feature, roomType });
+      const token = await localStorage.getItem("token");
+      const response = await axios.post(`${BASE_URL}/features`, { feature, roomType },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -50,7 +71,14 @@ export const updateFeature = createAsyncThunk(
   'features/update',
   async ({ id, feature, roomType }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${BASE_URL}/features/${id}`, { feature, roomType });
+      const token = await localStorage.getItem("token");
+      const response = await axios.put(`${BASE_URL}/features/${id}`, { feature, roomType },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data;
     } catch (error) {
       return rejectWithValue(buildError(error));
@@ -62,7 +90,14 @@ export const deleteFeature = createAsyncThunk(
   'features/delete',
   async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`${BASE_URL}/features/${id}`);
+      const token = await localStorage.getItem("token");
+      await axios.delete(`${BASE_URL}/features/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return id;
     } catch (error) {
       return rejectWithValue(buildError(error));
