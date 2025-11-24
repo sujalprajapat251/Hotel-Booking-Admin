@@ -117,19 +117,19 @@ indexRoutes.put('/updatefaq/:id', auth, adminOnly, updateFAQ);
 indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 
 // room type routes
-indexRoutes.post('/roomtypes', auth, createRoomType);
-indexRoutes.get('/roomtypes', getRoomTypes);
-indexRoutes.get('/roomtypes/:id', getRoomTypeById);
-indexRoutes.put('/roomtypes/:id', auth, updateRoomType);
-indexRoutes.delete('/roomtypes/:id', auth, deleteRoomType);
+indexRoutes.post('/roomtypes',auth, adminOnly, createRoomType);
+indexRoutes.get('/roomtypes', auth, adminOnly,getRoomTypes);
+indexRoutes.get('/roomtypes/:id', auth, adminOnly,getRoomTypeById);
+indexRoutes.put('/roomtypes/:id', auth, adminOnly, updateRoomType);
+indexRoutes.delete('/roomtypes/:id', auth, adminOnly, deleteRoomType);
 
 // feature routes
-indexRoutes.post('/features', auth, createFeature);
-indexRoutes.get('/features', getFeatures);
-indexRoutes.get('/features/roomtype/:roomTypeId', getFeaturesByRoomType);
-indexRoutes.get('/features/:id', getFeatureById);
-indexRoutes.put('/features/:id', auth, updateFeature);
-indexRoutes.delete('/features/:id', auth, deleteFeature);
+indexRoutes.post('/features', auth, adminOnly, createFeature);
+indexRoutes.get('/features', auth, adminOnly,getFeatures);
+indexRoutes.get('/features/roomtype/:roomTypeId', auth, adminOnly,getFeaturesByRoomType);
+indexRoutes.get('/features/:id',auth, adminOnly, getFeatureById);
+indexRoutes.put('/features/:id', auth, adminOnly, updateFeature);
+indexRoutes.delete('/features/:id', auth, adminOnly, deleteFeature);
 
 // room routes
 indexRoutes.post('/rooms', auth, adminOnly, upload.array('images', 10), createRoom);

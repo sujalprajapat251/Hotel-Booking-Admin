@@ -6,16 +6,23 @@ import { setAlert } from './alert.slice';
 const handleErrors = (error, dispatch, rejectWithValue) => {
   const errorMessage = error.response?.data?.message || 'An error occurred';
   if (dispatch) {
-      dispatch(setAlert({ text: errorMessage, color: 'error' }));
+    dispatch(setAlert({ text: errorMessage, color: 'error' }));
   }
   return rejectWithValue(error.response?.data || { message: errorMessage });
 };
 
 export const fetchRoomTypes = createAsyncThunk(
   'roomtypes/fetchAll',
-  async (_, { rejectWithValue,dispatch }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/roomtypes`);
+      const token = await localStorage.getItem("token");
+      const response = await axios.get(`${BASE_URL}/roomtypes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data || [];
     } catch (error) {
       return handleErrors(error, dispatch, rejectWithValue);
@@ -25,9 +32,16 @@ export const fetchRoomTypes = createAsyncThunk(
 
 export const getRoomTypeById = createAsyncThunk(
   'roomtypes/getById',
-  async (id, { rejectWithValue,dispatch }) => {
+  async (id, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/roomtypes/${id}`);
+      const token = await localStorage.getItem("token");
+      const response = await axios.get(`${BASE_URL}/roomtypes/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       return response.data?.data;
     } catch (error) {
       return handleErrors(error, dispatch, rejectWithValue);
@@ -37,9 +51,16 @@ export const getRoomTypeById = createAsyncThunk(
 
 export const createRoomType = createAsyncThunk(
   'roomtypes/create',
-  async ({ roomType }, { rejectWithValue,dispatch }) => {
+  async ({ roomType }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.post(`${BASE_URL}/roomtypes`, { roomType });
+      const token = await localStorage.getItem("token");
+      const response = await axios.post(`${BASE_URL}/roomtypes`, { roomType },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return response.data?.data;
     } catch (error) {
@@ -52,7 +73,14 @@ export const updateRoomType = createAsyncThunk(
   'roomtypes/update',
   async ({ id, roomType }, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.put(`${BASE_URL}/roomtypes/${id}`, { roomType });
+      const token = await localStorage.getItem("token");
+      const response = await axios.put(`${BASE_URL}/roomtypes/${id}`, { roomType },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       dispatch(setAlert({ text: "Room Type Update Successfull..!", color: 'success' }));
       return response.data?.data;
     } catch (error) {
@@ -63,9 +91,16 @@ export const updateRoomType = createAsyncThunk(
 
 export const deleteRoomType = createAsyncThunk(
   'roomtypes/delete',
-  async (id, { rejectWithValue,dispatch }) => {
+  async (id, { rejectWithValue, dispatch }) => {
     try {
-      const response = await axios.delete(`${BASE_URL}/roomtypes/${id}`);
+      const token = await localStorage.getItem("token");
+      const response = await axios.delete(`${BASE_URL}/roomtypes/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        }
+      );
       dispatch(setAlert({ text: response.data.message, color: 'success' }));
       return id;
     } catch (error) {

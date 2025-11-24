@@ -4,6 +4,9 @@ const express = require('express');
 const connectDb = require('./db/db');
 const cors = require('cors')
 const path = require('path')
+const http = require('http');
+const { Server } = require('socket.io');
+const socketManager = require('./socketManager/socketManager');
 const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
 const app = express();
@@ -23,6 +26,22 @@ app.use('/api', indexRoutes);
 app.get('/', (req, res) => {
     res.send('Hello Hotel Booking Admin Panel !');
 });
+
+// Create HTTP server and attach Socket.IO
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:3000'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        credentials: true
+    },
+    transports: ['websocket', 'polling'],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  connectTimeout: 45000,
+});
+ 
+socketManager.initializeSocket(io);
 
 app.listen(port, () => {
     connectDb();
