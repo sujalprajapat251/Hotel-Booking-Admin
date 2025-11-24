@@ -78,6 +78,40 @@ const AvailableRooms = () => {
     housekeeping: 'All Status'
   });
 
+  const apiFilters = useMemo(() => {
+    const normalized = { ...filters };
+
+    // Normalize room type to send ids to the backend
+    if (filters.roomType && filters.roomType !== 'All Types') {
+      const selectedRoomType = roomTypes.find((rt) => {
+        const roomTypeId = rt?.id || rt?._id;
+        return filters.roomType === roomTypeId || filters.roomType === rt?.roomType;
+      });
+
+      if (selectedRoomType) {
+        normalized.roomType = selectedRoomType.id || selectedRoomType._id;
+      } else {
+        delete normalized.roomType;
+      }
+    } else {
+      delete normalized.roomType;
+    }
+
+    if (!filters.search?.trim()) {
+      delete normalized.search;
+    }
+
+    if (!filters.checkInFrom) {
+      delete normalized.checkInFrom;
+    }
+
+    if (!filters.checkOutTo) {
+      delete normalized.checkOutTo;
+    }
+
+    return normalized;
+  }, [filters, roomTypes]);
+
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [localPage, setLocalPage] = useState(1);
   const [pageSize] = useState(12);
@@ -104,10 +138,10 @@ const AvailableRooms = () => {
       fetchRoomsPaginated({
         page: localPage,
         limit: pageSize,
-        filters
+        filters: apiFilters
       })
     );
-  }, [dispatch, localPage, pageSize, filters]);
+  }, [dispatch, localPage, pageSize, apiFilters]);
 
   // Room types can be loaded once
   useEffect(() => {
@@ -235,10 +269,10 @@ const AvailableRooms = () => {
       fetchRoomsPaginated({
         page: localPage,
         limit: pageSize,
-        filters
+        filters: apiFilters
       })
     );
-  }, [dispatch, localPage, pageSize, filters]);
+  }, [dispatch, localPage, pageSize, apiFilters]);
 
   const getBookingForRoom = useCallback(
     (roomData) => {

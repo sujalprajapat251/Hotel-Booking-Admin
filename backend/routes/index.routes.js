@@ -54,6 +54,7 @@ const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderIt
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
+const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -209,6 +210,14 @@ indexRoutes.get('/getdriver/:id', getDriverById);
 indexRoutes.put('/updatedriver/:id', auth, adminOnly, upload.single("image"), updateDriver);
 indexRoutes.delete('/deletetdriver/:id', auth, adminOnly, deleteDriver);
 
+// Cab Booking routes
+indexRoutes.post('/createcabbooking', auth, createCabBooking);
+indexRoutes.get('/getallcabbooking', getAllCabBookings);
+indexRoutes.get('/getcabbooking/:id', getCabBookingById);
+indexRoutes.put('/updatecabbooking/:id', auth, updateCabBooking);
+indexRoutes.delete('/deletecabbooking/:id', auth, deleteCabBooking);
+indexRoutes.get('/getcabbookingsbybooking/:bookingId', getCabBookingsByBookingId);
+
 // Restaurant Item routes
 indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);
 indexRoutes.get('/getallrestaurantitem', getAllRestaurantItems);
@@ -216,7 +225,6 @@ indexRoutes.get('/getrestaurantitem/:id', getSingleRestaurantItem);
 indexRoutes.put('/updaterestaurantitem/:id', auth, adminOnly, upload.single("image"), updateRestaurantItem);
 indexRoutes.delete('/deletetrestaurantitem/:id', auth, adminOnly, deleteRestaurantItem);
 indexRoutes.put('/togglerestaurantitem/:id', auth, adminOnly, changeAvailabilityRestaurantItem);
-
 
 // cafe order management 
 indexRoutes.post('/addCafeOrder',createCafeOrder)
