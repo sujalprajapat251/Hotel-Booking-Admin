@@ -1,13 +1,55 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
 import GuestDetailsModal from '../component/GuestDetailsModal';
+import { ChevronDown } from 'lucide-react';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
+
+  const [statusTypeDropdown, setStatusTypeDropdown] = useState(false);
+  const statusTypeRef = useRef(null);
+  const [roomTypeDropdown, setRoomTypeDropdown] = useState(false);
+  const roomTypeRef = useRef(null);
+  const [floorDropdown, setFloorDropdown] = useState(false);
+  const floorRef = useRef(null);
+  const [bedSizeDropdown, setBedSizeDropdown] = useState(false);
+  const bedSizeRef = useRef(null);
+  const [housekeepingDropdown, setHousekeepingDropdown] = useState(false);
+  const housekeepingRef = useRef(null);
+
+  const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+  const bedSizes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
+  const housekeepingOptions = ['Available', 'Occupied', 'Reserved', 'Maintenance'];
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (statusTypeRef.current && !statusTypeRef.current.contains(event.target)) {
+        setStatusTypeDropdown(false);
+      }
+      if (roomTypeRef.current && !roomTypeRef.current.contains(event.target)) {
+        setRoomTypeDropdown(false);
+      }
+      if (floorRef.current && !floorRef.current.contains(event.target)) {
+        setFloorDropdown(false);
+      }
+      if (bedSizeRef.current && !bedSizeRef.current.contains(event.target)) {
+        setBedSizeDropdown(false);
+      }
+      if (housekeepingRef.current && !housekeepingRef.current.contains(event.target)) {
+        setHousekeepingDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const {
     items: rooms,
     page,
@@ -76,8 +118,8 @@ const AvailableRooms = () => {
     dispatch(fetchBookings());
   }, [dispatch]);
 
-  console.log(rooms,"rooms");
-  
+  console.log(rooms, "rooms");
+
   // Filter rooms based on filter criteria
   const filteredRooms = useMemo(() => {
     if (!rooms || rooms.length === 0) return [];
@@ -103,8 +145,8 @@ const AvailableRooms = () => {
           const roomTypeId = selectedRoomType.id;
           const roomTypeName = selectedRoomType.roomType;
           // Check if roomType matches by ID or by name (if populated)
-          const matches = 
-            room.roomType?.id === roomTypeId || 
+          const matches =
+            room.roomType?.id === roomTypeId ||
             room.roomType === roomTypeId ||
             room.roomType?.roomType === roomTypeName;
           if (!matches) {
@@ -169,7 +211,7 @@ const AvailableRooms = () => {
 
     const totalFiltered = Object.values(stats).reduce((sum, val) => sum + val, 0);
     const occupancyRate = totalFiltered > 0 ? Math.round((stats.Occupied / totalFiltered) * 100) : 0;
-    
+
     return {
       total: totalFiltered,
       available: stats.Available,
@@ -256,6 +298,7 @@ const AvailableRooms = () => {
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
+    console.log('Filter changed:', key, value); // Add this to debug
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -306,8 +349,8 @@ const AvailableRooms = () => {
       iconBg: '#876B56', // quinary - brown
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M9 22V12H15V22" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M9 22V12H15V22" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     },
@@ -318,7 +361,7 @@ const AvailableRooms = () => {
       iconBg: '#B79982', // tertiary - muted sand
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     },
@@ -329,8 +372,8 @@ const AvailableRooms = () => {
       iconBg: '#A3876A', // quaternary - taupe brown
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     },
@@ -341,9 +384,9 @@ const AvailableRooms = () => {
       iconBg: '#E3C78A', // secondary - tan
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3 3V21H21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M7 16L11 12L15 8L21 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M21 14H15V20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M3 3V21H21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M7 16L11 12L15 8L21 14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M21 14H15V20" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )
     }
@@ -352,7 +395,7 @@ const AvailableRooms = () => {
   return (
     <div className="p-6" style={{ minHeight: '100vh' }}>
       <h1 className="text-2xl font-bold text-senary mb-6">Available Rooms</h1>
-      
+
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {cards.map((card, index) => (
@@ -388,8 +431,8 @@ const AvailableRooms = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#B79982" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M21 21L15 15" stroke="#755647" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#B79982" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M21 21L15 15" stroke="#755647" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
             <h2 className="text-xl font-bold text-senary">Room Filters</h2>
           </div>
@@ -429,110 +472,164 @@ const AvailableRooms = () => {
           {/* First Row - Dropdowns */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Status Filter */}
-            <div>
+            <div className="relative" ref={statusTypeRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-              <div className="relative">
-                <select
-                  value={filters.status}
-                  onChange={(e) => handleFilterChange('status', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                >
-                  <option>All Status</option>
-                  <option>Available</option>
-                  <option>Occupied</option>
-                  <option>Reserved</option>
-                  <option>Maintenance</option>
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <button
+                type="button"
+                onClick={() => setStatusTypeDropdown(!statusTypeDropdown)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+              >
+                <span className={filters.status ? 'text-gray-800' : 'text-gray-400'}>
+                  {filters.status}
+                </span>
+                <ChevronDown size={18} className="text-gray-600" />
+              </button>
+              {statusTypeDropdown && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div
+                    onClick={() => {
+                      handleFilterChange('status', 'All Status');
+                      setStatusTypeDropdown(false);
+                    }}
+                    className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                  >
+                    All Status
+                  </div>
+                  {statusOptions.map((status) => (
+                    <div
+                      key={status}
+                      onClick={() => {
+                        handleFilterChange('status', status);
+                        setStatusTypeDropdown(false);
+                      }}
+                      className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                    >
+                      {status}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Room Type Filter */}
-            <div>
+            <div className="relative" ref={roomTypeRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
-              <div className="relative">
-                <select
-                  value={filters.roomType}
-                  onChange={(e) => handleFilterChange('roomType', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                >
-                  <option>All Types</option>
+              <button
+                type="button"
+                onClick={() => setRoomTypeDropdown(!roomTypeDropdown)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+              >
+                <span className={filters.roomType ? 'text-gray-800' : 'text-gray-400'}>
+                  {filters.roomType}
+                </span>
+                <ChevronDown size={18} className="text-gray-600" />
+              </button>
+              {roomTypeDropdown && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div
+                    onClick={() => {
+                      handleFilterChange('roomType', 'All Types');
+                      setRoomTypeDropdown(false);
+                    }}
+                    className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                  >
+                    All Types
+                  </div>
                   {roomTypes.map((rt) => (
-                    <option key={rt.id} value={rt.roomType}>
+                    <div
+                      key={rt.id}
+                      onClick={() => {
+                        handleFilterChange('roomType', rt.roomType);
+                        setRoomTypeDropdown(false);
+                      }}
+                      className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                    >
                       {rt.roomType}
-                    </option>
+                    </div>
                   ))}
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Floor Filter */}
-            <div>
+            <div className="relative" ref={floorRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Floor</label>
-              <div className="relative">
-                <select
-                  value={filters.floor}
-                  onChange={(e) => handleFilterChange('floor', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                >
-                  <option>All Floors</option>
+              <button
+                type="button"
+                onClick={() => setFloorDropdown(!floorDropdown)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+              >
+                <span className={filters.floor ? 'text-gray-800' : 'text-gray-400'}>
+                  {filters.floor === 'All Floors' ? 'All Floors' : `Floor ${filters.floor}`}
+                </span>
+                <ChevronDown size={18} className="text-gray-600" />
+              </button>
+              {floorDropdown && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div
+                    onClick={() => {
+                      handleFilterChange('floor', 'All Floors');
+                      setFloorDropdown(false);
+                    }}
+                    className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                  >
+                    All Floors
+                  </div>
                   {floors.map((floor) => (
-                    <option key={floor} value={floor}>
+                    <div
+                      key={floor}
+                      onClick={() => {
+                        handleFilterChange('floor', floor);
+                        setFloorDropdown(false);
+                      }}
+                      className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                    >
                       Floor {floor}
-                    </option>
+                    </div>
                   ))}
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Bed Size Filter */}
-            <div>
+            {/* Bed Size Filter */}
+            <div className="relative" ref={bedSizeRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Bed Size</label>
-              <div className="relative">
-                <select
-                  value={filters.bedSize}
-                  onChange={(e) => handleFilterChange('bedSize', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                >
-                  <option>All Bed Sizes</option>
-                  <option>Single</option>
-                  <option>Double</option>
-                  <option>Queen</option>
-                  <option>King</option>
-                  <option>Twin</option>
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <button
+                type="button"
+                onClick={() => setBedSizeDropdown(!bedSizeDropdown)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+              >
+                <span className={filters.bedSize ? 'text-gray-800' : 'text-gray-400'}>
+                  {filters.bedSize}
+                </span>
+                <ChevronDown size={18} className="text-gray-600" />
+              </button>
+              {bedSizeDropdown && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div
+                    onClick={() => {
+                      handleFilterChange('bedSize', 'All Bed Sizes');
+                      setBedSizeDropdown(false);
+                    }}
+                    className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                  >
+                    All Bed Sizes
+                  </div>
+                  {bedSizes.map((size) => (
+                    <div
+                      key={size}
+                      onClick={() => {
+                        handleFilterChange('bedSize', size);
+                        setBedSizeDropdown(false);
+                      }}
+                      className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                    >
+                      {size}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -565,29 +662,43 @@ const AvailableRooms = () => {
             </div>
 
             {/* Housekeeping Filter */}
-            <div>
+            <div className="relative" ref={housekeepingRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Housekeeping</label>
-              <div className="relative">
-                <select
-                  value={filters.housekeeping}
-                  onChange={(e) => handleFilterChange('housekeeping', e.target.value)}
-                  className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white"
-                >
-                  <option>All Status</option>
-                  <option>Available</option>
-                  <option>Occupied</option>
-                  <option>Reserved</option>
-                  <option>Maintenance</option>
-                </select>
-                <svg
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+              <button
+                type="button"
+                onClick={() => setHousekeepingDropdown(!housekeepingDropdown)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+              >
+                <span className={filters.housekeeping ? 'text-gray-800' : 'text-gray-400'}>
+                  {filters.housekeeping}
+                </span>
+                <ChevronDown size={18} className="text-gray-600" />
+              </button>
+              {housekeepingDropdown && (
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div
+                    onClick={() => {
+                      handleFilterChange('housekeeping', 'All Status');
+                      setHousekeepingDropdown(false);
+                    }}
+                    className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                  >
+                    All Status
+                  </div>
+                  {housekeepingOptions.map((status) => (
+                    <div
+                      key={status}
+                      onClick={() => {
+                        handleFilterChange('housekeeping', status);
+                        setHousekeepingDropdown(false);
+                      }}
+                      className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                    >
+                      {status}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -632,35 +743,43 @@ const AvailableRooms = () => {
               const getStatusConfig = (status) => {
                 switch (status) {
                   case 'Occupied':
-                    return { color: 'bg-senary', text: 'OCCUPIED', icon: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" q="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    )};
+                    return {
+                      color: 'bg-senary', text: 'OCCUPIED', icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" q="2">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                      )
+                    };
                   case 'Available':
-                    return { color: 'bg-quaternary', text: 'AVAILABLE', icon: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 6L9 17l-5-5"></path>
-                      </svg>
-                    )};
+                    return {
+                      color: 'bg-quaternary', text: 'AVAILABLE', icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M20 6L9 17l-5-5"></path>
+                        </svg>
+                      )
+                    };
                   case 'Maintenance':
-                    return { color: 'bg-tertiary', text: 'CLEANING', icon: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <path d="M16 17l5-5-5-5"></path>
-                        <path d="M21 12H9"></path>
-                      </svg>
-                    )};
+                    return {
+                      color: 'bg-tertiary', text: 'CLEANING', icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <path d="M16 17l5-5-5-5"></path>
+                          <path d="M21 12H9"></path>
+                        </svg>
+                      )
+                    };
                   case 'Reserved':
-                    return { color: 'bg-quinary', text: 'RESERVED', icon: (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                      </svg>
-                    )};
+                    return {
+                      color: 'bg-quinary', text: 'RESERVED', icon: (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                      )
+                    };
                   default:
                     return { color: 'bg-quaternary', text: status.toUpperCase(), icon: null };
                 }
@@ -677,7 +796,7 @@ const AvailableRooms = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
-              console.log(amenities,"amenities");
+              console.log(amenities, "amenities");
               const roomBooking = getBookingForRoom(room);
               const guestName = roomBooking?.guest?.fullName || '—';
               const bookingReference =
@@ -687,7 +806,7 @@ const AvailableRooms = () => {
               const bookingStatusLabel = roomBooking?.status || '';
               const checkInLabel = formatDateTimeLabel(roomBooking?.reservation?.checkInDate);
               const checkOutLabel = formatDateTimeLabel(roomBooking?.reservation?.checkOutDate);
-              
+
 
               return (
                 <div key={room.id} className="bg-white rounded-lg shadow-md p-5 relative">
@@ -710,7 +829,7 @@ const AvailableRooms = () => {
                       <span className="text-tertiary">•</span>
                       <span>{bedType} Bed</span>
                     </div>
-                    
+
                     <div className="text-sm text-quinary">
                       {room.status === 'Occupied' ? (
                         <>
@@ -800,11 +919,10 @@ const AvailableRooms = () => {
                   {/* Action Button */}
                   <button
                     onClick={() => handleRoomAction(room)}
-                    className={`w-full py-2.5 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition-colors ${
-                      isAddGuestAction
-                        ? 'bg-senary hover:bg-quinary'
-                        : 'bg-quinary'
-                    }`}
+                    className={`w-full py-2.5 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition-colors ${isAddGuestAction
+                      ? 'bg-senary hover:bg-quinary'
+                      : 'bg-quinary'
+                      }`}
                   >
                     {room.status === 'Occupied' || room.status === 'Reserved' ? (
                       <div className='flex items-center gap-2'>
@@ -876,11 +994,10 @@ const AvailableRooms = () => {
             <button
               onClick={() => setLocalPage((prev) => Math.max(prev - 1, 1))}
               disabled={page <= 1}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${
-                page <= 1
-                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                  : 'border-quinary text-senary hover:bg-secondary'
-              }`}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${page <= 1
+                ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                : 'border-quinary text-senary hover:bg-secondary'
+                }`}
             >
               Prev
             </button>
@@ -890,11 +1007,10 @@ const AvailableRooms = () => {
             <button
               onClick={() => setLocalPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={page >= totalPages}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${
-                page >= totalPages
-                  ? 'border-gray-200 text-gray-300 cursor-not-allowed'
-                  : 'border-quinary text-senary hover:bg-secondary'
-              }`}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-medium ${page >= totalPages
+                ? 'border-gray-200 text-gray-300 cursor-not-allowed'
+                : 'border-quinary text-senary hover:bg-secondary'
+                }`}
             >
               Next
             </button>
