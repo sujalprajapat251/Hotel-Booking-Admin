@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafecategory } from '../../Redux/Slice/cafecategorySlice';
 import { getAllCafeitem } from '../../Redux/Slice/cafeitemSlice';
-import { IMAGE_URL } from '../../Utils/baseUrl';
 import { useParams } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 import { addItemToTableOrder, removeItemFromOrder } from '../../Redux/Slice/Waiter.slice';
 import { getCafeTableById, updateCafeTable } from '../../Redux/Slice/cafeTable.slice';
 
@@ -12,6 +13,7 @@ export default function TableOrder() {
     const [activeCategory, setActiveCategory] = useState("All");
     const [selected, setSelected] = useState([]); // CART ITEMS
     const { id } = useParams()
+    const [socket, setSocket] = useState(null);
     const cafecategory = useSelector((state) => state.cafecategory.cafecategory);
     const cafe = useSelector((state) => state.cafe.cafe);
     const singleTable = useSelector((state) => state.cafeTable.singleTable);
@@ -21,6 +23,26 @@ export default function TableOrder() {
         dispatch(getAllCafecategory());
         dispatch(getAllCafeitem());
         dispatch(getCafeTableById(id));
+    }, [dispatch, id]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const s = io(IMAGE_URL, { auth: { token, userId } });
+        setSocket(s);
+        s.on('cafe_order_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        s.on('cafe_table_status_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        return () => {
+            s.disconnect();
+        };
     }, [dispatch, id]);
 
     // Filter products based on selected category

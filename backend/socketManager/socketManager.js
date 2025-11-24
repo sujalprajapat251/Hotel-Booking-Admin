@@ -200,4 +200,16 @@ module.exports = {
     getUserSocketMap: () => userSocketMap,
     getSocketUserMap: () => socketUserMap,
     notifyMusicUpdated,
+    emitCafeOrderChanged: (tableId, order) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('cafe_order_changed', { tableId, order });
+      } catch {}
+    },
+    emitCafeTableStatusChanged: (tableId, table) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('cafe_table_status_changed', { tableId, table });
+      } catch {}
+    },
   };

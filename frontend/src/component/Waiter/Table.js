@@ -5,6 +5,8 @@ import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { Link } from 'react-router-dom';
+import { io } from 'socket.io-client';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 export default function Dashboard() {
   const dispatch = useDispatch();
 
@@ -12,6 +14,21 @@ export default function Dashboard() {
     useEffect(() => {
         dispatch(getAllCafeTable());
       }, [dispatch]);
+
+    useEffect(() => {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+      const s = io(IMAGE_URL, { auth: { token, userId } });
+      s.on('cafe_order_changed', () => {
+        dispatch(getAllCafeTable());
+      });
+      s.on('cafe_table_status_changed', () => {
+        dispatch(getAllCafeTable());
+      });
+      return () => {
+        s.disconnect();
+      };
+    }, [dispatch]);
     return (
         <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
             <div className="mb-6">

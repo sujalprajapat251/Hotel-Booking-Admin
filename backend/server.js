@@ -43,7 +43,7 @@ const io = new Server(server, {
  
 socketManager.initializeSocket(io);
 
-app.listen(port, () => {
+server.listen(port, () => {
     connectDb();
     console.log(`Server is running on port ${port}`);
 });

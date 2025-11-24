@@ -165,7 +165,7 @@ indexRoutes.put('/togglecafeitem/:id', auth, adminOnly, changeAvailability);
 
 // cafe table Routes 
 indexRoutes.post('/addCafeTable',auth ,createCafeTable)
-indexRoutes.get('/getAllCafeTable',auth,getCafeTables)
+indexRoutes.get('/getAllCafeTable',getCafeTables)
 indexRoutes.get('/getCafeTable/:id',auth,getCafeTableById)
 indexRoutes.put('/updateCafeTable/:id',auth,updateCafeTable)
 indexRoutes.delete('/deleteCafeTable/:id',auth,deleteCafeTable)
