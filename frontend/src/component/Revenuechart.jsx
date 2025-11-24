@@ -44,7 +44,7 @@ export default function Example() {
                         type="monotone"
                         dataKey="profit"
                         stroke="url(#warmGradient)"
-                        strokeWidth={2}
+                        strokeWidth={8}
                         dot={false}
                     />
                 </LineChart>
