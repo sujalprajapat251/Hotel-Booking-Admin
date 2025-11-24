@@ -30,15 +30,30 @@ exports.createCafeTable = async (req, res) => {
         });
     }
 };
-
-exports.getCafeTables = async (req, res) => {
+exports.getAllLastUnpaidOrders = async (req, res) => {
     try {
         const tables = await cafeTable.find();
+
+        const results = await Promise.all(
+            tables.map(async (tbl) => {
+                const lastOrder = await cafeOrder
+                    .findOne({ from: 'cafe', table: tbl._id, payment: 'Pending' })
+                    .sort({ createdAt: -1, _id: -1 })
+                    .populate({ path: 'items.product', model: 'cafeitem' });
+
+                return {
+                    table: tbl,
+                    lastUnpaidOrder: lastOrder || null
+                };
+            })
+        );
+
         res.status(200).json({
             status: 200,
-            message: "Cafe Tables fetched successfully..!",
-            data: tables
+            message: "Last unpaid orders for all tables fetched successfully..! ",
+            data: results
         });
+
     } catch (error) {
         res.status(500).json({ status: 500, message: error.message });
     }
@@ -56,7 +71,7 @@ exports.getCafeTableById = async (req, res) => {
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'cafeitem' });
 
-        res.status(200).json({ status: 200, data: table, order:lastUnpaidOrder });
+        res.status(200).json({ status: 200, data: table, order: lastUnpaidOrder });
     } catch (error) {
         res.status(500).json({ status: 500, message: error.message });
     }

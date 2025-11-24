@@ -17,7 +17,7 @@ const cafeOrderSchema = new mongoose.Schema({
                 type: Number,
                 default: 1
             },
-            decription: {
+            description: {
                 type: String
             },
             status: {
@@ -40,7 +40,7 @@ const cafeOrderSchema = new mongoose.Schema({
 
     table: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "cafeTables",
+        ref: "cafeTable",
         required: false
     },
     room: {
@@ -52,6 +52,10 @@ const cafeOrderSchema = new mongoose.Schema({
         type: String,
         enum: ['Pending', 'Paid'],
         default: 'Pending',
+    },
+    paymentMethod:{
+        type: String,
+        enum: ['Pending', 'Paid'],
     }
 }, { timestamps: true });
 
