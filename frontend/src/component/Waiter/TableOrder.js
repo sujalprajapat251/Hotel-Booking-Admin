@@ -97,13 +97,13 @@ export default function TableOrder() {
     }
 
     return (
-        <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
-            <div className="mb-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Order</h1>
+        <div className="p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen">
+            <div className="mb-3 sm:mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Order</h1>
                     {singleTable && (
                         <button
-                            className="px-3 py-2 rounded bg-senary text-white"
+                            className="px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded bg-senary text-white whitespace-nowrap"
                             onClick={async () => {
                                 const nextStatus = !(singleTable.status ?? true);
                                 await dispatch(updateCafeTable({ id, status: nextStatus })).unwrap();
@@ -116,62 +116,64 @@ export default function TableOrder() {
                 </div>
             </div>
 
-            <div className="flex">
-                <div className="w-[70%]">
+            <div className=" flex-col-reverse xl:flex-row gap-3 sm:gap-4 flex">
+                <div className="w-full xl:w-[70%]">
 
-                    <div className="p-4 flex flex-wrap">
-                        <div className="p-3">
-                            <div
-                                onClick={() => setActiveCategory("All")}
-                                className={`p-4 rounded-md cursor-pointer 
-                                    ${activeCategory === "All" ? "shadow-xl bg-senary text-white" : "hover:shadow bg-white text-senary"}`}
-                            >
-                                <h3>All</h3>
-                            </div>
-                        </div>
-
-                        {cafecategory.map((item, idx) => (
-                            <div key={idx} className="p-3">
+                    <div className="p-2 sm:p-4">
+                        <div className="flex flex-wrap gap-2 sm:gap-0">
+                            <div className="sm:p-2 flex-shrink-0">
                                 <div
-                                    onClick={() => setActiveCategory(item.name)}
-                                    className={`p-4 rounded-md cursor-pointer 
-                                        ${activeCategory === item.name
-                                            ? "shadow-xl bg-senary text-white"
-                                            : "hover:shadow bg-white text-senary"}`}
+                                    onClick={() => setActiveCategory("All")}
+                                    className={`py-1 px-2 rounded-md cursor-pointer text-xs sm:text-base
+                                        ${activeCategory === "All" ? "shadow-xl bg-senary text-white" : "hover:shadow bg-white text-senary"}`}
                                 >
-                                    <h3>{item.name}</h3>
+                                    <h3>All</h3>
                                 </div>
                             </div>
-                        ))}
+
+                            {cafecategory.map((item, idx) => (
+                                <div key={idx} className="sm:p-2 flex-shrink-0">
+                                    <div
+                                        onClick={() => setActiveCategory(item.name)}
+                                        className={`py-1 px-2 rounded-md cursor-pointer text-xs sm:text-base
+                                            ${activeCategory === item.name
+                                                ? "shadow-xl bg-senary text-white"
+                                                : "hover:shadow bg-white text-senary"}`}
+                                    >
+                                        <h3>{item.name}</h3>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    <div className="p-4 flex flex-wrap items-stretch">
+                    <div className=" flex flex-wrap items-stretch gap-2 sm:gap-0 mt-5">
                         {filteredItems.map((item, idx) => (
-                            <div key={idx} className="p-3 w-1/5 flex mt-3">
+                            <div key={idx} className="w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 xl:w-1/4 p-1.5 sm:p-3 flex mb-3">
                                 <div
-                                    className={`p-4 w-full bg-white rounded-md hover:shadow-xl cursor-pointer 
+                                    className={`p-2 sm:p-4 w-full bg-white rounded-md hover:shadow-xl cursor-pointer 
                                         ${item.available === false ? "opacity-40" : "opacity-100"}`}
                                 >
                                     <img
                                         src={`${IMAGE_URL}${item.image}`}
                                         alt={item.name}
-                                        className="w-24 aspect-square mx-auto rounded-full relative bottom-10 shadow-xl"
+                                        className="w-12 sm:w-16 md:w-20 lg:w-24 aspect-square mx-auto rounded-full relative bottom-6 sm:bottom-8 md:bottom-10 shadow-xl"
                                     />
 
                                     <div className="flex flex-col">
-                                        <div className="mt-[-30px] flex justify-between">
-                                            <h3 className="font-semibold">{item.name}</h3>
+                                        <div className="mt-[-20px] sm:mt-[-25px] md:mt-[-30px] flex justify-between">
+                                            <h3 className="font-semibold text-xs sm:text-sm md:text-base truncate pr-1">{item.name}</h3>
                                         </div>
 
-                                        <div className="flex justify-between h-full">
+                                        <div className="flex justify-between items-center h-full mt-1 sm:mt-2">
                                             <p
-                                                className="px-3 bg-quinary text-white rounded-xl mt-auto cursor-pointer"
+                                                className="px-2 sm:px-3 py-1 bg-quinary text-white rounded-xl text-xs sm:text-sm cursor-pointer"
                                                 onClick={() => item.available === false ? null : handleAdd(item)}
                                             >
                                                 + add
                                             </p>
 
-                                            <p className="text-secondary mt-auto">Rs.{item.price}</p>
+                                            <p className="text-secondary text-xs sm:text-sm">Rs.{item.price}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -179,37 +181,38 @@ export default function TableOrder() {
                         ))}
                     </div>
                 </div>
+                    
+                <div className='p-p-1.5 sm:p-3 w-full xl:w-[30%] '>
+                <div className="bg-white p-2 sm:p-4 sticky bottom-0 lg:static lg:h-full lg:max-h-screen flex flex-col">
+                    <h1 className="text-center text-base sm:text-xl border-b p-1.5 sm:p-2">Order Detail</h1>
 
-                <div className="w-[30%] h-full bg-white p-4">
-                    <h1 className="text-center text-xl border-b p-2">Order Detail</h1>
-
-                    <div className="mt-4 h-[400px] overflow-auto">
+                    <div className="mt-2 sm:mt-4 h-[250px] sm:h-[300px] md:h-[400px] overflow-auto flex-1">
                         {previousOrder ? (
                             <div className="mb-4">
                                 {previousOrder.items.map((oi) => (
-                                    <div key={oi._id} className="border-b py-3 opacity-80">
-                                        <div className="flex items-center">
+                                    <div key={oi._id} className="border-b py-2 sm:py-3 opacity-80">
+                                        <div className="flex items-center gap-1 sm:gap-2">
                                             <img
                                                 src={`${IMAGE_URL}${oi.product?.image}`}
                                                 alt={oi.product?.name}
-                                                className="w-14 aspect-square rounded-xl"
+                                                className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
                                             />
-                                            <div className="ms-3">
-                                                <h3 className="font-semibold">{oi.product?.name}</h3>
-                                                <p className="text-sm text-gray-500">Rs.{oi.product?.price}</p>
+                                            <div className="ms-1 sm:ms-3 flex-1 min-w-0">
+                                                <h3 className="font-semibold text-xs sm:text-sm truncate">{oi.product?.name}</h3>
+                                                <p className="text-xs sm:text-sm text-gray-500">Rs.{oi.product?.price}</p>
                                                 <p className="text-xs text-gray-500">Qty: {oi.qty}</p>
-                                                {oi.decription && <p className="text-xs text-gray-400">{oi.decription}</p>}
+                                                {oi.decription && <p className="text-xs text-gray-400 truncate">{oi.decription}</p>}
                                             </div>
-                                            <div className="ms-auto">
+                                            <div className="ms-auto flex-shrink-0">
                                                 {oi.status === 'Pending' && (
                                                     <button
-                                                        className=" text-red-500 text-sm"
+                                                        className="text-red-500 text-xs sm:text-sm px-1 sm:px-2"
                                                         onClick={async () => {
                                                             await dispatch(removeItemFromOrder({ orderId: previousOrder._id, itemId: oi._id })).unwrap();
                                                             dispatch(getCafeTableById(id));
                                                         }}
                                                     >
-                                                        Cancle
+                                                        Cancel
                                                     </button>
                                                 )}
                                             </div>
@@ -219,37 +222,37 @@ export default function TableOrder() {
                             </div>
                         ) : null}
                         {selected.length === 0 ? (
-                            <p className="text-center text-gray-500">No items added</p>
+                            <p className="text-center text-gray-500 text-xs sm:text-sm py-4">No items added</p>
                         ) : (
                             selected.map((item, idx) => (
-                                <div key={item.product._id} className="border-b py-3">
+                                <div key={item.product._id} className="border-b py-2 sm:py-3">
 
                                     {/* ITEM ROW */}
-                                    <div className="flex items-center">
+                                    <div className="flex items-center gap-1 sm:gap-2 p-2 px-3">
                                         <img
                                             src={`${IMAGE_URL}${item.product.image}`}
                                             alt={item.product.name}
-                                            className="w-14 aspect-square rounded-xl"
+                                            className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
                                         />
 
-                                        <div className="ms-3">
-                                            <h3 className="font-semibold">{item.product.name}</h3>
-                                            <p className="text-sm text-gray-500">Rs.{item.product.price}</p>
+                                        <div className="ms-1 sm:ms-3 flex-1 min-w-0">
+                                            <h3 className="font-semibold text-xs sm:text-sm truncate">{item.product.name}</h3>
+                                            <p className="text-xs sm:text-sm text-gray-500">Rs.{item.product.price}</p>
                                         </div>
 
-                                        <div className="flex items-center gap-2 ms-auto">
+                                        <div className="flex items-center gap-1 sm:gap-2 ms-auto flex-shrink-0">
                                             <button
                                                 onClick={() => decQty(item.product._id)}
-                                                className="px-2 bg-gray-300 rounded"
+                                                className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
                                             >
                                                 -
                                             </button>
 
-                                            <span>{item.qty}</span>
+                                            <span className="text-xs sm:text-sm min-w-[20px] text-center">{item.qty}</span>
 
                                             <button
                                                 onClick={() => incQty(item.product._id)}
-                                                className="px-2 bg-gray-300 rounded"
+                                                className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
                                             >
                                                 +
                                             </button>
@@ -257,32 +260,33 @@ export default function TableOrder() {
                                     </div>
 
                                     {/* DESCRIPTION SECTION */}
-                                    <div className="flex items-center py-3">
+                                    <div className="flex items-start gap-1 sm:gap-2 p-2 px-3">
                                         {desIdx === idx ? (
-                                            <textarea
-                                                className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary"
-                                                placeholder="Add description..."
-                                                value={item.description}
-                                                onChange={(e) => updateDescription(item.product._id, e.target.value)}
-                                            ></textarea>
-                                        ) :
-                                            <p className='w-full text-xs'>
-                                                {item.description}</p>}
-
-                                        {desIdx === idx ? (
-                                            <p
-                                                className="text-senary text-xs ms-3 cursor-pointer"
-                                                onClick={() => setDesIdx(null)}
-                                            >
-                                                cancel
-                                            </p>
+                                            <>
+                                                <textarea
+                                                    className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary text-xs sm:text-sm"
+                                                    placeholder="Add description..."
+                                                    value={item.description}
+                                                    onChange={(e) => updateDescription(item.product._id, e.target.value)}
+                                                    rows="2"
+                                                ></textarea>
+                                                <p
+                                                    className="text-senary text-xs cursor-pointer flex-shrink-0 mt-1"
+                                                    onClick={() => setDesIdx(null)}
+                                                >
+                                                    cancel
+                                                </p>
+                                            </>
                                         ) : (
-                                            <p
-                                                className="text-senary text-xs ms-3 cursor-pointer text-nowrap"
-                                                onClick={() => setDesIdx(idx)}
-                                            >
-                                                add description
-                                            </p>
+                                            <>
+                                                <p className='w-full text-xs break-words'>{item.description}</p>
+                                                <p
+                                                    className="text-senary text-xs cursor-pointer flex-shrink-0 whitespace-nowrap"
+                                                    onClick={() => setDesIdx(idx)}
+                                                >
+                                                    add desc
+                                                </p>
+                                            </>
                                         )}
                                     </div>
                                 </div>
@@ -290,17 +294,31 @@ export default function TableOrder() {
                         )}
 
                     </div>
-                    <div className=' border-b p-2'>
-                        <input value={name} onChange={(e)=>{setName(e.target.value)}} className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-2" placeholder='name'
+                    <div className='border-b p-1.5 sm:p-2'>
+                        <input 
+                            value={name} 
+                            onChange={(e)=>{setName(e.target.value)}} 
+                            className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm" 
+                            placeholder='name'
                         ></input>
-                        <input value={contact} onChange={(e)=>{setContact(e.target.value)}} className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-2" placeholder='contact'
+                        <input 
+                            value={contact} 
+                            onChange={(e)=>{setContact(e.target.value)}} 
+                            className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm" 
+                            placeholder='contact'
                         ></input>
                     </div>
-                    <div className='py-3 flex justify-between'>
-                        <h3 className='font-semibold text-lg'>Total</h3>
-                        <p>Rs . {total}</p>
+                    <div className='py-2 sm:py-3 flex justify-between items-center'>
+                        <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
+                        <p className='text-sm sm:text-base'>Rs. {total}</p>
                     </div>
-                    <div className='text-center bg-senary text-white py-2 rounded-lg' onClick={handleAddOrder}>Add order</div>
+                    <button 
+                        className='text-center bg-senary text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base cursor-pointer active:opacity-80'
+                        onClick={handleAddOrder}
+                    >
+                        Add order
+                    </button>
+                </div>
                 </div>
             </div>
         </div>
