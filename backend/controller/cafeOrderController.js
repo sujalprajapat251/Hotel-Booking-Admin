@@ -1,4 +1,5 @@
 const cafeOrder = require('../models/cafeOrderModal');
+const { emitCafeOrderChanged } = require('../socketManager/socketManager');
 
 exports.createCafeOrder = async (req, res) => {
     try {
@@ -161,7 +162,7 @@ exports.removeItemFromOrder = async (req, res) => {
         const updated = await cafeOrder.findById(id)
             .populate({ path: 'items.product', model: 'cafeitem' })
             .populate({ path: 'table', model: 'cafeTable' });
-
+        emitCafeOrderChanged(updated.table?._id || updated.table, updated);
         return res.status(200).json({ status: 200, message: 'Item removed successfully', data: updated });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
@@ -189,7 +190,7 @@ exports.addItemToTableOrder = async (req, res) => {
                 { path: 'items.product', model: 'cafeitem' },
                 { path: 'table', model: 'cafeTable' }
             ]);
-
+            emitCafeOrderChanged(populated.table?._id || tableId, populated);
             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
         }
 
@@ -205,7 +206,7 @@ exports.addItemToTableOrder = async (req, res) => {
             { path: 'items.product', model: 'cafeitem' },
             { path: 'table', model: 'cafeTable' }
         ]);
-
+        emitCafeOrderChanged(populated.table?._id || tableId, populated);
         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
@@ -405,6 +406,7 @@ exports.cafePayment = async (req, res) => {
             });
         }
 
+        emitCafeOrderChanged(updatedOrder.table?._id || updatedOrder.table, updatedOrder);
         res.status(200).json({
             status: 200,
             message: "Payment completed successfully",

@@ -37,17 +37,25 @@ exports.getCafeTables = async (req, res) => {
         const results = await Promise.all(
             tables.map(async (tbl) => {
                 const lastOrder = await cafeOrder
-                    .findOne({ from: 'cafe', table: tbl._id, payment: 'Pending' })
+                    .findOne({
+                        from: 'cafe',
+                        table: tbl._id,
+                        payment: 'Pending'
+                    })
                     .sort({ createdAt: -1, _id: -1 })
-                    .populate({ path: 'items.product', model: 'cafeitem' });
-
+                    .populate('items.product');
                 return {
-                    table: tbl,
-                    lastUnpaidOrder: lastOrder || null
+                    ...tbl.toObject(),
+                    lastUnpaidOrder: lastOrder
+                        ? {
+                            ...lastOrder.toObject(),
+                            orderId: lastOrder._id,   // FIXED: correct order ID
+                        }
+                        : null
                 };
             })
         );
-
+        
         res.status(200).json({
             status: 200,
             message: "Last unpaid orders for all tables fetched successfully..! ",
@@ -58,7 +66,6 @@ exports.getCafeTables = async (req, res) => {
         res.status(500).json({ status: 500, message: error.message });
     }
 };
-
 
 exports.getCafeTableById = async (req, res) => {
     try {
@@ -88,6 +95,8 @@ exports.updateCafeTable = async (req, res) => {
         if (!updatedTable) {
             return res.status(404).json({ status: 404, message: "Table not found" });
         }
+        const { emitCafeTableStatusChanged } = require('../socketManager/socketManager');
+        emitCafeTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
         res.status(200).json({
             status: 200,
             message: "Cafe Table updated successfully..!",
