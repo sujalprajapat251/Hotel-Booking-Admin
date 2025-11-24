@@ -254,7 +254,7 @@ const CreateRoom = () => {
   };
 
   return (
-    <div className=" bg-[#F0F3FB] h-full">
+    <div className=" bg-[#F0F3FB] h-full p-3 md:p-5 lg:p-8">
       <div className="w-full">
         <div className="w-full mx-auto bg-white rounded-lg shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">

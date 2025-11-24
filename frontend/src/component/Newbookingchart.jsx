@@ -64,6 +64,8 @@ const SimpleBarChart = () => {
                             borderRadius: '2px',
                             color: 'white'
                         }}
+                        itemStyle={{ color: 'white' }}
+                        labelStyle={{ color: 'white' }}
                     />
                     <Bar
                         dataKey="profit"

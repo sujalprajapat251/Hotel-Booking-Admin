@@ -571,11 +571,11 @@ export const Dashboard = () => {
               <h2 className="text-lg md:text-xl font-semibold" style={{ color: '#755647' }}>Quick Access</h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2  gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2  gap-5 ">
               {quickAccessItems.map((item, index) => (
                 <div
                   key={index}
-                  className="relative flex sm:flex-row 2xl:flex-col 2xl:text-center 3xl:flex-row items-center gap-4 p-3 md:p-5 rounded-xl border-2 hover:shadow-lg transition-all duration-300 cursor-pointer group bg-white"
+                  className="relative flex sm:flex-row 2xl:flex-col 2xl:text-center 3xl:flex-row items-center gap-4 3xl:gap-2 4xl:gap-4 p-3 md:p-5 3xl:p-2 4xl:p-5 rounded-xl border-2 hover:shadow-lg transition-all duration-300 cursor-pointer group bg-white"
                   style={{
                     borderColor: '#E3C78A'
                   }}
@@ -589,7 +589,7 @@ export const Dashboard = () => {
                   }}
                 >
                   {index === 0 && (
-                    <div className="absolute -top-16 left-0 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
+                    <div className="absolute -top-16 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
                       backgroundColor: '#755647'
                     }}>
                       {item.description}
