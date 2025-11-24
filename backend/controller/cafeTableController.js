@@ -36,7 +36,6 @@ exports.getCafeTables = async (req, res) => {
 
         const results = await Promise.all(
             tables.map(async (tbl) => {
-
                 const lastOrder = await cafeOrder
                     .findOne({
                         from: 'cafe',
@@ -45,14 +44,18 @@ exports.getCafeTables = async (req, res) => {
                     })
                     .sort({ createdAt: -1, _id: -1 })
                     .populate('items.product');
-
                 return {
-                    ...tbl.toObject(),   // ← FIX
-                    lastUnpaidOrder: lastOrder || null
+                    ...tbl.toObject(),
+                    lastUnpaidOrder: lastOrder
+                        ? {
+                            ...lastOrder.toObject(),
+                            orderId: lastOrder._id,   // FIXED: correct order ID
+                        }
+                        : null
                 };
             })
         );
-
+        
         res.status(200).json({
             status: 200,
             message: "Last unpaid orders for all tables fetched successfully..! ",
@@ -63,7 +66,6 @@ exports.getCafeTables = async (req, res) => {
         res.status(500).json({ status: 500, message: error.message });
     }
 };
-
 
 exports.getCafeTableById = async (req, res) => {
     try {
