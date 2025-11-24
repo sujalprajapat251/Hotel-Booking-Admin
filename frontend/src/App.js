@@ -53,6 +53,8 @@ import RestaurantSection from './Pages/Restaurant';
 import Restaurantcategory from './Pages/Restaurantcategory';
 import Restaurantitem from './Pages/Restaurantitem';
 import StaffDetails from './Pages/StaffDetails.jsx';
+import ChefLayout from './component/Chef/Layout'
+import ChefDashboard from './component/Chef/Dashboard'
 
 const { store, persistor } = configureStore();
 function App() {
@@ -362,6 +364,10 @@ function App() {
                 <Route path='dashboard' element={<WaiterDashboard />}></Route>
                 <Route path='table' element={<WaiterTable />}></Route>
                 <Route path='table/:id' element={<CafeOrder />}></Route>
+              </Route>
+
+              <Route path='/chef' element={<ChefLayout />} >
+                  <Route path='dashboard' element={<ChefDashboard />}></Route>
               </Route>
 
             </Routes>
