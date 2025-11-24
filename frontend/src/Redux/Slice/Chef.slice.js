@@ -16,7 +16,7 @@ export const getCafeOrderStatus = createAsyncThunk(
     async (status, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getCafeOrderitems/${status}`,
+            const response = await axios.get(`${BASE_URL}/getCafeOrderitems`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -31,19 +31,19 @@ export const getCafeOrderStatus = createAsyncThunk(
 );
 
 export const updateCafeItemStatus = createAsyncThunk(
-    'chef/getCafeOrderStatus',
+    'chef/updateCafeItemStatus',
     async (data, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/CafeItemStatus`,{
+            const response = await axios.post(`${BASE_URL}/CafeItemStatus`,{
                 orderId : data?.orderId,
                 itemId : data?.itemId
             },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    }
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
                 }
+            }
             );
             return response.data.data;
         } catch (error) {
@@ -63,6 +63,15 @@ const chefSlice = createSlice({
         message: '',
         loading: false,
         isError: false,
+        preparingOrder: null,
+    },
+    reducers: {
+        setPreparingOrder: (state, action) => {
+            state.preparingOrder = action.payload;
+        },
+        clearPreparingOrder: (state) => {
+            state.preparingOrder = null;
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -78,6 +87,14 @@ const chefSlice = createSlice({
                 state.message = 'user fetched successfully';
                 state.users = action.payload;
                 state.isError = false;
+                
+                // Check if there's already an order being prepared
+                if (!state.preparingOrder && action.payload) {
+                    const preparingItem = action.payload.find(item => item.status === "Preparing");
+                    if (preparingItem) {
+                        state.preparingOrder = preparingItem;
+                    }
+                }
             })
             .addCase(getCafeOrderStatus.rejected, (state, action) => {
                 state.loading = false;
@@ -85,7 +102,50 @@ const chefSlice = createSlice({
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to fetch user';
             })
+            .addCase(updateCafeItemStatus.fulfilled, (state, action) => {
+                const updatedOrder = action.payload;
+
+                state.orderData = state.orderData.map(item => {
+                    if (item.orderId === updatedOrder._id) {
+                        const updatedItem = updatedOrder.items.find(updatedItem => updatedItem._id === item._id);
+                        if (updatedItem) {
+                            return {
+                                ...item,
+                                ...updatedItem,
+                                status: updatedItem.status
+                            };
+                        }
+                    }
+                    return item;
+                });
+
+                const updatedItem = updatedOrder.items.find(item => 
+                    state.preparingOrder && item._id === state.preparingOrder._id
+                );
+                
+                if (updatedItem) {
+                    if (updatedItem.status === 'Preparing') {
+                        state.preparingOrder = updatedItem;
+                    } else if (updatedItem.status === 'Done') {
+                        state.preparingOrder = null;
+                    }
+                }
+
+                if (!state.preparingOrder) {
+                    const preparingItem = updatedOrder.items.find(item => item.status === 'Preparing');
+                    if (preparingItem) {
+                        state.preparingOrder = preparingItem;
+                    }
+                }
+            })
+            .addCase(updateCafeItemStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to update order status';
+            });
     },
 });
 
+export const { setPreparingOrder, clearPreparingOrder } = chefSlice.actions;
 export default chefSlice.reducer;

@@ -247,7 +247,8 @@ exports.getAllOrderItemsStatus = async (req, res) => {
                 from: order.from,
                 table: order.table,
                 room: order.room,
-                createdAt: order.createdAt
+                createdAt: order.createdAt,
+                _id:item._id
             }))
         );
 
@@ -278,7 +279,8 @@ exports.getAllOrderItems = async (req, res) => {
                 from: order.from,
                 table: order.table,
                 room: order.room,
-                createdAt: order.createdAt
+                createdAt: order.createdAt,
+                _id:item._id
             }))
         );
 
@@ -326,15 +328,40 @@ exports.UpdateOrderItemStatus = async (req, res) => {
         const currentStatus = item.status;
         const newStatus = steps[currentStatus];
 
+        // If moving from Pending to Preparing, check if there are already items being prepared
+        if (currentStatus === "Pending" && newStatus === "Preparing") {
+            // Check if there are any items in Preparing status across all orders
+            const ordersWithPreparingItems = await cafeOrder.find({ 
+                "items.status": "Preparing" 
+            });
+            
+            const preparingItemsCount = ordersWithPreparingItems.reduce((count, order) => {
+                return count + order.items.filter(item => item.status === "Preparing").length;
+            }, 0);
+            
+            if (preparingItemsCount > 0) {
+                return res.status(400).json({
+                    status: 400,
+                    message: "Another order is already being prepared. Complete it before accepting a new one."
+                });
+            }
+        }
+
         // Update the status
         item.status = newStatus;
 
         await order.save();
 
+        // Populate the order with product details before sending response
+        const populatedOrder = await cafeOrder.findById(orderId)
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+
         res.status(200).json({
             status: 200,
             message: `Status updated: ${currentStatus} → ${newStatus}`,
-            data: order
+            data: populatedOrder
         });
 
     } catch (error) {
