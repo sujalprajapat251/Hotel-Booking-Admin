@@ -169,9 +169,9 @@ exports.removeItemFromOrder = async (req, res) => {
 
 exports.addItemToTableOrder = async (req, res) => {
     try {
-        const { product, qty, decription, name, contact } = req.body;
+        const { product, qty, description, name, contact } = req.body;
         const { tableId } = req.params;
-
+        
         if (!product) {
             return res.status(400).json({ status: 400, message: "Product is required" });
         }
@@ -181,7 +181,7 @@ exports.addItemToTableOrder = async (req, res) => {
             .sort({ createdAt: -1, _id: -1 });
 
         if (existingOrder) {
-            existingOrder.items.push({ product, qty: qty || 1, decription, status: 'Pending' });
+            existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
             await existingOrder.save();
 
             const populated = await existingOrder.populate([
@@ -197,7 +197,7 @@ exports.addItemToTableOrder = async (req, res) => {
             table: tableId,
             name,
             contact,
-            items: [{ product, qty: qty || 1, decription, status: 'Pending' }]
+            items: [{ product, qty: qty || 1, description, status: 'Pending' }]
         });
 
         const populated = await created.populate([
@@ -211,3 +211,182 @@ exports.addItemToTableOrder = async (req, res) => {
     }
 };
 
+exports.getAllCafeItemsOrders = async (req, res) => {
+    try {
+        const orders = await cafeOrder.find()
+            .populate("items")
+            .populate("table")
+            .populate("room");
+
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+exports.getAllOrderItemsStatus = async (req, res) => {
+    try {
+        const{status} =req.params;
+        const orders = await cafeOrder.find({status : status}).populate("table")
+            .populate("room")
+            .populate("items.product")
+
+        // Flatten all items from all orders
+        const allItems = orders.flatMap(order =>
+            order.items.map(item => ({
+                orderId: order._id,
+                product: item.product,
+                qty: item.qty,
+                description: item.description || '',
+                status: item.status,   
+                from: order.from,
+                table: order.table,
+                room: order.room,
+                createdAt: order.createdAt
+            }))
+        );
+
+        res.status(200).json({
+            status: 200,
+            data: allItems
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+exports.getAllOrderItems = async (req, res) => {
+    try {
+        const orders = await cafeOrder.find().populate("table")
+            .populate("room")
+            .populate("items.product")
+
+        // Flatten all items from all orders
+        const allItems = orders.flatMap(order =>
+            order.items.map(item => ({
+                orderId: order._id,
+                product: item.product,
+                qty: item.qty,
+                description: item.description || '',
+                status: item.status,   
+                from: order.from,
+                table: order.table,
+                room: order.room,
+                createdAt: order.createdAt
+            }))
+        );
+
+        res.status(200).json({
+            status: 200,
+            data: allItems
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+exports.UpdateOrderItemStatus = async (req, res) => {
+    try {
+        const { orderId, itemId } = req.body;
+
+        // Find the order
+        const order = await cafeOrder.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                status: 404,
+                message: "Order not found"
+            });
+        }
+
+        // Find the item inside the order
+        const item = order.items.id(itemId);
+
+        if (!item) {
+            return res.status(404).json({
+                status: 404,
+                message: "Item not found in this order"
+            });
+        }
+
+        // Define progression steps
+        const steps = {
+            "Pending": "Preparing",
+            "Preparing": "Done",
+            "Done": "Served",
+            "Served": "Served"  // stays same
+        };
+
+        const currentStatus = item.status;
+        const newStatus = steps[currentStatus];
+
+        // Update the status
+        item.status = newStatus;
+
+        await order.save();
+
+        res.status(200).json({
+            status: 200,
+            message: `Status updated: ${currentStatus} → ${newStatus}`,
+            data: order
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: 500,
+            message: error.message
+        });
+    }
+};
+
+
+exports.cafePayment = async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { paymentMethod } = req.body;
+
+        // Validate payment method
+        if (!paymentMethod) {
+            return res.status(400).json({
+                status: 400,
+                message: "Payment method is required"
+            });
+        }
+
+        const updatedOrder = await cafeOrder.findByIdAndUpdate(
+            orderId,
+            {
+                payment: "Paid",
+                paymentMethod: paymentMethod
+            },
+            { new: true }
+        )
+        .populate("table")
+        .populate("room")
+        .populate("items.product");
+
+        if (!updatedOrder) {
+            return res.status(404).json({
+                status: 404,
+                message: "Order not found"
+            });
+        }
+
+        res.status(200).json({
+            status: 200,
+            message: "Payment completed successfully",
+            data: updatedOrder
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: 500,
+            message: error.message
+        });
+    }
+};

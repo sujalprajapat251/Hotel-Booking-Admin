@@ -2,20 +2,17 @@ import React, { useEffect } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { IMAGE_URL } from '../../Utils/baseUrl';
-import { getAllRestaurantitem } from '../../Redux/Slice/restaurantitemSlice';
+import { getCafeOrderStatus } from '../../Redux/Slice/Chef.slice';
 
 export default function Dashboard() {
 
     const dispatch = useDispatch();
-    const restaurant = useSelector((state) => state.restaurant.restaurant);
-    const [selected, setSelected] = useState(restaurant[0]);
+    const data = useSelector((state) => state.chef.orderData);
+    console.log('data', data)
+    const [selected, setSelected] = useState(null);
 
     useEffect(() => {
-        setSelected(restaurant[0]);
-    }, [restaurant]);
-
-    useEffect(() => {
-        dispatch(getAllRestaurantitem());
+        dispatch(getCafeOrderStatus('Pending'));
     }, [dispatch]);
 
     return (
@@ -25,7 +22,7 @@ export default function Dashboard() {
                     <div className='bg-white rounded-lg shadow-md'>
                         <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56] rounded-t-lg">
                             <ul className="space-y-2 p-2 sm:p-3">
-                                {restaurant.length === 0 ? (
+                                {data.length === 0 ? (
                                     <div className="bg-white px-4 py-8 sm:px-6 sm:py-10 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
                                             <svg className="w-12 h-12 sm:w-16 sm:h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,40 +33,36 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                 ) : (
-                                    restaurant.map((item, index) => (
+                                    data.map((item, index) => (
                                         <li
-                                            key={item.id}
+                                            key={index}
                                             onClick={() => setSelected(item)}
-                                            className={`flex items-center gap-2 sm:gap-3 cursor-pointer p-2 sm:p-4 rounded-xl border transition hover:bg-primary ${
-                                                selected?._id === item._id ? "bg-primary" : "bg-white"
-                                            }`}
+                                            className={`flex items-center gap-2 sm:gap-3 cursor-pointer p-2 sm:p-4 rounded-xl border transition hover:bg-primary ${selected?._id === item._id ? "bg-white" : "bg-white"
+                                                }`}
                                         >
                                             {/* Index */}
-                                            <div className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            {/* <div className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 {index + 1}
-                                            </div>
+                                            </div> */}
 
                                             {/* Image & Name */}
                                             <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                                 <img
-                                                    src={`${IMAGE_URL}${item.image}`}
+                                                    src={`${IMAGE_URL}${item?.product?.image}`}
                                                     alt={item.name}
                                                     className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-[#E3C78A] flex-shrink-0"
                                                 />
                                                 <span className="text-xs sm:text-sm font-medium text-gray-800 truncate">
-                                                    {item.name}
+                                                    {item?.product?.name}
                                                 </span>
                                             </div>
 
                                             {/* Category - Hidden on very small screens */}
-                                            <div className="hidden sm:block px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                {item.category?.name}
-                                            </div>
-
-                                            {/* Price */}
-                                            <div className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                ₹{item.price}
-                                            </div>
+                                            <div className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 font-semibold">
+                                                Qty : {item?.qty}
+                                                <br></br>
+                                                <span>From : {item?.from}</span>
+                                            </div>  
                                         </li>
                                     ))
                                 )}
@@ -83,16 +76,13 @@ export default function Dashboard() {
 
                         <div className="space-y-4">
                             <div>
-                                <p className="text-lg font-semibold">{selected?.name || selected?.name}</p>
-                                <p className="text-gray-500 text-sm">Category: {selected?.category?.name}</p>
+                                <p className="text-lg font-semibold">{selected?.product?.name || selected?.product?.name}</p>
                             </div>
-
-
-                            {selected?.image && (
+                            {selected?.product?.image && (
                                 <img
-                                    src={`${IMAGE_URL}${selected?.image}`}
-                                    alt={selected?.name}
-                                    className="w-20 rounded-xl shadow"
+                                    src={`${IMAGE_URL}${selected?.product?.image}`}
+                                    alt={selected?.product?.name}
+                                    className="w-full rounded-xl shadow aspect-video"
                                 />
                             )}
 
@@ -101,17 +91,17 @@ export default function Dashboard() {
 
 
                             <div className="flex items-center gap-3">
-                                <p className="font-semibold">Price:</p>
-                                <p className="text-green-600 font-bold">₹ {selected?.price}</p>
+                                <p className="font-semibold">Qty:</p>
+                                <p className="text-green-600 font-bold">₹ {selected?.qty}</p>
                             </div>
 
 
-                            <div className="flex items-center gap-3">
-                                <span className="font-semibold">Available:</span>
-                                <span className={selected?.available ? "text-green-600" : "text-red-600"}>
-                                    {selected?.available ? "Yes" : "No"}
-                                </span>
-                            </div>
+                            <button
+                                className='text-center bg-senary text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base cursor-pointer active:opacity-80 w-full'
+                                // onClick={}
+                            >
+                                Accept
+                            </button>
                         </div>
                     </div>
                 </div>

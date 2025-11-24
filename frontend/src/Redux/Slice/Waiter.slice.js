@@ -34,12 +34,12 @@ export const addCafeOrder = createAsyncThunk(
 
 export const addItemToTableOrder = createAsyncThunk(
     'waiter/addItemToTableOrder',
-    async ({ tableId, product, qty, decription, name, contact }, { dispatch, rejectWithValue }) => {
+    async ({ tableId, product, qty, description, name, contact }, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
             const response = await axios.post(
                 `${BASE_URL}/cafe/tables/${tableId}/order/items`,
-                { product, qty, decription, name, contact },
+                { product, qty, description, name, contact },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

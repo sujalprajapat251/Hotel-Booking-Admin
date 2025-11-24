@@ -11,7 +11,7 @@ export default function TableOrder() {
     const dispatch = useDispatch();
     const [activeCategory, setActiveCategory] = useState("All");
     const [selected, setSelected] = useState([]); // CART ITEMS
-    const {id} = useParams()
+    const { id } = useParams()
     const cafecategory = useSelector((state) => state.cafecategory.cafecategory);
     const cafe = useSelector((state) => state.cafe.cafe);
     const singleTable = useSelector((state) => state.cafeTable.singleTable);
@@ -71,28 +71,42 @@ export default function TableOrder() {
     };
     const [desIdx, setDesIdx] = useState(null);
 
-    // total showned
-    const total = selected.reduce((sum, item) => {
-        return sum + item.product.price * item.qty;
-    }, 0);
+    // Helper function to calculate items total
+    const calculateItemsTotal = (items = []) => {
+        return items.reduce((sum, item) => {
+            if (!item || !item.product || !item.product.price) return sum;
+            return sum + item.product.price * (item.qty || 1);
+        }, 0);
+    };
 
-    const [name,setName] = useState(singleTable?.name || '')
-    const [contact,setContact] = useState(singleTable?.contact || '')
-    const handleAddOrder = async ()=>{
-        try{
-            for(const i of selected){
+    // Final calculation
+    const previousTotal = calculateItemsTotal(previousOrder?.items);
+    const newItemsTotal = calculateItemsTotal(selected);
+
+    const total = previousTotal + newItemsTotal;
+
+    const [name, setName] = useState(previousOrder?.name || '')
+    const [contact, setContact] = useState(previousOrder?.contact || '')
+    useEffect(() => {
+        setName(previousOrder?.name);
+        setContact(previousOrder?.contact);
+    }, [])
+    
+    const handleAddOrder = async () => {
+        try {
+            for (const i of selected) {
                 await dispatch(addItemToTableOrder({
                     tableId: id,
                     product: i.product._id,
                     qty: i.qty,
-                    decription: i.description || "",
+                    description: i.description || "",
                     name,
                     contact
                 })).unwrap();
             }
             setSelected([]);
             dispatch(getCafeTableById(id));
-        }catch(error){
+        } catch (error) {
         }
     }
 
@@ -147,7 +161,7 @@ export default function TableOrder() {
                         </div>
                     </div>
 
-                    <div className=" flex flex-wrap items-stretch gap-2 sm:gap-0 mt-5">
+                    <div className=" flex flex-wrap items-stretch gap-0 sm:gap-0 mt-5">
                         {filteredItems.map((item, idx) => (
                             <div key={idx} className="w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 xl:w-1/4 p-1.5 sm:p-3 flex mb-3">
                                 <div
@@ -181,144 +195,144 @@ export default function TableOrder() {
                         ))}
                     </div>
                 </div>
-                    
-                <div className='p-p-1.5 sm:p-3 w-full xl:w-[30%] '>
-                <div className="bg-white p-2 sm:p-4 sticky bottom-0 lg:static lg:h-full lg:max-h-screen flex flex-col">
-                    <h1 className="text-center text-base sm:text-xl border-b p-1.5 sm:p-2">Order Detail</h1>
 
-                    <div className="mt-2 sm:mt-4 h-[250px] sm:h-[300px] md:h-[400px] overflow-auto flex-1">
-                        {previousOrder ? (
-                            <div className="mb-4">
-                                {previousOrder.items.map((oi) => (
-                                    <div key={oi._id} className="border-b py-2 sm:py-3 opacity-80">
-                                        <div className="flex items-center gap-1 sm:gap-2">
+                <div className='p-p-1.5 sm:p-3 w-full xl:w-[30%] '>
+                    <div className="bg-white p-2 sm:p-4 sticky bottom-0 lg:static lg:h-full lg:max-h-screen flex flex-col">
+                        <h1 className="text-center text-base sm:text-xl border-b p-1.5 sm:p-2">Order Detail</h1>
+
+                        <div className="mt-2 sm:mt-4 h-[250px] sm:h-[300px] md:h-[400px] overflow-auto flex-1">
+                            {previousOrder ? (
+                                <div className="mb-4">
+                                    {previousOrder.items.map((oi) => (
+                                        <div key={oi._id} className="border-b py-2 sm:py-3 opacity-80">
+                                            <div className="flex items-center gap-1 sm:gap-2">
+                                                <img
+                                                    src={`${IMAGE_URL}${oi.product?.image}`}
+                                                    alt={oi.product?.name}
+                                                    className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
+                                                />
+                                                <div className="ms-1 sm:ms-3 flex-1 min-w-0">
+                                                    <h3 className="font-semibold text-xs sm:text-sm truncate">{oi.product?.name}</h3>
+                                                    <p className="text-xs sm:text-sm text-gray-500">Rs.{oi.product?.price}</p>
+                                                    <p className="text-xs text-gray-500">Qty: {oi.qty}</p>
+                                                    {oi.description && <p className="text-xs text-gray-400 truncate">{oi.description}</p>}
+                                                </div>
+                                                <div className="ms-auto flex-shrink-0">
+                                                    {oi.status === 'Pending' && (
+                                                        <button
+                                                            className="text-red-500 text-xs sm:text-sm px-1 sm:px-2"
+                                                            onClick={async () => {
+                                                                await dispatch(removeItemFromOrder({ orderId: previousOrder._id, itemId: oi._id })).unwrap();
+                                                                dispatch(getCafeTableById(id));
+                                                            }}
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : null}
+                            {selected.length === 0 ? (
+                                <p className="text-center text-gray-500 text-xs sm:text-sm py-4">No items added</p>
+                            ) : (
+                                selected.map((item, idx) => (
+                                    <div key={item.product._id} className="border-b py-2 sm:py-3">
+
+                                        {/* ITEM ROW */}
+                                        <div className="flex items-center gap-1 sm:gap-2 p-2 px-3">
                                             <img
-                                                src={`${IMAGE_URL}${oi.product?.image}`}
-                                                alt={oi.product?.name}
+                                                src={`${IMAGE_URL}${item.product.image}`}
+                                                alt={item.product.name}
                                                 className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
                                             />
+
                                             <div className="ms-1 sm:ms-3 flex-1 min-w-0">
-                                                <h3 className="font-semibold text-xs sm:text-sm truncate">{oi.product?.name}</h3>
-                                                <p className="text-xs sm:text-sm text-gray-500">Rs.{oi.product?.price}</p>
-                                                <p className="text-xs text-gray-500">Qty: {oi.qty}</p>
-                                                {oi.decription && <p className="text-xs text-gray-400 truncate">{oi.decription}</p>}
+                                                <h3 className="font-semibold text-xs sm:text-sm truncate">{item.product.name}</h3>
+                                                <p className="text-xs sm:text-sm text-gray-500">Rs.{item.product.price}</p>
                                             </div>
-                                            <div className="ms-auto flex-shrink-0">
-                                                {oi.status === 'Pending' && (
-                                                    <button
-                                                        className="text-red-500 text-xs sm:text-sm px-1 sm:px-2"
-                                                        onClick={async () => {
-                                                            await dispatch(removeItemFromOrder({ orderId: previousOrder._id, itemId: oi._id })).unwrap();
-                                                            dispatch(getCafeTableById(id));
-                                                        }}
+
+                                            <div className="flex items-center gap-1 sm:gap-2 ms-auto flex-shrink-0">
+                                                <button
+                                                    onClick={() => decQty(item.product._id)}
+                                                    className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
+                                                >
+                                                    -
+                                                </button>
+
+                                                <span className="text-xs sm:text-sm min-w-[20px] text-center">{item.qty}</span>
+
+                                                <button
+                                                    onClick={() => incQty(item.product._id)}
+                                                    className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* DESCRIPTION SECTION */}
+                                        <div className="flex items-start gap-1 sm:gap-2 p-2 px-3">
+                                            {desIdx === idx ? (
+                                                <>
+                                                    <textarea
+                                                        className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary text-xs sm:text-sm"
+                                                        placeholder="Add description..."
+                                                        value={item.description}
+                                                        onChange={(e) => updateDescription(item.product._id, e.target.value)}
+                                                        rows="2"
+                                                    ></textarea>
+                                                    <p
+                                                        className="text-senary text-xs cursor-pointer flex-shrink-0 mt-1"
+                                                        onClick={() => setDesIdx(null)}
                                                     >
-                                                        Cancel
-                                                    </button>
-                                                )}
-                                            </div>
+                                                        cancel
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className='w-full text-xs break-words'>{item.description}</p>
+                                                    <p
+                                                        className="text-senary text-xs cursor-pointer flex-shrink-0 whitespace-nowrap"
+                                                        onClick={() => setDesIdx(idx)}
+                                                    >
+                                                        add desc
+                                                    </p>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        ) : null}
-                        {selected.length === 0 ? (
-                            <p className="text-center text-gray-500 text-xs sm:text-sm py-4">No items added</p>
-                        ) : (
-                            selected.map((item, idx) => (
-                                <div key={item.product._id} className="border-b py-2 sm:py-3">
+                                ))
+                            )}
 
-                                    {/* ITEM ROW */}
-                                    <div className="flex items-center gap-1 sm:gap-2 p-2 px-3">
-                                        <img
-                                            src={`${IMAGE_URL}${item.product.image}`}
-                                            alt={item.product.name}
-                                            className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
-                                        />
-
-                                        <div className="ms-1 sm:ms-3 flex-1 min-w-0">
-                                            <h3 className="font-semibold text-xs sm:text-sm truncate">{item.product.name}</h3>
-                                            <p className="text-xs sm:text-sm text-gray-500">Rs.{item.product.price}</p>
-                                        </div>
-
-                                        <div className="flex items-center gap-1 sm:gap-2 ms-auto flex-shrink-0">
-                                            <button
-                                                onClick={() => decQty(item.product._id)}
-                                                className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
-                                            >
-                                                -
-                                            </button>
-
-                                            <span className="text-xs sm:text-sm min-w-[20px] text-center">{item.qty}</span>
-
-                                            <button
-                                                onClick={() => incQty(item.product._id)}
-                                                className="px-1.5 sm:px-2 py-1 bg-gray-300 rounded text-xs sm:text-sm"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* DESCRIPTION SECTION */}
-                                    <div className="flex items-start gap-1 sm:gap-2 p-2 px-3">
-                                        {desIdx === idx ? (
-                                            <>
-                                                <textarea
-                                                    className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary text-xs sm:text-sm"
-                                                    placeholder="Add description..."
-                                                    value={item.description}
-                                                    onChange={(e) => updateDescription(item.product._id, e.target.value)}
-                                                    rows="2"
-                                                ></textarea>
-                                                <p
-                                                    className="text-senary text-xs cursor-pointer flex-shrink-0 mt-1"
-                                                    onClick={() => setDesIdx(null)}
-                                                >
-                                                    cancel
-                                                </p>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <p className='w-full text-xs break-words'>{item.description}</p>
-                                                <p
-                                                    className="text-senary text-xs cursor-pointer flex-shrink-0 whitespace-nowrap"
-                                                    onClick={() => setDesIdx(idx)}
-                                                >
-                                                    add desc
-                                                </p>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        )}
-
+                        </div>
+                        <div className='border-b p-1.5 sm:p-2'>
+                            <input
+                                value={name}
+                                onChange={(e) => { setName(e.target.value) }}
+                                className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
+                                placeholder='name'
+                            ></input>
+                            <input
+                                value={contact}
+                                onChange={(e) => { setContact(e.target.value) }}
+                                className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
+                                placeholder='contact'
+                            ></input>
+                        </div>
+                        <div className='py-2 sm:py-3 flex justify-between items-center'>
+                            <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
+                            <p className='text-sm sm:text-base'>Rs. {total}</p>
+                        </div>
+                        <button
+                            className='text-center bg-senary text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base cursor-pointer active:opacity-80'
+                            onClick={handleAddOrder}
+                        >
+                            Add order
+                        </button>
                     </div>
-                    <div className='border-b p-1.5 sm:p-2'>
-                        <input 
-                            value={name} 
-                            onChange={(e)=>{setName(e.target.value)}} 
-                            className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm" 
-                            placeholder='name'
-                        ></input>
-                        <input 
-                            value={contact} 
-                            onChange={(e)=>{setContact(e.target.value)}} 
-                            className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm" 
-                            placeholder='contact'
-                        ></input>
-                    </div>
-                    <div className='py-2 sm:py-3 flex justify-between items-center'>
-                        <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
-                        <p className='text-sm sm:text-base'>Rs. {total}</p>
-                    </div>
-                    <button 
-                        className='text-center bg-senary text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base cursor-pointer active:opacity-80'
-                        onClick={handleAddOrder}
-                    >
-                        Add order
-                    </button>
-                </div>
                 </div>
             </div>
         </div>
