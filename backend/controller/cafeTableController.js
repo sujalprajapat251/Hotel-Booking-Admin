@@ -30,7 +30,7 @@ exports.createCafeTable = async (req, res) => {
         });
     }
 };
-exports.getAllLastUnpaidOrders = async (req, res) => {
+exports.getCafeTables = async (req, res) => {
     try {
         const tables = await cafeTable.find();
 
