@@ -13,9 +13,16 @@ export default function Dashboard() {
   }, [dispatch]);
 
   const [menu, setMenu] = useState([]);
+  const [activeTableId, setActiveTableId] = useState(null);
   useEffect(() => {
-    setMenu(orders[0]?.lastUnpaidOrder)
-  }, [orders])
+    if (orders?.length) {
+      setMenu(orders[0]?.lastUnpaidOrder || []);
+      setActiveTableId(orders[0]?.id || orders[0]?._id || null);
+    } else {
+      setMenu([]);
+      setActiveTableId(null);
+    }
+  }, [orders]);
 
   const calculateItemsTotal = (items = []) => {
     return items.reduce((sum, item) => {
@@ -25,7 +32,8 @@ export default function Dashboard() {
   };
   const total = calculateItemsTotal(menu?.items);
   const handleChnage = (ele) => {
-    setMenu(ele?.lastUnpaidOrder)
+    setMenu(ele?.lastUnpaidOrder);
+    setActiveTableId(ele?.id || ele?._id || null);
   }
   const handleserved = async (ele) => {
     console.log('product', ele)
@@ -60,7 +68,10 @@ export default function Dashboard() {
                 const doneCount = o?.lastUnpaidOrder?.items?.filter(i => i.status === "Done").length || 0;
                 return (
 
-                  <div key={o.id} className="flex items-center justify-between border rounded p-4 bg-white shadow-sm" onClick={() => { handleChnage(o) }}>
+                  <div
+                    key={o.id || o._id}
+                    className={`flex items-center justify-between border rounded p-4 bg-white shadow-sm cursor-pointer transition-transform duration-200 ${activeTableId === (o.id || o._id) ? "scale-[103%] shadow-md" : "hover:scale-[1.01]"}`}
+                    onClick={() => { handleChnage(o) }}>
                     <div>
                       <div className="font-semibold">{o.title}</div>
                       {/* <div className="text-xs text-gray-500">{o.date}</div> */}

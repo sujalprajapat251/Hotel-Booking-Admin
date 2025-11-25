@@ -153,7 +153,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         {open ? (
           <div>
             <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-            <p className="text-xs text-gray-500">HOD Panel</p>
+            <p className="text-xs text-gray-500">Waiter Panel</p>
           </div>
         ) : null}
       </div>
