@@ -107,12 +107,12 @@ export default function TableOrder() {
 
     const total = previousTotal + newItemsTotal;
 
-    const [name, setName] = useState(previousOrder?.name || '')
-    const [contact, setContact] = useState(previousOrder?.contact || '')
+    const [name, setName] = useState('');
+    const [contact, setContact] = useState('');
     useEffect(() => {
-        setName(previousOrder?.name);
-        setContact(previousOrder?.contact);
-    }, [])
+        setName(previousOrder?.name || '');
+        setContact(previousOrder?.contact || '');
+    }, [previousOrder]);
     
     const handleAddOrder = async () => {
         try {
