@@ -25,6 +25,11 @@ const cafeOrderSchema = new mongoose.Schema({
                 enum: ['Pending', 'Preparing', 'Done', 'Served'],
                 default: 'Pending'
             },
+            preparedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'user',
+                default: null
+            }
         }
     ],
     status: {

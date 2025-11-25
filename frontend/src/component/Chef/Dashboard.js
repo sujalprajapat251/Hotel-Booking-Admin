@@ -4,29 +4,44 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IMAGE_URL } from '../../Utils/baseUrl';
 import { getCafeOrderStatus, updateCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
+import { getUserById } from '../../Redux/Slice/user.slice';
 
 export default function Dashboard() {
 
     const dispatch = useDispatch();
     const data = useSelector((state) => state.chef.orderData);
     const preparingOrder = useSelector((state) => state.chef.preparingOrder);
+    const currentUser = useSelector((state) => state.user.currentUser);
     const [selected, setSelected] = useState(null);
 
     useEffect(() => {
         dispatch(getCafeOrderStatus());
+        dispatch(getUserById()); // Get current user details
     }, [dispatch]);
 
     useEffect(() => {
-        if (data && data.length > 0 && !preparingOrder) {
-            const preparingItem = data.find(item => item.status === "Preparing");
-            if (preparingItem) {
-                dispatch(setPreparingOrder(preparingItem));
+        if (data && data.length > 0) {
+            const userPreparingItem = data.find(item => item.status === "Preparing" && item.preparedBy === currentUser?._id);
+            if (userPreparingItem) {
+                dispatch(setPreparingOrder(userPreparingItem));
+            } else if (preparingOrder && preparingOrder.preparedBy !== currentUser?._id) {
+                dispatch(clearPreparingOrder());
             }
         }
-    }, [data, preparingOrder, dispatch]);
+    }, [data, dispatch, currentUser]);
 
     const handleAcceptOrder = async (order) => {
-        if (preparingOrder && preparingOrder._id !== order._id) {
+        if (order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id) {
+            dispatch(setAlert({ text: "This order is being prepared by another chef", color: 'error' }));
+            return;
+        }
+
+        if (order.status === "Preparing" && (!preparingOrder || preparingOrder._id !== order._id)) {
+            dispatch(setAlert({ text: "You can only mark your own preparing orders as done", color: 'error' }));
+            return;
+        }
+
+        if (order.status === "Pending" && preparingOrder) {
             dispatch(setAlert({ text: "You must complete the current order before accepting a new one", color: 'error' }));
             return;
         }
@@ -47,10 +62,15 @@ export default function Dashboard() {
 
             if (updateCafeItemStatus.fulfilled.match(result)) {
                 if (order.status === "Pending") {
+                    localStorage.setItem("itemId", order._id);
                     dispatch(setPreparingOrder(result.payload.items.find(item => item._id === order._id)));
                     dispatch(setAlert({ text: "Order accepted and is now being prepared", color: 'success' }));
                 }
                 else if (order.status === "Preparing") {
+                    let getItemId = localStorage.getItem("itemId");
+                    if (getItemId) {
+                        localStorage.removeItem("itemId");
+                    }
                     dispatch(clearPreparingOrder());
                     dispatch(setAlert({ text: "Order marked as done", color: 'success' }));
                 }
@@ -64,14 +84,14 @@ export default function Dashboard() {
     const getButtonText = (order) => {
         if (!order) return "Accept";
 
+        if (order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id) {
+            return "Prepared by another chef";
+        }
+
         if (preparingOrder && preparingOrder._id === order._id) {
             if (order.status === "Preparing") {
                 return "Done this order";
             }
-        }
-
-        if (preparingOrder && preparingOrder._id !== order._id) {
-            return "Accept";
         }
 
         if (order.status === "Pending") {
@@ -85,11 +105,23 @@ export default function Dashboard() {
     const isButtonDisabled = (order) => {
         if (!order) return true;
 
-        if (preparingOrder && preparingOrder._id !== order._id) {
+        // Disable if order is being prepared by another chef
+        if (order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id) {
             return true;
         }
 
-        return !(order.status === "Pending" || order.status === "Preparing");
+        // Disable if this is not the order the user is currently preparing and they're trying to mark as done
+        if (order.status === "Preparing" && (!preparingOrder || preparingOrder._id !== order._id)) {
+            return true;
+        }
+
+        // Disable if order is not in a state that allows action
+        return !(order.status === "Pending" || (order.status === "Preparing" && preparingOrder && preparingOrder._id === order._id));
+    }
+
+    // Check if an order is being prepared by another chef
+    const isOrderPreparedByAnotherChef = (order) => {
+        return order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id;
     }
 
     useEffect(() => {
@@ -130,10 +162,12 @@ export default function Dashboard() {
                                     data.filter(item => item.status !== "Done" && item.status !== "Served").map((item, index) => (
                                         <li
                                             key={index}
-                                            onClick={() => setSelected(item)}
+                                            onClick={() => !isOrderPreparedByAnotherChef(item) && setSelected(item)}
                                             className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all duration-200 ${selected?._id === item._id
                                                 ? "bg-blue-50 border-blue-300 shadow-sm"
-                                                : "bg-white border-[#E3C78A] hover:shadow-sm"
+                                                : isOrderPreparedByAnotherChef(item)
+                                                    ? "bg-gray-100 border-gray-300 opacity-70 cursor-not-allowed"
+                                                    : "bg-white border-[#E3C78A] hover:shadow-sm"
                                                 }`}
                                         >
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -141,17 +175,22 @@ export default function Dashboard() {
                                                     <img
                                                         src={`${IMAGE_URL}${item?.product?.image}`}
                                                         alt={item.name}
-                                                        className="w-10 h-10 rounded-lg object-cover border-2 border-[#E3C78A] flex-shrink-0"
+                                                        className={`w-10 h-10 rounded-lg object-cover border-2 flex-shrink-0 ${isOrderPreparedByAnotherChef(item) 
+                                                            ? "border-gray-400" 
+                                                            : "border-[#E3C78A]"}`}
                                                     />
                                                     {preparingOrder && preparingOrder._id === item._id && (
                                                         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
                                                     )}
+                                                    {isOrderPreparedByAnotherChef(item) && (
+                                                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white"></div>
+                                                    )}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-gray-800 truncate">
+                                                    <p className={`text-sm font-medium truncate ${isOrderPreparedByAnotherChef(item) ? "text-gray-500" : "text-gray-800"}`}>
                                                         {item?.product?.name}
                                                     </p>
-                                                    <p className="text-xs text-gray-500">
+                                                    <p className={`text-xs ${isOrderPreparedByAnotherChef(item) ? "text-gray-400" : "text-gray-500"}`}>
                                                         Qty: {item?.qty} • From: {item?.from}
                                                     </p>
                                                 </div>
@@ -185,7 +224,7 @@ export default function Dashboard() {
                             {selected ? (
                                 <div className="space-y-5">
                                     <div className="text-center">
-                                        <h3 className="text-xl font-bold text-gray-800">{selected?.product?.name}</h3>
+                                        <h3 className={`text-xl font-bold ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.product?.name}</h3>
                                     </div>
 
                                     {selected?.product?.image && (
@@ -201,12 +240,12 @@ export default function Dashboard() {
                                     <div className="space-y-3">
                                         <div className="flex justify-between items-center pb-1 border-b border-gray-100">
                                             <span className="text-gray-600 text-[14px]">Quantity</span>
-                                            <span className="font-semibold text-gray-800">{selected?.qty}</span>
+                                            <span className={`font-semibold ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.qty}</span>
                                         </div>
 
                                         <div className="flex justify-between items-center pb-1 border-b border-gray-100">
                                             <span className="text-gray-600 text-[14px]">From</span>
-                                            <span className="font-semibold text-gray-800 capitalize text-[15px]">{selected?.from}</span>
+                                            <span className={`font-semibold capitalize text-[15px] ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.from}</span>
                                         </div>
 
                                         <div className="flex justify-between items-center pb-1 border-b border-gray-100">

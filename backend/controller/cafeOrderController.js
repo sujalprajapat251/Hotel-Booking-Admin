@@ -249,6 +249,7 @@ exports.getAllOrderItemsStatus = async (req, res) => {
                 table: order.table,
                 room: order.room,
                 createdAt: order.createdAt,
+                preparedBy: item.preparedBy,
                 _id:item._id
             }))
         );
@@ -281,6 +282,7 @@ exports.getAllOrderItems = async (req, res) => {
                 table: order.table,
                 room: order.room,
                 createdAt: order.createdAt,
+                preparedBy: item.preparedBy,
                 _id:item._id
             }))
         );
@@ -297,6 +299,7 @@ exports.getAllOrderItems = async (req, res) => {
 exports.UpdateOrderItemStatus = async (req, res) => {
     try {
         const { orderId, itemId } = req.body;
+        const chefId = req.user?.id;
 
         // Find the order
         const order = await cafeOrder.findById(orderId);
@@ -318,6 +321,13 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             });
         }
 
+        if (item.status === "Preparing" && item.preparedBy && item.preparedBy.toString() !== chefId) {
+            return res.status(400).json({
+                status: 400,
+                message: "This order is being prepared by another chef"
+            });
+        }
+
         // Define progression steps
         const steps = {
             "Pending": "Preparing",
@@ -331,21 +341,8 @@ exports.UpdateOrderItemStatus = async (req, res) => {
 
         // If moving from Pending to Preparing, check if there are already items being prepared
         if (currentStatus === "Pending" && newStatus === "Preparing") {
-            // Check if there are any items in Preparing status across all orders
-            const ordersWithPreparingItems = await cafeOrder.find({ 
-                "items.status": "Preparing" 
-            });
-            
-            const preparingItemsCount = ordersWithPreparingItems.reduce((count, order) => {
-                return count + order.items.filter(item => item.status === "Preparing").length;
-            }, 0);
-            
-            if (preparingItemsCount > 0) {
-                return res.status(400).json({
-                    status: 400,
-                    message: "Another order is already being prepared. Complete it before accepting a new one."
-                });
-            }
+            // Set the chef who is preparing this item
+            item.preparedBy = chefId;
         }
 
         // Update the status

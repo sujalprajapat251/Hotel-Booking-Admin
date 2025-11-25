@@ -231,7 +231,7 @@ indexRoutes.post('/addCafeOrder',createCafeOrder)
 indexRoutes.get('/getCafeOrder',getAllCafeOrders)
 indexRoutes.get('/getCafeOrderitems/:status',getAllOrderItemsStatus)
 indexRoutes.get('/getCafeOrderitems',getAllOrderItems)
-indexRoutes.post('/CafeItemStatus', UpdateOrderItemStatus);
+indexRoutes.post('/CafeItemStatus', auth, UpdateOrderItemStatus);
 indexRoutes.post('/cafe/tables/:tableId/order/items', addItemToTableOrder)
 indexRoutes.delete('/cafe/orders/:id/items/:itemId', removeItemFromOrder)
 indexRoutes.post('/cafePayment/:orderId',cafePayment)
