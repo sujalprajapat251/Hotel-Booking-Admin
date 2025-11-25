@@ -120,14 +120,14 @@ indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 
 // room type routes
 indexRoutes.post('/roomtypes',auth, adminOnly, createRoomType);
-indexRoutes.get('/roomtypes', auth, adminOnly,getRoomTypes);
+indexRoutes.get('/roomtypes',getRoomTypes);
 indexRoutes.get('/roomtypes/:id', auth, adminOnly,getRoomTypeById);
 indexRoutes.put('/roomtypes/:id', auth, adminOnly, updateRoomType);
 indexRoutes.delete('/roomtypes/:id', auth, adminOnly, deleteRoomType);
 
 // feature routes
 indexRoutes.post('/features', auth, adminOnly, createFeature);
-indexRoutes.get('/features', auth, adminOnly,getFeatures);
+indexRoutes.get('/features',getFeatures);
 indexRoutes.get('/features/roomtype/:roomTypeId', auth, adminOnly,getFeaturesByRoomType);
 indexRoutes.get('/features/:id',auth, adminOnly, getFeatureById);
 indexRoutes.put('/features/:id', auth, adminOnly, updateFeature);
@@ -144,8 +144,8 @@ indexRoutes.post('/autoUpdateRoomBeds', autoUpdateRoomBeds);
 
 // booking routes
 indexRoutes.post('/bookings', auth, createBooking);
-indexRoutes.get('/bookings', auth, getBookings);
-indexRoutes.get('/bookings/:id', auth, getBookingById);
+indexRoutes.get('/bookings', getBookings);
+indexRoutes.get('/bookings/:id', getBookingById);
 indexRoutes.put('/bookings/:id', auth, updateBooking);
 indexRoutes.delete('/bookings/:id', auth, deleteBooking);
 
