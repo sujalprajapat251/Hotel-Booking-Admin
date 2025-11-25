@@ -154,6 +154,7 @@ function App() {
                   <Route index element={<Navigate to="/cafe/cafecategory" replace />} />
                   <Route path='cafecategory' element={<Cafecategory />} />
                   <Route path='cafeitems' element={<CafeItems />} />
+                  <Route path='cafeorder' element={<HODHistory />} />
                 </Route>
 
                 <Route
