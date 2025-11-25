@@ -1,4 +1,5 @@
 const cafeOrder = require('../models/cafeOrderModal');
+const cafeTable = require('../models/cafeTableModel')
 const { emitCafeOrderChanged } = require('../socketManager/socketManager');
 
 exports.createCafeOrder = async (req, res) => {
@@ -355,7 +356,7 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             .populate("table")
             .populate("room")
             .populate("items.product");
-
+            emitCafeOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
         res.status(200).json({
             status: 200,
             message: `Status updated: ${currentStatus} → ${newStatus}`,
@@ -402,7 +403,13 @@ exports.cafePayment = async (req, res) => {
                 message: "Order not found"
             });
         }
-
+        if (updatedOrder.table?._id) {
+            await cafeTable.findByIdAndUpdate(
+                updatedOrder.table._id,
+                { status: true },   // or "available: true" depending on your schema
+                { new: true }
+            );
+        }
         emitCafeOrderChanged(updatedOrder.table?._id || updatedOrder.table, updatedOrder);
         res.status(200).json({
             status: 200,

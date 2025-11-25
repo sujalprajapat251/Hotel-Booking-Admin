@@ -6,6 +6,7 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { getAllHodHistory } from '../Redux/Slice/hod.slice';
 import { IoEyeSharp } from 'react-icons/io5';
+import { io } from 'socket.io-client';
 
 const HODHistory = () => {
 
@@ -165,6 +166,16 @@ const HODHistory = () => {
 
   useEffect(() => {
     dispatch(getAllHodHistory());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const s = io(IMAGE_URL, { auth: { token, userId } });
+    const refresh = () => dispatch(getAllHodHistory());
+    s.on('cafe_order_changed', refresh);
+    s.on('cafe_table_status_changed', refresh);
+    return () => { s.disconnect(); };
   }, [dispatch]);
 
   useEffect(() => {

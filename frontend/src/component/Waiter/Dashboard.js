@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { IMAGE_URL } from '../../Utils/baseUrl';
 import { updateCafeItemStatus } from '../../Redux/Slice/Chef.slice';
+import { io } from 'socket.io-client';
 export default function Dashboard() {
 
   const dispatch = useDispatch();
@@ -39,6 +40,20 @@ export default function Dashboard() {
     }
   }
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const s = io(IMAGE_URL, { auth: { token, userId } });
+    s.on('cafe_order_changed', () => {
+      dispatch(getAllCafeTable());
+    });
+    s.on('cafe_table_status_changed', () => {
+      dispatch(getAllCafeTable());
+    });
+    return () => {
+      s.disconnect();
+    };
+  }, [dispatch]);
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
       <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
