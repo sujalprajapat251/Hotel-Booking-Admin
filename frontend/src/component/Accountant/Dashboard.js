@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { Search, X, Check} from 'lucide-react';
+import { Search, X, Check } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeUnpaid, updateCafePayment, updateCafeItemStatus } from '../../Redux/Slice/Accountant.slice';
 import { IMAGE_URL } from '../../Utils/baseUrl';
+import { io } from 'socket.io-client';
 export default function Dashboard() {
 
   const dispatch = useDispatch();
@@ -11,7 +12,22 @@ export default function Dashboard() {
     dispatch(getAllCafeUnpaid());
   }, [dispatch]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const s = io(IMAGE_URL, { auth: { token, userId } });
+    s.on('cafe_order_changed', () => {
+      dispatch(getAllCafeUnpaid());
+    });
+    s.on('cafe_table_status_changed', () => {
+      dispatch(getAllCafeUnpaid());
+    });
+    return () => {
+      s.disconnect();
+    };
+  }, [dispatch]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
 
   const [menu, setMenu] = useState([]);
@@ -76,20 +92,20 @@ export default function Dashboard() {
             <div className="space-y-2 mb-6 md:space-y-3">
               {orders.map((o) => {
                 const items = o?.items || [];
-                const doneCount = items.filter(i => i.status === "Done").length || 0;
                 const title = o?.from === 'cafe' ? `Table: ${o?.table?.title || o?.table}` : `Room: ${o?.room || o?.name || 'Guest'}`;
                 return (
 
                   <div key={o._id} className="flex items-center justify-between border rounded p-4 bg-white shadow-sm cursor-pointer" onClick={() => { handleChnage(o) }}>
-                    <div>
+                    <div className='w-full'>
+                      <div className='flex justify-between items-center'>
                       <div className="font-semibold">{title}</div>
-                      <div className="text-xs text-gray-500">{o?.name || o?.contact || ''}</div>
-                    </div>
-                    {doneCount > 0 && (
-                      <div className="text-xs text-red-600 font-medium ms-auto me-3">
-                        {doneCount} item{doneCount > 1 ? "s" : ""} unserved
+                      <div className="font-semibold text-xs ms-auto text-gray-500">#{o._id}</div>
+
                       </div>
-                    )}
+                      <div className="text-xs text-gray-500">{o?.name || ''}</div>
+                      <div className="text-xs text-gray-500">{ o?.contact  || ''}</div>
+                    </div>
+
                     <div className="text-gray-400">›</div>
                   </div>
                 )
@@ -119,13 +135,7 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
                         <div className="text-sm font-medium">₹{m.product.price}.00</div>
-
                       </div>
-                      {m.status === "Done" && (
-                        <div className="flex justify-end gap-3" onClick={()=>handleserved(m)}>
-                          <button className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Served</button>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div> :
@@ -141,8 +151,7 @@ export default function Dashboard() {
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button className="px-4 py-2 border rounded text-sm bg-white hover:bg-gray-50">Cancel</button>
-                <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Accept</button>
+                <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Pay</button>
               </div>
             </div>
           </main>

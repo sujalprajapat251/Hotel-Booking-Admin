@@ -8,6 +8,8 @@ import { setAlert } from '../Redux/Slice/alert.slice';
 import { createCafeTable, deleteCafeTable, getAllCafeTable, updateCafeTable } from '../Redux/Slice/cafeTable.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { io } from 'socket.io-client';
+import { IMAGE_URL } from '../Utils/baseUrl'
 
 const HODTable = () => {
   const dispatch = useDispatch();
@@ -170,6 +172,16 @@ const HODTable = () => {
 
   useEffect(() => {
     dispatch(getAllCafeTable());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    const s = io(IMAGE_URL, { auth: { token, userId } });
+    const refresh = () => dispatch(getAllCafeTable());
+    s.on('cafe_order_changed', refresh);
+    s.on('cafe_table_status_changed', refresh);
+    return () => { s.disconnect(); };
   }, [dispatch]);
 
   const handleDeleteClick = (item) => {

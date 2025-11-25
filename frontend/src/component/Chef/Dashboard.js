@@ -5,6 +5,7 @@ import { IMAGE_URL } from '../../Utils/baseUrl';
 import { getCafeOrderStatus, updateCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { getUserById } from '../../Redux/Slice/user.slice';
+import { io } from 'socket.io-client';
 
 export default function Dashboard() {
 
@@ -13,12 +14,28 @@ export default function Dashboard() {
     const preparingOrder = useSelector((state) => state.chef.preparingOrder);
     const currentUser = useSelector((state) => state.user.currentUser);
     const [selected, setSelected] = useState(null);
-
+    console.log('preparing order', preparingOrder)
     useEffect(() => {
         dispatch(getCafeOrderStatus());
         dispatch(getUserById()); // Get current user details
     }, [dispatch]);
-
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const s = io(IMAGE_URL, { auth: { token, userId } });
+        s.on('cafe_order_changed', () => {
+            dispatch(getCafeOrderStatus());
+        });
+        s.on('cafe_table_status_changed', () => {
+            dispatch(getCafeOrderStatus());
+        });
+        return () => {
+            s.disconnect();
+        };
+    }, [dispatch]);
+    useEffect(() => {
+        setSelected(preparingOrder)
+    }, [preparingOrder])
     useEffect(() => {
         if (data && data.length > 0) {
             const userPreparingItem = data.find(item => item.status === "Preparing" && item.preparedBy === currentUser?._id);
@@ -135,25 +152,25 @@ export default function Dashboard() {
 
     return (
         <>
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-5'>
-                <div className="w-full max-h-screen p-5">
-                    <div className='bg-white rounded-xl shadow-md overflow-hidden'>
-                        <div className="flex items-center justify-between border-b border-gray-200">
-                            <div className="py-3 px-4">
+            <div className='flex flex-col lg:flex-row gap-5'>
+                <div className="w-full xl:w-1/3 max-h-screen p-5">
+                    <div className='  overflow-hidden'>
+                        <div className="flex items-center justify-between">
+                            {/* <div className="py-3 px-4">
                                 <h2 className="text-lg font-semibold text-gray-800">Pending Orders</h2>
-                            </div>
+                            </div> */}
                         </div>
-                        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
-                            <ul className="space-y-2 p-3">
+                        <div className="overflow-x-auto overflow-y-auto lg:p-0 p-4 max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
+                            <ul className="space-y-2 p-3 ">
                                 {data
                                     ?.filter(item => item.status !== "Done" && item.status !== "Served")
                                     .length === 0 ? (
 
                                     <div className="bg-white px-4 py-10 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
-                                            <svg className="w-12 h-12 sm:w-16 sm:h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            {/* <svg className="w-12 h-12 sm:w-16 sm:h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                            </svg>
+                                            </svg> */}
                                             <p className="text-base sm:text-lg font-medium">No pending orders</p>
                                             <p className="text-xs sm:text-sm mt-1">All orders are completed</p>
                                         </div>
@@ -162,29 +179,40 @@ export default function Dashboard() {
                                     data.filter(item => item.status !== "Done" && item.status !== "Served").map((item, index) => (
                                         <li
                                             key={index}
-                                            onClick={() => !isOrderPreparedByAnotherChef(item) && setSelected(item)}
-                                            className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all duration-200 ${selected?._id === item._id
-                                                ? "bg-blue-50 border-blue-300 shadow-sm"
-                                                : isOrderPreparedByAnotherChef(item)
-                                                    ? "bg-gray-100 border-gray-300 opacity-70 cursor-not-allowed"
-                                                    : "bg-white border-[#E3C78A] hover:shadow-sm"
-                                                }`}
+                                            onClick={() => {
+                                                if (!isOrderPreparedByAnotherChef(item) && !preparingOrder) {
+                                                    setSelected(item);
+                                                }
+                                            }}
+                                            className={`flex items-center gap-3 cursor-pointer p-3 rounded border transition-all duration-200 shadow-sm
+                                          ${selected?._id === item._id ? "shadow-xl scale-[105%] bg-white" : ""}
+                                          
+                                          ${preparingOrder
+                                                    ? preparingOrder._id === item._id
+                                                        ? "bg-white"  // the one being prepared stays normal
+                                                        : "opacity-60 cursor-not-allowed" // all others dim
+                                                    : ""
+                                                }
+                                      
+                                          ${isOrderPreparedByAnotherChef(item) ? "opacity-60 cursor-not-allowed" : ""}
+                                          
+                                          ${!preparingOrder &&
+                                                    !isOrderPreparedByAnotherChef(item) &&
+                                                    selected?._id !== item._id
+                                                    ? "bg-white hover:shadow-sm" // normal state when nothing is preparing
+                                                    : ""
+                                                }
+                                        `}
                                         >
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 <div className="relative">
                                                     <img
                                                         src={`${IMAGE_URL}${item?.product?.image}`}
                                                         alt={item.name}
-                                                        className={`w-10 h-10 rounded-lg object-cover border-2 flex-shrink-0 ${isOrderPreparedByAnotherChef(item) 
-                                                            ? "border-gray-400" 
+                                                        className={`w-10 h-10 rounded-lg object-cover border-1 flex-shrink-0 ${isOrderPreparedByAnotherChef(item)
+                                                            ? "border-gray-400"
                                                             : "border-[#E3C78A]"}`}
                                                     />
-                                                    {preparingOrder && preparingOrder._id === item._id && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
-                                                    )}
-                                                    {isOrderPreparedByAnotherChef(item) && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 border-2 border-white"></div>
-                                                    )}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className={`text-sm font-medium truncate ${isOrderPreparedByAnotherChef(item) ? "text-gray-500" : "text-gray-800"}`}>
@@ -212,8 +240,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                 </div>
-                <div className="w-full max-h-screen p-5">
-                    <div className="bg-white rounded-xl shadow-md overflow-hidden h-full flex flex-col">
+                <div className="w-full xl:w-2/3 max-h-screen p-5">
+                    <div className="bg-white  shadow-md overflow-hidden h-full flex flex-col xl:w-1/2 m-auto  rounded  border">
                         <div className="flex items-center justify-between border-b border-gray-200">
                             <div className="py-3 px-4">
                                 <h2 className="text-lg font-semibold text-gray-800">Order Details</h2>
@@ -232,7 +260,7 @@ export default function Dashboard() {
                                             <img
                                                 src={`${IMAGE_URL}${selected?.product?.image}`}
                                                 alt={selected?.product?.name}
-                                                className="w-full h-48 object-cover"
+                                                className="w-full aspect-video object-cover"
                                             />
                                         </div>
                                     )}
@@ -247,7 +275,10 @@ export default function Dashboard() {
                                             <span className="text-gray-600 text-[14px]">From</span>
                                             <span className={`font-semibold capitalize text-[15px] ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.from}</span>
                                         </div>
-
+                                        <div className="flex justify-between items-center pb-1 border-b border-gray-100">
+                                            <span className="text-gray-600 text-[14px]">Table</span>
+                                            <span className={`font-semibold capitalize text-[15px] ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.table?.title}</span>
+                                        </div>
                                         <div className="flex justify-between items-center pb-1 border-b border-gray-100">
                                             <span className="text-gray-600 text-[14px]">Status</span>
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${selected?.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
@@ -262,7 +293,7 @@ export default function Dashboard() {
                                         {/* {selected?.description && ( */}
                                         <div className="pb-1 border-b border-gray-100">
                                             <span className="text-gray-600 block mb-1 text-[14px]">Description</span>
-                                            <p className="text-[#755647]">{selected?.description}</p>
+                                            <p className="text-[#755647] text-xs">{selected?.description}</p>
                                         </div>
                                         {/* )} */}
                                     </div>
