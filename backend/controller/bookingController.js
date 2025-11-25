@@ -71,11 +71,11 @@ const normalizePaymentPayload = (payload = {}) => ({
 });
 
 const ensureRoomAvailability = async ({ roomId, checkInDate, checkOutDate, excludeBookingId }) => {
-    console.log(roomId,"roomId");
-    console.log(checkInDate,"checkInDate");
-    console.log(checkOutDate,"checkOutDate");
-    console.log(excludeBookingId,"excludeBookingId");
-    
+    console.log(roomId, "roomId");
+    console.log(checkInDate, "checkInDate");
+    console.log(checkOutDate, "checkOutDate");
+    console.log(excludeBookingId, "excludeBookingId");
+
     if (!checkInDate || !checkOutDate) {
         return null;
     }
@@ -109,9 +109,9 @@ const createBooking = async (req, res) => {
         const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
-        
-        console.log(roomId,"roomId");
-        
+
+        console.log(roomId, "roomId");
+
 
         if (!roomId) {
             return res.status(400).json({ success: false, message: 'roomId is required' });
@@ -133,8 +133,8 @@ const createBooking = async (req, res) => {
         }
 
         const room = await Room.findById(roomId).select('roomNumber status');
-        console.log(room,"room");
-        
+        console.log(room, "room");
+
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
         }
@@ -145,8 +145,8 @@ const createBooking = async (req, res) => {
             checkOutDate: reservationPayload.checkOutDate
         });
 
-        console.log(overlappingBooking,"overlappingBooking");
-        
+        console.log(overlappingBooking, "overlappingBooking");
+
 
         if (overlappingBooking) {
             return res.status(409).json({
@@ -193,6 +193,65 @@ const createBooking = async (req, res) => {
     }
 };
 
+// const getBookings = async (req, res) => {
+//     try {
+//         const {
+//             roomId,
+//             status,
+//             paymentStatus,
+//             checkInFrom,
+//             checkInTo,
+//             search
+//         } = req.query;
+
+//         const filter = {};
+
+//         if (roomId) filter.room = roomId;
+//         if (status) filter.status = status;
+//         if (paymentStatus) filter['payment.status'] = paymentStatus;
+
+//         if (checkInFrom || checkInTo) {
+//             filter['reservation.checkInDate'] = {};
+//             if (checkInFrom) filter['reservation.checkInDate'].$gte = parseDate(checkInFrom);
+//             if (checkInTo) filter['reservation.checkInDate'].$lte = parseDate(checkInTo);
+//         }
+
+//         if (search) {
+//             const regex = new RegExp(search.trim(), 'i');
+//             filter.$or = [
+//                 { 'guest.fullName': regex },
+//                 { 'guest.email': regex },
+//                 { 'guest.phone': regex },
+//                 { 'reservation.bookingReference': regex },
+//                 { roomNumber: regex }
+//             ];
+//         }
+
+//         // const bookings = await Booking.find(filter)
+//         //     .populate('room', 'roomNumber roomType status floor price')
+//         //     .populate('createdBy', 'fullName email role')
+//         //     .sort({ 'reservation.checkInDate': -1 });
+//         const bookings = await Booking.find(filter)
+//             .populate({
+//                 path: 'room',
+//                 select: 'roomNumber roomType status floor price',
+//                 populate: { path: 'roomType' }
+//             })
+//             .populate('createdBy', 'fullName email role')
+//             .sort({ 'reservation.checkInDate': -1 });
+
+//         res.json({
+//             success: true,
+//             count: bookings.length,
+//             data: bookings.map(formatBooking)
+//         });
+//     } catch (error) {
+//         console.error('getBookings error:', error);
+//         res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
+//     }
+// };
+
+
 const getBookings = async (req, res) => {
     try {
         const {
@@ -201,7 +260,9 @@ const getBookings = async (req, res) => {
             paymentStatus,
             checkInFrom,
             checkInTo,
-            search
+            search,
+            page = 1,      // Add pagination params
+            limit = 10     // Add pagination params
         } = req.query;
 
         const filter = {};
@@ -227,15 +288,33 @@ const getBookings = async (req, res) => {
             ];
         }
 
+        // Calculate pagination
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Get total count for pagination
+        const totalCount = await Booking.countDocuments(filter);
+
+        // Fetch paginated bookings
         const bookings = await Booking.find(filter)
-            .populate('room', 'roomNumber roomType status floor price')
+            .populate({
+                path: 'room',
+                select: 'roomNumber roomType status floor price',
+                populate: { path: 'roomType' }
+            })
             .populate('createdBy', 'fullName email role')
-            .sort({ 'reservation.checkInDate': -1 });
+            .sort({ createdAt: -1 }) // Sort by latest first
+            .skip(skip)
+            .limit(limitNum);
 
         res.json({
             success: true,
-            count: bookings.length,
-            data: bookings.map(formatBooking)
+            data: bookings.map(formatBooking),
+            totalCount,
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalCount / limitNum),
+            count: bookings.length
         });
     } catch (error) {
         console.error('getBookings error:', error);
@@ -352,7 +431,7 @@ const updateBooking = async (req, res) => {
         if (req.body.status) {
             booking.status = req.body.status;
         }
-        
+
 
         if (req.body.notes !== undefined || req.body.additionalNotes !== undefined) {
             booking.notes = req.body.notes ?? req.body.additionalNotes;
@@ -360,18 +439,18 @@ const updateBooking = async (req, res) => {
 
         await booking.save();
 
-        console.log("booking0",booking);
-        
+        console.log("booking0", booking);
+
 
         await refreshRoomStatus(booking.room);
         if (roomChanged && originalRoomId) {
             await refreshRoomStatus(originalRoomId);
         }
 
-            const populated = await booking.populate([
-                { path: 'room', select: 'roomNumber roomType status capacity price' },
-                { path: 'createdBy', select: 'fullName email role' }
-            ]);
+        const populated = await booking.populate([
+            { path: 'room', select: 'roomNumber roomType status capacity price' },
+            { path: 'createdBy', select: 'fullName email role' }
+        ]);
 
         res.json({
             success: true,
