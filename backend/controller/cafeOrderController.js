@@ -173,7 +173,7 @@ exports.addItemToTableOrder = async (req, res) => {
     try {
         const { product, qty, description, name, contact } = req.body;
         const { tableId } = req.params;
-        
+
         if (!product) {
             return res.status(400).json({ status: 400, message: "Product is required" });
         }
@@ -232,8 +232,8 @@ exports.getAllCafeItemsOrders = async (req, res) => {
 
 exports.getAllOrderItemsStatus = async (req, res) => {
     try {
-        const{status} =req.params;
-        const orders = await cafeOrder.find({status : status}).populate("table")
+        const { status } = req.params;
+        const orders = await cafeOrder.find({ status: status }).populate("table")
             .populate("room")
             .populate("items.product")
 
@@ -244,12 +244,12 @@ exports.getAllOrderItemsStatus = async (req, res) => {
                 product: item.product,
                 qty: item.qty,
                 description: item.description || '',
-                status: item.status,   
+                status: item.status,
                 from: order.from,
                 table: order.table,
                 room: order.room,
                 createdAt: order.createdAt,
-                _id:item._id
+                _id: item._id
             }))
         );
 
@@ -276,12 +276,12 @@ exports.getAllOrderItems = async (req, res) => {
                 product: item.product,
                 qty: item.qty,
                 description: item.description || '',
-                status: item.status,   
+                status: item.status,
                 from: order.from,
                 table: order.table,
                 room: order.room,
                 createdAt: order.createdAt,
-                _id:item._id
+                _id: item._id
             }))
         );
 
@@ -332,14 +332,14 @@ exports.UpdateOrderItemStatus = async (req, res) => {
         // If moving from Pending to Preparing, check if there are already items being prepared
         if (currentStatus === "Pending" && newStatus === "Preparing") {
             // Check if there are any items in Preparing status across all orders
-            const ordersWithPreparingItems = await cafeOrder.find({ 
-                "items.status": "Preparing" 
+            const ordersWithPreparingItems = await cafeOrder.find({
+                "items.status": "Preparing"
             });
-            
+
             const preparingItemsCount = ordersWithPreparingItems.reduce((count, order) => {
                 return count + order.items.filter(item => item.status === "Preparing").length;
             }, 0);
-            
+
             if (preparingItemsCount > 0) {
                 return res.status(400).json({
                     status: 400,
@@ -395,9 +395,9 @@ exports.cafePayment = async (req, res) => {
             },
             { new: true }
         )
-        .populate("table")
-        .populate("room")
-        .populate("items.product");
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
 
         if (!updatedOrder) {
             return res.status(404).json({
@@ -420,3 +420,21 @@ exports.cafePayment = async (req, res) => {
         });
     }
 };
+
+exports.getAllCafeunpaid = async (req, res) => {
+    try {
+        const orders = await cafeOrder.find({ payment: "Pending" }).sort({ createdAt: -1 })
+            .populate("items")
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+            
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+}

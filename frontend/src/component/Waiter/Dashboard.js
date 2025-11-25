@@ -47,14 +47,7 @@ export default function Dashboard() {
         <div className="block gap-5 md:flex">
           {/* Left column */}
           <aside className="w-full md:w-[30%]">
-            {/* <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full pl-10 pr-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div> */}
+          
             <div className="space-y-2 mb-6 md:space-y-3">
               {orders.map((o) => {
                 const doneCount = o?.lastUnpaidOrder?.items?.filter(i => i.status === "Done").length || 0;
@@ -99,13 +92,14 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
                         <div className="text-sm font-medium">₹{m.product.price}.00</div>
-
                       </div>
-                      {m.status === "Done" && (
+                      {m.status === "Done" ?(
                         <div className="flex justify-end gap-3" onClick={()=>handleserved(m)}>
                           <button className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Served</button>
                         </div>
-                      )}
+                      ):
+                      <p className="ms-auto text-gray-500 text-sm text-end">{m.status}</p>
+                    }
 
                     </div>
                   ))}
@@ -116,7 +110,6 @@ export default function Dashboard() {
                 }
 
               </div>
-
               <div className="flex items-center justify-between mt-4 py-3">
                 <div className="font-semibold">Total</div>
                 <div className="font-semibold">₹ {total}</div>

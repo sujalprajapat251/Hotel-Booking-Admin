@@ -50,7 +50,7 @@ const { createCafeTable, getCafeTables, getCafeTableById, updateCafeTable, delet
 const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
 const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
-const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment } = require('../controller/cafeOrderController');
+const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment, getAllCafeunpaid } = require('../controller/cafeOrderController');
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
@@ -235,4 +235,5 @@ indexRoutes.post('/CafeItemStatus', UpdateOrderItemStatus);
 indexRoutes.post('/cafe/tables/:tableId/order/items', addItemToTableOrder)
 indexRoutes.delete('/cafe/orders/:id/items/:itemId', removeItemFromOrder)
 indexRoutes.post('/cafePayment/:orderId',cafePayment)
+indexRoutes.get('/cafeUnpaidOrder',getAllCafeunpaid)
 module.exports = indexRoutes;

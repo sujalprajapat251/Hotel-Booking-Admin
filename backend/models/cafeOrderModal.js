@@ -55,7 +55,6 @@ const cafeOrderSchema = new mongoose.Schema({
     },
     paymentMethod:{
         type: String,
-        enum: ['Pending', 'Paid'],
     }
 }, { timestamps: true });
 
