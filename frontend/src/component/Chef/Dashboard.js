@@ -152,6 +152,8 @@ export default function Dashboard() {
 
     return (
         <>
+        <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
             <div className='flex flex-col lg:flex-row gap-5'>
                 <div className="w-full xl:w-1/3 max-h-screen p-5">
                     <div className='  overflow-hidden'>
@@ -160,7 +162,7 @@ export default function Dashboard() {
                                 <h2 className="text-lg font-semibold text-gray-800">Pending Orders</h2>
                             </div> */}
                         </div>
-                        <div className="overflow-x-auto overflow-y-auto lg:p-0 p-4 max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
+                        <div className="overflow-x-auto overflow-y-auto lg:p-0 max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
                             <ul className="space-y-2 p-3 ">
                                 {data
                                     ?.filter(item => item.status !== "Done" && item.status !== "Served")
@@ -343,6 +345,7 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+        </div>
         </>
     );
 }
