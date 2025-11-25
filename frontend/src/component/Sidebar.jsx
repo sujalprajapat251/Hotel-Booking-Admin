@@ -249,7 +249,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
 const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {
   const authState = useSelector((state) => state.auth);
   const user = authState?.user || null;
-  const userRole = user?.role || 'user';
+  const userRole = user?.designation || 'user';
 
   const sections = userRole === 'admin' ? adminSections : receptionistSections;
   const containerClasses = [

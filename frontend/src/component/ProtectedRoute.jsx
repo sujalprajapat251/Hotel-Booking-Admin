@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return <Navigate to="/" replace />;
   }
 
-  const userRole = user.role || "user";
+  const userRole = user.designation || "user";
 
   // If no role restrictions, redirect based on user role
   if (allowedRoles.length === 0) {

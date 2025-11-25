@@ -49,10 +49,14 @@ const LoginPage = () => {
                 .then((response) => {
                     if (response.meta?.requestStatus === "fulfilled") {
                         // Check user role and navigate accordingly
-                        const userRole = response.payload?.user?.role || 'user';
+                        const userRole = response.payload?.user?.designation || 'user';
                         if (userRole === 'admin') {
                             navigate("/dashboard");
-                        } else {
+                        }
+                        else if(userRole === 'Waiter'){
+                            navigate("/waiter/dashboard")
+                        }
+                        else {
                             // Receptionist or user role - go to booking dashboard
                             navigate("/booking-dashboard");
                         }

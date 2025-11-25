@@ -25,7 +25,7 @@ export const login = createAsyncThunk(
     'auth/login',
     async (credentials, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(`${BASE_URL}/userLogin`, credentials,{ withCredentials: true });
+            const response = await axios.post(`${BASE_URL}/adminLogin`, credentials,{ withCredentials: true });
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('userId', response.data.user._id);
             dispatch(setAlert({ text: response.data.message, color: 'success' }));
@@ -42,7 +42,7 @@ export const forgotPassword = createAsyncThunk(
     'auth/forgotPassword',
     async (email, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(`${BASE_URL}/forgotPassword`, { email });
+            const response = await axios.post(`${BASE_URL}/adminforgotPassword`, { email });
             if (response.status === 200) {
                 dispatch(setAlert({ text: response.data.message, color: 'success' }));
                 return response.data;
@@ -57,7 +57,7 @@ export const verifyOtp = createAsyncThunk(
     'auth/verifyOtp',
     async ({ email, otp }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(`${BASE_URL}/verifyOtp`, { email, otp });
+            const response = await axios.post(`${BASE_URL}/adminverifyOtp`, { email, otp });
             if (response.status === 200) {
                 dispatch(setAlert({ text: response.data.message, color: 'success' }));
                 return response.data;
@@ -72,7 +72,7 @@ export const resendOtp = createAsyncThunk(
     'auth/resendOtp',
     async (email, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(`${BASE_URL}/resendOtp`, { email });
+            const response = await axios.post(`${BASE_URL}/adminresendOtp`, { email });
             if (response.status === 200) {
                 dispatch(setAlert({ text: response.data.message, color: 'success' }));
                 return response.data;
@@ -87,7 +87,7 @@ export const resetPassword = createAsyncThunk(
     'auth/resetPassword',
     async ({ email, newPassword }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(`${BASE_URL}/resetpassword`, { email, newPassword });
+            const response = await axios.post(`${BASE_URL}/adminresetpassword`, { email, newPassword });
             if (response.status === 200) {
                 dispatch(setAlert({ text: response.data.message, color: 'success' }));
                 return response.data;
@@ -103,7 +103,7 @@ export const changePassword = createAsyncThunk(
     async ({ oldPassword, newPassword, confirmPassword }, { dispatch, rejectWithValue }) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.put(`${BASE_URL}/changepassword`, { oldPassword, newPassword, confirmPassword },
+            const response = await axios.put(`${BASE_URL}/adminchangepassword`, { oldPassword, newPassword, confirmPassword },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`

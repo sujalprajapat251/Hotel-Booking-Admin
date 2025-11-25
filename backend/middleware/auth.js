@@ -1,4 +1,4 @@
-const User = require('../models/userModel')
+const Staff = require('../models/staffModel')
 const jwt = require('jsonwebtoken')
 
 exports.auth = async (req, res, next) => {
@@ -14,7 +14,7 @@ exports.auth = async (req, res, next) => {
 
             let checkToken = jwt.verify(token, process.env.SECRET_KEY)
 
-            let checkUser = await User.findById(checkToken)
+            let checkUser = await Staff.findById(checkToken)
 
             if (!checkUser) {
                 return res.status(401).json({ status: 401, message: "User Not Found" })
@@ -34,7 +34,8 @@ exports.auth = async (req, res, next) => {
 }
 
 exports.adminOnly = (req, res, next) => {
-    if (req.user.role !== "admin") {
+    console.log(req.user)
+    if (req.user.designation !== "admin") {
         return res.status(403).json({
             status: 403,
             message: "Access denied! Admin only"

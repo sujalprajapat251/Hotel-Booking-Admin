@@ -20,8 +20,10 @@ const BASE_DESIGNATIONS = [
 ];
 
 const DEPARTMENT_DESIGNATION_MAP = {
-  Cafe: ['Cook', 'Waiter'],
-  Transport: ['Driver']
+  Cafe: ['Chef', 'Waiter','Accountant'],
+  Transport: ['Driver'],
+  Restaurant :['Chef', 'Waiter','Accountant'],
+  Bar :['Chef', 'Waiter','Accountant']
 };
 
 const StaffForm = () => {
