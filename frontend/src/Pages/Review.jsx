@@ -1,159 +1,50 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AiFillStar } from "react-icons/ai";
-import { RiDeleteBinLine } from "react-icons/ri";
-import { FiEdit } from "react-icons/fi";
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { setAlert } from '../Redux/Slice/alert.slice';
+import { getAllReview } from "../Redux/Slice/review.slice";
+import { IMAGE_URL } from '../Utils/baseUrl';
+import userImg from "../Images/user.png";
 
 const Review = () => {
- 	const dispatch = useDispatch();
+	const dispatch = useDispatch();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [itemsPerPage, setItemsPerPage] = useState(4);
 	const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+	const [imageUrl, setImageUrl] = useState(userImg);
+
+	const { currentUser, loading, success, message } = useSelector(
+		(state) => state.user
+	);
+
+	useEffect(() => {
+		if (currentUser && currentUser.photo) {
+			setImageUrl(IMAGE_URL + currentUser.photo);
+		} else {
+			setImageUrl(userImg);
+		}
+	}, [currentUser]);
+
 	const [visibleColumns, setVisibleColumns] = useState({
 		No: true,
-		Room: true,
-		Reviewer: true,
-		Review: true,
-		Date: true,
-		Status: true,
-		Actions: true
+		Type: true,
+		User: true,
+		Title: true,
+		CreatedAt: true,
 	});
 	const dropdownRef = useRef(null);
 
-	const bookings = [
-		{
-			id: 1,
-			name: "Liam Carter",
-			email: "liam.carter@example.com",
-			arrival: "14-03-2022",
-			review: "Very peaceful stay and excellent service.",
-			gender: "Published",
-			mobile: "9876543210",
-			room: "Executive Suite",
-			payment: "Paid",
-			image: "https://i.pravatar.cc/40?img=5",
-			rating: 4,
-			reviewTitle: "Great Experience!",
-			reviewText: "I really enjoyed the stay here. The staff was helpful and the room was clean. Highly recommended!"
-		},
-		{
-			id: 2,
-			name: "Sophia Reed",
-			email: "sophia.reed@example.com",
-			arrival: "21-08-2020",
-			review: "Good room but service was slow.",
-			gender: "Pending",
-			mobile: "9090909090",
-			room: "Luxury King",
-			payment: "Unpaid",
-			image: "https://i.pravatar.cc/40?img=9",
-			rating: 3,
-			reviewTitle: "Decent Stay",
-			reviewText: "The room was great but the food service took a long time. Needs improvement."
-		},
-		{
-			id: 3,
-			name: "Nathan Brooks",
-			email: "nathan.brooks@example.com",
-			arrival: "10-01-2019",
-			review: "Amazing location and beautiful views.",
-			gender: "Pending",
-			mobile: "9988776655",
-			room: "Ocean View",
-			payment: "Unpaid",
-			image: "https://i.pravatar.cc/40?img=8",
-			rating: 5,
-			reviewTitle: "Loved It!",
-			reviewText: "The view from the balcony was incredible. I would stay here again for sure."
-		},
-		{
-			id: 4,
-			name: "Clara Jensen",
-			email: "clara.jensen@example.com",
-			arrival: "05-07-2023",
-			review: "Staff were friendly and helpful.",
-			gender: "Published",
-			mobile: "8765432109",
-			room: "Premium Deluxe",
-			payment: "Paid",
-			image: "https://i.pravatar.cc/40?img=15",
-			rating: 4,
-			reviewTitle: "Very Good",
-			reviewText: "Comfortable room and good food. I really liked the cleanliness of the property."
-		},
-		{
-			id: 5,
-			name: "Oliver Shaw",
-			email: "oliver.shaw@example.com",
-			arrival: "18-09-2021",
-			review: "Quiet environment and good ambience.",
-			gender: "Published",
-			mobile: "9123456789",
-			room: "Business Class",
-			payment: "Paid",
-			image: "https://i.pravatar.cc/40?img=16",
-			rating: 5,
-			reviewTitle: "Outstanding!",
-			reviewText: "Everything was perfect—from check-in to check-out. A very refreshing experience."
-		},
-		{
-			id: 6,
-			name: "Emily Stone",
-			email: "emily.stone@example.com",
-			arrival: "27-04-2020",
-			review: "Food quality can be improved.",
-			gender: "Pending",
-			mobile: "7001234567",
-			room: "Superior Twin",
-			payment: "Unpaid",
-			image: "https://i.pravatar.cc/40?img=21",
-			rating: 2,
-			reviewTitle: "Not Satisfied",
-			reviewText: "The room was good but the food didn’t meet expectations. Hoping they improve it."
-		},
-		{
-			id: 7,
-			name: "Henry Walsh",
-			email: "henry.walsh@example.com",
-			arrival: "30-11-2019",
-			review: "Good place for family stay.",
-			gender: "Pending",
-			mobile: "8654321900",
-			room: "Family Suite",
-			payment: "Unpaid",
-			image: "https://i.pravatar.cc/40?img=23",
-			rating: 4,
-			reviewTitle: "Comfortable Stay",
-			reviewText: "My family loved the stay. Spacious room and friendly service. Worth the price."
-		},
-		{
-			id: 8,
-			name: "Zara Mitchell",
-			email: "zara.mitch@example.com",
-			arrival: "19-02-2024",
-			review: "Loved the interior and facilities.",
-			gender: "Published",
-			mobile: "8080808080",
-			room: "Royal Suite",
-			payment: "Paid",
-			image: "https://i.pravatar.cc/40?img=25",
-			rating: 5,
-			reviewTitle: "Absolutely Wonderful",
-			reviewText: "Everything exceeded expectations. From decor to cleanliness—fantastic stay!"
-		}
-	];
+	const getReview = useSelector((state) => state.review.reviews);
+
 
 	// Add filtering logic search functionallty
-	const filteredBookings = bookings.filter(staff =>
-		staff.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.room.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.reviewTitle.includes(searchQuery) ||
-		staff.reviewText.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.arrival.toLowerCase().includes(searchQuery.toLowerCase())
+	const filteredBookings = getReview.filter(staff =>
+		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.comment.includes(searchQuery)
 	);
 
 	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
@@ -179,26 +70,37 @@ const Review = () => {
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, []);
 
-	const ratingBreakdown = [
-		{ stars: 5, count: 90 },
-		{ stars: 4, count: 21 },
-		{ stars: 3, count: 30 },
-		{ stars: 2, count: 14 },
-		{ stars: 1, count: 9 },
-	];
 
+	// Calculate rating breakdown from actual review data
+	const calculateRatingBreakdown = (reviews) => {
+		const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+		reviews.forEach(review => {
+			const rating = review.rating;
+			if (rating >= 1 && rating <= 5) {
+				breakdown[rating]++;
+			}
+		});
+
+		return [
+			{ stars: 5, count: breakdown[5] },
+			{ stars: 4, count: breakdown[4] },
+			{ stars: 3, count: breakdown[3] },
+			{ stars: 2, count: breakdown[2] },
+			{ stars: 1, count: breakdown[1] },
+		];
+	};
+
+	const ratingBreakdown = calculateRatingBreakdown(getReview);
 	const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
 
-	const getStatusStyle = (status) => {
-		switch (status) {
-			case 'Published':
-				return 'border border-green-500 text-green-600 bg-green-50';
-			case 'Pending':
-				return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
-			default:
-				return 'border border-gray-500 text-gray-600 bg-gray-50';
-		}
+	const calculateAverage = (reviews) => {
+		if (reviews.length === 0) return 0;
+		const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+		return (sum / reviews.length).toFixed(1);
 	};
+
+	const averageRating = calculateAverage(getReview);
 
 	const renderStars = (count) => {
 		return (
@@ -212,19 +114,14 @@ const Review = () => {
 		);
 	};
 
-	const handleRemoveReview = (item) => {
-		dispatch(setAlert({ text: `Removing review of ${item.name}`, color: 'success' }));
-		// filteredBookings = filteredBookings.filter(booking => booking.id !== item.id);
-	}
+	const formatDate = (isoDate) => {
+		const date = new Date(isoDate);
+		const day = String(date.getDate()).padStart(2, "0");
+		const month = String(date.getMonth() + 1).padStart(2, "0");
+		const year = date.getFullYear();
 
-	const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return dateString.replace(/-/g, '/');
-    };
+		return `${day}-${month}-${year}`;
+	};
 
 	const handleDownloadExcel = () => {
 		try {
@@ -234,29 +131,26 @@ const Review = () => {
 				return;
 			}
 			// Prepare data for Excel
-			const excelData = filteredBookings.map((user, index) => {
+			const excelData = filteredBookings.map((item, index) => {
 				const row = {};
 
 				if (visibleColumns.No) {
 					row['No.'] = startIndex + index + 1; // Use correct numbering
 				}
-				if (visibleColumns.Room) {
-					row['Room'] = user.room || '';
+				if (visibleColumns.Type) {
+					row['Type'] = item?.reviewType === "room" ? item?.roomId?.roomType?.roomType : item?.reviewType || '';
 				}
-				if (visibleColumns.Reviewer) {
-					row['Reviewer'] = user.name || '';
+				if (visibleColumns.User) {
+					row['Reviewer'] = item.userId.name || '';
 				}
-				if (!visibleColumns.reviewText) {
-					row['ReviewText'] = user.reviewText || '';
+				if (visibleColumns.Title) {
+					row['ReviewText'] = item.title || '';
 				}
-				if (!visibleColumns.reviewTitle) {
-					row['ReviewTitle'] = user.reviewTitle || '';
+				if (visibleColumns.Title) {
+					row['ReviewTitle'] = item.comment || '';
 				}
-				if (visibleColumns.Date) {
-					row['Date'] = formatDate(user.arrival) || '';
-				}
-				if (visibleColumns.Status) {
-					row['Status'] = user.gender || '';
+				if (visibleColumns.CreatedAt) {
+					row['Date'] = formatDate(item.createdAt) || '';
 				}
 
 				return row;
@@ -286,10 +180,14 @@ const Review = () => {
 	};
 
 	const handleRefresh = () => {
-		// dispatch(getAllReview());
+		dispatch(getAllReview());
 		setSearchQuery("");
 		setCurrentPage(1);
 	};
+
+	useEffect(() => {
+		dispatch(getAllReview());
+	}, [dispatch]);
 
 	return (
 		<section className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -300,32 +198,20 @@ const Review = () => {
 				<div className="flex flex-col md:flex-row gap-6 w-full md:w-1/2">
 					<div className="flex items-center flex-col">
 						<img
-							src="https://i.pravatar.cc/54?img=47"
+							src={imageUrl}
 							alt="user"
 							className="w-20 h-20 rounded-full object-cover"
+							onError={(e) => (e.target.src = userImg)}
 						/>
 
-						<h2 className="text-lg font-semibold text-gray-800">Ella Jones</h2>
+						<h2 className="text-lg font-semibold text-gray-800 capitalize">{currentUser?.name || 'No Name'}</h2>
 
 						<div className="flex items-center gap-2 text-sm text-gray-700">
-							<span className="font-bold text-lg">4.1</span>
+							<span className="font-bold text-lg">{averageRating}</span>
 							<AiFillStar className="text-yellow-400" />
 							<a href="#" className="text-black underline">
 								({totalReviews} reviews)
 							</a>
-						</div>
-					</div>
-
-					<div className="space-y-3">
-						<div className="space-y-2">
-							{["Communication", "Pricing", "Amazing Staff", "Food quality"].map((item, idx) => (
-								<div key={idx} className="flex gap-3 items-center">
-									<div className="flex text-yellow-400">
-										<AiFillStar /> <AiFillStar /> <AiFillStar /> <AiFillStar /> <AiFillStar />
-									</div>
-									<span className="text-sm text-gray-700">{item}</span>
-								</div>
-							))}
 						</div>
 					</div>
 				</div>
@@ -428,23 +314,17 @@ const Review = () => {
 								{visibleColumns.No && (
 									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
 								)}
-								{visibleColumns.Room && (
-									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Rooms</th>
+								{visibleColumns.Type && (
+									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Type</th>
 								)}
-								{visibleColumns.Reviewer && (
+								{visibleColumns.User && (
 									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Reviewer</th>
 								)}
-								{visibleColumns.Review && (
+								{visibleColumns.Title && (
 									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Review</th>
 								)}
-								{visibleColumns.Date && (
+								{visibleColumns.CreatedAt && (
 									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
-								)}
-								{visibleColumns.Status && (
-									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Status</th>
-								)}
-								{visibleColumns.Actions && (
-									<th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Actions</th>
 								)}
 							</tr>
 						</thead>
@@ -469,61 +349,59 @@ const Review = () => {
 											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
 										)}
 
-										{visibleColumns.Room && (
+										{visibleColumns.Type && (
 											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-												{item.room}
+												{item?.reviewType === "room" ? item?.roomId?.roomType?.roomType : item?.reviewType}
 											</td>
 										)}
 
-										{visibleColumns.Reviewer && (
+										{visibleColumns.User && (
 											<td className="px-5 py-2 md600:py-3 lg:px-6">
 												<div className="flex items-center gap-3">
-													<img
-														src={item.image}
-														alt={item.name}
-														className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-													/>
-													<span className="text-sm font-medium text-gray-800">{item.name}</span>
+													{item.photo ? (
+														<img src={`${IMAGE_URL}/photo/${item.photo}`}
+															alt={item.userId.name}
+															className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+														/>
+													) : (
+														<div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
+															{(() => {
+																if (item.userId.name) {
+																	const words = item.userId.name.trim().split(/\s+/);
+																	if (words.length >= 2) {
+																		return words[0][0] + words[1][0];
+																	} else {
+																		return words[0][0];
+																	}
+																}
+																return "";
+															})()}
+														</div>
+													)}
+													<span className="text-sm font-medium text-gray-800">{item.userId.name}</span>
 												</div>
 											</td>
 										)}
 
-										{visibleColumns.Review && (
+										{visibleColumns.Title && (
 											<td className="px-5 py-2 md600:py-3 lg:px-6">
 												<div className="flex flex-col gap-1">
 													<div className="flex items-center justify-between">
 														{renderStars(item.rating)}
 													</div>
 													<h4 className="text-sm font-semibold text-gray-900">
-														{item.reviewTitle}
+														{item.title}
 													</h4>
 													<p className="text-sm text-gray-600 leading-relaxed whitespace-normal">
-														{item.reviewText}
+														{item.comment}
 													</p>
 												</div>
 											</td>
 										)}
 
-										{visibleColumns.Date && (
+										{visibleColumns.CreatedAt && (
 											<td className="px-4 py-3 text-sm text-gray-700 whitespace-nowrap">
-												{item.arrival}
-											</td>
-										)}
-
-										{visibleColumns.Status && (
-											<td className="px-5 py-2 md600:py-3 lg:px-6">
-												<span className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold ${getStatusStyle(item.gender)}`}>
-													{item.gender}
-												</span>
-											</td>
-										)}
-
-										{visibleColumns.Actions && (
-											<td className="px-5 py-2 md600:py-3 lg:px-6">
-												<div className="mv_table_action flex">
-													<div className="cursor-pointer"><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-													<div className="cursor-pointer" onClick={() => handleRemoveReview(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-												</div>
+												{formatDate(item.createdAt)}
 											</td>
 										)}
 									</tr>
