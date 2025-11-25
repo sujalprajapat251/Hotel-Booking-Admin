@@ -28,7 +28,7 @@ const createReview = async (req, res) => {
         }
         return res.status(201).json({
             success: true,
-            message: 'Review created successfully',
+            message: 'Review submit successfully..!',
             data: savedReview
         });
     } catch (error) {
@@ -40,7 +40,7 @@ const createReview = async (req, res) => {
     }
 };
 
-// Get all reviews (optionally filtered by reviewType or roomId)
+// Get all reviews 
 const getAllReviews = async (req, res) => {
     try {
         const { reviewType, roomId } = req.query;
@@ -55,8 +55,17 @@ const getAllReviews = async (req, res) => {
         }
 
         const reviews = await Review.find(filter)
-            .populate('userId')
-            .populate('roomId');
+            .populate({
+                path: "userId",
+                select: "name email photo"
+            })
+            .populate({
+                path: "roomId",
+                populate: {
+                    path: "roomType",        
+                    model: "roomType",
+                }
+            });
 
         return res.status(200).json({
             success: true,
