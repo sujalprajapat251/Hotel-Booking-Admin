@@ -253,13 +253,13 @@ const HODHistory = () => {
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB] h-full' >
-        <p className=' text-[20px] font-semibold text-senary '>Cafe Order</p>
+        <p className='text-[20px] font-semibold text-black'>History</p>
         <div className="w-full mt-3 md:mt-5">
           <div className="bg-white rounded-lg shadow-md">
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                <p className="text-[16px] font-semibold text-senary text-nowrap content-center">Cafe Order</p>
+              <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">History</p>
 
                 {/* Search Bar */}
                 <div className="relative  max-w-md">
@@ -608,14 +608,14 @@ const HODHistory = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="flex justify-end px-6 py-4 border-t border-gray-200">
+            {/* <div className="flex justify-end px-6 py-4 border-t border-gray-200">
               <button
                 onClick={handleCloseModal}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
               >
                 Close
               </button>
-            </div>
+            </div> */}
           </div>
         </div>
       )}

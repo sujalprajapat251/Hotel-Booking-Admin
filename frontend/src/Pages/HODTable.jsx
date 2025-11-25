@@ -213,16 +213,13 @@ const HODTable = () => {
 
   return (
     <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Cafe Table Management</h1>
-        <p className="text-gray-600 mt-2">Manage Cafe Table and seating arrangements</p>
-      </div>
+      <p className='text-[20px] font-semibold text-black'>Table Management</p>
       <div className="w-full mt-3 md:mt-5">
         <div className="bg-white rounded-lg shadow-md">
           {/* Header */}
           <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-              <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Cafe Table Management</p>
+              <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Table Management</p>
 
               {/* Search Bar */}
               <div className="relative max-w-md">
