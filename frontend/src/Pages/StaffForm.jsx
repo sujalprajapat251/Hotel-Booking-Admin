@@ -1,12 +1,28 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Upload, Calendar, ChevronDown, X } from 'lucide-react';
+import { Upload, ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { createStaff, getAllStaff, updateStaff } from '../Redux/Slice/staff.slice';
 import { getAllDepartment } from '../Redux/Slice/department.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
+
+const BASE_DESIGNATIONS = [
+  'Manager',
+  'Supervisor',
+  'Executive',
+  'Assistant',
+  'Coordinator',
+  'Officer',
+  'Staff',
+  'Intern'
+];
+
+const DEPARTMENT_DESIGNATION_MAP = {
+  Cafe: ['Cook', 'Waiter'],
+  Transport: ['Driver']
+};
 
 const StaffForm = () => {
   const location = useLocation();
@@ -21,29 +37,20 @@ const StaffForm = () => {
   const [showDepartmentDropdown, setShowDepartmentDropdown] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const [showCountryCodeDropdown, setShowCountryCodeDropdown] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [showDesignationDropdown, setShowDesignationDropdown] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDepartmentName, setSelectedDepartmentName] = useState('');
 
   const departmentRef = useRef(null);
   const genderRef = useRef(null);
+  const designationRef = useRef(null);
   const countryCodeRef = useRef(null);
   const calendarRef = useRef(null);
   const fileInputRef = useRef(null);
 
   const genders = ['Male', 'Female', 'Other'];
 
-  const designations = [
-    'Manager',
-    'Supervisor',
-    'Executive',
-    'Assistant',
-    'Coordinator',
-    'Officer',
-    'Staff',
-    'Intern'
-  ];
 
   const countryCodes = [
     { code: '+1', country: 'USA' },
@@ -192,6 +199,18 @@ const StaffForm = () => {
     }
   });
 
+  const resolvedDepartmentName = useMemo(() => {
+    if (selectedDepartmentName) return selectedDepartmentName;
+    const matchedDept = departments?.find((dept) => dept._id === formik.values.department);
+    return matchedDept?.name || '';
+  }, [departments, formik.values.department, selectedDepartmentName]);
+
+  const designationOptions = useMemo(() => {
+    const specific = DEPARTMENT_DESIGNATION_MAP[resolvedDepartmentName] || [];
+    const combined = [...specific, 'Head of Department'];
+    return [...new Set(combined)];
+  }, [resolvedDepartmentName]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -206,7 +225,6 @@ const StaffForm = () => {
 
   const handleDateSelect = (date) => {
     formik.setFieldValue('joiningDate', date);
-    setShowCalendar(false);
   };
 
   const handleSubmit = (e) => {
@@ -245,8 +263,8 @@ const StaffForm = () => {
       if (countryCodeRef.current && !countryCodeRef.current.contains(event.target)) {
         setShowCountryCodeDropdown(false);
       }
-      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-        setShowCalendar(false);
+      if (designationRef.current && !designationRef.current.contains(event.target)) {
+        setShowDesignationDropdown(false);
       }
     };
 
@@ -350,7 +368,9 @@ const StaffForm = () => {
                                   formik.setFieldValue('department', dept._id);
                                   setSelectedDepartmentName(dept.name);
                                   setShowDepartmentDropdown(false);
-                                }}
+                                formik.setFieldValue('designation', '');
+                                setShowDesignationDropdown(false);
+                              }}
                                 className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
                               >
                                 {dept.name}
@@ -366,18 +386,42 @@ const StaffForm = () => {
                       )}
                     </div>
 
-                    <div className="relative">
+                    <div className="relative" ref={designationRef}>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Designation *</label>
-                      <input
-                        type="text"
-                        name="designation"
-                        value={formik.values.designation}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder="Enter designation"
-                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.designation && formik.errors.designation ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!formik.values.department) return;
+                          setShowDesignationDropdown(!showDesignationDropdown);
+                        }}
+                        className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.designation && formik.errors.designation ? 'border-red-500' : 'border-gray-300'} ${!formik.values.department ? 'cursor-not-allowed opacity-60' : ''}`}
+                        disabled={!formik.values.department}
+                      >
+                        <span className={formik.values.designation ? 'text-gray-800' : 'text-gray-400'}>
+                          {formik.values.designation || (formik.values.department ? 'Select designation' : 'Select department first')}
+                        </span>
+                        <ChevronDown size={18} className="text-gray-600" />
+                      </button>
+                      {showDesignationDropdown && (
+                        <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                          {designationOptions.length > 0 ? (
+                            designationOptions.map((designation) => (
+                              <div
+                                key={designation}
+                                onClick={() => {
+                                  formik.setFieldValue('designation', designation);
+                                  setShowDesignationDropdown(false);
+                                }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {designation}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-4 py-2 text-sm text-gray-500">No designations available</div>
+                          )}
+                        </div>
+                      )}
                       {formik.touched.designation && formik.errors.designation && (
                         <div className="text-red-500 text-xs mt-1">{formik.errors.designation}</div>
                       )}

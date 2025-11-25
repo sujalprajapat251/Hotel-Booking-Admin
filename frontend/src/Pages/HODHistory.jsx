@@ -75,10 +75,12 @@ const HODHistory = () => {
     switch (status) {
       case 'Paid':
         return 'border border-green-500 text-green-600 bg-green-50';
+      case 'Unpaid':
+        return 'border border-red-500 text-red-600 bg-red-50';
       case 'Pending':
         return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
       default:
-        return 'border border-red-500 text-red-600 bg-red-50';
+        return 'border border-gray-500 text-gray-600 bg-gray-50';
     }
   };
 
@@ -386,7 +388,7 @@ const HODHistory = () => {
                         )}
                         {visibleColumns.payment && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
-                            <span className={`inline-block px-4 py-1.5 rounded-[4px] text-xs font-bold ${getStatusStyle(order?.payment)}`}>
+                            <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(order?.payment)}`}>
                               {order?.payment || 'Pending'}
                             </span></td>
                         )}
