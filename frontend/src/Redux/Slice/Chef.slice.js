@@ -87,14 +87,6 @@ const chefSlice = createSlice({
                 state.message = 'user fetched successfully';
                 state.users = action.payload;
                 state.isError = false;
-                
-                // Check if there's already an order being prepared
-                if (!state.preparingOrder && action.payload) {
-                    const preparingItem = action.payload.find(item => item.status === "Preparing");
-                    if (preparingItem) {
-                        state.preparingOrder = preparingItem;
-                    }
-                }
             })
             .addCase(getCafeOrderStatus.rejected, (state, action) => {
                 state.loading = false;
@@ -128,13 +120,6 @@ const chefSlice = createSlice({
                         state.preparingOrder = updatedItem;
                     } else if (updatedItem.status === 'Done') {
                         state.preparingOrder = null;
-                    }
-                }
-
-                if (!state.preparingOrder) {
-                    const preparingItem = updatedOrder.items.find(item => item.status === 'Preparing');
-                    if (preparingItem) {
-                        state.preparingOrder = preparingItem;
                     }
                 }
             })
