@@ -55,6 +55,7 @@ const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, up
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
+const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -217,6 +218,11 @@ indexRoutes.get('/getcabbooking/:id', getCabBookingById);
 indexRoutes.put('/updatecabbooking/:id', auth, updateCabBooking);
 indexRoutes.delete('/deletecabbooking/:id', auth, deleteCabBooking);
 indexRoutes.get('/getcabbookingsbybooking/:bookingId', getCabBookingsByBookingId);
+
+// Review routes
+indexRoutes.post('/reviews', auth, createReview);
+indexRoutes.get('/reviews', getAllReviews);
+indexRoutes.get('/reviews/:id', getReviewById);
 
 // Restaurant Item routes
 indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);

@@ -99,7 +99,11 @@ const RoomSchema = mongoose.Schema({
         type: String,
         default: '',
         trim: true
-    }
+    },
+    reviews: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'review'
+    }]
 }, {
     timestamps: true,
     versionKey: false
