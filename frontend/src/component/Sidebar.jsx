@@ -25,12 +25,13 @@ import {
 import { RxDashboard } from "react-icons/rx";
 import { IoHelpCircleOutline, IoPhonePortraitOutline, IoCarSportOutline } from "react-icons/io5";
 import { MdOutlineLocalCafe } from "react-icons/md";
-import { VscCodeReview } from "react-icons/vsc";
+import { VscChecklist, VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
 import { CiCoffeeCup } from "react-icons/ci";
 import { GiMartini } from "react-icons/gi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoIosRestaurant } from "react-icons/io";
+import { PiBroomLight } from "react-icons/pi";
 
 // Admin menu items
 const adminSections = [
@@ -39,6 +40,7 @@ const adminSections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
+      { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
       { icon: HiOutlineUserGroup, label: 'UserList', path: '/user' },
       {
         icon: LuBed,
@@ -97,6 +99,7 @@ const adminSections = [
           { label: 'Add Staff', path: '/staff/addstaff' },
         ]
       },
+      { icon: PiBroomLight , label: 'House Keepings', path: '/housekeeping' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       { icon: LuInfo, label: 'About', path: '/about' },
       { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
@@ -311,33 +314,6 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
           ))}
         </nav>
 
-        {/* Styles */}
-        {/* <style jsx>{`
-          @keyframes slideIn {
-            from {
-              opacity: 0;
-              transform: translateX(-10px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, #3b82f6, #6366f1);
-            border-radius: 10px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, #2563eb, #4f46e5);
-          }
-        `}</style> */}
       </aside>
     </>
   );

@@ -58,6 +58,8 @@ import ChefDashboard from './component/Chef/Dashboard'
 import AccountantLayout from './component/Accountant/Layout.js'
 import AccountantDashboard from './component/Accountant/Dashboard.js'
 import AccountantTable from './component/Accountant/Table.js'
+import AllBookings from './Pages/AllBookings.jsx';
+import AllHouseKeeping from './Pages/AllHouseKeeping.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -65,60 +67,68 @@ function App() {
     <>
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={3000}
-        >
-          <Alert />
-          <Routes>
-            <Route path='/editor' element={<EditorDemo />}></Route>
-            <Route path='/' element={<LoginPage/>}/>
-            <Route element={<Layout />}>
-              {/* Receptionist/User only route - Booking Dashboard */}
-              <Route 
-                path='/booking-dashboard' 
-                element={
-                  <ProtectedRoute allowedRoles={['receptionist']}>
-                    <BookingDashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              
-              {/* Admin only routes */}
-              <Route 
-                path='/dashboard' 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path='/rooms' 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Rooms />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Navigate to="/rooms/create" replace />} />
-                <Route path='create' element={<CreateRoom />} />
-                <Route path='available' element={<AvailableRooms />} />
-                <Route path='features' element={<RoomFeatures />} />
-                <Route path='room-type' element={<RoomType />} />
-              </Route>
-              <Route 
-                path='/cafe' 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Cafe />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Navigate to="/cafe/cafecategory" replace />} />
-                <Route path='cafecategory' element={<Cafecategory />} />
-                <Route path='cafeitems' element={<CafeItems />} />
-              </Route>
+          <SnackbarProvider
+            maxSnack={3}
+            autoHideDuration={3000}
+          >
+            <Alert />
+            <Routes>
+              <Route path='/editor' element={<EditorDemo />}></Route>
+              <Route path='/' element={<LoginPage />} />
+              <Route element={<Layout />}>
+                {/* Receptionist/User only route - Booking Dashboard */}
+                <Route
+                  path='/booking-dashboard'
+                  element={
+                    <ProtectedRoute allowedRoles={['receptionist']}>
+                      <BookingDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                {/* Admin only routes */}
+                <Route
+                  path='/dashboard'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/allbookings'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AllBookings />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/rooms'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Rooms />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/rooms/create" replace />} />
+                  <Route path='create' element={<CreateRoom />} />
+                  <Route path='available' element={<AvailableRooms />} />
+                  <Route path='features' element={<RoomFeatures />} />
+                  <Route path='room-type' element={<RoomType />} />
+                </Route>
+                <Route
+                  path='/cafe'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <Cafe />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/cafe/cafecategory" replace />} />
+                  <Route path='cafecategory' element={<Cafecategory />} />
+                  <Route path='cafeitems' element={<CafeItems />} />
+                </Route>
 
                 {/* Admin only routes */}
                 <Route
@@ -208,14 +218,6 @@ function App() {
                   <Route path='staffdetails' element={<StaffDetails />} />
                   <Route path='addstaff' element={<StaffForm />} />
                 </Route>
-                {/* <Route 
-                path='/staff' 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Staff />
-                  </ProtectedRoute>
-                } 
-              /> */}
                 <Route
                   path='/departments'
                   element={
@@ -264,14 +266,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* <Route 
-                path='/addstaff' 
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <StaffForm />
-                  </ProtectedRoute>
-                } 
-              /> */}
                 <Route
                   path='/user'
                   element={
@@ -285,6 +279,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <TermsCondition />
+                    </ProtectedRoute>
+                  }
+                />
+                     <Route
+                  path='/housekeeping'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AllHouseKeeping />
                     </ProtectedRoute>
                   }
                 />
@@ -341,6 +343,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
+           
 
                 {/* Default HOD route */}
                 <Route
@@ -362,13 +365,13 @@ function App() {
               </Route>
 
               <Route path='/chef' element={<ChefLayout />} >
-                  <Route path='dashboard' element={<ChefDashboard />}></Route>
+                <Route path='dashboard' element={<ChefDashboard />}></Route>
               </Route>
 
               <Route path='/accountant' element={<AccountantLayout />} >
-                  <Route path='dashboard' element={<AccountantDashboard />}></Route>
-                  <Route path='table' element={<AccountantTable />}></Route>
-              </Route> 
+                <Route path='dashboard' element={<AccountantDashboard />}></Route>
+                <Route path='table' element={<AccountantTable />}></Route>
+              </Route>
 
             </Routes>
           </SnackbarProvider>

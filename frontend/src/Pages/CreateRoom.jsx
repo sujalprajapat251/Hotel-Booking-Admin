@@ -43,6 +43,7 @@ const CreateRoom = () => {
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
+  console.log('imagePreviews', imagePreviews);
   const [selectedFeatures, setSelectedFeatures] = useState([]);
   const [filteredFeatures, setFilteredFeatures] = useState([]);
   const [showRoomTypeDropdown, setShowRoomTypeDropdown] = useState(false);
@@ -618,15 +619,25 @@ const CreateRoom = () => {
                 <label htmlFor="images" className="block text-sm font-semibold text-gray-700 mb-2">
                   Room Images
                 </label>
-                <input
-                  type="file"
-                  id="images"
-                  name="images"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                />
+                <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-300 px-3 py-2 text-gray-500 bg-gray-100">
+                  <span className="truncate text-sm">
+                    {imagePreviews.length > 0
+                      ? `${imagePreviews.length} file${imagePreviews.length > 1 ? 's' : ''} selected`
+                      : 'Choose file'}
+                  </span>
+                  <span className="rounded-[4px] bg-[#F5DEB3] hover:bg-[#EDD5A8] px-6 py-1 text-gray-800 text-sm font-medium transition-colors ml-2">
+                    Browse
+                  </span>
+                  <input
+                    type="file"
+                    id="images"
+                    name="images"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </label>
                 {imagePreviews.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                     {imagePreviews.map((preview, index) => (
