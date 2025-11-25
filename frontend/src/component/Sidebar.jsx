@@ -58,6 +58,7 @@ const adminSections = [
         subMenus: [
           { label: 'Cafe Category', path: '/cafe/cafecategory' },
           { label: 'Cafe Items', path: '/cafe/cafeitems' },
+          { label: 'Cafe Order', path: '/cafe/cafeorder' },
         ]
       },
       {
