@@ -17,7 +17,7 @@ const Review = () => {
 	const [imageUrl, setImageUrl] = useState(userImg);
 
 	const { currentUser, loading, success, message } = useSelector(
-		(state) => state.user
+		(state) => state.staff
 	);
 
 	useEffect(() => {

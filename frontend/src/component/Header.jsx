@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getUserById } from '../Redux/Slice/user.slice';
+import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
 import { IMAGE_URL } from '../Utils/baseUrl';
 
@@ -16,7 +16,7 @@ const Header = ({ onMenuClick }) => {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   const { currentUser, loading, success, message } = useSelector(
-    (state) => state.user
+    (state) => state.staff
   );
 
   useEffect(() => {
@@ -95,7 +95,7 @@ const Header = ({ onMenuClick }) => {
                   <p className="text-sm font-semibold text-senary leading-tight capitalize">
                     {currentUser?.name || "No Name"}
                   </p>
-                  <p className="text-xs text-quaternary leading-tight capitalize">{currentUser?.role || "No Role"}</p>
+                  <p className="text-xs text-quaternary leading-tight capitalize">{currentUser?.designation || "No Role"}</p>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white shadow-sm">
                   <img

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { IMAGE_URL } from '../../Utils/baseUrl';
 import { getCafeOrderStatus, updateCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
-import { getUserById } from '../../Redux/Slice/user.slice';
+import { getUserById } from '../../Redux/Slice/staff.slice';
 import { io } from 'socket.io-client';
 
 export default function Dashboard() {
@@ -12,7 +12,7 @@ export default function Dashboard() {
     const dispatch = useDispatch();
     const data = useSelector((state) => state.chef.orderData);
     const preparingOrder = useSelector((state) => state.chef.preparingOrder);
-    const currentUser = useSelector((state) => state.user.currentUser);
+    const currentUser = useSelector((state) => state.staff.currentUser);
     const [selected, setSelected] = useState(null);
     console.log('preparing order', preparingOrder)
     useEffect(() => {
