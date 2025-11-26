@@ -2,6 +2,7 @@ const Room = require('../models/createRoomModel');
 const RoomType = require('../models/roomtypeModel');
 const Feature = require('../models/featuresModel');
 const { Types } = require('mongoose');
+const { uploadToS3, deleteFromS3 } = require('../utils/s3Service');
 
 const formatRoom = (doc) => ({
     id: doc._id,
@@ -24,6 +25,7 @@ const formatRoom = (doc) => ({
 
 const createRoom = async (req, res) => {
     try {
+        let imagePaths = [];
         // Parse JSON strings from FormData
         let price, capacity, features, bed;
         
@@ -118,9 +120,19 @@ const createRoom = async (req, res) => {
         }
 
         // Handle image uploads
-        let imagePaths = [];
+        // let imagePaths = [];
+        // if (req.files && req.files.length > 0) {
+        //     imagePaths = req.files.map(file => `/uploads/image/${file.filename}`);
+        // } else if (images && Array.isArray(images)) {
+        //     imagePaths = images;
+        // }
+
         if (req.files && req.files.length > 0) {
-            imagePaths = req.files.map(file => `/uploads/image/${file.filename}`);
+            // Upload each file to S3
+            for (const file of req.files) {
+                const uploadedUrl = await uploadToS3(file, 'uploads/image');
+                imagePaths.push(uploadedUrl);
+            }
         } else if (images && Array.isArray(images)) {
             imagePaths = images;
         }
@@ -329,7 +341,7 @@ const getRoomsWithPagination = async (req, res) => {
       console.error('getRoomsWithPagination error:', error);
       res.status(500).json({ success: false, message: 'Failed to fetch rooms' });
     }
-  };
+};
   
 
 const getRoomById = async (req, res) => {
@@ -427,13 +439,27 @@ const updateRoom = async (req, res) => {
             }
         }
 
-        // Handle image uploads
         let imagePaths = existingRoom.images || [];
+
         if (req.files && req.files.length > 0) {
-            const newImages = req.files.map(file => `/uploads/image/${file.filename}`);
-            imagePaths = [...imagePaths, ...newImages];
+          // Optional: delete old images from S3
+          if (existingRoom.images && existingRoom.images.length > 0) {
+            for (const oldImg of existingRoom.images) {
+              await deleteFromS3(oldImg); // make sure old images are deleted from S3
+            }
+          }
+    
+          // Upload new images
+          const uploadedImages = [];
+          for (const file of req.files) {
+            const uploadedUrl = await uploadToS3(file, 'uploads/image');
+            uploadedImages.push(uploadedUrl);
+          }
+    
+          imagePaths = uploadedImages;
         } else if (images && Array.isArray(images)) {
-            imagePaths = images;
+          // Keep existing images or replace with client-sent URLs
+          imagePaths = images;
         }
 
         const updateData = {};
@@ -489,23 +515,32 @@ const updateRoom = async (req, res) => {
 
 const deleteRoom = async (req, res) => {
     try {
-        const { id } = req.params;
-        const doc = await Room.findByIdAndDelete(id);
-
-        if (!doc) {
-            return res.status(404).json({ success: false, message: 'Room not found' });
+      const { id } = req.params;
+  
+      const room = await Room.findById(id);
+      if (!room) {
+        return res.status(404).json({ success: false, message: 'Room not found' });
+      }
+  
+      if (room.images && room.images.length > 0) {
+        for (const img of room.images) {
+          await deleteFromS3(img);
         }
-
-        res.json({
-            success: true,
-            message: 'Room deleted successfully',
-            data: formatRoom(doc)
-        });
+      }
+  
+      await Room.findByIdAndDelete(id);
+  
+      res.json({
+        success: true,
+        message: 'Room deleted successfully',
+        data: formatRoom(room)
+      });
+  
     } catch (error) {
-        console.error('deleteRoom error:', error);
-        res.status(500).json({ success: false, message: 'Failed to delete room' });
+      console.error('deleteRoom error:', error);
+      res.status(500).json({ success: false, message: 'Failed to delete room', error: error.message });
     }
-};
+  };
 
 const bedRules = {
     "deluxe": [

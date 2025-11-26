@@ -1,4 +1,5 @@
 const AboutUs = require("../models/aboutModel");
+const { deleteFromS3, uploadToS3 } = require("../utils/s3Service");
 
 exports.createAbout = async (req, res) => {
     try {
@@ -11,11 +12,16 @@ exports.createAbout = async (req, res) => {
             });
         }
 
+        let uploadedUrl = null;
+        if(req.file){
+            uploadedUrl = await uploadToS3(req.file, "uploads/image");
+        }
+
         const newAbout = await AboutUs.create({
             title,
             subtitle,
             description,
-            image: req.file ? req.file.path : null
+            image: uploadedUrl ? uploadedUrl : null
         });
 
         res.status(200).json({
@@ -78,7 +84,7 @@ exports.updateAbout = async (req, res) => {
         const about = await AboutUs.findById(req.params.id);
 
         if (!about) {
-            return res.status(404).json({status:404, success: false, message: "Blog not found" });
+            return res.status(404).json({status:404, success: false, message: "About not found" });
         }
 
         about.title = title || about.title;
@@ -86,7 +92,8 @@ exports.updateAbout = async (req, res) => {
         about.description = description || about.description;
 
         if (req.file) {
-            about.image = req.file.path;
+            if (about.image) await deleteFromS3(about.image);
+            about.image = await uploadToS3(req.file, "uploads/image");
         }
 
         const updatedabout = await about.save();
@@ -110,6 +117,10 @@ exports.deleteAbout = async (req, res) => {
 
         if (!about) {
             return res.status(404).json({status:400, success: false, message: "About not found" });
+        }
+
+        if (about.image) {
+            await deleteFromS3(about.image);
         }
 
         await AboutUs.findByIdAndDelete(req.params.id);

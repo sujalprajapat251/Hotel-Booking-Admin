@@ -20,6 +20,9 @@ const blogSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    readcount: {
+        type: Number
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('blog', blogSchema);

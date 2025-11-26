@@ -1,11 +1,17 @@
 const Staff = require("../models/staffModel");
 const bcrypt = require("bcrypt");
+const { uploadToS3, deleteFromS3 } = require("../utils/s3Service");
 
 exports.createStaff = async (req, res) => {
     try {
         const { name, email, password, mobileno, address, department, joiningdate, gender, designation } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        let uploadedUrl = null;
+        if(req.file){
+            uploadedUrl = await uploadToS3(req.file, "uploads/image");
+        }
 
         const newStaff = await Staff.create({
             name,
@@ -17,7 +23,7 @@ exports.createStaff = async (req, res) => {
             joiningdate,
             gender,
             designation,
-            image: req.file ? req.file.path : null
+            image: uploadedUrl ? uploadedUrl : null
         });
 
         res.status(201).json({
@@ -82,7 +88,8 @@ exports.updateStaff = async (req, res) => {
         };
 
         if (req.file) {
-            updatedData.image = req.file.path;
+            if (updatedData.image) await deleteFromS3(updatedData.image);
+            updatedData.image = await uploadToS3(req.file, "uploads/image");
         }
 
         if (password) {
@@ -126,6 +133,10 @@ exports.deleteStaff = async (req, res) => {
                 success: false,
                 message: "Staff not found"
             });
+        }
+
+        if (staff.image) {
+            await deleteFromS3(staff.image);
         }
 
         await Staff.findByIdAndDelete(req.params.id);

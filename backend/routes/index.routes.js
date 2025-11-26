@@ -1,6 +1,6 @@
 const express = require('express');
 const indexRoutes = express.Router();
-const upload = require('../helper/uploades')
+const upload = require('../helper/imageUpload')
 // const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword } = require('../controller/userController');
 // const { auth } = require('../middleware/auth');
 const {
@@ -21,7 +21,7 @@ const {
 const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById } = require('../controller/userController');
 const { auth, adminOnly } = require('../middleware/auth');
 const { createContact, getAllContact } = require('../controller/contactController');
-const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controller/blogController');
+const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, getBlogReadcountById, getBlogsByTag } = require('../controller/blogController');
 const { createTermCondition, getAllTermConditions, getTermConditionById, updateTermCondition, deleteTermCondition } = require('../controller/termsController');
 const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../controller/faqController');
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
@@ -57,7 +57,7 @@ const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver }
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
-const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData } = require('../controller/housekeepingController');
+const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -84,6 +84,8 @@ indexRoutes.get('/getallblog', getAllBlogs);
 indexRoutes.get('/getblog/:id', getBlogById);
 indexRoutes.put('/updateblog/:id', auth, adminOnly, upload.single("image"), updateBlog);
 indexRoutes.delete('/deleteblog/:id', auth, adminOnly, deleteBlog);
+indexRoutes.put('/getblogreadcount/:id', getBlogReadcountById);
+indexRoutes.get("/gettagblog/:tag", getBlogsByTag);
 
 // about us 
 indexRoutes.post('/createAbout', auth, adminOnly, upload.single("image"), createAbout);
@@ -159,6 +161,7 @@ indexRoutes.put('/start/:id', startCleaning);
 indexRoutes.put('/complete/:id', auth, completeCleaning);
 indexRoutes.put('/approve/:roomId', auth, approveCleaning);
 indexRoutes.get('/getallhousekeeping', auth, getAllHousekeepignData);
+indexRoutes.get('/getworkertask/:workerId', auth, getWorkerTasks);
 
 // ------------------------------- Cafe -------------------------------
 // Cafe Category routes
@@ -208,6 +211,14 @@ indexRoutes.get('/getrestaurantcategory/:id', getSingleRestaurantCategory);
 indexRoutes.put('/updaterestaurantcategory/:id', auth, adminOnly, updateRestaurantCategory);
 indexRoutes.delete('/deletetrestaurantcategory/:id', auth, adminOnly, deleteRestaurantCategory);
 
+// Restaurant Item routes
+indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);
+indexRoutes.get('/getallrestaurantitem', getAllRestaurantItems);
+indexRoutes.get('/getrestaurantitem/:id', getSingleRestaurantItem);
+indexRoutes.put('/updaterestaurantitem/:id', auth, adminOnly, upload.single("image"), updateRestaurantItem);
+indexRoutes.delete('/deletetrestaurantitem/:id', auth, adminOnly, deleteRestaurantItem);
+indexRoutes.put('/togglerestaurantitem/:id', auth, adminOnly, changeAvailabilityRestaurantItem);
+
 // Cab routes
 indexRoutes.post('/createcab', auth, adminOnly, upload.single("cabImage"), addCab);
 indexRoutes.get('/getallcab', getAllCabs);
@@ -234,14 +245,6 @@ indexRoutes.get('/getcabbookingsbybooking/:bookingId', getCabBookingsByBookingId
 indexRoutes.post('/reviews', auth, createReview);
 indexRoutes.get('/reviews', getAllReviews);
 indexRoutes.get('/reviews/:id', getReviewById);
-
-// Restaurant Item routes
-indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);
-indexRoutes.get('/getallrestaurantitem', getAllRestaurantItems);
-indexRoutes.get('/getrestaurantitem/:id', getSingleRestaurantItem);
-indexRoutes.put('/updaterestaurantitem/:id', auth, adminOnly, upload.single("image"), updateRestaurantItem);
-indexRoutes.delete('/deletetrestaurantitem/:id', auth, adminOnly, deleteRestaurantItem);
-indexRoutes.put('/togglerestaurantitem/:id', auth, adminOnly, changeAvailabilityRestaurantItem);
 
 // cafe order management 
 indexRoutes.post('/addCafeOrder',createCafeOrder)
