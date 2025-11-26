@@ -17,24 +17,6 @@ const formatBooking = (doc) => ({
     updatedAt: doc.updatedAt
 });
 
-const bookingStatusToRoomStatus = (bookingStatus) => {
-    switch (bookingStatus) {
-        case 'CheckedIn':
-            return 'Occupied';
-        case 'CheckedOut':
-        case 'Cancelled':
-        case 'NoShow':
-            return 'Available';
-        default:
-            return 'Reserved';
-    }
-};
-
-const generateBookingReference = () => {
-    const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `BK${Date.now().toString(36).toUpperCase()}${randomPart}`;
-};
-
 const parseDate = (value) => {
     if (!value) return null;
     const date = new Date(value);
@@ -54,7 +36,6 @@ const normalizeReservationPayload = (payload = {}) => ({
     checkInDate: parseDate(payload.checkInDate),
     checkOutDate: parseDate(payload.checkOutDate),
     bookingSource: payload.bookingSource || 'Direct',
-    bookingReference: payload.bookingReference,
     occupancy: {
         adults: payload.occupancy?.adults !== undefined ? Number(payload.occupancy.adults) : (payload.adults !== undefined ? Number(payload.adults) : 1),
         children: payload.occupancy?.children !== undefined ? Number(payload.occupancy.children) : (payload.children !== undefined ? Number(payload.children) : 0)
@@ -92,12 +73,35 @@ const ensureRoomAvailability = async ({ roomId, checkInDate, checkOutDate, exclu
 const refreshRoomStatus = async (roomId) => {
     if (!roomId) return;
 
-    const activeBooking = await Booking.findOne({
+    const now = new Date();
+    // Find the most relevant ongoing booking
+    const ongoingBooking = await Booking.findOne({
         room: roomId,
-        status: { $in: ACTIVE_BOOKING_STATUSES }
+        status: { $in: ACTIVE_BOOKING_STATUSES },
+        'reservation.checkInDate': { $lte: now },
+        'reservation.checkOutDate': { $gt: now }
     }).sort({ 'reservation.checkInDate': 1 });
 
-    const nextStatus = activeBooking ? bookingStatusToRoomStatus(activeBooking.status) : 'Available';
+    let nextStatus = 'Available';
+    if (ongoingBooking) {
+        if (ongoingBooking.status === 'CheckedIn') {
+            nextStatus = 'Occupied';
+        } else if (['Pending', 'Confirmed'].includes(ongoingBooking.status)) {
+            nextStatus = 'Reserved';
+        }
+    }
+
+    // If not in any ongoing booking, check if there is a future booking
+    if (!ongoingBooking) {
+        const futureBooking = await Booking.findOne({
+            room: roomId,
+            status: { $in: ACTIVE_BOOKING_STATUSES },
+            'reservation.checkInDate': { $gt: now }
+        }).sort({ 'reservation.checkInDate': 1 });
+        // Optionally, you could set a different status for 'Booked in future'
+        // For now, we will leave as 'Available'
+    }
+
     await Room.findByIdAndUpdate(roomId, { status: nextStatus });
 };
 
@@ -156,7 +160,6 @@ const createBooking = async (req, res) => {
             });
         }
 
-        const bookingReference = (reservationPayload.bookingReference || generateBookingReference()).toUpperCase();
 
         const booking = await Booking.create({
             room: roomId,
@@ -165,7 +168,6 @@ const createBooking = async (req, res) => {
             guest: guestPayload,
             reservation: {
                 ...reservationPayload,
-                bookingReference
             },
             payment: paymentPayload,
             notes,
@@ -186,9 +188,6 @@ const createBooking = async (req, res) => {
         });
     } catch (error) {
         console.error('createBooking error:', error);
-        if (error.code === 11000) {
-            return res.status(409).json({ success: false, message: 'Booking reference already exists' });
-        }
         res.status(500).json({ success: false, message: 'Failed to create booking', error: error.message });
     }
 };
@@ -222,7 +221,6 @@ const createBooking = async (req, res) => {
 //                 { 'guest.fullName': regex },
 //                 { 'guest.email': regex },
 //                 { 'guest.phone': regex },
-//                 { 'reservation.bookingReference': regex },
 //                 { roomNumber: regex }
 //             ];
 //         }
@@ -283,7 +281,6 @@ const getBookings = async (req, res) => {
                 { 'guest.fullName': regex },
                 { 'guest.email': regex },
                 { 'guest.phone': regex },
-                { 'reservation.bookingReference': regex },
                 { roomNumber: regex }
             ];
         }
@@ -384,9 +381,6 @@ const updateBooking = async (req, res) => {
             if (reservationPayload.occupancy.adults) booking.reservation.occupancy.adults = reservationPayload.occupancy.adults;
             if (reservationPayload.occupancy.children !== undefined) booking.reservation.occupancy.children = reservationPayload.occupancy.children;
         }
-        if (reservationPayload.bookingReference) {
-            booking.reservation.bookingReference = reservationPayload.bookingReference.toUpperCase();
-        }
 
         if (shouldValidateDates) {
             const { checkInDate, checkOutDate } = booking.reservation;
@@ -459,9 +453,6 @@ const updateBooking = async (req, res) => {
         });
     } catch (error) {
         console.error('updateBooking error:', error);
-        if (error.code === 11000) {
-            return res.status(409).json({ success: false, message: 'Booking reference already exists' });
-        }
         res.status(500).json({ success: false, message: 'Failed to update booking', error: error.message });
     }
 };

@@ -313,7 +313,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-hide">
           {sections.map(({ title, key, items }) => (
             <React.Fragment key={key}>
               {open && title && <SidebarHeading title={title} />}

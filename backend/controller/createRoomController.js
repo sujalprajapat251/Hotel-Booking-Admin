@@ -3,6 +3,7 @@ const RoomType = require('../models/roomtypeModel');
 const Feature = require('../models/featuresModel');
 const { Types } = require('mongoose');
 const { uploadToS3, deleteFromS3 } = require('../utils/s3Service');
+const { refreshRoomStatus } = require('./bookingController');
 
 const formatRoom = (doc) => ({
     id: doc._id,
@@ -165,7 +166,7 @@ const createRoom = async (req, res) => {
             status: status || 'Available',
             isSmokingAllowed: isSmokingAllowed || false,
             isPetFriendly: isPetFriendly || false,
-            maintenanceNotes: maintenanceNotes || ''
+            maintenanceNotes: maintenanceNotes || '',
         };
 
         const created = await Room.create(roomData);
@@ -497,7 +498,6 @@ const updateRoom = async (req, res) => {
         if (isSmokingAllowed !== undefined) updateData.isSmokingAllowed = isSmokingAllowed;
         if (isPetFriendly !== undefined) updateData.isPetFriendly = isPetFriendly;
         if (maintenanceNotes !== undefined) updateData.maintenanceNotes = maintenanceNotes;
-
         const updated = await Room.findByIdAndUpdate(id, updateData, { new: true })
             .populate('roomType', 'roomType')
             .populate('features', 'feature');
@@ -612,6 +612,19 @@ const bedRules = {
     }
   };
   
+// Utility controller: refresh status for all rooms
+const refreshAllRoomsStatus = async (req, res) => {
+    try {
+        const rooms = await Room.find();
+        for (const room of rooms) {
+            await refreshRoomStatus(room._id);
+        }
+        res.json({ success: true, message: 'All room statuses refreshed successfully' });
+    } catch (error) {
+        console.error('refreshAllRoomsStatus error:', error);
+        res.status(500).json({ success: false, message: 'Failed to refresh all room statuses', error: error.message });
+    }
+};
 
 module.exports = {
     createRoom,
@@ -620,6 +633,7 @@ module.exports = {
     getRoomById,
     updateRoom,
     deleteRoom,
-    autoUpdateRoomBeds
+    autoUpdateRoomBeds,
+    refreshAllRoomsStatus
 };
 

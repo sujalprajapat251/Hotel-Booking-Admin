@@ -48,12 +48,6 @@ const ReservationSchema = new mongoose.Schema(
       trim: true,
       default: "Direct",
     },
-    bookingReference: {
-      type: String,
-      required: true,
-      uppercase: true,
-      trim: true,
-    },
     occupancy: {
       adults: {
         type: Number,
@@ -178,7 +172,6 @@ BookingSchema.index({
   "reservation.checkInDate": 1,
   "reservation.checkOutDate": 1,
 });
-BookingSchema.index({ "reservation.bookingReference": 1 }, { unique: true });
 BookingSchema.index({ status: 1 });
 
 module.exports = mongoose.model("booking", BookingSchema);

@@ -33,7 +33,8 @@ const {
     updateRoom,
     deleteRoom,
     autoUpdateRoomBeds,
-    getRoomsWithPagination
+    getRoomsWithPagination,
+    refreshAllRoomsStatus
 } = require('../controller/createRoomController');
 const {
     createBooking,
@@ -43,7 +44,6 @@ const {
     deleteBooking
 } = require('../controller/bookingController');
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
-// const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
 const {  deleteCafeTable, createTable, getTables, getTableById, updateTable, deleteTable } = require('../controller/cafeTableController');
@@ -147,6 +147,7 @@ indexRoutes.get('/rooms/:id', getRoomById);
 indexRoutes.put('/rooms/:id', auth, adminOnly, upload.array('images', 10), updateRoom);
 indexRoutes.delete('/rooms/:id', auth, adminOnly, deleteRoom);
 indexRoutes.post('/autoUpdateRoomBeds', autoUpdateRoomBeds);
+indexRoutes.post('/rooms/refresh-status', refreshAllRoomsStatus);
 
 // booking routes
 indexRoutes.post('/bookings', auth, createBooking);
