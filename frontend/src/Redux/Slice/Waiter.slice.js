@@ -46,7 +46,6 @@ export const addItemToTableOrder = createAsyncThunk(
                     }
                 }
             );
-            dispatch(setAlert({ text: response.data.message || 'Item added', color: 'success' }));
             return response.data?.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -89,24 +88,24 @@ const waiterSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(addCafeOrder.pending, (state) => {
-                state.loading = true;
-                state.message = 'Fetching User...';
-                state.isError = false;
-            })
-            .addCase(addCafeOrder.fulfilled, (state, action) => {
-                state.loading = false;
-                state.success = true;
-                state.message = 'user fetched successfully';
-                state.users = action.payload;
-                state.isError = false;
-            })
-            .addCase(addCafeOrder.rejected, (state, action) => {
-                state.loading = false;
-                state.success = false;
-                state.isError = true;
-                state.message = action.payload?.message || 'Failed to fetch user';
-            })
+            // .addCase(addCafeOrder.pending, (state) => {
+            //     state.loading = true;
+            //     state.message = 'Fetching User...';
+            //     state.isError = false;
+            // })
+            // .addCase(addCafeOrder.fulfilled, (state, action) => {
+            //     state.loading = false;
+            //     state.success = true;
+            //     state.message = 'user fetched successfully';
+            //     state.users = action.payload;
+            //     state.isError = false;
+            // })
+            // .addCase(addCafeOrder.rejected, (state, action) => {
+            //     state.loading = false;
+            //     state.success = false;
+            //     state.isError = true;
+            //     state.message = action.payload?.message || 'Failed to fetch user';
+            // })
             .addCase(addItemToTableOrder.pending, (state) => {
                 state.loading = true;
                 state.message = 'Adding item to order...';

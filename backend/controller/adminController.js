@@ -173,7 +173,6 @@ exports.adminforgotPassword = async (req, res) => {
         if (!checkEmail) {
             return res.status(404).json({ status: 404, message: "Email Not Found." });
         }
-        console.log(checkEmail);
         if(checkEmail.designation !=='admin'){
             return res.status(401).json({ status: 401, message: "not allow to change your password" });
         }

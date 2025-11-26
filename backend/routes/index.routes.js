@@ -25,7 +25,7 @@ const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, getBlogRea
 const { createTermCondition, getAllTermConditions, getTermConditionById, updateTermCondition, deleteTermCondition } = require('../controller/termsController');
 const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../controller/faqController');
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
-const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff } = require('../controller/staffController');
+const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff, getAllHODStaff } = require('../controller/staffController');
 const {
     createRoom,
     getRooms,
@@ -46,7 +46,7 @@ const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateC
 // const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem } = require('../controller/cafeitemController');
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
-const { createCafeTable, getCafeTables, getCafeTableById, updateCafeTable, deleteCafeTable } = require('../controller/cafeTableController');
+const {  deleteCafeTable, createTable, getTables, getTableById, updateTable, deleteTable } = require('../controller/cafeTableController');
 const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
 const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
@@ -108,6 +108,7 @@ indexRoutes.get('/getstaff', auth, getStaff);
 indexRoutes.get('/getstaff/:id', auth, adminOnly, getStaffById);
 indexRoutes.put('/updatestaff/:id', auth, upload.single("image"), updateStaff);
 indexRoutes.delete('/deletetstaff/:id', auth, adminOnly, deleteStaff);
+indexRoutes.get('/hod/getallstaff', auth, getAllHODStaff);
 
 // Terms & Condition Routes
 indexRoutes.post('/createterms', auth, adminOnly, createTermCondition);
@@ -180,11 +181,16 @@ indexRoutes.delete('/deletetcafeitem/:id', auth, adminOnly, deleteCafeItem);
 indexRoutes.put('/togglecafeitem/:id', auth, adminOnly, changeAvailability);
 
 // cafe table Routes 
-indexRoutes.post('/addCafeTable',auth ,createCafeTable)
-indexRoutes.get('/getAllCafeTable',getCafeTables)
-indexRoutes.get('/getCafeTable/:id',auth,getCafeTableById)
-indexRoutes.put('/updateCafeTable/:id',auth,updateCafeTable)
-indexRoutes.delete('/deleteCafeTable/:id',auth,deleteCafeTable)
+indexRoutes.post('/addTable', auth, createTable)
+indexRoutes.get('/getAllTable',auth,getTables)
+indexRoutes.get('/getTable/:id',auth,getTableById)
+indexRoutes.put('/updateTable/:id',auth,updateTable)
+indexRoutes.delete('/deleteTable/:id',auth,deleteTable)
+// Generic HOD table management
+indexRoutes.get('/tables', auth, getTables)
+indexRoutes.get('/tables/:id', auth, getTableById)
+indexRoutes.put('/tables/:id', auth, updateTable)
+indexRoutes.delete('/tables/:id', auth, deleteTable)
 
 
 // ------------------------------- Bar -------------------------------
@@ -247,15 +253,15 @@ indexRoutes.get('/reviews', getAllReviews);
 indexRoutes.get('/reviews/:id', getReviewById);
 
 // cafe order management 
-indexRoutes.post('/addCafeOrder',createCafeOrder)
-indexRoutes.get('/getCafeOrder',getAllCafeOrders)
+// indexRoutes.post('/addCafeOrder',createCafeOrder)
+indexRoutes.get('/getCafeOrder',auth,getAllCafeOrders)
 indexRoutes.get('/getCafeOrderitems/:status',getAllOrderItemsStatus)
-indexRoutes.get('/getCafeOrderitems',getAllOrderItems)
-indexRoutes.post('/CafeItemStatus', auth, UpdateOrderItemStatus);
-indexRoutes.post('/cafe/tables/:tableId/order/items', addItemToTableOrder)
-indexRoutes.delete('/cafe/orders/:id/items/:itemId', removeItemFromOrder)
-indexRoutes.post('/cafePayment/:orderId',cafePayment)
-indexRoutes.get('/cafeUnpaidOrder',getAllCafeunpaid)
+indexRoutes.get('/getCafeOrderitems',auth,getAllOrderItems)
+indexRoutes.post('/CafeItemStatus', auth , UpdateOrderItemStatus);
+indexRoutes.post('/cafe/tables/:tableId/order/items', auth ,addItemToTableOrder)
+indexRoutes.delete('/cafe/orders/:id/items/:itemId', auth , removeItemFromOrder)
+indexRoutes.post('/cafePayment/:orderId',auth,cafePayment)
+indexRoutes.get('/cafeUnpaidOrder',auth,getAllCafeunpaid)
 
 
 // admin login routes 

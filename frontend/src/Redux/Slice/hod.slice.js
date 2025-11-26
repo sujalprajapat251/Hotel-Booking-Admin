@@ -17,11 +17,11 @@ export const getAllHodHistory = createAsyncThunk(
         try {
             const token = await localStorage.getItem("token");
             const response = await axios.get(`${BASE_URL}/getCafeOrder`
-                // ,{
-                //     headers: {
-                //         Authorization: `Bearer ${token}`,
-                //     }
-                // }
+                ,{
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
             );
             return response.data.data;
         } catch (error) {
@@ -30,9 +30,29 @@ export const getAllHodHistory = createAsyncThunk(
     }
 );
 
+
+export const getAllHODStaff = createAsyncThunk(
+    'hod/getAllHODStaff',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/hod/getallstaff`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
 const hodSlice = createSlice({
     name: 'hod',
     initialState: {
+        staff: [],
         orderHistory: [],
         message: '',
         loading: false,
@@ -57,6 +77,23 @@ const hodSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to fetch hod history';
+            }).addCase(getAllHODStaff.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching staff...';
+                state.isError = false;
+            })
+            .addCase(getAllHODStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'staff fetched successfully..!';
+                state.staff = action.payload;
+                state.isError = false;
+            })
+            .addCase(getAllHODStaff.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch staff';
             });
     },
 });

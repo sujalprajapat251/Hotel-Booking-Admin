@@ -1,41 +1,63 @@
 const cafeOrder = require('../models/cafeOrderModal');
-const cafeTable = require('../models/cafeTableModel')
+const barOrder = require('../models/barOrderModal');
+const restroOrder = require('../models/restaurantOrderModal');
+const cafeTable = require('../models/cafeTableModel');
+const barTable = require("../models/barTableModel");
+const restroTable = require("../models/restaurantTableModel.js");
 const { emitCafeOrderChanged } = require('../socketManager/socketManager');
 
-exports.createCafeOrder = async (req, res) => {
-    try {
-        const { name, contact, items, from, table, room } = req.body;
-        if (!items || !from) {
-            return res.status(400).json({
-                status: 400,
-                message: "All fields are required"
-            });
-        }
-        const newTable = await cafeOrder.create({
-            name,
-            contact,
-            items,
-            from,
-            table: from === 'cafe' ? table : null,  // store table only for cafe
-            room: from === 'hotel' ? room : null    // store room only for hotel
-        });
-        res.status(200).json({
-            status: 200,
-            message: "Cafe Table created successfully..!",
-            data: newTable
-        });
+// exports.createCafeOrder = async (req, res) => {
+//     try {
+//         const { name, contact, items, from, table, room } = req.body;
+//         if (!items || !from) {
+//             return res.status(400).json({
+//                 status: 400,
+//                 message: "All fields are required"
+//             });
+//         }
+//         const newTable = await cafeOrder.create({
+//             name,
+//             contact,
+//             items,
+//             from,
+//             table: from === 'cafe' ? table : null,  // store table only for cafe
+//             room: from === 'hotel' ? room : null    // store room only for hotel
+//         });
+//         res.status(200).json({
+//             status: 200,
+//             message: "Cafe Table created successfully..!",
+//             data: newTable
+//         });
 
-    } catch (error) {
-        res.status(500).json({
-            status: 500,
-            message: error.message
-        });
-    }
-}
+//     } catch (error) {
+//         res.status(500).json({
+//             status: 500,
+//             message: error.message
+//         });
+//     }
+// }
 
 exports.getAllCafeOrders = async (req, res) => {
     try {
-        const orders = await cafeOrder.find().sort({ createdAt: -1 })
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const orders = await Model.find().sort({ createdAt: -1 })
             .populate("items")
             .populate("table")
             .populate("room")
@@ -54,10 +76,28 @@ exports.getAllCafeOrders = async (req, res) => {
 
 exports.getCafeOrderById = async (req, res) => {
     try {
-        const order = await cafeOrder.findById(req.params.id)
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const order = await Model.findById(req.params.id)
             .populate("items")
             .populate("table")
-            .populate("room");
+            .populate("room")
+            .populate("items.product");
 
         if (!order) {
             return res.status(404).json({ status: 404, message: "Order not found" });
@@ -73,7 +113,24 @@ exports.getCafeOrderById = async (req, res) => {
 
 exports.updateCafeOrder = async (req, res) => {
     try {
-        const updated = await cafeOrder.findByIdAndUpdate(
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const updated = await Model.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true }
@@ -97,7 +154,24 @@ exports.updateCafeOrder = async (req, res) => {
 
 exports.cancelCafeOrder = async (req, res) => {
     try {
-        const deleted = await cafeOrder.findByIdAndDelete(req.params.id);
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const deleted = await Model.findByIdAndDelete(req.params.id);
 
         if (!deleted) {
             return res.status(404).json({ status: 404, message: "Order not found" });
@@ -114,33 +188,118 @@ exports.cancelCafeOrder = async (req, res) => {
 };
 
 
-exports.addItemToOrder = async (req, res) => {
+// exports.addItemToOrder = async (req, res) => {
+//     try {
+//         const { itemId } = req.body;
+
+//         const updatedOrder = await cafeOrder.findByIdAndUpdate(
+//             req.params.id,
+//             { $push: { items: itemId } },
+//             { new: true }
+//         );
+
+//         res.status(200).json({
+//             status: 200,
+//             message: "Item added successfully",
+//             data: updatedOrder
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({ status: 500, message: error.message });
+//     }
+// };
+
+
+ 
+
+exports.addItemToTableOrder = async (req, res) => {
     try {
-        const { itemId } = req.body;
+        const { product, qty, description, name, contact } = req.body;
+        const { tableId } = req.params;
 
-        const updatedOrder = await cafeOrder.findByIdAndUpdate(
-            req.params.id,
-            { $push: { items: itemId } },
-            { new: true }
-        );
+        if (!product) {
+            return res.status(400).json({ status: 400, message: "Product is required" });
+        }
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const nameDept = String(dept.name).trim().toLowerCase();
+        let OrderModel = null;
+        if (nameDept === 'cafe') OrderModel = cafeOrder;
+        else if (nameDept === 'bar') OrderModel = barOrder;
+        else if (nameDept === 'restaurant' || nameDept === 'restro') OrderModel = restroOrder;
+        if (!OrderModel) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
 
-        res.status(200).json({
-            status: 200,
-            message: "Item added successfully",
-            data: updatedOrder
+        const fromValue = nameDept === 'restro' ? 'restaurant' : nameDept;
+
+        const existingOrder = await OrderModel
+            .findOne({ from: fromValue, table: tableId, payment: 'Pending' })
+            .sort({ createdAt: -1, _id: -1 });
+
+        if (existingOrder) {
+            existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
+            await existingOrder.save();
+
+            const populated = await existingOrder.populate([
+                { path: 'items.product' },
+                { path: 'table' }
+            ]);
+            if (nameDept === 'cafe') {
+                emitCafeOrderChanged(populated.table?._id || tableId, populated);
+            }
+            return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
+        }
+
+        const created = await OrderModel.create({
+            from: fromValue,
+            table: tableId,
+            name,
+            contact,
+            items: [{ product, qty: qty || 1, description, status: 'Pending' }]
         });
 
+        const populated = await created.populate([
+            { path: 'items.product' },
+            { path: 'table' }
+        ]);
+        if (nameDept === 'cafe') {
+            emitCafeOrderChanged(populated.table?._id || tableId, populated);
+        }
+        return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
     } catch (error) {
-        res.status(500).json({ status: 500, message: error.message });
+        return res.status(500).json({ status: 500, message: error.message });
     }
 };
 
-
 exports.removeItemFromOrder = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
         const { id, itemId } = { id: req.params.id, itemId: req.params.itemId };
 
-        const order = await cafeOrder.findById(id);
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const order = await Model.findById(id);
         if (!order) {
             return res.status(404).json({ status: 404, message: 'Order not found' });
         }
@@ -154,61 +313,19 @@ exports.removeItemFromOrder = async (req, res) => {
             return res.status(400).json({ status: 400, message: 'Only pending items can be removed' });
         }
 
-        await cafeOrder.findByIdAndUpdate(
+        await Model.findByIdAndUpdate(
             id,
             { $pull: { items: { _id: itemId } } },
             { new: true }
         );
 
-        const updated = await cafeOrder.findById(id)
-            .populate({ path: 'items.product', model: 'cafeitem' })
-            .populate({ path: 'table', model: 'cafeTable' });
-        emitCafeOrderChanged(updated.table?._id || updated.table, updated);
+        const updated = await Model.findById(id)
+            .populate({ path: 'items.product' })
+            .populate({ path: 'table' });
+        if (name === 'cafe') {
+            emitCafeOrderChanged(updated.table?._id || updated.table, updated);
+        }
         return res.status(200).json({ status: 200, message: 'Item removed successfully', data: updated });
-    } catch (error) {
-        return res.status(500).json({ status: 500, message: error.message });
-    }
-};
-
-exports.addItemToTableOrder = async (req, res) => {
-    try {
-        const { product, qty, description, name, contact } = req.body;
-        const { tableId } = req.params;
-
-        if (!product) {
-            return res.status(400).json({ status: 400, message: "Product is required" });
-        }
-
-        const existingOrder = await cafeOrder
-            .findOne({ from: 'cafe', table: tableId, payment: 'Pending' })
-            .sort({ createdAt: -1, _id: -1 });
-
-        if (existingOrder) {
-            existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
-            await existingOrder.save();
-
-            const populated = await existingOrder.populate([
-                { path: 'items.product', model: 'cafeitem' },
-                { path: 'table', model: 'cafeTable' }
-            ]);
-            emitCafeOrderChanged(populated.table?._id || tableId, populated);
-            return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
-        }
-
-        const created = await cafeOrder.create({
-            from: 'cafe',
-            table: tableId,
-            name,
-            contact,
-            items: [{ product, qty: qty || 1, description, status: 'Pending' }]
-        });
-
-        const populated = await created.populate([
-            { path: 'items.product', model: 'cafeitem' },
-            { path: 'table', model: 'cafeTable' }
-        ]);
-        emitCafeOrderChanged(populated.table?._id || tableId, populated);
-        return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }
@@ -216,7 +333,24 @@ exports.addItemToTableOrder = async (req, res) => {
 
 exports.getAllCafeItemsOrders = async (req, res) => {
     try {
-        const orders = await cafeOrder.find()
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const orders = await Model.find()
             .populate("items")
             .populate("table")
             .populate("room");
@@ -233,12 +367,28 @@ exports.getAllCafeItemsOrders = async (req, res) => {
 
 exports.getAllOrderItemsStatus = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
         const { status } = req.params;
-        const orders = await cafeOrder.find({ status: status }).populate("table")
-            .populate("room")
-            .populate("items.product")
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
 
-        // Flatten all items from all orders
+        const orders = await Model.find({ status: status }).populate("table")
+            .populate("room")
+            .populate("items.product");
+
         const allItems = orders.flatMap(order =>
             order.items.map(item => ({
                 orderId: order._id,
@@ -251,7 +401,7 @@ exports.getAllOrderItemsStatus = async (req, res) => {
                 room: order.room,
                 createdAt: order.createdAt,
                 preparedBy: item.preparedBy,
-                _id:item._id
+                _id: item._id
             }))
         );
 
@@ -267,11 +417,27 @@ exports.getAllOrderItemsStatus = async (req, res) => {
 
 exports.getAllOrderItems = async (req, res) => {
     try {
-        const orders = await cafeOrder.find().populate("table")
-            .populate("room")
-            .populate("items.product")
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
 
-        // Flatten all items from all orders
+        const orders = await Model.find().populate("table")
+            .populate("room")
+            .populate("items.product");
+
         const allItems = orders.flatMap(order =>
             order.items.map(item => ({
                 orderId: order._id,
@@ -284,7 +450,7 @@ exports.getAllOrderItems = async (req, res) => {
                 room: order.room,
                 createdAt: order.createdAt,
                 preparedBy: item.preparedBy,
-                _id:item._id
+                _id: item._id
             }))
         );
 
@@ -299,11 +465,27 @@ exports.getAllOrderItems = async (req, res) => {
 };
 exports.UpdateOrderItemStatus = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
         const { orderId, itemId } = req.body;
         const chefId = req.user?.id;
 
-        // Find the order
-        const order = await cafeOrder.findById(orderId);
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const order = await Model.findById(orderId);
 
         if (!order) {
             return res.status(404).json({
@@ -312,7 +494,6 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             });
         }
 
-        // Find the item inside the order
         const item = order.items.id(itemId);
 
         if (!item) {
@@ -329,34 +510,31 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             });
         }
 
-        // Define progression steps
         const steps = {
             "Pending": "Preparing",
             "Preparing": "Done",
             "Done": "Served",
-            "Served": "Served"  // stays same
+            "Served": "Served"
         };
 
         const currentStatus = item.status;
         const newStatus = steps[currentStatus];
 
-        // If moving from Pending to Preparing, check if there are already items being prepared
         if (currentStatus === "Pending" && newStatus === "Preparing") {
-            // Set the chef who is preparing this item
             item.preparedBy = chefId;
         }
 
-        // Update the status
         item.status = newStatus;
 
         await order.save();
 
-        // Populate the order with product details before sending response
-        const populatedOrder = await cafeOrder.findById(orderId)
+        const populatedOrder = await Model.findById(orderId)
             .populate("table")
             .populate("room")
             .populate("items.product");
+        if (name === 'cafe') {
             emitCafeOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
+        }
         res.status(200).json({
             status: 200,
             message: `Status updated: ${currentStatus} → ${newStatus}`,
@@ -374,10 +552,12 @@ exports.UpdateOrderItemStatus = async (req, res) => {
 
 exports.cafePayment = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
         const { orderId } = req.params;
         const { paymentMethod } = req.body;
 
-        // Validate payment method
         if (!paymentMethod) {
             return res.status(400).json({
                 status: 400,
@@ -385,7 +565,22 @@ exports.cafePayment = async (req, res) => {
             });
         }
 
-        const updatedOrder = await cafeOrder.findByIdAndUpdate(
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let OrderModel = null;
+        let TableModel = null;
+        if (name === 'cafe') { OrderModel = cafeOrder; TableModel = cafeTable; }
+        else if (name === 'bar') { OrderModel = barOrder; TableModel = barTable; }
+        else if (name === 'restaurant' || name === 'restro') { OrderModel = restroOrder; TableModel = restroTable; }
+        if (!OrderModel || !TableModel) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const updatedOrder = await OrderModel.findByIdAndUpdate(
             orderId,
             {
                 payment: "Paid",
@@ -404,13 +599,15 @@ exports.cafePayment = async (req, res) => {
             });
         }
         if (updatedOrder.table?._id) {
-            await cafeTable.findByIdAndUpdate(
+            await TableModel.findByIdAndUpdate(
                 updatedOrder.table._id,
-                { status: true },   // or "available: true" depending on your schema
+                { status: true },
                 { new: true }
             );
         }
-        emitCafeOrderChanged(updatedOrder.table?._id || updatedOrder.table, updatedOrder);
+        if (name === 'cafe') {
+            emitCafeOrderChanged(updatedOrder.table?._id || updatedOrder.table, updatedOrder);
+        }
         res.status(200).json({
             status: 200,
             message: "Payment completed successfully",
@@ -427,12 +624,29 @@ exports.cafePayment = async (req, res) => {
 
 exports.getAllCafeunpaid = async (req, res) => {
     try {
-        const orders = await cafeOrder.find({ payment: "Pending" }).sort({ createdAt: -1 })
+        if (!req.user) {
+            return res.status(401).json({ status: 401, message: 'Unauthorized' });
+        }
+        const Department = require('../models/departmentModel');
+        const dept = await Department.findById(req.user.department);
+        if (!dept || !dept.name) {
+            return res.status(400).json({ status: 400, message: 'User department not found' });
+        }
+        const name = String(dept.name).trim().toLowerCase();
+        let Model = null;
+        if (name === 'cafe') Model = cafeOrder;
+        else if (name === 'bar') Model = barOrder;
+        else if (name === 'restaurant' || name === 'restro') Model = restroOrder;
+        if (!Model) {
+            return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
+        }
+
+        const orders = await Model.find({ payment: "Pending" }).sort({ createdAt: -1 })
             .populate("items")
             .populate("table")
             .populate("room")
             .populate("items.product");
-            
+
         res.status(200).json({
             status: 200,
             data: orders

@@ -39,11 +39,12 @@ exports.createStaff = async (req, res) => {
 
 exports.getAllStaff = async (req, res) => {
     try {
-        const Staffs = await Staff.find().populate("department");
+        const staffs = await Staff.find({ designation: { $ne: "admin" } })
+        .populate("department");
 
         res.status(200).json({
             success: true,
-            data: Staffs
+            data: staffs
         });
 
     } catch (error) {
@@ -51,6 +52,34 @@ exports.getAllStaff = async (req, res) => {
     }
 };
 
+exports.getAllHODStaff = async (req, res) => {
+    try {
+        const departmentId = req.user?.department;
+
+        if (!departmentId) {
+            return res.status(400).json({
+                success: false,
+                message: "User department not found"
+            });
+        }
+
+        const staffs = await Staff.find({ department: departmentId, designation: { $ne: "Head of Department" }  })
+            .populate("department");
+
+        res.status(200).json({
+            success: true,
+            data: staffs
+        });
+
+    } catch (error) {
+        console.error("Error fetching HOD staff:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message
+        });
+    }
+};
 exports.getStaffById = async (req, res) => {
     try {
         const staff = await Staff.findById(req.params.id).populate("department");
@@ -155,7 +184,7 @@ exports.getStaff = async (req, res) => {
     try {
         const userId = req.user._id;
 
-        const user = await Staff.findById(userId);
+        const user = await Staff.findById(userId).populate("department");
 
         if (!user) {
             return res.status(404).json({

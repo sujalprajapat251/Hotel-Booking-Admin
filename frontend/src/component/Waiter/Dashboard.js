@@ -111,13 +111,13 @@ export default function Dashboard() {
                     <div className='py-3 border-b last:border-b-0'>
 
                       <div key={m.id} className="flex items-center gap-4 ">
-                        <img src={IMAGE_URL + `${m.product.image}`} alt="dish" className="w-14 h-14 rounded-full object-cover" />
+                        <img src={IMAGE_URL + `${m?.product?.image}`} alt="dish" className="w-14 h-14 rounded-full object-cover" />
                         <div className="flex-1">
-                          <div className="font-medium">{m.product.name}</div>
+                          <div className="font-medium">{m?.product?.name}</div>
                           <div className="text-sm text-gray-500">Qty: {m.qty}</div>
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
-                        <div className="text-sm font-medium">₹{m.product.price}.00</div>
+                        <div className="text-sm font-medium">₹{m?.product?.price}.00</div>
                       </div>
                       {m.status === "Done" ?(
                         <div className="flex justify-end gap-3" onClick={()=>handleserved(m)}>
