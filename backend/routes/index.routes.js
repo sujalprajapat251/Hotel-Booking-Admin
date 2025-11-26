@@ -56,6 +56,7 @@ const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../con
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
+const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData } = require('../controller/housekeepingController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -148,6 +149,14 @@ indexRoutes.get('/bookings', getBookings);
 indexRoutes.get('/bookings/:id', getBookingById);
 indexRoutes.put('/bookings/:id', auth, updateBooking);
 indexRoutes.delete('/bookings/:id', auth, deleteBooking);
+
+// Housekeeping Route
+indexRoutes.get('/getallhousekeepingroom', auth, getDirtyRooms);
+indexRoutes.post('/assign', auth,assignWorker);
+indexRoutes.put('/start/:id', startCleaning);
+indexRoutes.put('/complete/:id', auth, completeCleaning);
+indexRoutes.put('/approve/:roomId', auth, approveCleaning);
+indexRoutes.get('/getallhousekeeping', auth, getAllHousekeepignData);
 
 // ------------------------------- Cafe -------------------------------
 // Cafe Category routes

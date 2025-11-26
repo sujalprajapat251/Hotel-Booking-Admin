@@ -1,14 +1,14 @@
-const Room = require("../models/Room");
-const Housekeeping = require("../models/housekeeping");
+const Room = require("../models/createRoomModel");
+const Housekeeping = require("../models/housekeepingModel");
 
 // GET ALL DIRTY ROOMS
 exports.getDirtyRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({ status: "Dirty" });
+        const rooms = await Room.find({ cleanStatus: "Dirty" });
 
         return res.json({
             success: true,
-            message: "Dirty rooms fetched successfully..!",
+            message: "Dirty rooms fetched successfully..! ",
             data: rooms
         });
 
@@ -17,7 +17,7 @@ exports.getDirtyRooms = async (req, res) => {
     }
 };
 
-// ASSIGN WORKER TO ROOM
+// ASSIGN WORKER TO DIRTY ROOM
 exports.assignWorker = async (req, res) => {
     try {
         const { roomId, workerId } = req.body;
@@ -29,22 +29,22 @@ exports.assignWorker = async (req, res) => {
             });
         }
 
-        // Create new task
+        // Create housekeeping task
         const task = await Housekeeping.create({
             roomId,
             workerId,
             status: "Pending"
         });
 
-        // Update room status
+        // Update room clean status
         await Room.findByIdAndUpdate(roomId, {
-            status: "Pending",
-            assignedTo: workerId
+            cleanStatus: "Pending",
+            cleanassign: workerId
         });
 
         return res.json({
             success: true,
-            message: "Worker assigned successfully..!",
+            message: "Worker assigned successfully..! ",
             data: task
         });
 
@@ -53,11 +53,10 @@ exports.assignWorker = async (req, res) => {
     }
 };
 
-
 // WORKER START CLEANING
 exports.startCleaning = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; 
 
         const task = await Housekeeping.findById(id);
         if (!task) {
@@ -70,13 +69,14 @@ exports.startCleaning = async (req, res) => {
         task.status = "In-Progress";
         await task.save();
 
+        // Update room cleanStatus
         await Room.findByIdAndUpdate(task.roomId, {
-            status: "In-Progress"
+            cleanStatus: "In-Progress"
         });
 
         return res.json({
             success: true,
-            message: "Cleaning marked as In-Progress..!",
+            message: "Cleaning marked as In-Progress..! ",
             data: task
         });
 
@@ -88,7 +88,7 @@ exports.startCleaning = async (req, res) => {
 // WORKER COMPLETES CLEANING
 exports.completeCleaning = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // task id
         const { notes } = req.body;
 
         const task = await Housekeeping.findById(id);
@@ -104,12 +104,12 @@ exports.completeCleaning = async (req, res) => {
         await task.save();
 
         await Room.findByIdAndUpdate(task.roomId, {
-            status: "Completed"
+            cleanStatus: "Completed"
         });
 
         return res.json({
             success: true,
-            message: "Cleaning completed successfully..!",
+            message: "Cleaning task completed..!",
             data: task
         });
 
@@ -118,7 +118,7 @@ exports.completeCleaning = async (req, res) => {
     }
 };
 
-// HEAD APPROVES CLEANING
+// HEAD SUPERVISOR APPROVES CLEANING (FINAL CLEAN)
 exports.approveCleaning = async (req, res) => {
     try {
         const { roomId } = req.params;
@@ -131,14 +131,14 @@ exports.approveCleaning = async (req, res) => {
             });
         }
 
-        room.status = "Clean";
-        room.assignedTo = null;
+        room.cleanStatus = "Clean";
+        room.cleanassign = null;
 
         await room.save();
 
         return res.json({
             success: true,
-            message: "Room approved as CLEAN..!",
+            message: "Room approved as CLEAN..! ",
             data: room
         });
 
@@ -147,36 +147,15 @@ exports.approveCleaning = async (req, res) => {
     }
 };
 
-// GET ALL ASSIGNED TASKS (Pending + In-Progress)
-exports.getAssignedTasks = async (req, res) => {
+exports.getAllHousekeepignData = async (req, res) => {
     try {
-        const tasks = await Housekeeping.find({
-            status: { $in: ["Pending", "In-Progress"] }
-        })
-        .populate("roomId")
-        .populate("workerId");
-
-        return res.json({
-            success: true,
-            message: "Assigned tasks fetched successfully..!",
-            data: tasks
-        });
-
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
-    }
-};
-
-// GET COMPLETED TASKS (Waiting for approval)
-exports.getCompletedTasks = async (req, res) => {
-    try {
-        const tasks = await Housekeeping.find({ status: "Completed" })
+        const tasks = await Housekeeping.find()
             .populate("roomId")
             .populate("workerId");
 
         return res.json({
             success: true,
-            message: "Completed tasks fetched successfully..!",
+            message: "House Keeping Data successfully..! ",
             data: tasks
         });
 
@@ -184,3 +163,5 @@ exports.getCompletedTasks = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+

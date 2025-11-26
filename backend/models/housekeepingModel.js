@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const hkTaskSchema = new mongoose.Schema({
     roomId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Room",
+        ref: "room",
         required: true
     },
     workerId: {

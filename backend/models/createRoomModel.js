@@ -103,7 +103,17 @@ const RoomSchema = mongoose.Schema({
     reviews: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'review'
-    }]
+    }],
+    cleanStatus: {
+        type: String,
+        enum: ["Dirty", "Pending", "In-Progress", "Completed", "Clean"],
+        default: "Clean",
+    },
+    cleanassign: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "staff",
+        default: null
+    }
 }, {
     timestamps: true,
     versionKey: false
