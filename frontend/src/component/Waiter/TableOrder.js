@@ -7,6 +7,10 @@ import { io } from 'socket.io-client';
 import { IMAGE_URL } from '../../Utils/baseUrl';
 import { addItemToTableOrder, removeItemFromOrder } from '../../Redux/Slice/Waiter.slice';
 import { getCafeTableById, updateCafeTable } from '../../Redux/Slice/cafeTable.slice';
+import { getAllBarcategory } from '../../Redux/Slice/barcategorySlice';
+import { getAllBaritem } from '../../Redux/Slice/baritemSlice';
+import { getAllRestaurantcategory } from '../../Redux/Slice/restaurantcategorySlice';
+import { getAllRestaurantitem } from '../../Redux/Slice/restaurantitemSlice';
 
 export default function TableOrder() {
     const dispatch = useDispatch();
@@ -14,17 +18,48 @@ export default function TableOrder() {
     const [selected, setSelected] = useState([]); // CART ITEMS
     const { id } = useParams()
     const [socket, setSocket] = useState(null);
-    const cafecategory = useSelector((state) => state.cafecategory.cafecategory);
-    const cafe = useSelector((state) => state.cafe.cafe);
+    const { currentUser, loading, success, message } = useSelector((state) => state.staff);
+    const cafeCategory = useSelector(state => state.cafecategory.cafecategory);
+    const cafeItems = useSelector(state => state.cafe.cafe);
+
+    const barCategory = useSelector(state => state.barcategory.barcategory);
+    const barItems = useSelector(state => state.bar.barItem);
+
+    const restCategory = useSelector(state => state.restaurantcategory.restaurantcategory);
+    const restItems = useSelector(state => state.restaurant.restaurant);
+    const dept = currentUser?.department?.name?.toLowerCase();
+
+    const Category = dept === "cafe" ? cafeCategory : dept === "bar" ? barCategory : restCategory;
+
+    const Items = dept === "cafe" ? cafeItems : dept === "bar" ? barItems : restItems;
+
     const singleTable = useSelector((state) => state.cafeTable.singleTable);
     const previousOrder = useSelector((state) => state.cafeTable.currentOrder);
 
     useEffect(() => {
-        dispatch(getAllCafecategory());
-        dispatch(getAllCafeitem());
-        dispatch(getCafeTableById(id));
-    }, [dispatch, id]);
+        if (!currentUser) return;
+      
+        const dept = currentUser?.department?.name?.toLowerCase();
+      
+        if (dept === "cafe") {
+          dispatch(getAllCafecategory());
+          dispatch(getAllCafeitem());
+        } 
+        else if (dept === "bar") {
+          dispatch(getAllBarcategory());
+          dispatch(getAllBaritem());
+        } 
+        else {
+          dispatch(getAllRestaurantcategory());
+          dispatch(getAllRestaurantitem());
+        }
+      
+      }, [dispatch, currentUser]);
 
+      useEffect(()=>{
+        dispatch(getCafeTableById(id));
+
+      },[id])
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
@@ -48,8 +83,8 @@ export default function TableOrder() {
     // Filter products based on selected category
     const filteredItems =
         activeCategory === "All"
-            ? cafe
-            : cafe.filter((item) => item.category.name === activeCategory);
+            ? Items
+            : Items.filter((item) => item.category.name === activeCategory);
 
 
     const handleAdd = (item) => {
@@ -113,7 +148,7 @@ export default function TableOrder() {
         setName(previousOrder?.name || '');
         setContact(previousOrder?.contact || '');
     }, [previousOrder]);
-    
+
     const handleAddOrder = async () => {
         try {
             for (const i of selected) {
@@ -167,7 +202,7 @@ export default function TableOrder() {
                                 </div>
                             </div>
 
-                            {cafecategory.map((item, idx) => (
+                            {Category?.map((item, idx) => (
                                 <div key={idx} className="sm:p-2 flex-shrink-0">
                                     <div
                                         onClick={() => setActiveCategory(item.name)}
@@ -184,7 +219,7 @@ export default function TableOrder() {
                     </div>
 
                     <div className=" flex flex-wrap items-stretch gap-0 sm:gap-0 mt-5">
-                        {filteredItems.map((item, idx) => (
+                        {filteredItems?.map((item, idx) => (
                             <div key={idx} className="w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 xl:w-1/4 p-1.5 sm:p-3 flex mb-3">
                                 <div
                                     className={`p-2 sm:p-4 w-full bg-white rounded-md hover:shadow-xl cursor-pointer 

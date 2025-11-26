@@ -62,7 +62,7 @@ export default function Dashboard() {
             dispatch(setAlert({ text: "You must complete the current order before accepting a new one", color: 'error' }));
             return;
         }
-
+        console.log('oorrr',order)
         let orderData = {
             orderId: order.orderId,
             itemId: order._id
@@ -74,7 +74,7 @@ export default function Dashboard() {
             } else if (order.status === "Preparing") {
                 setSelected({ ...order, status: "Done" });
             }
-
+            console.log('orderData',orderData)
             const result = await dispatch(updateCafeItemStatus(orderData));
 
             if (updateCafeItemStatus.fulfilled.match(result)) {
@@ -186,7 +186,7 @@ export default function Dashboard() {
                                                     setSelected(item);
                                                 }
                                             }}
-                                            className={`flex items-center gap-3 cursor-pointer p-3 rounded border transition-all duration-200 shadow-sm
+                                            className={`flex items-center gap-3 cursor-pointer md:p-5 p-3 rounded border transition-all duration-200 shadow-sm
                                           ${selected?._id === item._id ? "shadow-xl scale-[105%] bg-white" : ""}
                                           
                                           ${preparingOrder
@@ -211,7 +211,7 @@ export default function Dashboard() {
                                                     <img
                                                         src={`${IMAGE_URL}${item?.product?.image}`}
                                                         alt={item.name}
-                                                        className={`w-10 h-10 rounded-lg object-cover border-1 flex-shrink-0 ${isOrderPreparedByAnotherChef(item)
+                                                        className={`md:w-12 md:h-12 h-10 w-10 rounded-lg object-cover border-1 flex-shrink-0 ${isOrderPreparedByAnotherChef(item)
                                                             ? "border-gray-400"
                                                             : "border-[#E3C78A]"}`}
                                                     />

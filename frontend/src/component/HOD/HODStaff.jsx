@@ -4,23 +4,24 @@ import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getAllStaff, deleteStaff } from '../../Redux/Slice/staff.slice';
+import { deleteStaff } from '../../Redux/Slice/staff.slice';
 import { IMAGE_URL } from '../../Utils/baseUrl';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice';
+import { getAllHODStaff } from '../../Redux/Slice/hod.slice';
 
 const HODStaff = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const staff = useSelector((state) => state.staff.staff)
+  const staff = useSelector((state) => state.hod.staff)
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); 
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -32,6 +33,7 @@ const HODStaff = () => {
     image: true,
     name: true,
     designation: true,
+    department:true,
     mobileno: true,
     email: true,
     gender: true,
@@ -82,7 +84,7 @@ const HODStaff = () => {
   }, []);
 
   const handleRefresh = () => {
-    dispatch(getAllStaff());
+    dispatch(getAllHODStaff());
     setSearchTerm("");
     setCurrentPage(1);
   };
@@ -108,6 +110,9 @@ const HODStaff = () => {
         }
         if (visibleColumns.designation) {
           row['Designation'] = staff.designation || '';
+        }
+        if (visibleColumns.department) {
+          row['Department'] = staff.department.name || '';
         }
         if (visibleColumns.mobileno) {
           row['Mobile No.'] = staff.mobileno || '';
@@ -165,7 +170,7 @@ const HODStaff = () => {
     if (itemToDelete && itemToDelete._id) {
       try {
         await dispatch(deleteStaff(itemToDelete._id)).unwrap();
-        await dispatch(getAllStaff());
+        await dispatch(getAllHODStaff());
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
       } catch (error) {
@@ -175,7 +180,7 @@ const HODStaff = () => {
   };
 
   useEffect(() => {
-    dispatch(getAllStaff());
+    dispatch(getAllHODStaff());
   }, [dispatch]);
 
   return (
@@ -206,12 +211,12 @@ const HODStaff = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1 justify-end mt-2">
                   <div className="relative" ref={dropdownRef}>
-                    <button 
+                    <button
                       onClick={() => navigate('/hod/addstaff', { state: { mode: 'add' } })}
-                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" 
+                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
                       title="Add New Staff"
                     >
-                        <FiPlusCircle size={20}/>
+                      <FiPlusCircle size={20} />
                     </button>
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
@@ -271,6 +276,9 @@ const HODStaff = () => {
                     {visibleColumns.designation && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Designation</th>
                     )}
+                    {visibleColumns.department && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Department</th>
+                    )}
                     {visibleColumns.mobileno && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile No.</th>
                     )}
@@ -315,6 +323,9 @@ const HODStaff = () => {
                         )}
                         {visibleColumns.designation && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
+                        )}
+                        {visibleColumns.department && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.department?.name}</td>
                         )}
                         {visibleColumns.mobileno && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
@@ -434,12 +445,12 @@ const HODStaff = () => {
             <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
             <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
-                  <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                  </button>
+                <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
+                <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
               <p className="text-gray-700 mb-8 text-center">
                 Are you sure you want to delete{' '}
@@ -447,18 +458,18 @@ const HODStaff = () => {
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
-                    type="button"
-                    onClick={handleDeleteModalClose}
-                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                  type="button"
+                  onClick={handleDeleteModalClose}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
-                    Cancel
+                  Cancel
                 </button>
                 <button
-                    type="button"
-                    onClick={handleDeleteConfirm}
-                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
-                    Delete
+                  Delete
                 </button>
               </div>
             </div>

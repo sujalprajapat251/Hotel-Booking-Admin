@@ -18,7 +18,7 @@ export const getAllCafeTable = createAsyncThunk(
 
             const token = await localStorage.getItem("token");
 
-            const response = await axios.get(`${BASE_URL}/getAllCafeTable`, {
+            const response = await axios.get(`${BASE_URL}/getAllTable`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
@@ -38,7 +38,7 @@ export const createCafeTable = createAsyncThunk(
         try {
 
             const token = await localStorage.getItem("token");
-            const response = await axios.post(`${BASE_URL}/addCafeTable`, cafeTableData,
+            const response = await axios.post(`${BASE_URL}/addTable`, cafeTableData,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export const updateCafeTable = createAsyncThunk(
     async (editCafeTableData, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.put(`${BASE_URL}/updateCafeTable/${editCafeTableData.id}`, editCafeTableData,
+            const response = await axios.put(`${BASE_URL}/updateTable/${editCafeTableData.id}`, editCafeTableData,
                 {
                     headers: {
                         'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ export const deleteCafeTable = createAsyncThunk(
     async (cafeTableData, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.delete(`${BASE_URL}/deleteCafeTable/${cafeTableData.id}`,
+            const response = await axios.delete(`${BASE_URL}/deleteTable/${cafeTableData.id}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ export const getCafeTableById = createAsyncThunk(
     async (id, { dispatch, rejectWithValue }) => {
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getCafeTable/${id}`,
+            const response = await axios.get(`${BASE_URL}/getTable/${id}`,
                 {
                     headers: {
                         'Content-Type': 'application/json',
