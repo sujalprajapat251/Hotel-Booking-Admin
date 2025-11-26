@@ -28,6 +28,7 @@ import cabBookingSlice from "./Slice/cabBookingSlice";
 import hodSlice from "./Slice/hod.slice";
 import accountantSlice from "./Slice/Accountant.slice";
 import reviewSlice from "./Slice/review.slice";
+import housekeepingSlice from "./Slice/housekeepingSlice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -39,6 +40,7 @@ export const rootReducer = combineReducers({
     user:userSlice,
     faq:faqSlice,
     booking:bookingSlice,
+    housekeeping:housekeepingSlice,
     department:departmentSlice,
     staff:staffSlice,
     blog:blogSlice,

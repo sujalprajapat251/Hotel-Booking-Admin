@@ -9,12 +9,13 @@ import { ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search }
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
+import { fetchAllhousekeepingrooms } from '../Redux/Slice/housekeepingSlice.js';
 
 
 const AllHouseKeeping = () => {
 
     const dispatch = useDispatch();
-    const [booking, setBooking] = useState([]);
+    const [housekeepingRooms, setHousekeepingRooms] = useState([]);
 
     // Get data from Redux store including pagination
     const {
@@ -75,7 +76,7 @@ const AllHouseKeeping = () => {
             params.search = debouncedSearch;
         }
 
-        dispatch(fetchBookings(params));
+        dispatch(fetchAllhousekeepingrooms(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
     // Transform Redux data to local state (without sorting/slicing - backend handles this)
@@ -92,9 +93,9 @@ const AllHouseKeeping = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item // Keep raw data for other operations
             }));
-            setBooking(formattedBookings);
+            setHousekeepingRooms(formattedBookings);
         } else {
-            setBooking([]);
+            setHousekeepingRooms([]);
         }
     }, [items]);
 
@@ -148,12 +149,12 @@ const AllHouseKeeping = () => {
 
     const handleDownloadExcel = () => {
         try {
-            if (booking.length === 0) {
+            if (housekeepingRooms.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
             // Prepare data for Excel
-            const excelData = booking.map((bookingItem, index) => {
+            const excelData = housekeepingRooms.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
@@ -162,17 +163,8 @@ const AllHouseKeeping = () => {
                 if (visibleColumns.workerName) {
                     row['Worker Name'] = bookingItem.workerName || '';
                 }
-                if (visibleColumns.checkIn) {
-                    row['Check In'] = bookingItem.checkIn || '';
-                }
-                if (visibleColumns.checkOut) {
-                    row['Check Out'] = bookingItem.checkOut || '';
-                }
                 if (visibleColumns.status) {
                     row['Status'] = bookingItem.status || '';
-                }
-                if (visibleColumns.phone) {
-                    row['Phone'] = bookingItem.phone || '';
                 }
                 if (visibleColumns.roomType) {
                     row['Room Type'] = bookingItem.roomType || '';
@@ -239,7 +231,7 @@ const AllHouseKeeping = () => {
     const totalPages = reduxTotalPages || 1;
     const startIndex = ((currentPage - 1) * itemsPerPage);
     const endIndex = Math.min(startIndex + itemsPerPage, totalCount || 0);
-    const currentData = booking; // Already paginated from backend
+    const currentData = housekeepingRooms; // Already paginated from backend
 
     return (
         <>
@@ -331,24 +323,12 @@ const AllHouseKeeping = () => {
                                         {visibleColumns.workerName && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                                         )}
-                                        {visibleColumns.date && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Check In</th>
-                                        )}
-                                        {/* {visibleColumns.checkOut && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Check Out</th>
-                                        )} */}
                                         {visibleColumns.status && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Status</th>
                                         )}
-                                        {/* {visibleColumns.phone && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Phone</th>
-                                        )} */}
                                         {visibleColumns.roomNo && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
                                         )}
-                                        {/* {visibleColumns.documents && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Documents</th>
-                                        )} */}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                                         )}
@@ -393,11 +373,6 @@ const AllHouseKeeping = () => {
                                                         {bookingItem.checkIn ? formatDate(bookingItem.checkIn) : ''}
                                                     </td>
                                                 )}
-                                                {/* {visibleColumns.checkOut && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        {bookingItem.checkOut ? formatDate(bookingItem.checkOut) : ''}
-                                                    </td>
-                                                )} */}
                                                 {visibleColumns.status && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(bookingItem.status)}`}>
@@ -405,13 +380,6 @@ const AllHouseKeeping = () => {
                                                         </span>
                                                     </td>
                                                 )}
-                                                {/* {visibleColumns.phone && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                            <Phone size={16} className='text-green-600' />{bookingItem.phone}
-                                                        </div>
-                                                    </td>
-                                                )} */}
                                                 {visibleColumns.roomNo && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         <div className="flex items-center">
@@ -425,13 +393,6 @@ const AllHouseKeeping = () => {
                                                         </div>
                                                     </td>
                                                 )}
-                                                {/* {visibleColumns.documents && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                            <HiOutlineDocumentChartBar size={22} className='text-[#EC5C09] hover:text-[#EC0927] transition-colors cursor-pointer' />
-                                                        </div>
-                                                    </td>
-                                                )} */}
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2">
@@ -575,27 +536,6 @@ const AllHouseKeeping = () => {
                                             <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Worker Name:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
                                         </div>
-                                        {/* <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Phone:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.phone}</span>
-                                        </div> */}
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Date:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
-                                        </div>
-                                        {/* <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Check Out:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
-                                        </div> */}
                                         <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -612,92 +552,6 @@ const AllHouseKeeping = () => {
                                                 {selectedItem.status}
                                             </span>
                                         </div>
-                                        {/* {selectedItem.rawData?.guest?.email && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.guest?.idNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>ID Number:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.guest?.nationality && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Nationality:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.nationality}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.bookingReference && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Booking Ref:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.bookingReference}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.room?.roomNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.occupancy && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Occupancy:</span>
-                                                <span style={{ color: '#876B56' }}>
-                                                    Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, 
-                                                    Children: {selectedItem.rawData.reservation.occupancy.children || 0}
-                                                </span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.payment?.totalAmount && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
-                                                <span style={{ color: '#876B56' }}>
-                                                    {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
-                                                </span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.payment?.method && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Method:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.specialRequests && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Special Requests:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
-                                            </div>
-                                        )} */}
                                     </div>
                                 </div>
                             </div>
