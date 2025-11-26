@@ -23,7 +23,8 @@ const DEPARTMENT_DESIGNATION_MAP = {
   Cafe: ['Chef', 'Waiter','Accountant'],
   Transport: ['Driver'],
   Restaurant :['Chef', 'Waiter','Accountant'],
-  Bar :['Chef', 'Waiter','Accountant']
+  Bar :['Chef', 'Waiter','Accountant'],
+  Housekeeping: ['worker']
 };
 
 const StaffForm = () => {
@@ -71,26 +72,26 @@ const StaffForm = () => {
       .min(3, 'Name must be at least 3 characters')
       .max(50, 'Name must be less than 50 characters')
       .required('Name is required'),
-    image: isEditMode 
+    image: isEditMode
       ? Yup.mixed()
-          .test('fileSize', 'File size must be less than 5MB', (value) => {
-            if (!value || typeof value === 'string') return true;
-            return value.size <= 5242880;
-          })
-          .test('fileType', 'Only JPG, JPEG, PNG formats are allowed', (value) => {
-            if (!value || typeof value === 'string') return true;
-            return ['image/jpg', 'image/jpeg', 'image/png'].includes(value.type);
-          })
+        .test('fileSize', 'File size must be less than 5MB', (value) => {
+          if (!value || typeof value === 'string') return true;
+          return value.size <= 5242880;
+        })
+        .test('fileType', 'Only JPG, JPEG, PNG formats are allowed', (value) => {
+          if (!value || typeof value === 'string') return true;
+          return ['image/jpg', 'image/jpeg', 'image/png'].includes(value.type);
+        })
       : Yup.mixed()
-          .required('Image is required')
-          .test('fileSize', 'File size must be less than 5MB', (value) => {
-            if (!value) return false;
-            return value.size <= 5242880;
-          })
-          .test('fileType', 'Only JPG, JPEG, PNG formats are allowed', (value) => {
-            if (!value) return false;
-            return ['image/jpg', 'image/jpeg', 'image/png'].includes(value.type);
-          }),
+        .required('Image is required')
+        .test('fileSize', 'File size must be less than 5MB', (value) => {
+          if (!value) return false;
+          return value.size <= 5242880;
+        })
+        .test('fileType', 'Only JPG, JPEG, PNG formats are allowed', (value) => {
+          if (!value) return false;
+          return ['image/jpg', 'image/jpeg', 'image/png'].includes(value.type);
+        }),
     department: Yup.string().required('Department is required'),
     designation: Yup.string().required('Designation is required'),
     gender: Yup.string().required('Gender is required'),
@@ -107,18 +108,18 @@ const StaffForm = () => {
       .required('Email is required'),
     password: isEditMode
       ? Yup.string()
-          .min(8, 'Password must be at least 8 characters')
-          .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-          .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-          .matches(/[0-9]/, 'Password must contain at least one number')
-          .matches(/[@$!%*?&#]/, 'Password must contain at least one special character')
+        .min(8, 'Password must be at least 8 characters')
+        .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .matches(/[0-9]/, 'Password must contain at least one number')
+        .matches(/[@$!%*?&#]/, 'Password must contain at least one special character')
       : Yup.string()
-          .min(8, 'Password must be at least 8 characters')
-          .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
-          .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
-          .matches(/[0-9]/, 'Password must contain at least one number')
-          .matches(/[@$!%*?&#]/, 'Password must contain at least one special character')
-          .required('Password is required'),
+        .min(8, 'Password must be at least 8 characters')
+        .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .matches(/[0-9]/, 'Password must contain at least one number')
+        .matches(/[@$!%*?&#]/, 'Password must contain at least one special character')
+        .required('Password is required'),
     joiningDate: Yup.date()
       .max(new Date(), 'Joining date cannot be in the future')
       .required('Joining date is required')
@@ -161,7 +162,7 @@ const StaffForm = () => {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       if (isSubmitting) return;
-      
+
       setIsSubmitting(true);
       try {
         const submitData = {
@@ -190,7 +191,7 @@ const StaffForm = () => {
         } else {
           await dispatch(createStaff(submitData)).unwrap();
         }
-        
+
         await dispatch(getAllStaff());
         navigate('/staff');
       } catch (error) {
@@ -246,7 +247,7 @@ const StaffForm = () => {
         const deptName = staffData.department?.name || staffData.department;
         setSelectedDepartmentName(deptName);
       }
-      
+
       // Set image preview if image exists
       if (staffData.image && typeof staffData.image === 'string') {
         setImagePreview(`${IMAGE_URL}${staffData.image}`);
@@ -370,9 +371,9 @@ const StaffForm = () => {
                                   formik.setFieldValue('department', dept._id);
                                   setSelectedDepartmentName(dept.name);
                                   setShowDepartmentDropdown(false);
-                                formik.setFieldValue('designation', '');
-                                setShowDesignationDropdown(false);
-                              }}
+                                  formik.setFieldValue('designation', '');
+                                  setShowDesignationDropdown(false);
+                                }}
                                 className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
                               >
                                 {dept.name}
@@ -603,7 +604,7 @@ const StaffForm = () => {
                   Submit
                 </button>
               </div>
-              
+
             </div>
           </div>
         </div>
