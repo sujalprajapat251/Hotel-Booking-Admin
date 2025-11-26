@@ -348,7 +348,7 @@ exports.admingetAllUsers = async (req, res) => {
 
 
 
-exports.changePassword = async (req, res) => {
+exports.adminchangePassword = async (req, res) => {
     try {
         let userId = req.user._id;
 

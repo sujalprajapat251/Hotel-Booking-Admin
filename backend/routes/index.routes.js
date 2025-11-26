@@ -55,7 +55,7 @@ const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, up
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
-const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword } = require('../controller/adminController');
+const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 
 // auth Routes
@@ -251,6 +251,6 @@ indexRoutes.post('/adminlogin',adminLogin);
 indexRoutes.post('/adminforgotPassword', adminforgotPassword);
 indexRoutes.post('/adminverifyOtp', adminverifyOtp)
 indexRoutes.post("/adminresendOtp", adminresendOtp);
-indexRoutes.post('/adminresetpassword', adminresetPassword)
-
+indexRoutes.post('/adminresetpassword', adminresetPassword);
+indexRoutes.put('/adminchangePassword', auth, adminchangePassword);
 module.exports = indexRoutes;
