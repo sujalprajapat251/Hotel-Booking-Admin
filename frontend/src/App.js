@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { configureStore } from './Redux/Store';
 import { SnackbarProvider } from 'notistack';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
 import EditorDemo from './Pages/EditorDemo';
@@ -59,6 +59,7 @@ import AccountantLayout from './component/Accountant/Layout.js'
 import AccountantDashboard from './component/Accountant/Dashboard.js'
 import AllBookings from './Pages/AllBookings.jsx';
 import AllHouseKeeping from './Pages/AllHouseKeeping.jsx';
+import AboutForm from './Pages/AboutForm.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -230,10 +231,14 @@ function App() {
                   path='/about'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
-                      <About />
+                      <Outlet />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  <Route index element={<Navigate to="/about/about" replace />} />
+                  <Route path='about' element={<About />} />
+                  <Route path='addabout' element={<AboutForm />} />
+                </Route>
                 <Route
                   path='/blog'
                   element={

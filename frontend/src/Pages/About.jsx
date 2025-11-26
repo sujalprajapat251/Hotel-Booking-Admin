@@ -1,35 +1,30 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
-import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit, FiPlusCircle } from "react-icons/fi";
 import { IoEyeSharp } from 'react-icons/io5';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-import {getAllAbout, createAbout, updateAbout, deleteAbout} from '../Redux/Slice/about.slice';
+import { getAllAbout, deleteAbout } from '../Redux/Slice/about.slice';
 import * as XLSX from 'xlsx';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
+import { useNavigate } from 'react-router-dom';
 
 const About = () => {
   const dispatch = useDispatch();
   const {about} = useSelector((state) => state.about);
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-  
+
   const [visibleColumns, setVisibleColumns] = useState({
     no: true,
     image: true,
@@ -37,39 +32,6 @@ const About = () => {
     description: true,
     actions: true,
   });
-  const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
-
-  const quillModules = useMemo(() => ({
-    toolbar: [
-        [{ header: [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ list: 'ordered' }, { list: 'bullet' }],
-        [{ script: 'sub' }, { script: 'super' }],
-        [{ indent: '-1' }, { indent: '+1' }],
-        [{ direction: 'rtl' }],
-        [{ size: ['small', false, 'large', 'huge'] }],
-        [{ color: [] }, { background: [] }],
-        [{ font: [] }],
-        [{ align: [] }],
-        ['link', 'blockquote', 'code-block'],
-        ['clean']
-    ],
-  }), []);
-
-  const quillFormats = useMemo(() => ([
-    'header', 'font', 'size',
-    'bold', 'italic', 'underline', 'strike', 'blockquote',
-    'list', 'bullet', 'indent',
-    'link', 'color', 'background',
-    'align', 'script', 'code-block'
-  ]), []);
-
-  const getImageFileName = (path = '') => {
-    if (!path) return '';
-    const segments = path.split(/[/\\]/);
-    const fileName = segments[segments.length - 1] || '';
-    return fileName.replace(/^\d+-/, '');
-  };
 
   const toggleColumn = (column) => {
     setVisibleColumns(prev => ({
@@ -103,58 +65,30 @@ const About = () => {
     setSelectedItem(null);
   };
 
-  const filteredAbout = about?.filter(
+  const aboutList = Array.isArray(about) ? about : [];
+  const filteredAbout = aboutList.filter(
     (item) =>
       item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item?.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formik = useFormik({
-    initialValues: {
-      title: '',
-      description: '',
-      image: null,
-    },
-    validationSchema: Yup.object({
-        title: Yup.string().required('Title is required'),
-        description: Yup.string().required('Description is required'),
-        image: Yup.mixed()
-          .nullable()
-          .test('required', 'Image is required', function (value) {
-              if (isEditMode) {
-                  return true;
-              }
-              return Boolean(value);
-          }),
-      }),
-      onSubmit: (values, { resetForm }) => {
-        if (isEditMode) {
-          const targetId = editingItem?._id || editingItem?.id;
-          dispatch(updateAbout({ id: targetId, ...values })).then(() => {
-            dispatch(getAllAbout());
-          });
-        } else {
-          dispatch(createAbout(values)).then(() => {
-            dispatch(getAllAbout());
-          });
-        }
-        resetForm();
-        setIsAddModalOpen(false);
-        setIsEditMode(false);
-        setEditingItem(null);
-      },
-    });
+  const totalPages = Math.max(1, Math.ceil(filteredAbout.length / itemsPerPage));
 
-    const handleEditClick = (item) => {
-    setIsEditMode(true);
-    setEditingItem(item);
-    formik.setValues({
-      title: item.title,
-      description: item.description,
-      image: null,
-    });
-    setIsAddModalOpen(true);
-  }
+  useEffect(() => {
+    setCurrentPage(prev => Math.min(prev, totalPages));
+  }, [totalPages]);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentData = filteredAbout.slice(startIndex, endIndex);
+
+  const handleEditClick = (item) => {
+    navigate('/about/addabout', { state: { mode: 'edit', about: item } });
+  };
+
+  const handleAddClick = () => {
+    navigate('/about/addabout', { state: { mode: 'add' } });
+  };
 
   const handleDeleteClick = (item) => {
     setItemToDelete(item);
@@ -190,11 +124,6 @@ const About = () => {
       tempElement.innerHTML = htmlString;
       return tempElement.textContent || tempElement.innerText || '';
     };
-
-  const totalPages = Math.ceil(filteredAbout.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredAbout.slice(startIndex, endIndex);
 
   const handleDownloadExcel = () => {
     try {
@@ -277,18 +206,13 @@ const About = () => {
             {/* Action Buttons */}
             <div className="flex items-center gap-1 justify-end mt-2">
               <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => {
-                    setIsEditMode(false);
-                    setEditingItem(null);
-                    formik.resetForm();
-                    setIsAddModalOpen(true);
-                  }}
-                  className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
-                  title="Add About"
-                >
-                    <FiPlusCircle size={20}/>
-                </button>
+                  <button
+                    onClick={handleAddClick}
+                    className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+                    title="Add About"
+                  >
+                      <FiPlusCircle size={20}/>
+                  </button>
 
                 <button
                   onClick={() => setShowColumnDropdown(!showColumnDropdown)}
@@ -406,7 +330,13 @@ const About = () => {
                         <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="mv_table_action flex">
                             <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
-                            <div onClick={() => handleEditClick(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                            <button
+                              onClick={() => handleEditClick(item)}
+                              className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
+                              title="Edit About"
+                            >
+                              <FiEdit className="text-[18px]" />
+                            </button>
                             <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                           </div>
                         </td>
@@ -526,107 +456,6 @@ const About = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Add Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40"></div>
-            <div className="relative w-full md:max-w-xl max-w-[90%] rounded-md bg-white p-6 shadow-xl">
-                <div className="flex items-start justify-between mb-6">
-                    <h2 className="text-2xl font-semibold text-black">
-                        {isEditMode ? 'Edit About Us' : 'Add About Us'}
-                    </h2>
-                    <button onClick={() =>setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <form className="" onSubmit={formik.handleSubmit}>
-                    <div className="flex flex-col mb-4">
-                        <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
-                        <input
-                            id="title"
-                            name="title"
-                            type="text"
-                            placeholder="Enter Title"
-                            className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                            value={formik.values.title}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                        />
-                        {formik.touched.title && formik.errors.title ? (
-                            <p className="text-sm text-red-500">{formik.errors.title}</p>
-                        ) : null}
-                    </div>
-
-                    <div className="flex flex-col mb-4">
-                        <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                          <div className="rounded-[4px] border border-gray-200 bg-[#1414140F]">
-                              <ReactQuill
-                                  id="description"
-                                  theme="snow"
-                                  value={formik.values.description}
-                                  onChange={(content) => formik.setFieldValue('description', content)}
-                                  onBlur={() => formik.setFieldTouched('description', true)}
-                                  modules={quillModules}
-                                  formats={quillFormats}
-                                  placeholder="Enter Description"
-                              />
-                          </div>
-                        {formik.touched.description && formik.errors.description ? (
-                            <p className="text-sm text-red-500">{formik.errors.description}</p>
-                        ) : null}
-                    </div>
-
-                    <div className="flex flex-col mb-4">
-                        <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
-                        <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
-                            <span className="truncate">
-                                {formik.values.image
-                                  ? formik.values.image.name
-                                  : (isEditMode && editingItem?.image
-                                      ? getImageFileName(editingItem.image)
-                                      : 'Choose file')}
-                            </span>
-                            <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
-                            <input
-                                id="image"
-                                name="image"
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(event) => {
-                                    const file = event.currentTarget.files && event.currentTarget.files[0];
-                                    formik.setFieldValue('image', file);
-                                }}
-                                onBlur={formik.handleBlur}
-                            />
-                        </label>
-                        {formik.touched.image && formik.errors.image ? (
-                            <p className="text-sm text-red-500">{formik.errors.image}</p>
-                        ) : null}
-                    </div>
-
-                    <div className="flex items-center justify-center pt-4">
-                        <button
-                            type="button"
-                            onClick={() => setIsAddModalOpen(false)}
-                            className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                        >
-                            {isEditMode ? 'Edit' : 'Add'}
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
       )}
 
