@@ -38,72 +38,29 @@ export const fetchAllhousekeepingrooms = createAsyncThunk(
     }
 );
 
-// export const createBooking = createAsyncThunk(
-//   'booking/create',
-//   async (bookingData, { dispatch, rejectWithValue }) => {
-//     console.log(bookingData, "bookingData");
-//     try {
-//       const response = await axios.post(`${BASE_URL}/bookings`, bookingData, {
-//         headers: {
-//           'Content-Type': 'application/json',
-//           ...getAuthHeaders()
-//         }
-//       });
-//       dispatch(setAlert({ text: response.data.message, color: 'success' }));
-//       return response.data?.data;
-//     } catch (error) {
-//       return handleErrors(error, dispatch, rejectWithValue);
-//     }
-//   }
-// );
+// Add this after your fetchAllhousekeepingrooms thunk
+export const assignWorkerToRoom = createAsyncThunk(
+    'housekeeping/assignWorkerToRoom',
+    async ({ roomId, workerId }, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/assign`,
+                { roomId, workerId },
+                { headers: getAuthHeaders() }
+            );
 
-// export const getBookingById = createAsyncThunk(
-//   'booking/getById',
-//   async (id, { dispatch, rejectWithValue }) => {
-//     try {
-//       const response = await axios.get(`${BASE_URL}/bookings/${id}`, {
-//         headers: getAuthHeaders()
-//       });
-//       return response.data?.data;
-//     } catch (error) {
-//       return rejectWithValue(buildError(error));
-//     }
-//   }
-// );
+            dispatch(setAlert({
+                text: response.data.message || 'Worker assigned successfully!',
+                color: 'success'
+            }));
 
-// export const updateBooking = createAsyncThunk(
-//   'booking/update',
-//   async ({ id, updates }, { dispatch, rejectWithValue }) => {
-//     try {
-//       const response = await axios.put(`${BASE_URL}/bookings/${id}`, updates, {
-//         headers: {
-//           'Content-Type': 'application/json',
-//           ...getAuthHeaders()
-//         }
-//       });
-//       dispatch(setAlert({ text: response.data.message, color: 'success' }));
-//       return response.data?.data;
-//     } catch (error) {
-//       return rejectWithValue(buildError(error));
-//     }
-//   }
-// );
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
 
-// export const deleteBooking = createAsyncThunk(
-//   'booking/delete',
-//   async (id, { dispatch, rejectWithValue }) => {
-//     try {
-//       const response = await axios.delete(`${BASE_URL}/bookings/${id}`, {
-//         headers: getAuthHeaders()
-//       });
-
-//       dispatch(setAlert({ text: response.data.message, color: 'success' }));
-//       return id;
-//     } catch (error) {
-//       return handleErrors(error, dispatch, rejectWithValue);
-//     }
-//   }
-// );
 
 const initialState = {
     items: [],
@@ -118,8 +75,8 @@ const initialState = {
     totalPages: 0
 };
 
-const bookingSlice = createSlice({
-    name: 'booking',
+const housekeepingSlice = createSlice({
+    name: 'housekeeping',
     initialState,
     reducers: {
         clearBookingError: (state) => {
@@ -131,81 +88,38 @@ const bookingSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-          .addCase(fetchAllhousekeepingrooms.pending, (state) => {
-            state.loading = true;
-            state.error = null;
-          })
-          .addCase(fetchAllhousekeepingrooms.fulfilled, (state, action) => {
-            state.loading = false;
-            state.items = action.payload.data || [];
-            state.totalCount = action.payload.totalCount || 0;
-            state.currentPage = action.payload.currentPage || 1;
-            state.totalPages = action.payload.totalPages || 0;
-          })
-          .addCase(fetchAllhousekeepingrooms.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
-          })
-        //   .addCase(createBooking.pending, (state) => {
-        //     state.creating = true;
-        //     state.error = null;
-        //     state.lastCreated = null;
-        //   })
-        //   .addCase(createBooking.fulfilled, (state, action) => {
-        //     state.creating = false;
-        //     state.items.unshift(action.payload);
-        //     state.lastCreated = action.payload;
-        //   })
-        //   .addCase(createBooking.rejected, (state, action) => {
-        //     state.creating = false;
-        //     state.error = action.payload;
-        //   })
-        //   .addCase(getBookingById.pending, (state) => {
-        //     state.loading = true;
-        //     state.error = null;
-        //   })
-        //   .addCase(getBookingById.fulfilled, (state, action) => {
-        //     state.loading = false;
-        //     state.selected = action.payload;
-        //   })
-        //   .addCase(getBookingById.rejected, (state, action) => {
-        //     state.loading = false;
-        //     state.error = action.payload;
-        //   })
-        //   .addCase(updateBooking.pending, (state) => {
-        //     state.loading = true;
-        //     state.error = null;
-        //   })
-        //   .addCase(updateBooking.fulfilled, (state, action) => {
-        //     state.loading = false;
-        //     state.items = state.items.map((booking) =>
-        //       booking.id === action.payload.id ? action.payload : booking
-        //     );
-        //     if (state.selected?.id === action.payload.id) {
-        //       state.selected = action.payload;
-        //     }
-        //   })
-        //   .addCase(updateBooking.rejected, (state, action) => {
-        //     state.loading = false;
-        //     state.error = action.payload;
-        //   })
-        //   .addCase(deleteBooking.pending, (state) => {
-        //     state.loading = true;
-        //     state.error = null;
-        //   })
-        //   .addCase(deleteBooking.fulfilled, (state, action) => {
-        //     state.loading = false;
-        //     state.items = state.items.filter((booking) => booking.id !== action.payload);
-        //     if (state.selected?.id === action.payload) {
-        //       state.selected = null;
-        //     }
-        //   })
-        //   .addCase(deleteBooking.rejected, (state, action) => {
-        //     state.loading = false;
-        //     state.error = action.payload;
-        //   });
+            .addCase(fetchAllhousekeepingrooms.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchAllhousekeepingrooms.fulfilled, (state, action) => {
+                state.loading = false;
+                state.items = action.payload?.data || [];
+                console.log('itemssss', action.payload.data);
+                state.totalCount = action.payload.totalCount || 0;
+                state.currentPage = action.payload.currentPage || 1;
+                state.totalPages = action.payload.totalPages || 0;
+            })
+            .addCase(fetchAllhousekeepingrooms.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            // Add these new cases for assignWorkerToRoom
+            .addCase(assignWorkerToRoom.pending, (state) => {
+                state.creating = true;
+                state.error = null;
+            })
+            .addCase(assignWorkerToRoom.fulfilled, (state, action) => {
+                state.creating = false;
+                state.lastCreated = action.payload.data;
+                // Optionally update the items array if needed
+            })
+            .addCase(assignWorkerToRoom.rejected, (state, action) => {
+                state.creating = false;
+                state.error = action.payload;
+            });
     }
 });
 
-export const { clearBookingError, resetLastCreatedBooking } = bookingSlice.actions;
-export default bookingSlice.reducer;
+export const { clearBookingError, resetLastCreatedBooking } = housekeepingSlice.actions;
+export default housekeepingSlice.reducer;

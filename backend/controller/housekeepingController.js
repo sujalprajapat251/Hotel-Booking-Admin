@@ -4,7 +4,7 @@ const Housekeeping = require("../models/housekeepingModel");
 // GET ALL DIRTY ROOMS
 exports.getDirtyRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({ cleanStatus: "Dirty" }).populate("roomType");
+        const rooms = await Room.find({ cleanStatus: "Dirty" }).populate("roomType").populate("cleanassign").sort({ updatedAt: -1 });
 
         return res.json({
             success: true,
@@ -16,6 +16,7 @@ exports.getDirtyRooms = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 // ASSIGN WORKER TO DIRTY ROOM
 exports.assignWorker = async (req, res) => {
@@ -56,7 +57,7 @@ exports.assignWorker = async (req, res) => {
 // WORKER START CLEANING
 exports.startCleaning = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
 
         const task = await Housekeeping.findById(id);
         if (!task) {
