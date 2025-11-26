@@ -39,6 +39,7 @@ export const Dashboard = () => {
         .map((item, index) => ({
           id: item._id || item.id || index,
           name: item.guest?.fullName || 'N/A',
+          roomNo: item.roomNumber || 'N/A',
           checkIn: item.reservation?.checkInDate?.slice(0, 10) || 'N/A',
           checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
           status: item.payment?.status || 'Pending',
@@ -716,6 +717,7 @@ export const Dashboard = () => {
                   <tr>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>#</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Name</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Room No</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Check In</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Check Out</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Status</th>
@@ -752,6 +754,7 @@ export const Dashboard = () => {
                           <span className="text-sm font-semibold" style={{ color: '#755647' }}>{booking.name}</span>
                         </div>
                       </td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{booking.roomNo}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{booking.checkIn}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{booking.checkOut}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">

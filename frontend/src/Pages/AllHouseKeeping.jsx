@@ -42,13 +42,13 @@ const AllHouseKeeping = () => {
     const [itemToDelete, setItemToDelete] = useState(null);
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
-        name: true,
-        checkIn: true,
-        checkOut: true,
+        workerName: true,
+        date: true,
+        // checkOut: true,
         status: true,
-        phone: true,
-        roomType: true,
-        documents: true,
+        // phone: true,
+        roomNo: true,
+        // documents: true,
         actions: true
     });
 
@@ -85,9 +85,9 @@ const AllHouseKeeping = () => {
                 id: item._id || item.id || index,
                 name: item.guest?.fullName || 'N/A',
                 checkIn: item.reservation?.checkInDate?.slice(0, 10) || 'N/A',
-                checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
+                // checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
                 status: item.payment?.status || 'Pending',
-                phone: item.guest?.phone || 'N/A',
+                // phone: item.guest?.phone || 'N/A',
                 roomType: item.room?.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item // Keep raw data for other operations
@@ -159,8 +159,8 @@ const AllHouseKeeping = () => {
                 if (visibleColumns.No) {
                     row['No.'] = ((page - 1) * limit) + index + 1;
                 }
-                if (visibleColumns.name) {
-                    row['Name'] = bookingItem.name || '';
+                if (visibleColumns.workerName) {
+                    row['Worker Name'] = bookingItem.workerName || '';
                 }
                 if (visibleColumns.checkIn) {
                     row['Check In'] = bookingItem.checkIn || '';
@@ -328,27 +328,27 @@ const AllHouseKeeping = () => {
                                         {visibleColumns.No && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No.</th>
                                         )}
-                                        {visibleColumns.name && (
+                                        {visibleColumns.workerName && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                                         )}
-                                        {visibleColumns.checkIn && (
+                                        {visibleColumns.date && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Check In</th>
                                         )}
-                                        {visibleColumns.checkOut && (
+                                        {/* {visibleColumns.checkOut && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Check Out</th>
-                                        )}
+                                        )} */}
                                         {visibleColumns.status && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Status</th>
                                         )}
-                                        {visibleColumns.phone && (
+                                        {/* {visibleColumns.phone && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Phone</th>
-                                        )}
-                                        {visibleColumns.roomType && (
+                                        )} */}
+                                        {visibleColumns.roomNo && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
                                         )}
-                                        {visibleColumns.documents && (
+                                        {/* {visibleColumns.documents && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Documents</th>
-                                        )}
+                                        )} */}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                                         )}
@@ -381,23 +381,23 @@ const AllHouseKeeping = () => {
                                                         {startIndex + index + 1}
                                                     </td>
                                                 )}
-                                                {visibleColumns.name && (
+                                                {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-sm font-semibold text-[#755647]">{bookingItem.name}</span>
                                                         </div>
                                                     </td>
                                                 )}
-                                                {visibleColumns.checkIn && (
+                                                {visibleColumns.date && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         {bookingItem.checkIn ? formatDate(bookingItem.checkIn) : ''}
                                                     </td>
                                                 )}
-                                                {visibleColumns.checkOut && (
+                                                {/* {visibleColumns.checkOut && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         {bookingItem.checkOut ? formatDate(bookingItem.checkOut) : ''}
                                                     </td>
-                                                )}
+                                                )} */}
                                                 {visibleColumns.status && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(bookingItem.status)}`}>
@@ -405,14 +405,14 @@ const AllHouseKeeping = () => {
                                                         </span>
                                                     </td>
                                                 )}
-                                                {visibleColumns.phone && (
+                                                {/* {visibleColumns.phone && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2 text-sm text-gray-700">
                                                             <Phone size={16} className='text-green-600' />{bookingItem.phone}
                                                         </div>
                                                     </td>
-                                                )}
-                                                {visibleColumns.roomType && (
+                                                )} */}
+                                                {visibleColumns.roomNo && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         <div className="flex items-center">
                                                             <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
@@ -425,13 +425,13 @@ const AllHouseKeeping = () => {
                                                         </div>
                                                     </td>
                                                 )}
-                                                {visibleColumns.documents && (
+                                                {/* {visibleColumns.documents && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2 text-sm text-gray-700">
                                                             <HiOutlineDocumentChartBar size={22} className='text-[#EC5C09] hover:text-[#EC0927] transition-colors cursor-pointer' />
                                                         </div>
                                                     </td>
-                                                )}
+                                                )} */}
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2">
@@ -572,30 +572,30 @@ const AllHouseKeeping = () => {
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Guest Name:</span>
+                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Worker Name:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                                        {/* <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
                                             <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Phone:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.phone}</span>
-                                        </div>
+                                        </div> */}
                                         <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Check In:</span>
+                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Date:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
+                                        {/* <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                         >
                                             <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Check Out:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
-                                        </div>
+                                        </div> */}
                                         <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                             onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -696,15 +696,6 @@ const AllHouseKeeping = () => {
                                             >
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Special Requests:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
-                                            </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.notes && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Notes:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
                                             </div>
                                         )} */}
                                     </div>
