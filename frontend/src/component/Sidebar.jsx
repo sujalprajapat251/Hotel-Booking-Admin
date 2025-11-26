@@ -113,6 +113,16 @@ const adminSections = [
       },
       // { icon: LuInfo, label: 'About', path: '/about' },
       { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
+      { icon: LuInfo, label: 'About', path: '/about' },
+      {
+        icon: RiBloggerLine,
+        label: 'Blog',
+        path: '/blog',
+        subMenus: [
+          { label: 'Blog', path: '/blog/blog' },
+          { label: 'Add Blog', path: '/blog/addblog' },
+        ]
+      },
       { icon: VscCodeReview, label: 'Review', path: '/review' },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },

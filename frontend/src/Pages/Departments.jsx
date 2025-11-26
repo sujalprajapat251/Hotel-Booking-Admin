@@ -171,9 +171,11 @@ const Departments = () => {
   }, [dispatch])
 
   return (
-    <div className="px-4 md:px-8 py-6 h-full" style={{
-      background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
-    }}>
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full" 
+      // style={{
+      //   background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
+      // }}
+    >
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Departments</h1>
       </section>

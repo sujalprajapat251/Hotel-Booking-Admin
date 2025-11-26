@@ -17,6 +17,7 @@ import Layout from './Pages/Layout';
 import Staff from './Pages/Staff.jsx';
 import Departments from './Pages/Departments';
 import Blog from './Pages/Blog';
+import BlogForm from './Pages/BlogForm.jsx';
 import Review from './Pages/Review';
 import Contact from './Pages/Contact';
 import Help from './Pages/Help';
@@ -243,10 +244,14 @@ function App() {
                   path='/blog'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
-                      <Blog />
+                      <Outlet />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  <Route index element={<Navigate to="/blog/blog" replace />} />
+                  <Route path='blog' element={<Blog />} />
+                  <Route path='addblog' element={<BlogForm />} />
+                </Route>
                 <Route
                   path='/review'
                   element={

@@ -22,3 +22,14 @@ body{
     border-radius: 3px;
 	background-color: #b79982;
 }
+/* Custom Quill editor sizing for BlogForm */
+.custom-quill .ql-editor {
+  min-height: 100px;
+  max-height: 150px;
+  overflow: auto;
+  padding: 12px 15px;
+}
+/* ensure the container doesn't force extra height */
+.custom-quill .ql-container {
+  height: auto;
+}
