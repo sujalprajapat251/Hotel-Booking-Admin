@@ -5,17 +5,21 @@ import { FaEllipsisV } from 'react-icons/fa';
 import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
-import { ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
-import { fetchAllhousekeepingrooms } from '../Redux/Slice/housekeepingSlice.js';
+import { assignWorkerToRoom, fetchAllhousekeepingrooms } from '../Redux/Slice/housekeepingSlice.js';
+import { getAllStaff } from '../Redux/Slice/staff.slice.js';
 
 
 const AllHouseKeeping = () => {
 
     const dispatch = useDispatch();
+    const { creating } = useSelector((state) => state.housekeeping);
+
     const [housekeepingRooms, setHousekeepingRooms] = useState([]);
+    console.log('housekeepingRooms', housekeepingRooms);
 
     // Get data from Redux store including pagination
     const {
@@ -24,7 +28,107 @@ const AllHouseKeeping = () => {
         currentPage: reduxCurrentPage,
         totalPages: reduxTotalPages,
         loading
-    } = useSelector((state) => state.booking);
+    } = useSelector((state) => state.housekeeping);
+    console.log('items', items);
+
+    const [housekeepingStaff, setHousekeepingStaff] = useState([]);
+    const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
+    console.log('housekeepingStaffName', housekeepingStaff);
+
+    useEffect(() => {
+        dispatch(getAllStaff());
+    }, [dispatch])
+
+    const { staff } = useSelector((state) => state.staff);
+    console.log('staff', staff);
+
+    useEffect(() => {
+        if (staff && staff.length > 0) {
+            const filteredStaff = staff.filter(
+                (member) => member.department?.name === "Housekeeping"
+            );
+
+            const names = filteredStaff?.map((member) => member?.name);
+
+            console.log('filteredStaff', filteredStaff); // Full objects
+            console.log('names', names); // Just names
+
+            setHousekeepingStaff(filteredStaff);
+            setHousekeepingStaffName(names) // or names, depending on what you need
+        } else {
+            setHousekeepingStaff([]);
+            setHousekeepingStaffName([]);
+        }
+    }, [staff]);
+
+    console.log('housekeepingStaff', housekeepingStaff);
+
+    const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
+    const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
+    const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
+    // const [selectedWorker, setSelectedWorker] = useState('');
+    const [roomId, setRoomId] = useState('');
+    console.log('roomId', roomId);
+
+
+    // Change this state from string to object
+    const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
+
+    const handleAssignWorkerClose = () => {
+        setIsAssignWorkerModalOpen(false);
+        setSelectedHousekeeping(null);
+        setSelectedWorker({ name: '', id: '' });
+        setIsWorkerDropdownOpen(false);
+    };
+
+    const handleAssignWorkerSubmit = async () => {
+        const roomId = selectedHousekeeping?.rawData?.roomType?._id;
+        const workerId = selectedWorker.id;
+
+        console.log('Assigning Worker:', {
+            roomId,
+            workerId,
+            workerName: selectedWorker.name
+        });
+
+        try {
+            // Dispatch the API call
+            await dispatch(assignWorkerToRoom({
+                roomId,
+                workerId
+            })).unwrap();
+
+            // Refresh the housekeeping rooms list after successful assignment
+            dispatch(fetchAllhousekeepingrooms());
+
+            // Close the modal
+            handleAssignWorkerClose();
+        } catch (error) {
+            console.error('Failed to assign worker:', error);
+            // Error is already handled in the slice with setAlert
+        }
+    };
+
+    const handleAssignWorkerClick = (housekeeping) => {
+        setSelectedHousekeeping(housekeeping);
+        // Pre-select current worker if exists
+        const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
+        setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
+        setIsAssignWorkerModalOpen(true);
+    };
+
+    const workerDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target)) {
+                setIsWorkerDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     // Pagination state for API calls
     const [page, setPage] = useState(1);
@@ -47,7 +151,7 @@ const AllHouseKeeping = () => {
         date: true,
         // checkOut: true,
         status: true,
-        // phone: true,
+        roomType: true,
         roomNo: true,
         // documents: true,
         actions: true
@@ -82,18 +186,17 @@ const AllHouseKeeping = () => {
     // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
         if (items && items.length > 0) {
-            const formattedBookings = items.map((item, index) => ({
+            const formattedData = items?.map((item, index) => ({
                 id: item._id || item.id || index,
-                name: item.guest?.fullName || 'N/A',
-                checkIn: item.reservation?.checkInDate?.slice(0, 10) || 'N/A',
-                // checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
-                status: item.payment?.status || 'Pending',
-                // phone: item.guest?.phone || 'N/A',
-                roomType: item.room?.roomType?.roomType || 'N/A',
+                name: item.cleanassign || 'N/A',
+                status: item.cleanStatus || 'Pending',
+                roomNo: item.roomNumber || 'N/A',
+                roomType: item.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item // Keep raw data for other operations
             }));
-            setHousekeepingRooms(formattedBookings);
+            console.log('formattedData', formattedData);
+            setHousekeepingRooms(formattedData);
         } else {
             setHousekeepingRooms([]);
         }
@@ -154,7 +257,7 @@ const AllHouseKeeping = () => {
                 return;
             }
             // Prepare data for Excel
-            const excelData = housekeepingRooms.map((bookingItem, index) => {
+            const excelData = housekeepingRooms?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
@@ -179,7 +282,7 @@ const AllHouseKeeping = () => {
 
             // Auto-size columns
             const maxWidth = 20;
-            const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+            const wscols = Object.keys(excelData[0] || {})?.map(() => ({ wch: maxWidth }));
             worksheet['!cols'] = wscols;
 
             // Generate file name with current date
@@ -236,13 +339,13 @@ const AllHouseKeeping = () => {
     return (
         <>
             <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
-                <p className='text-[20px] font-semibold text-black'>All Bookings</p>
+                <p className='text-[20px] font-semibold text-black'>Housekeeping</p>
                 <div className="w-full mt-3 md:mt-5">
                     <div className="bg-white rounded-lg shadow-md">
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p>
+                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Housekeeping</p>
 
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">
@@ -282,7 +385,7 @@ const AllHouseKeeping = () => {
                                                     <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                                                 </div>
                                                 <div className="max-h-64 overflow-y-auto">
-                                                    {Object.keys(visibleColumns).map((column) => (
+                                                    {Object.keys(visibleColumns)?.map((column) => (
                                                         <label
                                                             key={column}
                                                             className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
@@ -327,6 +430,9 @@ const AllHouseKeeping = () => {
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Status</th>
                                         )}
                                         {visibleColumns.roomNo && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room No.</th>
+                                        )}
+                                        {visibleColumns.roomType && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
                                         )}
                                         {visibleColumns.actions && (
@@ -345,9 +451,9 @@ const AllHouseKeeping = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
-                                        currentData.map((bookingItem, index) => (
+                                        currentData?.map((housekeeping, index) => (
                                             <tr
-                                                key={bookingItem.id}
+                                                key={housekeeping.id}
                                                 className="transition-all duration-200"
                                                 onMouseEnter={(e) => {
                                                     e.currentTarget.style.background = 'linear-gradient(to right, rgba(247, 223, 156, 0.1), rgba(227, 199, 138, 0.1))';
@@ -364,23 +470,21 @@ const AllHouseKeeping = () => {
                                                 {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-semibold text-[#755647]">{bookingItem.name}</span>
+                                                            <span className="text-sm font-semibold text-[#755647]">{housekeeping.name}</span>
                                                         </div>
-                                                    </td>
-                                                )}
-                                                {visibleColumns.date && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        {bookingItem.checkIn ? formatDate(bookingItem.checkIn) : ''}
                                                     </td>
                                                 )}
                                                 {visibleColumns.status && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(bookingItem.status)}`}>
-                                                            {bookingItem.status}
+                                                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(housekeeping.status)}`}>
+                                                            {housekeeping.status}
                                                         </span>
                                                     </td>
                                                 )}
                                                 {visibleColumns.roomNo && (
+                                                    <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{housekeeping.roomNo}</td>
+                                                )}
+                                                {visibleColumns.roomType && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         <div className="flex items-center">
                                                             <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
@@ -388,7 +492,7 @@ const AllHouseKeeping = () => {
                                                                 color: '#755647',
                                                                 borderColor: 'rgba(183, 153, 130, 0.3)'
                                                             }}>
-                                                                {bookingItem.roomType?.split(' ')[0] || 'N/A'}
+                                                                {housekeeping.roomType?.split(' ')[0] || 'N/A'}
                                                             </span>
                                                         </div>
                                                     </td>
@@ -396,17 +500,18 @@ const AllHouseKeeping = () => {
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2">
-                                                            <div onClick={() => handleViewClick(bookingItem)} className="cursor-pointer">
+                                                            <div onClick={() => handleViewClick(housekeeping)} className="cursor-pointer">
                                                                 <IoEyeSharp className='text-[18px] text-quaternary hover:text-[#876B56] transition-colors' />
                                                             </div>
                                                             <button
+                                                                onClick={() => handleAssignWorkerClick(housekeeping)}
                                                                 className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="Edit Booking"
+                                                                title="Assign Worker"
                                                             >
                                                                 <FiEdit size={16} />
                                                             </button>
                                                             <button
-                                                                onClick={() => handleDeleteClick(bookingItem)}
+                                                                onClick={() => handleDeleteClick(housekeeping)}
                                                                 className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                                                 title="Delete Booking"
                                                             >
@@ -456,8 +561,8 @@ const AllHouseKeeping = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {totalCount > 0 
-                                        ? `${startIndex + 1} - ${Math.min(endIndex, totalCount)} of ${totalCount}` 
+                                    {totalCount > 0
+                                        ? `${startIndex + 1} - ${Math.min(endIndex, totalCount)} of ${totalCount}`
                                         : '0 - 0 of 0'}
                                 </span>
 
@@ -502,7 +607,7 @@ const AllHouseKeeping = () => {
                                 boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
                             }}>
                                 {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-6" style={{
+                                <div className="px-4 py-4 sm:p-" style={{
                                     background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
                                 }}>
                                     <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
@@ -559,6 +664,134 @@ const AllHouseKeeping = () => {
                     </div>
                 )}
 
+                {/* Assign Worker Modal */}
+                {isAssignWorkerModalOpen && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div
+                            className="fixed inset-0 transition-opacity"
+                            style={{ backgroundColor: '#000000bf' }}
+                            onClick={handleAssignWorkerClose}
+                        ></div>
+
+                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                            <div className="relative transform h-[300px] overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border-2" style={{
+                                borderColor: '#E3C78A',
+                                boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+                            }}>
+                                {/* Modal Header */}
+                                <div className="px-4 py-4 sm:p-6" style={{
+                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
+                                }}>
+                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
+                                        <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Assign Worker</h3>
+                                        <button
+                                            type="button"
+                                            onClick={handleAssignWorkerClose}
+                                            className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                                            style={{ color: '#876B56' }}
+                                            onMouseEnter={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
+                                                e.currentTarget.style.color = '#755647';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                e.currentTarget.style.color = '#876B56';
+                                            }}
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {/* Form Content */}
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold mb-2" style={{ color: '#755647' }}>
+                                                Room Number: {selectedHousekeeping?.roomNo}
+                                            </label>
+                                        </div>
+
+                                        <div className="relative" ref={workerDropdownRef}>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Select Worker <span className="text-red-500">*</span>
+                                            </label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsWorkerDropdownOpen(!isWorkerDropdownOpen)}
+                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                            >
+                                                <span className={selectedWorker.name ? 'text-gray-800' : 'text-gray-400'}>
+                                                    {selectedWorker.name || 'Select a worker'}
+                                                </span>
+                                                <ChevronDown size={18} className="text-gray-600" />
+                                            </button>
+                                            {isWorkerDropdownOpen && (
+                                                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1 max-h-24 overflow-y-auto">
+                                                    <div
+                                                        onClick={() => {
+                                                            setSelectedWorker({ name: '', id: '' });
+                                                            setIsWorkerDropdownOpen(false);
+                                                        }}
+                                                        className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-gray-400"
+                                                    >
+                                                        Select a worker
+                                                    </div>
+                                                    {housekeepingStaff?.map((staff) => (
+                                                        <div
+                                                            key={staff._id}
+                                                            onClick={() => {
+                                                                setSelectedWorker({ name: staff.name, id: staff._id });
+                                                                setIsWorkerDropdownOpen(false);
+                                                            }}
+                                                            className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                                                        >
+                                                            {staff.name}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
+                                            <button
+                                                type="button"
+                                                onClick={handleAssignWorkerClose}
+                                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                                style={{ color: '#876B56' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleAssignWorkerSubmit}
+                                                disabled={!selectedWorker.name || creating}
+                                                className="px-6 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                style={{
+                                                    backgroundColor: selectedWorker.name && !creating ? '#876B56' : '#ccc'
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (selectedWorker.name && !creating) {
+                                                        e.currentTarget.style.backgroundColor = '#755647';
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    if (selectedWorker.name && !creating) {
+                                                        e.currentTarget.style.backgroundColor = '#876B56';
+                                                    }
+                                                }}
+                                            >
+                                                {creating ? 'Assigning...' : 'Assign Worker'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Delete Modal */}
                 {isDeleteModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -595,7 +828,7 @@ const AllHouseKeeping = () => {
                         </div>
                     </div>
                 )}
-            </div>
+            </div >
         </>
     )
 }
