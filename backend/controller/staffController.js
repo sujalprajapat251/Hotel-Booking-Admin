@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 
 exports.createStaff = async (req, res) => {
     try {
-        const { name, email, password, mobileno, address, department, joiningdate,gender,designation } = req.body;
+        const { name, email, password, mobileno, address, department, joiningdate, gender, designation } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -68,7 +68,7 @@ exports.getStaffById = async (req, res) => {
 
 exports.updateStaff = async (req, res) => {
     try {
-        const { name, email, mobileno, address, department, joiningdate, password,gender,designation } = req.body;
+        const { name, email, mobileno, address, department, joiningdate, password, gender, designation } = req.body;
 
         const updatedData = {
             name,
@@ -139,3 +139,29 @@ exports.deleteStaff = async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 };
+
+exports.getStaff = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const user = await Staff.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({
+                status: 404,
+                message: "User not found.",
+            });
+        }
+
+        return res.status(200).json({
+            status: 200,
+            message: "User fetched successfully..!",
+            user,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 500,
+            message: error.message,
+        });
+    }
+}

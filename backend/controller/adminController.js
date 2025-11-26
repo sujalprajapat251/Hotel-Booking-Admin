@@ -348,3 +348,49 @@ exports.admingetAllUsers = async (req, res) => {
 
 
 
+exports.changePassword = async (req, res) => {
+    try {
+        let userId = req.user._id;
+
+        let { oldPassword, newPassword, confirmPassword } = req.body;
+
+        let getUser = await staff.findById(userId);
+
+        if (!getUser) {
+            return res.status(404).json({ status: 404, success: false, message: "User Not Found" });
+        }
+
+        let correctPassword = await bcrypt.compare(oldPassword, getUser.password);
+
+        if (!correctPassword) {
+            return res.status(404).json({
+                status: 404,
+                success: false,
+                message: "Old Password Not Match",
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(404).json({
+                status: 404,
+                success: false,
+                message: "New Password And ConfirmPassword Not Match",
+            });
+        }
+
+        let salt = await bcrypt.genSalt(10);
+        let hasPssword = await bcrypt.hash(newPassword, salt);
+
+        await staff.findByIdAndUpdate(userId, { password: hasPssword }, { new: true });
+
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "Password Change SuccessFully..!",
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ status: 500, success: false, message: error.message });
+    }
+};

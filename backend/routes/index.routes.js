@@ -25,7 +25,7 @@ const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require
 const { createTermCondition, getAllTermConditions, getTermConditionById, updateTermCondition, deleteTermCondition } = require('../controller/termsController');
 const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../controller/faqController');
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
-const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff } = require('../controller/staffController');
+const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff } = require('../controller/staffController');
 const {
     createRoom,
     getRooms,
@@ -101,6 +101,7 @@ indexRoutes.delete('/deletetdepartment/:id', auth, adminOnly, deleteDepartment);
 // staff Routes
 indexRoutes.post('/createstaff', auth, adminOnly, upload.single("image"), createStaff);
 indexRoutes.get('/getallstaff', auth, adminOnly, getAllStaff);
+indexRoutes.get('/getstaff', auth, getStaff);
 indexRoutes.get('/getstaff/:id', auth, adminOnly, getStaffById);
 indexRoutes.put('/updatestaff/:id', auth, adminOnly, upload.single("image"), updateStaff);
 indexRoutes.delete('/deletetstaff/:id', auth, adminOnly, deleteStaff);

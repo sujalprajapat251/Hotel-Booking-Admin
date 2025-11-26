@@ -42,7 +42,7 @@ export const getUserById = createAsyncThunk(
                 throw new Error('No authentication token or user ID found');
             }
             
-            const response = await axios.get(`${BASE_URL}/getUserById`, {
+            const response = await axios.get(`${BASE_URL}/getStaff`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 }

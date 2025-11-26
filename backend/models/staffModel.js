@@ -40,7 +40,10 @@ const staffSchema = mongoose.Schema({
     joiningdate: {
         type: Date,
         required: true
-    }
+    },
+    otp: {
+        type: Number,
+    },
 }, {
     timestamps: true,
     versionKey: false
