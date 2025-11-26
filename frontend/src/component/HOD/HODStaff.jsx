@@ -4,10 +4,10 @@ import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { getAllStaff, deleteStaff } from '../Redux/Slice/staff.slice';
-import { IMAGE_URL } from '../Utils/baseUrl';
+import { getAllStaff, deleteStaff } from '../../Redux/Slice/staff.slice';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 import * as XLSX from 'xlsx';
-import { setAlert } from '../Redux/Slice/alert.slice';
+import { setAlert } from '../../Redux/Slice/alert.slice';
 
 const HODStaff = () => {
 

@@ -31,12 +31,13 @@ import ProtectedRoute from './component/ProtectedRoute';
 import Cafe from './Pages/Cafe';
 import Cafecategory from './Pages/Cafecategory';
 import CafeItems from './Pages/CafeItems';
-import HODLayout from './Pages/HODLayout';
-import HODDashboard from './Pages/HODDashboard';
-import HODStaff from './Pages/HODStaff';
-import HODTable from './Pages/HODTable';
-import HODHistory from './Pages/HODHistory';
-import HODProfile from './Pages/HODProfile';
+import HODLayout from './component/HOD/HODLayout';
+import HODDashboard from './component/HOD/HODDashboard';
+import HODStaff from './component/HOD/HODStaff';
+import HODTable from './component/HOD/HODTable';
+import HODHistory from './component/HOD/HODHistory';
+import HODProfile from './component/HOD/HODProfile';
+import HODStaffForm from './component/HOD/HODStaffForm';
 import WaiterDashboard from './component/Waiter/Dashboard'
 import WaiterLayout from './component/Waiter/Layout'
 import WaiterTable from './component/Waiter/Table';
@@ -44,7 +45,6 @@ import CafeOrder from './component/Waiter/TableOrder';
 import BarSection from './Pages/BarSection';
 import Barcategory from './Pages/Barcategory';
 import BarItems from './Pages/BarItems';
-import HODStaffForm from './Pages/HODStaffForm';
 import CabsDetails from './Pages/CabsDetails';
 import DriverDetails from './Pages/DriverDetails';
 import Cabs from './Pages/Cabs';
@@ -287,7 +287,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                     <Route
+                <Route
                   path='/housekeeping'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
@@ -306,56 +306,7 @@ function App() {
 
               </Route>
 
-              {/* HOD Panel Routes */}
-              <Route element={<HODLayout />}>
-                <Route
-                  path='/hod/dashboard'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <HODDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/hod/staff'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <HODStaff />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/hod/table'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <HODTable />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/hod/history'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <HODHistory />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/hod/addstaff'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <HODStaffForm />
-                    </ProtectedRoute>
-                  }
-                />
-           
 
-                {/* Default HOD route */}
-                <Route
-                  path='/hod'
-                  element={<Navigate to="/hod/dashboard" replace />}
-                />
-              </Route>
 
               {/* Catch-all route - redirect based on role */}
               <Route
@@ -363,18 +314,114 @@ function App() {
                 element={<ProtectedRoute allowedRoles={[]}><Navigate to="/booking-dashboard" replace /></ProtectedRoute>}
               />
 
+              {/* HOD Panel Routes */}
+              <Route element={<HODLayout />}>
+                <Route
+                  path='/hod/dashboard'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <HODDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/hod/staff'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <HODStaff />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/hod/table'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <HODTable />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/hod/history'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <HODHistory />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/hod/addstaff'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <HODStaffForm />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Head of Department']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* Default HOD route */}
+                <Route
+                  path='/hod'
+                  element={<Navigate to="/hod/dashboard" replace />}
+                />
+              </Route>
               <Route path='/waiter' element={<WaiterLayout />}>
-                <Route path='dashboard' element={<WaiterDashboard />}></Route>
-                <Route path='table' element={<WaiterTable />}></Route>
-                <Route path='table/:id' element={<CafeOrder />}></Route>
+                <Route path='dashboard' element={
+                  <ProtectedRoute allowedRoles={['Waiter']}>
+                    <WaiterDashboard />
+                  </ProtectedRoute>}>
+                </Route>
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Waiter']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path='table' element={
+                  <ProtectedRoute allowedRoles={['Waiter']}>
+                    <WaiterTable />
+                  </ProtectedRoute>}></Route>
+                <Route path='table/:id' element={
+                  <ProtectedRoute allowedRoles={['Waiter']}>
+                    <CafeOrder />
+                  </ProtectedRoute>}>
+                </Route>
               </Route>
 
               <Route path='/chef' element={<ChefLayout />} >
-                <Route path='dashboard' element={<ChefDashboard />}></Route>
+                <Route path='dashboard' element={
+                  <ProtectedRoute allowedRoles={['Chef']}>
+                    <ChefDashboard />
+                  </ProtectedRoute>}></Route>
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Chef']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
               <Route path='/accountant' element={<AccountantLayout />} >
-                <Route path='dashboard' element={<AccountantDashboard />}></Route>
+                <Route path='dashboard' element={<ProtectedRoute allowedRoles={['Accountant']}>
+                  <AccountantDashboard />
+                </ProtectedRoute>}></Route>
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Accountant']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
               </Route>
 
             </Routes>

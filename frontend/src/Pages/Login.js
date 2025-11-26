@@ -50,14 +50,23 @@ const LoginPage = () => {
                     if (response.meta?.requestStatus === "fulfilled") {
                         // Check user role and navigate accordingly
                         const userRole = response.payload?.user?.designation || 'user';
+                        console.log('user', userRole)
                         if (userRole === 'admin') {
                             navigate("/dashboard");
                         }
-                        else if(userRole === 'Waiter'){
+                        else if (userRole === 'Waiter') {
                             navigate("/waiter/dashboard")
                         }
+                        else if (userRole === 'Chef') {
+                            navigate("/chef/dashboard")
+                        }
+                        else if (userRole === 'Head of Department') {
+                            navigate("/hod/dashboard")
+                        }
+                        else if (userRole === 'Accountant') {
+                            navigate("/accountant/dashboard")
+                        }
                         else {
-                            // Receptionist or user role - go to booking dashboard
                             navigate("/booking-dashboard");
                         }
                     }
@@ -259,29 +268,29 @@ const LoginPage = () => {
                             <div className="input-field bg-white flex items-center  animation a4">
                                 <input
                                     className=" bg-transparent focus-visible:outline-none"
-                                    type={oldPass ? "text" : "password"} 
-                                    name="newPassword" 
-                                    value={ChangePassFormik?.values?.newPassword} 
-                                    onChange={ChangePassFormik.handleChange} 
-                                    onBlur={ChangePassFormik.handleBlur} 
+                                    type={oldPass ? "text" : "password"}
+                                    name="newPassword"
+                                    value={ChangePassFormik?.values?.newPassword}
+                                    onChange={ChangePassFormik.handleChange}
+                                    onBlur={ChangePassFormik.handleBlur}
                                     placeholder="Enter New password"
                                 />
-                                <span className="text-gray-400 ms-auto" onClick={()=> setOldPass(!oldPass)}>{oldPass ? <IoMdEye /> : <IoMdEyeOff />}</span>
+                                <span className="text-gray-400 ms-auto" onClick={() => setOldPass(!oldPass)}>{oldPass ? <IoMdEye /> : <IoMdEyeOff />}</span>
                             </div>
                             {ChangePassFormik.touched.newPassword && ChangePassFormik.errors.newPassword && (<div className="text-red-700 text-sm text-start">{ChangePassFormik.errors.newPassword}</div>)}
                             <div className="input-field bg-white flex items-center  animation a4">
                                 <input
                                     className=" bg-transparent focus-visible:outline-none"
-                                   type={newPass ? "text" : "password"} 
-                                   name="conPassword" 
-                                   value={ChangePassFormik?.values?.conPassword} 
-                                   onChange={ChangePassFormik.handleChange} 
-                                   onBlur={ChangePassFormik.handleBlur} 
-                                   placeholder="Confirm New password"
+                                    type={newPass ? "text" : "password"}
+                                    name="conPassword"
+                                    value={ChangePassFormik?.values?.conPassword}
+                                    onChange={ChangePassFormik.handleChange}
+                                    onBlur={ChangePassFormik.handleBlur}
+                                    placeholder="Confirm New password"
                                 />
-                                <span className="text-gray-400 ms-auto" onClick={()=> setNewPass(!newPass)}>{newPass ? <IoMdEye />   : <IoMdEyeOff /> }</span>
+                                <span className="text-gray-400 ms-auto" onClick={() => setNewPass(!newPass)}>{newPass ? <IoMdEye /> : <IoMdEyeOff />}</span>
                             </div>
-                            {ChangePassFormik.touched.conPassword && ChangePassFormik.errors.conPassword && ( <div className="text-red-700 text-sm text-start">{ChangePassFormik.errors.conPassword}</div>)}
+                            {ChangePassFormik.touched.conPassword && ChangePassFormik.errors.conPassword && (<div className="text-red-700 text-sm text-start">{ChangePassFormik.errors.conPassword}</div>)}
                             <p className="animation a5 text-right text-white text-sm my-4 hover:text-black">
                                 <a href="#" onClick={() => setSelectedModal('Login')}>Back to login</a>
                             </p>

@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, Mail, Phone, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { IMAGE_URL } from '../Utils/baseUrl';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 import * as XLSX from 'xlsx';
-import { setAlert } from '../Redux/Slice/alert.slice';
-import { getAllHodHistory } from '../Redux/Slice/hod.slice';
+import { setAlert } from '../../Redux/Slice/alert.slice';
+import { getAllHodHistory } from '../../Redux/Slice/hod.slice';
 import { IoEyeSharp } from 'react-icons/io5';
 import { io } from 'socket.io-client';
 

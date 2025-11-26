@@ -1,10 +1,10 @@
 import React from 'react';
 import { LuCircleArrowDown, LuCircleArrowUp } from "react-icons/lu";
-import Newbookingchart from '../component/Newbookingchart';
-import Availablerooms from '../component/Availavleroomschart';
-import Revenuechart from '../component/Revenuechart';
-import Checkoutchart from '../component/Checkoutchart';
-import Reservationchart from '../component/Reservationchart';
+import Newbookingchart from '../Newbookingchart';
+import Availablerooms from '../Availavleroomschart';
+import Revenuechart from '../Revenuechart';
+import Checkoutchart from '../Checkoutchart';
+import Reservationchart from '../Reservationchart';
 
 const HODDashboard = () => {
 

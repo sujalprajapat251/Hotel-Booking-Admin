@@ -13,12 +13,25 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   const userRole = user.designation || "user";
-
+  console.log('user')
   // If no role restrictions, redirect based on user role
   if (allowedRoles.length === 0) {
     if (userRole === "admin") {
       return <Navigate to="/dashboard" replace />;
-    } else {
+    }
+    else if (userRole === 'Waiter') {
+      <Navigate to="/waiter/dashboard" replace />
+    }
+    else if (userRole === 'Chef') {
+      <Navigate to="/chef/dashboard" replace />
+    }
+    else if (userRole === 'Head of Department') {
+      <Navigate to="/hod/dashboard" replace />
+    }
+    else if (userRole === 'Accountant') {
+      <Navigate to="/accountant/dashboard" replace />
+    }
+    else {
       return <Navigate to="/booking-dashboard" replace />;
     }
   }
@@ -28,6 +41,18 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     // If user is receptionist (user role), redirect to booking dashboard
     if (userRole === "receptionist") {
       return <Navigate to="/booking-dashboard" replace />;
+    }
+    if (userRole === 'Waiter') {
+      return <Navigate to="/waiter/dashboard" replace />
+    }
+    if (userRole === 'Chef') {
+      return <Navigate to="/chef/dashboard" replace />
+    }
+    if (userRole === 'Head of Department') {
+      return <Navigate to="/hod/dashboard" replace />
+    }
+    if (userRole === 'Accountant') {
+      return <Navigate to="/accountant/dashboard" replace />
     }
     // Otherwise redirect to dashboard
     return <Navigate to="/dashboard" replace />;
