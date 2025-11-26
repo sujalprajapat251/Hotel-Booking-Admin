@@ -14,7 +14,6 @@ export default function Dashboard() {
     const preparingOrder = useSelector((state) => state.chef.preparingOrder);
     const currentUser = useSelector((state) => state.staff.currentUser);
     const [selected, setSelected] = useState(null);
-    console.log('preparing order', preparingOrder)
     useEffect(() => {
         dispatch(getCafeOrderStatus());
         dispatch(getUserById()); // Get current user details
@@ -62,7 +61,6 @@ export default function Dashboard() {
             dispatch(setAlert({ text: "You must complete the current order before accepting a new one", color: 'error' }));
             return;
         }
-        console.log('oorrr',order)
         let orderData = {
             orderId: order.orderId,
             itemId: order._id
@@ -74,7 +72,6 @@ export default function Dashboard() {
             } else if (order.status === "Preparing") {
                 setSelected({ ...order, status: "Done" });
             }
-            console.log('orderData',orderData)
             const result = await dispatch(updateCafeItemStatus(orderData));
 
             if (updateCafeItemStatus.fulfilled.match(result)) {
