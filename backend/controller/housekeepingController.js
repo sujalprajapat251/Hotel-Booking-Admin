@@ -4,7 +4,7 @@ const Housekeeping = require("../models/housekeepingModel");
 // GET ALL DIRTY ROOMS
 exports.getDirtyRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({ cleanStatus: "Dirty" });
+        const rooms = await Room.find({ cleanStatus: "Dirty" }).populate("roomType");
 
         return res.json({
             success: true,
