@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiLogOut, FiMenu, FiUser } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
 import { IMAGE_URL } from '../Utils/baseUrl';
@@ -10,7 +10,6 @@ const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const [imageUrl, setImageUrl] = useState(userImg);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
@@ -49,14 +48,20 @@ const Header = ({ onMenuClick }) => {
   };
 
   const handleClickProfile = () => {
-    // Check if we're in the HOD panel or normal panel
-    const isHODPanel = location.pathname.startsWith('/hod/');
-
+    const userRole = currentUser?.designation || 'user';
     // Navigate to the appropriate profile page
-    if (isHODPanel) {
+    if (userRole === 'Head of Department') {
       navigate('/hod/user-profile');
+    } else if (userRole === 'admin') {
+       navigate("/user-profile");
+    } else if (userRole === 'Waiter') {
+      navigate("/waiter/user-profile");
+    } else if (userRole === 'Chef') {
+      navigate("/chef/user-profile")
+    } else if (userRole === 'Accountant') {
+      navigate("/accountant/user-profile")
     } else {
-      navigate('/user-profile');
+      navigate('/');
     }
 
     setIsProfileOpen(false);

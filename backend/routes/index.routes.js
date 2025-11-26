@@ -104,7 +104,7 @@ indexRoutes.post('/createstaff', auth, adminOnly, upload.single("image"), create
 indexRoutes.get('/getallstaff', auth, adminOnly, getAllStaff);
 indexRoutes.get('/getstaff', auth, getStaff);
 indexRoutes.get('/getstaff/:id', auth, adminOnly, getStaffById);
-indexRoutes.put('/updatestaff/:id', auth, adminOnly, upload.single("image"), updateStaff);
+indexRoutes.put('/updatestaff/:id', auth, upload.single("image"), updateStaff);
 indexRoutes.delete('/deletetstaff/:id', auth, adminOnly, deleteStaff);
 
 // Terms & Condition Routes

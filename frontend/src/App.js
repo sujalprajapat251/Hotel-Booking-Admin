@@ -315,9 +315,9 @@ function App() {
               />
 
               {/* HOD Panel Routes */}
-              <Route element={<HODLayout />}>
+              <Route path='/hod' element={<HODLayout />}>
                 <Route
-                  path='/hod/dashboard'
+                  path='dashboard'
                   element={
                     <ProtectedRoute allowedRoles={['Head of Department']}>
                       <HODDashboard />
@@ -325,7 +325,7 @@ function App() {
                   }
                 />
                 <Route
-                  path='/hod/staff'
+                  path='staff'
                   element={
                     <ProtectedRoute allowedRoles={['Head of Department']}>
                       <HODStaff />
@@ -333,7 +333,7 @@ function App() {
                   }
                 />
                 <Route
-                  path='/hod/table'
+                  path='table'
                   element={
                     <ProtectedRoute allowedRoles={['Head of Department']}>
                       <HODTable />
@@ -341,7 +341,7 @@ function App() {
                   }
                 />
                 <Route
-                  path='/hod/history'
+                  path='history'
                   element={
                     <ProtectedRoute allowedRoles={['Head of Department']}>
                       <HODHistory />
@@ -349,7 +349,7 @@ function App() {
                   }
                 />
                 <Route
-                  path='/hod/addstaff'
+                  path='addstaff'
                   element={
                     <ProtectedRoute allowedRoles={['Head of Department']}>
                       <HODStaffForm />
