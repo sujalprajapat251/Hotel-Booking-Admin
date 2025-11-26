@@ -123,6 +123,67 @@ export const deleteStaff = createAsyncThunk(
     }
 );
 
+// get current login user details
+export const getUserById = createAsyncThunk(
+    'users/getUserById',
+    async (_, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem("token");
+            const userId = localStorage.getItem("userId");
+
+            if (!token || !userId) {
+                throw new Error('No authentication token or user ID found');
+            }
+
+            const response = await axios.get(`${BASE_URL}/getStaff`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+
+            return response.data.users || response.data.user;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const updatestaff = createAsyncThunk(
+    "users/updatestaff",
+    async ({ id, values, file }, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+
+            const formData = new FormData();
+            Object.keys(values).forEach((key) => {
+                if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+                    formData.append(key, values[key]);
+                }
+            });
+
+            // Append file if provided
+            if (file) {
+                formData.append('image', file);
+            }
+
+            const response = await axios.put(`${BASE_URL}/updatestaff/${id}`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            dispatch(setAlert({ text: response.data.message, color: 'success' }));
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const staffSlice = createSlice({
     name: 'staff',
     initialState: {
@@ -130,6 +191,7 @@ const staffSlice = createSlice({
         message: '',
         loading: false,
         isError: false,
+        currentUser: null
     },
     extraReducers: (builder) => {
         builder
@@ -142,7 +204,7 @@ const staffSlice = createSlice({
                 state.loading = false;
                 state.success = true;
                 state.message = 'Staff added successfully..!';
-                state.staff.push(action.payload); 
+                state.staff.push(action.payload);
                 state.isError = false;
             })
             .addCase(createStaff.rejected, (state, action) => {
@@ -189,7 +251,7 @@ const staffSlice = createSlice({
             })
             .addCase(deleteStaff.pending, (state) => {
                 state.loading = true;
-                state.message = 'Deleting Staff...';        
+                state.message = 'Deleting Staff...';
                 state.isError = false;
             })
             .addCase(deleteStaff.fulfilled, (state, action) => {
@@ -204,7 +266,52 @@ const staffSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to delete Staff';
-            });
+            })
+
+            // Get user by ID
+            .addCase(getUserById.pending, (state) => {
+                state.loading = true;
+                state.message = 'Getting user...';
+                state.isError = false;
+            })
+            .addCase(getUserById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.currentUser = action.payload;
+                state.message = '';
+                state.isError = false;
+            })
+            .addCase(getUserById.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to get user';
+            })
+
+            // Update user
+            .addCase(updatestaff.pending, (state) => {
+                state.loading = true;
+                state.message = 'Updating user...';
+                state.isError = false;
+            })
+            .addCase(updatestaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                // Update user in users array
+                state.staff = state.staff.map(user =>
+                    user._id === action.payload._id ? action.payload : user
+                );
+                // Update current user
+                state.currentUser = action.payload;
+                state.message = 'User updated successfully';
+                state.isError = false;
+            })
+            .addCase(updatestaff.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to update user';
+            })
     },
 });
 

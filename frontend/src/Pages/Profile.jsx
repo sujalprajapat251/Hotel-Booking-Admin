@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, Eye, EyeOff, Edit2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getUserById, updateUser } from '../Redux/Slice/user.slice';
+import { getUserById, updatestaff } from '../Redux/Slice/staff.slice';
 import { changePassword } from '../Redux/Slice/auth.slice';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import userImg from "../Images/user.png";
@@ -20,7 +20,7 @@ const Profile = () => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const { currentUser, loading, success, message } = useSelector(
-    (state) => state.user
+    (state) => state.staff
   );
 
   useEffect(() => {
@@ -35,14 +35,22 @@ const Profile = () => {
 
   const [form, setForm] = useState({
     name: "",
-    email: ""
+    email: "",
+    gender: "",
+    mobileno: "",
+    address: "",
+    joiningdate: ""
   });
 
   useEffect(() => {
     if (currentUser) {
       setForm({
         name: currentUser.name || "",
-        email: currentUser.email || ""
+        email: currentUser.email || "",
+        gender: currentUser.gender || "",
+        mobileno: currentUser.mobileno || "",
+        address: currentUser.address || "",
+        joiningdate: currentUser.joiningdate || ""
       });
     }
   }, [currentUser]);
@@ -74,8 +82,8 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    if (currentUser && currentUser.photo) {
-      setImageUrl(IMAGE_URL + currentUser.photo);
+    if (currentUser && currentUser.image) {
+      setImageUrl(IMAGE_URL + currentUser.image);
     } else {
       setImageUrl(userImg);
     }
@@ -133,8 +141,8 @@ const Profile = () => {
       });
     }
     // Reset avatar
-    if (currentUser && currentUser.photo) {
-      setImageUrl(IMAGE_URL + currentUser.photo);
+    if (currentUser && currentUser.image) {
+      setImageUrl(IMAGE_URL + currentUser.image);
     } else {
       setImageUrl(userImg);
     }
@@ -155,14 +163,18 @@ const Profile = () => {
     const values = {
       name: form.name,
       email: form.email,
+      gender: form.gender,
+      mobileno: form.mobileno,
+      address: form.address,
+      joiningdate: form.joiningdate
     };
 
     try {
-      // updateUser action
+      // updatestaff action
       const result = await dispatch(
-        updateUser({ id, values, file: avatarFile })
+        updatestaff({ id, values, file: avatarFile })
       );
-      if (updateUser.fulfilled.match(result)) {
+      if (updatestaff.fulfilled.match(result)) {
         setAvatarFile(null);
         if (result.payload?.photo) {
           setImageUrl(IMAGE_URL + result.payload.photo);
@@ -180,6 +192,15 @@ const Profile = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const formatDate = (isoDate) => {
+    const date = new Date(isoDate);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+
+    return `${day}-${month}-${year}`;
   };
 
   return (
@@ -227,26 +248,25 @@ const Profile = () => {
               </div>
               <div>
                 <h2 className="text-xl md:text-2xl font-semibold text-gray-900 capitalize">{currentUser?.name || 'No Name'}</h2>
-                <p className="text-gray-600 text-sm md:text-base capitalize">{currentUser?.role || 'No role'}</p>
+                <p className="text-gray-600 text-sm md:text-base capitalize">{currentUser?.designation || 'No role'}</p>
               </div>
             </div>
             <div className="flex gap-2">
               {isEditMode && (
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="flex items-center justify-center gap-2 mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                   disabled={isSubmitting}
                 >
-                  <X className="w-4 h-4" />
                   <span className="text-sm font-medium">Cancel</span>
                 </button>
               )}
               <button
                 onClick={handleEditToggle}
-                className="flex items-center gap-2 px-4 py-2 text-white bg-[#755647] hover:bg-[#977b6e] transition-colors border border-[#755647] rounded-lg"
+                className="mv_user_add flex items-center justify-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-lg"
                 disabled={isSubmitting}
               >
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className="w-6 sm:w-4 h-6 sm:h-4" />
                 <span className="text-sm font-medium">
                   {isSubmitting ? 'Updating...' : isEditMode ? 'Update Profile' : 'Edit Profile'}
                 </span>
@@ -270,7 +290,7 @@ const Profile = () => {
                   name="name"
                   value={form.name}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#755647] focus:border-transparent"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                   placeholder="Enter your name"
                 />
               ) : (
@@ -285,8 +305,9 @@ const Profile = () => {
                   name="email"
                   value={form.email}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#755647] focus:border-transparent"
+                  className={`w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F] ${currentUser?.designation !== "admin" ? "text-gray-400 cursor-not-allowed" : "text-black"}`}
                   placeholder="Enter your email"
+                  disabled={currentUser?.designation !== "admin" && true}
                 />
               ) : (
                 <p className="text-base text-gray-900">{currentUser?.email || 'No Email'}</p>
@@ -294,26 +315,84 @@ const Profile = () => {
             </div>
             <div>
               <label className="block text-sm text-gray-500 mb-2">Role</label>
-              <p className="text-base text-gray-900 capitalize">{currentUser?.role || 'No role'}</p>
+              <p className="text-base text-gray-900 capitalize">{currentUser?.designation || 'No role'}</p>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">Gender</label>
+
+              {isEditMode ? (
+                <select
+                  name="gender"
+                  value={form.gender}
+                  onChange={handleInputChange}
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              ) : (
+                <p className="text-base text-gray-900 capitalize">
+                  {currentUser?.gender || 'No Gender'}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">Mobile No.</label>
+              {isEditMode ? (
+                <input
+                  type="number"
+                  name="mobileno"
+                  value={form.mobileno}
+                  onChange={handleInputChange}
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                  placeholder="Enter your Mobile No."
+                />
+              ) : (
+                <p className="text-base text-gray-900 capitalize">{currentUser?.mobileno || 'No Mobile'}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">Joining Date</label>
+              <p className="text-base text-gray-900 capitalize">{formatDate(currentUser?.joiningdate) || 'No Joining Date'}</p>
+            </div>
+            <div>
+              <label className="block text-sm text-gray-500 mb-2">Address</label>
+              {isEditMode ? (
+                <textarea
+                  type="text"
+                  name="address"
+                  value={form.address}
+                  onChange={handleInputChange}
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F] resize-none"
+                  placeholder="Enter your Address"
+                />
+              ) : (
+                <p className="text-base text-gray-900 capitalize">{currentUser?.address || 'No Address'}</p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Change Password Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Security</h3>
-              <p className="text-sm text-gray-600">Manage your password and security settings</p>
+        {currentUser?.designation === "admin" && (
+          <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Security</h3>
+                <p className="text-sm text-gray-600">Manage your password and security settings</p>
+              </div>
+              <button
+                onClick={() => setShowPasswordModal(true)}
+                className="mv_user_add flex items-center justify-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-lg"
+              >
+                Reset Password
+              </button>
             </div>
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              className="px-6 py-2.5 bg-[#755647] text-white rounded-lg hover:bg-[#977b6e] transition-colors text-sm font-medium"
-            >
-              Change Password
-            </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Change Password Modal */}
@@ -322,7 +401,7 @@ const Profile = () => {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Change Password</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Reset Password</h2>
                 <button
                   onClick={() => setShowPasswordModal(false)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -343,7 +422,7 @@ const Profile = () => {
                       name="currentPassword"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                       placeholder="Enter current password"
                     />
                     <button
@@ -367,7 +446,7 @@ const Profile = () => {
                       name="newPassword"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                       placeholder="Enter new password"
                     />
                     <button
@@ -391,7 +470,7 @@ const Profile = () => {
                       name="confirmPassword"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10"
+                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                       placeholder="Confirm new password"
                     />
                     <button
@@ -405,16 +484,16 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex gap-3 mt-6 justify-center">
                 <button
                   onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                  className="flex items-center justify-center gap-2 mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] mr-0"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitPassword}
-                  className="flex-1 px-4 py-2.5 bg-[#755647] text-white rounded-lg hover:bg-[#977b6e] transition-colors font-medium"
+                  className="flex items-center justify-center text-sm gap-2 px-4 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-[4px] border border-black h-[45px] w-[160px] text-black transition-all duration-300 ease-in-out"
                 >
                   Update Password
                 </button>
