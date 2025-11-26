@@ -43,6 +43,7 @@ const AllBookings = () => {
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         name: true,
+        RoomNumber: true,
         checkIn: true,
         checkOut: true,
         status: true,
@@ -84,6 +85,7 @@ const AllBookings = () => {
             const formattedBookings = items.map((item, index) => ({
                 id: item._id || item.id || index,
                 name: item.guest?.fullName || 'N/A',
+                roomNumber: item.room?.roomNumber || 'N/A',
                 checkIn: item.reservation?.checkInDate?.slice(0, 10) || 'N/A',
                 checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
                 status: item.payment?.status || 'Pending',
@@ -331,6 +333,9 @@ const AllBookings = () => {
                                         {visibleColumns.name && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                                         )}
+                                        {visibleColumns.RoomNumber && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Number</th>
+                                        )}
                                         {visibleColumns.checkIn && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Check In</th>
                                         )}
@@ -386,6 +391,11 @@ const AllBookings = () => {
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-sm font-semibold text-[#755647]">{bookingItem.name}</span>
                                                         </div>
+                                                    </td>
+                                                )}
+                                                {visibleColumns.RoomNumber && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                        {bookingItem.roomNumber || ''}
                                                     </td>
                                                 )}
                                                 {visibleColumns.checkIn && (
@@ -534,67 +544,67 @@ const AllBookings = () => {
                             style={{ backgroundColor: '#000000bf' }}
                             onClick={handleCloseModal}
                         ></div>
-
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[30%] sm:max-w-xl border-2" style={{
+                            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[35%] sm:max-w-2xl border-2" style={{
                                 borderColor: '#E3C78A',
                                 boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
                             }}>
                                 {/* Modal Header */}
                                 <div className="px-4 py-4 sm:p-6" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
+                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
                                 }}>
                                     <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Booking Details</h3>
-                                        <button
-                                            type="button"
-                                            onClick={handleCloseModal}
+                                        <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
+                                        <button type="button" onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                             style={{ color: '#876B56' }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
-                                                e.currentTarget.style.color = '#755647';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                e.currentTarget.style.color = '#876B56';
-                                            }}
-                                        >
+                                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(247,223,156,0.3)'; e.currentTarget.style.color = '#755647'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#876B56'; }}>
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                             </svg>
                                         </button>
                                     </div>
-
-                                    {/* Details */}
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Guest Name:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
+                                    {/* Group guest, room, booking, and payment info */}
+                                    <div className="space-y-4">
+                                        {/* Guest Info */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Guest Information</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><span className="font-semibold">Name:</span> <span>{selectedItem.name}</span></div>
+                                                {selectedItem.phone && <div><span className="font-semibold">Phone:</span> <span>{selectedItem.phone}</span></div>}
+                                                {selectedItem.rawData?.guest?.email && <div><span className="font-semibold">Email:</span> <span>{selectedItem.rawData.guest.email}</span></div>}
+                                                {selectedItem.rawData?.guest?.idNumber && <div><span className="font-semibold">ID Number:</span> <span>{selectedItem.rawData.guest.idNumber}</span></div>}
+                                                {selectedItem.rawData?.guest?.nationality && <div><span className="font-semibold">Nationality:</span> <span>{selectedItem.rawData.guest.nationality}</span></div>}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Phone:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.phone}</span>
+                                        {/* Booking Info */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Booking Info</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><span className="font-semibold">Check In:</span> <span>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span></div>
+                                                <div><span className="font-semibold">Check Out:</span> <span>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span></div>
+                                                {selectedItem.createdAt && <div><span className="font-semibold">Created At:</span> <span>{formatDate(selectedItem.createdAt)}</span></div>}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Check In:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
+                                        {/* Room Info */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Room Details</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {selectedItem.RoomNumber && <div><span className="font-semibold">Room:</span> <span>{selectedItem.RoomNumber}</span></div>}
+                                                {selectedItem.roomType && <div><span className="font-semibold">Type:</span> <span>{selectedItem.roomType}</span></div>}
+                                                {selectedItem.rawData?.room?.floor && <div><span className="font-semibold">Floor:</span> <span>{selectedItem.rawData.room.floor}</span></div>}
+                                                {selectedItem.rawData?.room?.bedType && <div><span className="font-semibold">Bed Type:</span> <span>{selectedItem.rawData.room.bedType}</span></div>}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Check Out:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
+                                        {/* Payment Status & Actions */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Payment Info</h4>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div><span className="font-semibold">Status:</span> <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>{selectedItem.status}</span></div>
+                                                {selectedItem.totalAmount && <div><span className="font-semibold">Total Paid:</span> <span>{selectedItem.totalAmount}</span></div>}
+                                                {selectedItem.paymentMethod && <div><span className="font-semibold">Method:</span> <span>{selectedItem.paymentMethod}</span></div>}
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                             onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}

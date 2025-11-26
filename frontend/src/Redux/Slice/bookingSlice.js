@@ -4,9 +4,12 @@ import { BASE_URL } from '../../Utils/baseUrl';
 import { setAlert } from './alert.slice';
 
 const handleErrors = (error, dispatch, rejectWithValue) => {
-  const errorMessage = error.response?.data?.message || 'An error occurred';
-  dispatch(setAlert({ text: errorMessage, color: 'error' }));
-  return rejectWithValue(error.response?.data || { message: errorMessage });
+  const errorMessage = error.response?.data?.message || "An error occurred";
+
+  dispatch(setAlert({ text: errorMessage, color: "error" }));
+
+  // RETURN ONLY MESSAGE STRING
+  return rejectWithValue(errorMessage);
 };
 
 const buildError = (error) => {
