@@ -111,9 +111,6 @@ const adminSections = [
           { label: 'Add About', path: '/about/addabout' },
         ]
       },
-      // { icon: LuInfo, label: 'About', path: '/about' },
-      { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
-      { icon: LuInfo, label: 'About', path: '/about' },
       {
         icon: RiBloggerLine,
         label: 'Blog',

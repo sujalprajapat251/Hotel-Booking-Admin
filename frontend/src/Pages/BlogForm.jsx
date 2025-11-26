@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Upload, X } from 'lucide-react';
+import { Upload, ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { getAllBlog, createBlog, updateBlog } from '../Redux/Slice/blogSlice';
@@ -21,6 +21,10 @@ const BlogForm = () => {
 
     const fileInputRef = useRef(null);
     const [imagePreview, setImagePreview] = useState(blogData?.image ? `${IMAGE_URL}${blogData.image}` : null);
+
+    const tags = ['Cafe', 'Bar', 'Restaurant'];
+    const tagDropdownRef = useRef(null);
+    const [showTagDropdown, setShowTagDropdown] = useState(false);
 
     const quillModules = useMemo(() => ({
         toolbar: [
@@ -163,15 +167,45 @@ const BlogForm = () => {
 
                 <div className="md:col-span-1">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Tag *</label>
-                  <input
-                    name="tag"
-                    value={formik.values.tag}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Select tags or enter comma separated"
-                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.tag && formik.errors.tag ? 'border-red-500' : 'border-gray-300'}`}
-                  />
-                  {formik.touched.tag && formik.errors.tag && <div className="text-red-500 text-xs mt-1">{formik.errors.tag}</div>}
+                  <div className="relative" ref={tagDropdownRef}>
+                    <button
+                        type="button"
+                        name="tag"
+                        value={formik.values.tag}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        placeholder="Select tags or enter comma separated"
+                        onClick={() => setShowTagDropdown(!showTagDropdown)}
+                        className={`w-full flex items-center justify-between px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] transition ${formik.touched.tag && formik.errors.tag ? 'border-red-500' : 'border-gray-300'}`}
+                    >
+                        <span className="text-sm truncate">
+                            {formik.values.tag ? formik.values.tag : 'Select Tag'}
+                        </span>
+                        <ChevronDown
+                            size={18}
+                            className={`text-gray-600 transition-transform duration-200 ${showTagDropdown ? 'rotate-180' : ''}`}
+                        />
+                        </button>
+                        {showTagDropdown && (
+                            <div className="absolute top-full left-0 mt-1 z-50 w-full bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                                {tags.map((tag, index) => (
+                                <div
+                                    key={index}
+                                    onClick={() => {
+                                    formik.setFieldValue('tag', tag);
+                                    setShowTagDropdown(false);
+                                    }}
+                                    className={`px-4 py-2 text-sm hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors ${
+                                    formik.values.tag === tag ? 'bg-[#F7DF9C] text-black font-medium' : 'text-black'
+                                    }`}
+                                >
+                                    {tag}
+                                </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    {formik.touched.tag && formik.errors.tag && <div className="text-red-500 text-xs mt-1">{formik.errors.tag}</div>}
                 </div>
 
                 <div className="md:col-span-2 mt-2">
