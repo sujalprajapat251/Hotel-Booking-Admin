@@ -1,4 +1,5 @@
 const RestaurantItem = require("../models/restaurantitemModel");
+const { uploadToS3, deleteFromS3 } = require("../utils/s3Service");
 
 exports.createRestaurantItem = async (req, res) => {
     try {
@@ -16,9 +17,12 @@ exports.createRestaurantItem = async (req, res) => {
             });
         }
 
+        let uploadedUrl = null;
         if (req.file) {
-            req.body.image = req.file.path;
+            uploadedUrl = await uploadToS3(req.file, "uploads/image");
+            req.body.image = uploadedUrl ? uploadedUrl : null
         }
+
 
         const item = await RestaurantItem.create(req.body);
 
@@ -64,9 +68,9 @@ exports.getSingleRestaurantItem = async (req, res) => {
 
 exports.updateRestaurantItem = async (req, res) => {
     try {
-
+        const name = req.body?.name?.trim();
         const duplicate = await RestaurantItem.findOne({
-            name: req.body.name.trim(),
+            name: name,
             _id: { $ne: req.params.id }
         });
 
@@ -77,8 +81,14 @@ exports.updateRestaurantItem = async (req, res) => {
             });
         }
 
+        const item = await RestaurantItem.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
         if (req.file) {
-            req.body.image = req.file.path;
+            if (item.image) await deleteFromS3(item.image);
+            const uploadedUrl = await uploadToS3(req.file, "uploads/image");
+            req.body.image = uploadedUrl;
         }
 
         const updated = await RestaurantItem.findByIdAndUpdate(
@@ -86,10 +96,6 @@ exports.updateRestaurantItem = async (req, res) => {
             req.body,
             { new: true, runValidators: true }
         );
-
-        if (!updated) {
-            return res.status(404).json({ success: false, message: "Item not found" });
-        }
 
         return res.status(200).json({
             success: true,
@@ -104,11 +110,14 @@ exports.updateRestaurantItem = async (req, res) => {
 
 exports.deleteRestaurantItem = async (req, res) => {
     try {
-        const deleted = await RestaurantItem.findByIdAndDelete(req.params.id);
-
-        if (!deleted) {
+        const item = await RestaurantItem.findById(req.params.id);
+        if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
         }
+        if (item.image) {
+            await deleteFromS3(item.image);
+        }
+        await RestaurantItem.findByIdAndDelete(req.params.id);
 
         return res.status(200).json({
             success: true,

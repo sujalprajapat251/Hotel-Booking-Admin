@@ -1,4 +1,5 @@
 const BarItem = require("../models/baritemModel");
+const { deleteFromS3, uploadToS3 } = require("../utils/s3Service");
 
 exports.createBarItem = async (req, res) => {
     try {
@@ -16,8 +17,10 @@ exports.createBarItem = async (req, res) => {
             });
         }
 
+        let uploadedUrl = null;
         if (req.file) {
-            req.body.image = req.file.path;
+            uploadedUrl = await uploadToS3(req.file, "uploads/image");
+            req.body.image = uploadedUrl ? uploadedUrl : null
         }
 
         const item = await BarItem.create(req.body);
@@ -64,9 +67,9 @@ exports.getSingleBarItem = async (req, res) => {
 
 exports.updateBarItem = async (req, res) => {
     try {
-
+        const name = req.body?.name?.trim();
         const duplicate = await BarItem.findOne({
-            name: req.body.name.trim(),
+            name: name,
             _id: { $ne: req.params.id }
         });
 
@@ -77,8 +80,15 @@ exports.updateBarItem = async (req, res) => {
             });
         }
 
+        const item = await BarItem.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
+
         if (req.file) {
-            req.body.image = req.file.path;
+            if (item.image) await deleteFromS3(item.image);
+            const uploadedUrl = await uploadToS3(req.file, "uploads/image");
+            req.body.image = uploadedUrl;
         }
 
         const updated = await BarItem.findByIdAndUpdate(
@@ -86,10 +96,6 @@ exports.updateBarItem = async (req, res) => {
             req.body,
             { new: true, runValidators: true }
         );
-
-        if (!updated) {
-            return res.status(404).json({ success: false, message: "Item not found" });
-        }
 
         return res.status(200).json({
             success: true,
@@ -104,12 +110,15 @@ exports.updateBarItem = async (req, res) => {
 
 exports.deleteBarItem = async (req, res) => {
     try {
-        const deleted = await BarItem.findByIdAndDelete(req.params.id);
+        const item = await BarItem.findById(req.params.id);
 
-        if (!deleted) {
+        if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
         }
-
+        if (item.image) {
+            await deleteFromS3(item.image);
+        }
+        await BarItem.findByIdAndDelete(req.params.id);
         return res.status(200).json({
             success: true,
             message: "Bar Item deleted ..!"

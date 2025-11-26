@@ -1,4 +1,5 @@
 const CafeItem = require("../models/cafeitemModel");
+const { uploadToS3, deleteFromS3 } = require("../utils/s3Service");
 
 exports.createCafeItem = async (req, res) => {
     try {
@@ -16,11 +17,20 @@ exports.createCafeItem = async (req, res) => {
             });
         }
 
+        let uploadedUrl = null;
         if (req.file) {
-            req.body.image = req.file.path;
+            uploadedUrl = await uploadToS3(req.file, "uploads/image");
         }
 
-        const item = await CafeItem.create(req.body);
+        const itemData = {
+            name,
+            category,
+            price,
+            description,
+            image: uploadedUrl ? uploadedUrl : null
+        };
+
+        const item = await CafeItem.create(itemData);
 
         return res.status(201).json({
             success: true,
@@ -64,9 +74,9 @@ exports.getSingleCafeItem = async (req, res) => {
 
 exports.updateCafeItem = async (req, res) => {
     try {
-
+        const name = req.body?.name?.trim();
         const duplicate = await CafeItem.findOne({
-            name: req.body.name.trim(),
+            name: name,
             _id: { $ne: req.params.id }
         });
 
@@ -77,8 +87,16 @@ exports.updateCafeItem = async (req, res) => {
             });
         }
 
+        const item = await CafeItem.findById(req.params.id);
+        if (!item) {
+            return res.status(404).json({ success: false, message: "Item not found" });
+        }
+
+
         if (req.file) {
-            req.body.image = req.file.path;
+            if (item.image) await deleteFromS3(item.image);
+            const uploadedUrl = await uploadToS3(req.file, "uploads/image");
+            req.body.image = uploadedUrl;
         }
 
         const updated = await CafeItem.findByIdAndUpdate(
@@ -86,10 +104,6 @@ exports.updateCafeItem = async (req, res) => {
             req.body,
             { new: true, runValidators: true }
         );
-
-        if (!updated) {
-            return res.status(404).json({ success: false, message: "Item not found" });
-        }
 
         return res.status(200).json({
             success: true,
@@ -104,11 +118,17 @@ exports.updateCafeItem = async (req, res) => {
 
 exports.deleteCafeItem = async (req, res) => {
     try {
-        const deleted = await CafeItem.findByIdAndDelete(req.params.id);
+        const item = await CafeItem.findById(req.params.id);
 
-        if (!deleted) {
+        if (!item) {
             return res.status(404).json({ success: false, message: "Item not found" });
         }
+
+        if (item.image) {
+            await deleteFromS3(item.image);
+        }
+
+        await CafeItem.findByIdAndDelete(req.params.id);
 
         return res.status(200).json({
             success: true,

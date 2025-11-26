@@ -4,7 +4,7 @@ const Housekeeping = require("../models/housekeepingModel");
 // GET ALL DIRTY ROOMS
 exports.getDirtyRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({ cleanStatus: "Dirty" }).populate("roomType");
+        const rooms = await Room.find({ cleanStatus: { $ne: "Clean" } }).populate("roomType").populate("cleanassign").sort({ updatedAt: -1 });
 
         return res.json({
             success: true,
@@ -56,7 +56,7 @@ exports.assignWorker = async (req, res) => {
 // WORKER START CLEANING
 exports.startCleaning = async (req, res) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
 
         const task = await Housekeeping.findById(id);
         if (!task) {
@@ -163,5 +163,28 @@ exports.getAllHousekeepignData = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
+// GET ALL TASKS FOR ONE WORKER
+exports.getWorkerTasks = async (req, res) => {
+    try {
+        const { workerId } = req.params;
+
+        const tasks = await Housekeeping.find({ workerId })
+            .populate("roomId")
+            .populate("workerId")
+            .sort({ createdAt: -1 });
+
+        return res.json({
+            success: true,
+            message: "Worker tasks fetched successfully!",
+            data: tasks
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 
 

@@ -107,12 +107,22 @@ exports.googleLogin = async (req, res) => {
 exports.updateUser = async (req, res) => {
     try {
         const userId = req.user._id
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
+            return res.status(404).json({
+                status: 404,
+                message: "User not found",
+            });
+        }
+        let updateData = { ...req.body };
         if (req.file) {
-            req.body.photo = req.file.path
+            if (existingUser.photo) await deleteFromS3(existingUser.photo);
+            const uploadedUrl = await uploadToS3(req.file, "uploads/photo");
+            req.body.photo = uploadedUrl;
         }
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { ...req.body, photo: req.body.photo ? req.body.photo : undefined },
+            updateData,
             { new: true, runValidators: true }
         );
 
@@ -299,61 +309,61 @@ exports.resetPassword = async (req, res) => {
 
 exports.resendOtp = async (req, res) => {
     try {
-      const { email } = req.body;
-  
-      const existingUser = await User.findOne({ email });
-      if (!existingUser) {
-        return res.status(404).json({
-          status: 404,
-          message: "Email not found.!",
-        });
-      }
-  
-      const newOtp = Math.floor(1000 + Math.random() * 9000);
-      existingUser.otp = newOtp;
-      await existingUser.save();
-  
-      const transporter = nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-  
-      const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: "Resend OTP - Password Reset",
-        text: `Your new OTP code is: ${newOtp}`,
-      };
-  
-      transporter.sendMail(mailOptions, (error) => {
-        if (error) {
-          console.log(error);
-          return res.status(500).json({
-            status: 500,
-            message: "Failed to send OTP email..!",
-          });
+        const { email } = req.body;
+
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+            return res.status(404).json({
+                status: 404,
+                message: "Email not found.!",
+            });
         }
-  
-        return res.status(200).json({
-          status: 200,
-          success: true,
-          message: "New OTP sent successfully via Email..!",
+
+        const newOtp = Math.floor(1000 + Math.random() * 9000);
+        existingUser.otp = newOtp;
+        await existingUser.save();
+
+        const transporter = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
         });
-      });
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Resend OTP - Password Reset",
+            text: `Your new OTP code is: ${newOtp}`,
+        };
+
+        transporter.sendMail(mailOptions, (error) => {
+            if (error) {
+                console.log(error);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Failed to send OTP email..!",
+                });
+            }
+
+            return res.status(200).json({
+                status: 200,
+                success: true,
+                message: "New OTP sent successfully via Email..!",
+            });
+        });
     } catch (error) {
-      return res.status(500).json({
-        status: 500,
-        message: error.message,
-      });
+        return res.status(500).json({
+            status: 500,
+            message: error.message,
+        });
     }
 };
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const users = await User.find({ role: "user" }); 
+        const users = await User.find({ role: "user" });
 
         return res.status(200).json({
             status: 200,

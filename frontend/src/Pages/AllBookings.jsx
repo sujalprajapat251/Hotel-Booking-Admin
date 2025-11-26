@@ -612,7 +612,7 @@ const AllBookings = () => {
                                                 {selectedItem.status}
                                             </span>
                                         </div>
-                                        {/* {selectedItem.rawData?.guest?.email && (
+                                        {selectedItem.rawData?.guest?.email && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -620,8 +620,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.guest?.idNumber && (
+                                        )}
+                                        {selectedItem.rawData?.guest?.idNumber && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -629,8 +629,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>ID Number:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.guest?.nationality && (
+                                        )}
+                                        {selectedItem.rawData?.guest?.nationality && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -638,8 +638,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Nationality:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.nationality}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.bookingReference && (
+                                        )}
+                                        {selectedItem.rawData?.reservation?.bookingReference && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -647,8 +647,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Booking Ref:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.bookingReference}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.room?.roomNumber && (
+                                        )}
+                                        {selectedItem.rawData?.room?.roomNumber && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -656,8 +656,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.occupancy && (
+                                        )}
+                                        {selectedItem.rawData?.reservation?.occupancy && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -668,8 +668,8 @@ const AllBookings = () => {
                                                     Children: {selectedItem.rawData.reservation.occupancy.children || 0}
                                                 </span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.payment?.totalAmount && (
+                                        )}
+                                        {selectedItem.rawData?.payment?.totalAmount && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -679,8 +679,8 @@ const AllBookings = () => {
                                                     {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
                                                 </span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.payment?.method && (
+                                        )}
+                                        {selectedItem.rawData?.payment?.method && (
                                             <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -688,8 +688,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Method:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.reservation?.specialRequests && (
+                                        )}
+                                        {selectedItem.rawData?.reservation?.specialRequests && (
                                             <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -697,8 +697,8 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Special Requests:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
                                             </div>
-                                        )} */}
-                                        {/* {selectedItem.rawData?.notes && (
+                                        )}
+                                        {selectedItem.rawData?.notes && (
                                             <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
                                                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
                                                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -706,7 +706,7 @@ const AllBookings = () => {
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Notes:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
                                             </div>
-                                        )} */}
+                                        )}
                                     </div>
                                 </div>
                             </div>
