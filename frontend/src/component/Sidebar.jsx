@@ -102,7 +102,16 @@ const adminSections = [
       },
       { icon: PiBroomLight , label: 'House Keepings', path: '/housekeeping' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
-      { icon: LuInfo, label: 'About', path: '/about' },
+      {
+        icon: LuInfo,
+        label: 'About',
+        path: '/about',
+        subMenus: [
+          { label: 'About', path: '/about/about' },
+          { label: 'Add About', path: '/about/addabout' },
+        ]
+      },
+      // { icon: LuInfo, label: 'About', path: '/about' },
       { icon: RiBloggerLine, label: 'Blog', path: '/blog' },
       { icon: VscCodeReview, label: 'Review', path: '/review' },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },

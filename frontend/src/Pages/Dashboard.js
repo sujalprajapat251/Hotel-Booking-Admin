@@ -330,17 +330,15 @@ export const Dashboard = () => {
 
   return (
     <>
-      <div className='p-3 sm:p-5 md600:p-3 md:p-5 h-full' style={{
-        background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
-      }}>
+      <div className='bg-[#F0F3FB] px-4 md:px-8 py-6 h-full'>
 
         <div className='sm:flex items-center justify-between'>
           <div>
-            <p className='text-[20px] md:text-[24px] xl:text-[28px] font-bold md600:px-4' style={{ color: '#755647' }}>Hi, Welcome back!</p>
-            <p className='font-bold md600:px-4' style={{ color: '#876B56' }}>Dashboard</p>
+            <p className='text-2xl font-semibold text-black'>Hi, Welcome back!</p>
+            <p className='font-bold text-black'>Dashboard</p>
           </div>
           <div className='text-end'>
-            <h2 className='font-bold md600:px-4' style={{ color: '#755647' }}>Customer Ratings</h2>
+            <h2 className='font-bold md600:px-4 text-black'>Customer Ratings</h2>
             <div className='flex items-center md600:px-4 justify-end'>
               <div className='flex'>
                 {[...Array(5)].map((_, i) => (
@@ -358,7 +356,7 @@ export const Dashboard = () => {
                   </span>
                 ))}
               </div>
-              <span className='ml-2' style={{ color: '#876B56' }}>4.5/5</span>
+              <span className='ml-2 text-black'>4.5/5</span>
             </div>
           </div>
         </div>
