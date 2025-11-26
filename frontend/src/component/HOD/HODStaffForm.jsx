@@ -4,9 +4,9 @@ import * as Yup from 'yup';
 import { Upload, Calendar, ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { createStaff, getAllStaff, updateStaff } from '../Redux/Slice/staff.slice';
-import { getAllDepartment } from '../Redux/Slice/department.slice';
-import { IMAGE_URL } from '../Utils/baseUrl';
+import { createStaff, getAllStaff, updateStaff } from '../../Redux/Slice/staff.slice';
+import { getAllDepartment } from '../../Redux/Slice/department.slice';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 
 const StaffForm = () => {
   const location = useLocation();

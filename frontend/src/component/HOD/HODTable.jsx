@@ -4,12 +4,12 @@ import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import * as XLSX from 'xlsx';
-import { setAlert } from '../Redux/Slice/alert.slice';
-import { createCafeTable, deleteCafeTable, getAllCafeTable, updateCafeTable } from '../Redux/Slice/cafeTable.slice';
+import { setAlert } from '../../Redux/Slice/alert.slice';
+import { createCafeTable, deleteCafeTable, getAllCafeTable, updateCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { io } from 'socket.io-client';
-import { IMAGE_URL } from '../Utils/baseUrl'
+import { IMAGE_URL } from '../../Utils/baseUrl'
 
 const HODTable = () => {
   const dispatch = useDispatch();

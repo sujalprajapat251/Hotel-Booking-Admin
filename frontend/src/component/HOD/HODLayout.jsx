@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import HODSidebar from '../component/HODSidebar';
-import Header from '../component/Header';
+import HODSidebar from './HODSidebar';
+import Header from '../Header';
 
 const HODLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
