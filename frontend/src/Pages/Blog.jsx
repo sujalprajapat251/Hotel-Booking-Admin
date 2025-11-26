@@ -5,11 +5,11 @@ import * as Yup from 'yup';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
 import { FiEdit, FiPlusCircle } from "react-icons/fi";
+import { useNavigate } from 'react-router-dom';
 import { IoEyeSharp } from 'react-icons/io5';
 import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { getAllBlog, createBlog, updateBlog, deleteBlog } from '../Redux/Slice/blogSlice';
 import * as XLSX from 'xlsx';
-import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
@@ -28,6 +28,7 @@ const Blog = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const blog = useSelector((state) => state.blog.blog)
 
     const [visibleColumns, setVisibleColumns] = useState({
@@ -40,38 +41,6 @@ const Blog = () => {
       actions: true,
     });
     const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
-
-    const quillModules = useMemo(() => ({
-        toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'strike'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            [{ script: 'sub' }, { script: 'super' }],
-            [{ indent: '-1' }, { indent: '+1' }],
-            [{ direction: 'rtl' }],
-            [{ size: ['small', false, 'large', 'huge'] }],
-            [{ color: [] }, { background: [] }],
-            [{ font: [] }],
-            [{ align: [] }],
-            ['link', 'blockquote', 'code-block'],
-            ['clean']
-        ],
-    }), []);
-
-    const quillFormats = useMemo(() => ([
-        'header', 'font', 'size',
-        'bold', 'italic', 'underline', 'strike', 'blockquote',
-        'list', 'bullet', 'indent',
-        'link', 'color', 'background',
-        'align', 'script', 'code-block'
-    ]), []);
-
-    const getImageFileName = (path = '') => {
-        if (!path) return '';
-        const segments = path.split(/[/\\]/);
-        const fileName = segments[segments.length - 1] || '';
-        return fileName.replace(/^\d+-/, '');
-    };
 
     const toggleColumn = (column) => {
       setVisibleColumns(prev => ({
@@ -368,12 +337,7 @@ const Blog = () => {
                     <div className="flex items-center gap-1 justify-end mt-2">
                       <div className="relative" ref={dropdownRef}>
                         <button
-                          onClick={() => {
-                            setIsEditMode(false);
-                            setEditingItem(null);
-                            formik.resetForm();
-                            setIsAddModalOpen(true);
-                          }}
+                          onClick={() => navigate('/blog/addblog', { state: { mode: 'add' } })}
                           className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
                           title="Add Blog"
                         >
@@ -528,7 +492,8 @@ const Blog = () => {
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="mv_table_action flex">
                                                     <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
-                                                    <div onClick={() => {
+                                                    <div 
+                                                    onClick={() => {
                                                         setIsEditMode(true);
                                                         setEditingItem(item);
                                                         formik.setValues({
@@ -540,7 +505,9 @@ const Blog = () => {
                                                         });
                                                         formik.setTouched({});
                                                         setIsAddModalOpen(true);
-                                                    }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                                                        navigate('/blog/addblog', { state: { mode: 'edit', blog: item } });
+                                                    }}
+                                                    ><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                                                     <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                                                 </div>
                                             </td>
@@ -657,141 +624,6 @@ const Blog = () => {
                 </div>
             )}
 
-            {/* Add Modal */}
-            {isAddModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
-                    <div className="relative w-full md:max-w-xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl">
-                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
-                            <h2 className="text-2xl font-semibold text-black">
-                                {isEditMode ? 'Edit Blog' : 'Add Blog'}
-                            </h2>
-                            <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-                        <form className="" onSubmit={formik.handleSubmit}>
-                            <div className="flex flex-col mb-4">
-                                <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
-                                <input
-                                    id="title"
-                                    name="title"
-                                    type="text"
-                                    placeholder="Enter Title"
-                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                    value={formik.values.title}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.title && formik.errors.title ? (
-                                    <p className="text-sm text-red-500">{formik.errors.title}</p>
-                                ) : null}
-                            </div>
-
-                            <div className="flex flex-col mb-4">
-                                <label htmlFor="subtitle" className="text-sm font-medium text-black mb-1">Sub Title</label>
-                                <input
-                                    id="subtitle"
-                                    name="subtitle"
-                                    type="text"
-                                    placeholder="Enter Sub Title"
-                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                    value={formik.values.subtitle}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.subtitle && formik.errors.subtitle ? (
-                                    <p className="text-sm text-red-500">{formik.errors.subtitle}</p>
-                                ) : null}
-                            </div>
-
-                            <div className="flex flex-col mb-4">
-                                <label htmlFor="tag" className="text-sm font-medium text-black mb-1">Tag</label>
-                                <input
-                                    id="tag"
-                                    name="tag"
-                                    type="text"
-                                    placeholder="Enter Tag"
-                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                    value={formik.values.tag}
-                                    onChange={formik.handleChange}
-                                    onBlur={formik.handleBlur}
-                                />
-                                {formik.touched.tag && formik.errors.tag ? (
-                                    <p className="text-sm text-red-500">{formik.errors.tag}</p>
-                                ) : null}
-                            </div>
-
-                            <div className="flex flex-col mb-4">
-                                <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                                <div className="rounded-[4px] border border-gray-200 bg-[#1414140F]">
-                                    <ReactQuill
-                                        id="description"
-                                        theme="snow"
-                                        value={formik.values.description}
-                                        onChange={(content) => formik.setFieldValue('description', content)}
-                                        onBlur={() => formik.setFieldTouched('description', true)}
-                                        modules={quillModules}
-                                        formats={quillFormats}
-                                        placeholder="Enter Description"
-                                    />
-                                </div>
-                                {formik.touched.description && formik.errors.description ? (
-                                    <p className="text-sm text-red-500">{formik.errors.description}</p>
-                                ) : null}
-                            </div>
-
-                            <div className="flex flex-col mb-4">
-                                <label htmlFor="image" className="text-sm font-medium text-black mb-1">Image</label>
-                                <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
-                                    <span className="truncate">
-                                        {formik.values.image
-                                            ? formik.values.image.name
-                                            : (isEditMode && editingItem?.image
-                                                ? getImageFileName(editingItem.image)
-                                                : 'Choose file')}
-                                    </span>
-                                    <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
-                                    <input
-                                        id="image"
-                                        name="image"
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={(event) => {
-                                            const file = event.currentTarget.files && event.currentTarget.files[0];
-                                            formik.setFieldValue('image', file);
-                                        }}
-                                        onBlur={formik.handleBlur}
-                                    />
-                                </label>
-                                {formik.touched.image && formik.errors.image ? (
-                                    <p className="text-sm text-red-500">{formik.errors.image}</p>
-                                ) : null}
-                            </div>
-
-                            <div className="flex items-center justify-center pt-4 border-t border-gray-200">
-                                <button
-                                    type="button"
-                                    onClick={handleAddModalClose}
-                                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                                >
-                                    {isEditMode ? 'Edit' : 'Add'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
             {/* Delete Modal */}
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -825,10 +657,8 @@ const Blog = () => {
                     </div>
                 </div>
             )}
-
         </div>
     );
 };
 
 export default Blog;
-

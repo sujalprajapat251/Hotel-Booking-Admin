@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { configureStore } from './Redux/Store';
 import { SnackbarProvider } from 'notistack';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
 import EditorDemo from './Pages/EditorDemo';
@@ -17,6 +17,7 @@ import Layout from './Pages/Layout';
 import Staff from './Pages/Staff.jsx';
 import Departments from './Pages/Departments';
 import Blog from './Pages/Blog';
+import BlogForm from './Pages/BlogForm.jsx';
 import Review from './Pages/Review';
 import Contact from './Pages/Contact';
 import Help from './Pages/Help';
@@ -238,10 +239,14 @@ function App() {
                   path='/blog'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
-                      <Blog />
+                      <Outlet />
                     </ProtectedRoute>
                   }
-                />
+                >
+                  <Route index element={<Navigate to="/blog/blog" replace />} />
+                  <Route path='blog' element={<Blog />} />
+                  <Route path='addblog' element={<BlogForm />} />
+                </Route>
                 <Route
                   path='/review'
                   element={
