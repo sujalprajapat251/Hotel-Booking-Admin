@@ -18,7 +18,8 @@ exports.createCabBooking = async (req, res) => {
             estimatedDistance,
             estimatedFare,
             specialInstructions,
-            notes
+            notes,
+            preferredSeatingCapacity
         } = req.body;
         // Validate required fields
         if (!bookingId) {
@@ -51,9 +52,70 @@ exports.createCabBooking = async (req, res) => {
             });
         }
 
+        let resolvedCabId = assignedCab || null;
+        let resolvedDriverId = assignedDriver || null;
+
+        // Auto-assign cab based on seating capacity if not manually assigned
+        if (!resolvedCabId && preferredSeatingCapacity) {
+            const pickUpDateTime = new Date(pickUpTime);
+            
+            // Find cabs that are not booked during the pick-up time
+            const bookedCabIds = await CabBooking.find({
+                pickUpTime: {
+                    $lte: new Date(pickUpDateTime.getTime() + 2 * 60 * 60 * 1000), // 2 hours after pick-up
+                    $gte: new Date(pickUpDateTime.getTime() - 2 * 60 * 60 * 1000)  // 2 hours before pick-up
+                },
+                status: { $in: ["Pending", "Confirmed", "Assigned", "InProgress"] }
+            }).distinct('assignedCab');
+
+            // Find available cab with matching seating capacity
+            const availableCab = await Cab.findOne({
+                seatingCapacity: preferredSeatingCapacity,
+                status: "Available",
+                _id: { $nin: bookedCabIds.filter(Boolean) }
+            });
+
+            if (availableCab) {
+                resolvedCabId = availableCab._id;
+            } else {
+                // If exact match not found, try to find a cab with equal or higher capacity
+                const capacityNumber = preferredSeatingCapacity === "10+" ? 10 : parseInt(preferredSeatingCapacity);
+                if (!isNaN(capacityNumber)) {
+                    // Find cabs with seating capacity >= required capacity
+                    const allCabs = await Cab.find({
+                        status: "Available",
+                        _id: { $nin: bookedCabIds.filter(Boolean) }
+                    });
+                    
+                    // Filter cabs where seating capacity (as string) can be parsed and is >= required
+                    const suitableCabs = allCabs.filter(cab => {
+                        if (cab.seatingCapacity === "10+") return true;
+                        const cabCapacity = parseInt(cab.seatingCapacity);
+                        return !isNaN(cabCapacity) && cabCapacity >= capacityNumber;
+                    }).sort((a, b) => {
+                        // Sort by capacity ascending to get the smallest suitable cab
+                        const aCap = a.seatingCapacity === "10+" ? 999 : parseInt(a.seatingCapacity);
+                        const bCap = b.seatingCapacity === "10+" ? 999 : parseInt(b.seatingCapacity);
+                        return aCap - bCap;
+                    });
+
+                    if (suitableCabs.length > 0) {
+                        resolvedCabId = suitableCabs[0]._id;
+                    }
+                }
+            }
+
+            if (!resolvedCabId) {
+                return res.status(404).json({
+                    success: false,
+                    message: `No available cab found with ${preferredSeatingCapacity} seater capacity or higher for the selected time`
+                });
+            }
+        }
+
         // Verify cab exists if assigned
-        if (assignedCab) {
-            const cab = await Cab.findById(assignedCab);
+        if (resolvedCabId) {
+            const cab = await Cab.findById(resolvedCabId);
             if (!cab) {
                 return res.status(404).json({
                     success: false,
@@ -61,8 +123,6 @@ exports.createCabBooking = async (req, res) => {
                 });
             }
         }
-
-        let resolvedDriverId = assignedDriver || null;
 
         // Verify driver exists if assigned & fallback to available driver when needed
         if (assignedDriver) {
@@ -76,7 +136,7 @@ exports.createCabBooking = async (req, res) => {
 
             if (driver.status !== "Available") {
                 const alternativeDriver = await findAvailableDriver({
-                    preferredCabId: assignedCab,
+                    preferredCabId: resolvedCabId,
                     excludeDriverIds: [assignedDriver]
                 });
 
@@ -90,7 +150,8 @@ exports.createCabBooking = async (req, res) => {
                 resolvedDriverId = alternativeDriver._id;
             }
         } else {
-            const autoDriver = await findAvailableDriver({ preferredCabId: assignedCab });
+            // Auto-assign driver for the selected cab
+            const autoDriver = await findAvailableDriver({ preferredCabId: resolvedCabId });
 
             if (autoDriver) {
                 resolvedDriverId = autoDriver._id;
@@ -105,18 +166,28 @@ exports.createCabBooking = async (req, res) => {
             zipCode: ""
         };
 
+        // Determine status based on assignment
+        let bookingStatus = "Pending";
+        if (resolvedCabId && resolvedDriverId) {
+            bookingStatus = "Assigned";
+        } else if (resolvedCabId || resolvedDriverId) {
+            bookingStatus = "Confirmed";
+        }
+
         const newCabBooking = await CabBooking.create({
             booking: bookingId,
             pickUpLocation,
             dropLocation: finalDropLocation,
-            assignedCab: assignedCab || null,
+            assignedCab: resolvedCabId || null,
             assignedDriver: resolvedDriverId || null,
             bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
             pickUpTime: new Date(pickUpTime),
             estimatedDistance: estimatedDistance || null,
             estimatedFare: estimatedFare || null,
             specialInstructions: specialInstructions || "",
-            notes: notes || ""
+            notes: notes || "",
+            preferredSeatingCapacity: preferredSeatingCapacity || null,
+            status: bookingStatus
         });
 
         const populatedBooking = await newCabBooking.populate([

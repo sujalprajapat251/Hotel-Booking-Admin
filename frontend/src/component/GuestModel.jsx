@@ -1,17 +1,14 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../Redux/Slice/bookingSlice";
-
-const generateReference = () =>
-  `BK${Date.now().toString(36).toUpperCase()}${Math.random()
-    .toString(36)
-    .slice(2, 6)
-    .toUpperCase()}`;
+import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
 
 const GuestModal = ({ onClose, room, onBooked }) => {
   const dispatch = useDispatch();
   const { creating, error } = useSelector((state) => state.booking || {});
+  const { loading: cabBookingLoading } = useSelector((state) => state.cabBooking || {});
   const [activeTab, setActiveTab] = useState("personal");
+  const [cabServiceEnabled, setCabServiceEnabled] = useState(false);
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
@@ -20,13 +17,38 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     address: "",
     checkInDate: "",
     checkOutDate: "",
-    bookingReference: generateReference(),
-    bookingSource: "Direct",
     paymentStatus: "Pending",
     paymentMethod: "Cash",
     totalAmount: room?.price?.base || "",
     notes: "",
+    // Cab booking fields
+    pickUpLocation: "Airport",
+    pickUpTime: "",
+    bookingDate: "",
+    preferredSeatingCapacity: "4",
+    estimatedDistance: "",
+    estimatedFare: "",
+    specialInstructions: "",
+    cabNotes: "",
   });
+
+  const CAB_FARE_RATE = 20; // Set your rate per km
+
+  // Automatically update estimated fare when distance changes
+  useEffect(() => {
+    if (cabServiceEnabled && formState.estimatedDistance) {
+      const fare = parseFloat(formState.estimatedDistance) * CAB_FARE_RATE;
+      setFormState((prev) => ({
+        ...prev,
+        estimatedFare: fare ? fare.toFixed(2) : "",
+      }));
+    } else if (!formState.estimatedDistance) {
+      setFormState((prev) => ({
+        ...prev,
+        estimatedFare: "",
+      }));
+    }
+  }, [formState.estimatedDistance, cabServiceEnabled]);
 
   console.log(room,"room");
 
@@ -44,17 +66,72 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     };
   }, [room]);
 
+  // Auto-set booking date and pick-up time when check-in date changes (if cab service is enabled)
+  useEffect(() => {
+    if (cabServiceEnabled && formState.checkInDate) {
+      setFormState((prev) => ({
+        ...prev,
+        bookingDate: prev.bookingDate || prev.checkInDate,
+        pickUpTime: prev.pickUpTime || (prev.checkInDate ? `${prev.checkInDate}T10:00` : ""),
+      }));
+    }
+  }, [formState.checkInDate, cabServiceEnabled]);
+
   const handleChange = (field) => (event) => {
-    const { value } = event.target;
-    setFormState((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    const { value, type, checked } = event.target;
+    if (type === "checkbox") {
+      setCabServiceEnabled(checked);
+      // Reset cab booking fields when unchecked
+      if (!checked) {
+        setFormState((prev) => ({
+          ...prev,
+          pickUpLocation: "Airport",
+          pickUpTime: "",
+          bookingDate: "",
+          preferredSeatingCapacity: "4",
+          estimatedDistance: "",
+          estimatedFare: "",
+          specialInstructions: "",
+          cabNotes: "",
+        }));
+      } else {
+        // Auto-set booking date and pick-up time when enabling cab service
+        setFormState((prev) => ({
+          ...prev,
+          bookingDate: prev.bookingDate || prev.checkInDate || "",
+          pickUpTime: prev.pickUpTime || (prev.checkInDate ? `${prev.checkInDate}T10:00` : ""),
+        }));
+      }
+    } else {
+      setFormState((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!room?.id) return;
+
+    // Validate cab booking fields if cab service is enabled
+    if (cabServiceEnabled) {
+      if (!formState.pickUpLocation) {
+        alert("Please select a pick-up location for cab service");
+        setActiveTab("reservation");
+        return;
+      }
+      if (!formState.pickUpTime) {
+        alert("Please select a pick-up time for cab service");
+        setActiveTab("reservation");
+        return;
+      }
+      if (!formState.preferredSeatingCapacity) {
+        alert("Please select a seating capacity for cab service");
+        setActiveTab("reservation");
+        return;
+      }
+    }
 
     const payload = {
       roomId: room.id,
@@ -68,8 +145,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       reservation: {
         checkInDate: formState.checkInDate,
         checkOutDate: formState.checkOutDate,
-        bookingSource: formState.bookingSource,
-        bookingReference: formState.bookingReference,
         occupancy: {
           adults: room?.capacity?.adults || 1,
           children: room?.capacity?.children || 0,
@@ -85,12 +160,48 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     };
 
     try {
-      await dispatch(createBooking(payload)).unwrap();
+      const bookingResult = await dispatch(createBooking(payload)).unwrap();
+      
+      // Create cab booking if cab service is enabled
+      if (cabServiceEnabled) {
+        // Use id or _id (backend returns id from formatBooking function)
+        const bookingId = bookingResult?.id || bookingResult?._id;
+        
+        if (!bookingId) {
+          console.error("Booking ID not found in result:", bookingResult);
+          throw new Error("Failed to get booking ID for cab booking");
+        }
+
+        // Validate required cab booking fields
+        if (!formState.pickUpLocation) {
+          throw new Error("Pick-up location is required for cab booking");
+        }
+        if (!formState.pickUpTime) {
+          throw new Error("Pick-up time is required for cab booking");
+        }
+
+        const cabBookingPayload = {
+          bookingId: bookingId,
+          pickUpLocation: formState.pickUpLocation,
+          pickUpTime: formState.pickUpTime,
+          bookingDate: formState.bookingDate || formState.checkInDate || new Date().toISOString().split('T')[0],
+          preferredSeatingCapacity: formState.preferredSeatingCapacity || "4",
+          estimatedDistance: formState.estimatedDistance ? Number(formState.estimatedDistance) : null,
+          estimatedFare: formState.estimatedFare ? Number(formState.estimatedFare) : null,
+          specialInstructions: formState.specialInstructions || "",
+          notes: formState.cabNotes || "",
+        };
+        
+        console.log("Creating cab booking with payload:", cabBookingPayload);
+        await dispatch(createCabBooking(cabBookingPayload)).unwrap();
+      }
+      
       if (onBooked) {
         onBooked(room);
       }
       onClose();
     } catch (err) {
+      console.error("Error creating booking or cab booking:", err);
       setActiveTab("personal");
     }
   };
@@ -258,30 +369,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 </div>
               </div>
 
-              <div className="mt-4">
-                <label className="block mb-1 text-sm">Booking Reference</label>
-                <input
-                  type="text"
-                  className="w-full border rounded-lg p-2 bg-gray-100"
-                  value={formState.bookingReference}
-                  readOnly
-                />
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block mb-1 text-sm">Booking Source</label>
-                  <select
-                    className="w-full border rounded-lg p-2"
-                    value={formState.bookingSource}
-                    onChange={handleChange("bookingSource")}
-                  >
-                    <option value="Direct">Direct</option>
-                    <option value="Online">Online</option>
-                    <option value="Agent">Agent</option>
-                  </select>
-                </div>
-
                 <div>
                   <label className="block mb-1 text-sm">Payment Status</label>
                   <select
@@ -295,6 +383,141 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   </select>
                 </div>
               </div>
+
+              {/* Cab Service Checkbox */}
+              <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={cabServiceEnabled}
+                    onChange={handleChange("cabService")}
+                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                  />
+                  <span className="ml-2 text-sm font-medium text-gray-700">
+                    Add Cab Service
+                  </span>
+                </label>
+              </div>
+
+              {/* Cab Booking Details - Show only if checkbox is checked */}
+              {cabServiceEnabled && (
+                <div className="mt-4 p-4 border rounded-lg bg-blue-50">
+                  <h4 className="text-md font-semibold border-l-4 border-blue-600 pl-2 mb-4">
+                    Cab Booking Details
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block mb-1 text-sm">Pick-up Location*</label>
+                      <select
+                        className="w-full border rounded-lg p-2"
+                        required={cabServiceEnabled}
+                        value={formState.pickUpLocation}
+                        onChange={handleChange("pickUpLocation")}
+                      >
+                        <option value="Airport">Airport</option>
+                        <option value="Railway Station">Railway Station</option>
+                        <option value="Bus Station">Bus Station</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 text-sm">Pick-up Time*</label>
+                      <input
+                        type="datetime-local"
+                        className="w-full border rounded-lg p-2"
+                        required={cabServiceEnabled}
+                        value={formState.pickUpTime}
+                        onChange={handleChange("pickUpTime")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block mb-1 text-sm">Seating Capacity*</label>
+                      <select
+                        className="w-full border rounded-lg p-2"
+                        required={cabServiceEnabled}
+                        value={formState.preferredSeatingCapacity}
+                        onChange={handleChange("preferredSeatingCapacity")}
+                      >
+                        <option value="4">4 Seater</option>
+                        <option value="5">5 Seater</option>
+                        <option value="6">6 Seater</option>
+                        <option value="7">7 Seater</option>
+                        <option value="8">8 Seater</option>
+                        <option value="9">9 Seater</option>
+                        <option value="10+">10+ Seater</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        A cab with matching or higher capacity will be automatically assigned
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block mb-1 text-sm">Booking Date</label>
+                      <input
+                        type="date"
+                        className="w-full border rounded-lg p-2"
+                        value={formState.bookingDate}
+                        onChange={handleChange("bookingDate")}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block mb-1 text-sm">Estimated Distance (km)</label>
+                      <input
+                        type="number"
+                        className="w-full border rounded-lg p-2"
+                        placeholder="0"
+                        min="0"
+                        step="0.1"
+                        value={formState.estimatedDistance}
+                        onChange={handleChange("estimatedDistance")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block mb-1 text-sm">Estimated Fare</label>
+                      <input
+                        type="number"
+                        className="w-full border rounded-lg p-2"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        value={formState.estimatedFare}
+                        readOnly // Make field read-only so it cannot be edited by user
+                        onChange={handleChange("estimatedFare")}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block mb-1 text-sm">Special Instructions</label>
+                    <textarea
+                      className="w-full border rounded-lg p-2 h-20"
+                      placeholder="Any special instructions for the driver"
+                      value={formState.specialInstructions}
+                      onChange={handleChange("specialInstructions")}
+                    ></textarea>
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="block mb-1 text-sm">Cab Booking Notes</label>
+                    <textarea
+                      className="w-full border rounded-lg p-2 h-20"
+                      placeholder="Additional notes for cab booking"
+                      value={formState.cabNotes}
+                      onChange={handleChange("cabNotes")}
+                    ></textarea>
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
@@ -349,14 +572,14 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
           <button
             type="submit"
-            disabled={creating}
+            disabled={creating || cabBookingLoading}
             className={`px-4 py-2 rounded-lg text-white ${
-              creating
+              creating || cabBookingLoading
                 ? "bg-green-300 cursor-not-allowed"
                 : "bg-green-600 hover:bg-green-700"
             }`}
           >
-            {creating ? "Saving..." : "Save Guest Details"}
+            {creating || cabBookingLoading ? "Saving..." : "Save Guest Details"}
           </button>
         </div>
       </form>

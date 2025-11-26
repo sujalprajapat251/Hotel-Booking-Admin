@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { LuCircleArrowDown, LuCircleArrowUp } from "react-icons/lu";
 import '../Style/Sujal.css';
 import { FaEllipsisV, FaWrench } from 'react-icons/fa';
@@ -17,111 +17,42 @@ import HotelOccupancyDashboard from '../component/Hoteloccupancyratechart.jsx';
 import BookingTrendsChart from '../component/Bookingtrendschart.jsx';
 import { Home, Coffee, Heart, MoreHorizontal } from 'lucide-react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
 
 export const Dashboard = () => {
 
-  const bookings = [
-    {
-      id: 1,
-      name: 'John Deo',
-      image: 'https://i.pravatar.cc/150?img=1',
-      checkIn: '12-08-2019',
-      checkOut: '15-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      roomType: 'Single'
-    },
-    {
-      id: 2,
-      name: 'Jens Brincker',
-      image: 'https://i.pravatar.cc/150?img=2',
-      checkIn: '13-08-2019',
-      checkOut: '16-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      roomType: 'Double'
-    },
-    {
-      id: 3,
-      name: 'Mark Hay',
-      image: 'https://i.pravatar.cc/150?img=3',
-      checkIn: '15-08-2019',
-      checkOut: '18-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      roomType: 'Single'
-    },
-    {
-      id: 4,
-      name: 'Anthony Davie',
-      image: 'https://i.pravatar.cc/150?img=4',
-      checkIn: '16-08-2019',
-      checkOut: '17-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      roomType: 'King'
-    },
-    {
-      id: 5,
-      name: 'Alan Gilchrist',
-      image: 'https://i.pravatar.cc/150?img=5',
-      checkIn: '21-08-2019',
-      checkOut: '23-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      roomType: 'Appartment'
-    },
-    {
-      id: 6,
-      name: 'Sue Woodger',
-      image: 'https://i.pravatar.cc/150?img=6',
-      checkIn: '25-08-2019',
-      checkOut: '26-08-2019',
-      status: 'Pending',
-      phone: '(123)123456',
-      roomType: 'Single'
-    },
-    {
-      id: 7,
-      name: 'David Perry',
-      image: 'https://i.pravatar.cc/150?img=7',
-      checkIn: '26-08-2019',
-      checkOut: '29-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      roomType: 'Single'
-    },
-    {
-      id: 8,
-      name: 'Sneha Pandit',
-      image: 'https://i.pravatar.cc/150?img=8',
-      checkIn: '27-08-2019',
-      checkOut: '28-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      roomType: 'Double'
-    },
-    {
-      id: 9,
-      name: 'David Perry',
-      image: 'https://i.pravatar.cc/150?img=7',
-      checkIn: '26-08-2019',
-      checkOut: '29-08-2019',
-      status: 'Unpaid',
-      phone: '(123)123456',
-      roomType: 'Single'
-    },
-    {
-      id: 10,
-      name: 'Sneha Pandit',
-      image: 'https://i.pravatar.cc/150?img=8',
-      checkIn: '27-08-2019',
-      checkOut: '28-08-2019',
-      status: 'Paid',
-      phone: '(123)123456',
-      roomType: 'Double'
+  const dispatch = useDispatch();
+  const [booking, setBooking] = useState([]);
+  console.log('booking', booking);
+
+  const {
+    items
+  } = useSelector((state) => state.booking);
+
+  // ADD THIS useEffect - Transform Redux data to local state
+
+  // ADD THIS useEffect - Transform Redux data to local state
+  useEffect(() => {
+    if (items && items.length > 0) {
+      const formattedBookings = items
+        .map((item, index) => ({
+          id: item._id || item.id || index,
+          name: item.guest?.fullName || 'N/A',
+          checkIn: item.reservation?.checkInDate?.slice(0, 10) || 'N/A',
+          checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
+          status: item.payment?.status || 'Pending',
+          phone: item.guest?.phone || 'N/A',
+          roomType: item.room?.roomType?.roomType || 'N/A',
+          createdAt: item.createdAt || item.reservation?.checkInDate // For sorting by latest
+        }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by latest first
+        .slice(0, 8); // Take only first 10
+      setBooking(formattedBookings);
     }
-  ];
+  }, [items]);
+
+
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -136,18 +67,18 @@ export const Dashboard = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Paid':
-        return '#4EB045';
-      case 'Unpaid':
-        return '#EC0927';
-      case 'Pending':
-        return '#F7DF9C';
-      default:
-        return '#gray';
-    }
-  };
+  // const getStatusColor = (status) => {
+  //   switch (status) {
+  //     case 'Paid':
+  //       return '#4EB045';
+  //     case 'Unpaid':
+  //       return '#EC0927';
+  //     case 'Pending':
+  //       return '#F7DF9C';
+  //     default:
+  //       return '#gray';
+  //   }
+  // };
 
   const roomData = {
     occupied: 125,
@@ -390,6 +321,12 @@ export const Dashboard = () => {
       return review;
     }));
   };
+
+
+  useEffect(() => {
+    dispatch(fetchBookings());
+  }, [dispatch]);
+
 
   return (
     <>
@@ -742,7 +679,7 @@ export const Dashboard = () => {
               borderColor: '#E3C78A',
               background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
             }}>
-              <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Booking Details</h2>
+              <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Current Booking Details</h2>
               <button className="transition-colors" style={{ color: '#A3876A' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#876B56'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#A3876A'}
@@ -789,7 +726,7 @@ export const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: '#E3C78A' }}>
-                  {bookings.map((booking, index) => (
+                  {booking.map((booking, index) => (
                     <tr
                       key={booking.id}
                       className="transition-all duration-200"
@@ -803,7 +740,7 @@ export const Dashboard = () => {
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm font-medium" style={{ color: '#876B56' }}>{index + 1}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
-                          <div className="relative">
+                          {/* <div className="relative">
                             <img
                               src={booking.image}
                               alt={booking.name}
@@ -811,7 +748,7 @@ export const Dashboard = () => {
                               style={{ borderColor: '#E3C78A' }}
                             />
                             <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(booking.status) }}></div>
-                          </div>
+                          </div> */}
                           <span className="text-sm font-semibold" style={{ color: '#755647' }}>{booking.name}</span>
                         </div>
                       </td>
@@ -830,7 +767,8 @@ export const Dashboard = () => {
                             color: '#755647',
                             borderColor: 'rgba(183, 153, 130, 0.3)'
                           }}>
-                            {booking.roomType}
+                            {/* {booking.roomType} */}
+                            {booking.roomType?.split(' ')[0] || 'N/A'}
                           </span>
                         </div>
                       </td>

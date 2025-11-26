@@ -12,7 +12,6 @@ const hodSections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/accountant/dashboard' },
-      { icon: LuUsers, label: 'Table', path: '/accountant/table' },
     ],
   },
 ];
@@ -153,7 +152,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
         {open ? (
           <div>
             <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-            <p className="text-xs text-gray-500">HOD Panel</p>
+            <p className="text-xs text-gray-500">Accountant Panel</p>
           </div>
         ) : null}
       </div>

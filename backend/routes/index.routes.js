@@ -56,6 +56,7 @@ const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../con
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword } = require('../controller/adminController');
+const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -120,14 +121,14 @@ indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 
 // room type routes
 indexRoutes.post('/roomtypes',auth, adminOnly, createRoomType);
-indexRoutes.get('/roomtypes', auth, adminOnly,getRoomTypes);
+indexRoutes.get('/roomtypes',getRoomTypes);
 indexRoutes.get('/roomtypes/:id', auth, adminOnly,getRoomTypeById);
 indexRoutes.put('/roomtypes/:id', auth, adminOnly, updateRoomType);
 indexRoutes.delete('/roomtypes/:id', auth, adminOnly, deleteRoomType);
 
 // feature routes
 indexRoutes.post('/features', auth, adminOnly, createFeature);
-indexRoutes.get('/features', auth, adminOnly,getFeatures);
+indexRoutes.get('/features',getFeatures);
 indexRoutes.get('/features/roomtype/:roomTypeId', auth, adminOnly,getFeaturesByRoomType);
 indexRoutes.get('/features/:id',auth, adminOnly, getFeatureById);
 indexRoutes.put('/features/:id', auth, adminOnly, updateFeature);
@@ -144,8 +145,8 @@ indexRoutes.post('/autoUpdateRoomBeds', autoUpdateRoomBeds);
 
 // booking routes
 indexRoutes.post('/bookings', auth, createBooking);
-indexRoutes.get('/bookings', auth, getBookings);
-indexRoutes.get('/bookings/:id', auth, getBookingById);
+indexRoutes.get('/bookings', getBookings);
+indexRoutes.get('/bookings/:id', getBookingById);
 indexRoutes.put('/bookings/:id', auth, updateBooking);
 indexRoutes.delete('/bookings/:id', auth, deleteBooking);
 
@@ -218,6 +219,11 @@ indexRoutes.get('/getcabbooking/:id', getCabBookingById);
 indexRoutes.put('/updatecabbooking/:id', auth, updateCabBooking);
 indexRoutes.delete('/deletecabbooking/:id', auth, deleteCabBooking);
 indexRoutes.get('/getcabbookingsbybooking/:bookingId', getCabBookingsByBookingId);
+
+// Review routes
+indexRoutes.post('/reviews', auth, createReview);
+indexRoutes.get('/reviews', getAllReviews);
+indexRoutes.get('/reviews/:id', getReviewById);
 
 // Restaurant Item routes
 indexRoutes.post('/createrestaurantitem', auth, adminOnly, upload.single("image"), createRestaurantItem);

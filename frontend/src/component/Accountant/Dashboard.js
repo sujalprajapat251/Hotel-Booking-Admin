@@ -31,8 +31,15 @@ export default function Dashboard() {
   const [paymentMethod, setPaymentMethod] = useState("");
 
   const [menu, setMenu] = useState([]);
+  const [activeTableId, setActiveTableId] = useState(null);
   useEffect(() => {
-    setMenu(orders && orders.length > 0 ? orders[0] : null);
+    if (orders && orders.length > 0) {
+      setMenu(orders[0]);
+      setActiveTableId(orders[0]?.id || orders[0]?._id || null);
+    } else {
+      setMenu(null);
+      setActiveTableId(null);
+    }
   }, [orders])
 
   const calculateItemsTotal = (items = []) => {
@@ -45,6 +52,7 @@ export default function Dashboard() {
   const handleChnage = (ele) => {
     // setMenu(ele?.lastUnpaidOrder)
     setMenu(ele);
+    setActiveTableId(ele?.id || ele?._id || null);
   }
   const handleserved = async (ele) => {
     const orderId = menu?.orderId || menu?._id;
@@ -78,9 +86,9 @@ export default function Dashboard() {
       <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
 
       <div className="py-6">
-        <div className="block gap-5 md:flex">
+        <div className="block gap-5 lg:flex">
           {/* Left column */}
-          <aside className="w-full md:w-[30%]">
+          <aside className="w-full lg:w-[30%]">
             {/* <div className="relative mb-4">
               <input
                 type="text"
@@ -90,31 +98,42 @@ export default function Dashboard() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div> */}
             <div className="space-y-2 mb-6 md:space-y-3">
-              {orders.map((o) => {
-                const items = o?.items || [];
-                const title = o?.from === 'cafe' ? `Table: ${o?.table?.title || o?.table}` : `Room: ${o?.room || o?.name || 'Guest'}`;
-                return (
+              {orders.length > 0 ? (
+                orders.map((o) => {
+                  const items = o?.items || [];
+                  const title = o?.from === 'cafe' ? `Table: ${o?.table?.title || o?.table}` : `Room: ${o?.room || o?.name || 'Guest'}`;
+                  return (
 
-                  <div key={o._id} className="flex items-center justify-between border rounded p-4 bg-white shadow-sm cursor-pointer" onClick={() => { handleChnage(o) }}>
-                    <div className='w-full'>
-                      <div className='flex justify-between items-center'>
-                      <div className="font-semibold">{title}</div>
-                      <div className="font-semibold text-xs ms-auto text-gray-500">#{o._id}</div>
+                    <div 
+                    key={o.id || o._id}
+                    className={`flex items-center justify-between border rounded p-4 bg-white shadow-sm cursor-pointer transition-transform duration-200 ${activeTableId === (o.id || o._id) ? "scale-[103%] shadow-md" : "hover:scale-[1.01]"}`} 
+                    onClick={() => { handleChnage(o) }}>
+                      <div className='w-full'>
+                        <div className='flex justify-between items-center flex-wrap'>
+                        <div className="font-semibold">{title}</div>
+                        <div className="font-semibold text-xs ms-auto text-gray-500">#{o._id}</div>
 
+                        </div>
+                        <div className="text-xs text-gray-500">{o?.name || ''}</div>
+                        <div className="text-xs text-gray-500">{ o?.contact  || ''}</div>
                       </div>
-                      <div className="text-xs text-gray-500">{o?.name || ''}</div>
-                      <div className="text-xs text-gray-500">{ o?.contact  || ''}</div>
-                    </div>
 
-                    <div className="text-gray-400">›</div>
+                      {/* <div className="text-gray-400">›</div> */}
+                    </div>
+                  )
+                })
+              ) : (
+                <div className="border rounded p-8 bg-white shadow-sm">
+                  <div className="text-center text-gray-500 text-lg">
+                    No payment pending
                   </div>
-                )
-              })}
+                </div>
+              )}
             </div>
           </aside>
 
           {/* Right column */}
-          <main className="w-full md:w-[70%]">
+          <main className="w-full lg:w-[70%]">
             <div className="border rounded bg-white shadow-sm p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -171,7 +190,7 @@ export default function Dashboard() {
             aria-labelledby="payment-modal-title"
             tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white w-[92%] max-w-lg rounded-xl shadow-2xl p-6 relative"
+            className="bg-white w-[92%] max-w-lg rounded-[4px] shadow-2xl p-6 relative"
           >
             {/* Close Icon */}
             <button
