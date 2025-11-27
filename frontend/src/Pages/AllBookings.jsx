@@ -92,8 +92,9 @@ const AllBookings = () => {
                 phone: item.guest?.phone || 'N/A',
                 roomType: item.room?.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item // Keep raw data for other operations
+                rawData: item 
             }));
+            console.log('formattedBookings', formattedBookings);
             setBooking(formattedBookings);
         } else {
             setBooking([]);

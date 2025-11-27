@@ -1,5 +1,7 @@
 const Room = require("../models/createRoomModel");
 const Housekeeping = require("../models/housekeepingModel");
+const Staff = require("../models/staffModel");
+const Department = require("../models/departmentModel");
 
 // GET ALL DIRTY ROOMS
 exports.getDirtyRooms = async (req, res) => {
@@ -30,11 +32,22 @@ exports.assignWorker = async (req, res) => {
             });
         }
 
+        // Check room exists
         const room = await Room.findById(roomId);
         if (!room) {
-            return res.status(404).json({
+            return res.status(404).json({ success: false, message: "Room not found" });
+        }
+
+        // Check if worker is already assigned to another task
+        const activeTask = await Housekeeping.findOne({
+            workerId,
+            status: { $in: ["Pending", "In-Progress"] }
+        });
+
+        if (activeTask) {
+            return res.status(400).json({
                 success: false,
-                message: "Room not found"
+                message: "Worker is already assigned to another cleaning task"
             });
         }
 
@@ -53,7 +66,7 @@ exports.assignWorker = async (req, res) => {
 
         return res.json({
             success: true,
-            message: "Worker assigned successfully..! ",
+            message: "Worker assigned successfully",
             data: task
         });
 
@@ -61,6 +74,43 @@ exports.assignWorker = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+exports.getFreeWorkers = async (req, res) => {
+    try {
+        // Step 1: Get the department ID of Housekeeping
+        const housekeepingDept = await Department.findOne({ name: "Housekeeping" });
+
+        if (!housekeepingDept) {
+            return res.status(404).json({
+                success: false,
+                message: "Housekeeping department not found"
+            });
+        }
+
+        // Step 2: Find busy workers
+        const busyWorkers = await Housekeeping.find({
+            status: { $in: ["Pending", "In-Progress"] }
+        }).distinct("workerId");
+
+        // Step 3: Find free workers
+        const freeWorkers = await Staff.find({
+            department: housekeepingDept._id,
+            _id: { $nin: busyWorkers }
+        }).populate("department");
+
+        return res.json({
+            success: true,
+            message: "Free housekeeping workers fetched successfully",
+            data: freeWorkers
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+// key mukavi 6 ne ???
+
 
 // WORKER START CLEANING
 exports.startCleaning = async (req, res) => {

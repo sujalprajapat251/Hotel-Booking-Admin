@@ -28,7 +28,7 @@ export const fetchAllhousekeepingrooms = createAsyncThunk(
                 params, // This will include page, limit, search, etc.
                 headers: getAuthHeaders()
             });
-            console.log('response', response.data);
+            // console.log('response', response.data);
 
             // Return the entire response data
             return response.data;
@@ -61,9 +61,27 @@ export const assignWorkerToRoom = createAsyncThunk(
     }
 );
 
+export const fetchFreeWorker = createAsyncThunk(
+    'housekeeping/fetchFreeWorker',
+
+    async (_,{ dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/getfreeworker`, {
+                headers: getAuthHeaders()
+            });
+            console.log('responseeeeeeee', response.data);
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+)
+
+
 
 const initialState = {
     items: [],
+    freeWorkers: [],
     selected: null,
     loading: false,
     error: null,
@@ -95,13 +113,26 @@ const housekeepingSlice = createSlice({
             .addCase(fetchAllhousekeepingrooms.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload?.data || [];
-                console.log('itemssss', action.payload.data);
+                // console.log('itemssss', action.payload.data);
                 state.totalCount = action.payload.totalCount || 0;
                 state.currentPage = action.payload.currentPage || 1;
                 state.totalPages = action.payload.totalPages || 0;
             })
             .addCase(fetchAllhousekeepingrooms.rejected, (state, action) => {
                 state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(fetchFreeWorker.pending, (state) => {
+                state.loadingWorkers = true;
+                state.error = null;
+            })
+            .addCase(fetchFreeWorker.fulfilled, (state, action) => {
+                state.loadingWorkers = false;
+                state.freeWorkers = action.payload?.data || []; // Store in freeWorkers instead of items
+                console.log('Free workers:', action.payload.data);
+            })
+            .addCase(fetchFreeWorker.rejected, (state, action) => {
+                state.loadingWorkers = false;
                 state.error = action.payload;
             })
             // Add these new cases for assignWorkerToRoom
