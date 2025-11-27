@@ -104,10 +104,10 @@ const TermsTable = () => {
   };
 
   return (
-    <div className="w-full h-full bg-[#F0F3FB] text-black p-4 md:p-10">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-2xl font-bold">Terms & Conditions</h1>
-      </div>
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+      <section className="py-5">
+        <h1 className="text-2xl font-semibold text-black">Terms & Conditions</h1>
+      </section>
 
       <div className='bg-white rounded-lg shadow-md overflow-hidden'>
         {/* Header */}

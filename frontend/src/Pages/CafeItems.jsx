@@ -292,7 +292,7 @@ const CafeItems = () => {
                     row['Price'] = item.price || '';
                 }
                 if (visibleColumns.image) {
-                    row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
+                    row['Image'] = item.image ? item.image : '';
                 }
                 if (visibleColumns.description) {
                   row['Description'] = item.description || '';

@@ -97,7 +97,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
     };
 
     return (
-        <div className="p-3 md:p-5 w-full  bg-white rounded-2xl border border-[#E3C78A] shadow-lg shadow-[#7556471f]">
+        <div className="w-full bg-white rounded-2xl">
             {/* Header */}
             <div className="mb-5">
                 <h2 className="flex items-center gap-2 text-[20px] font-semibold text-[#755647]">

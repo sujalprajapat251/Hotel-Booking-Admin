@@ -428,8 +428,10 @@ const AvailableRooms = () => {
   ];
 
   return (
-    <div className="p-6" style={{ minHeight: '100vh' }}>
-      <h1 className="text-2xl font-bold text-senary mb-6">Available Rooms</h1>
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+      <section className="py-5">
+        <h1 className="text-2xl font-semibold text-black">Available Rooms</h1>
+      </section>
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

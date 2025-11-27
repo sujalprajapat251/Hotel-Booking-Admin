@@ -99,10 +99,10 @@ const FAQPage = () => {
 
   return (
     <>
-      <div className="w-full h-full bg-[#F0F3FB] text-black p-4 md:p-10">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold">Faq</h1>
-        </div>
+      <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+        <section className="py-5">
+          <h1 className="text-2xl font-semibold text-black">Faq</h1>
+        </section>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px]">
           <div className='flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
