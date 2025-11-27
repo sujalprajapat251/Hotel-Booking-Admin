@@ -115,7 +115,7 @@ const StaffTable = () => {
           row['No.'] = index + 1;
         }
         if (visibleColumns.image) {
-          row['Image'] = staff.image ? `${IMAGE_URL}${staff.image}` : '';
+          row['Image'] = staff.image ? staff.image : '';
         }
         if (visibleColumns.name) {
           row['Name'] = staff.name || '';
@@ -319,7 +319,7 @@ const StaffTable = () => {
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-3">
                               <img
-                                src={`${IMAGE_URL}${staff.image}`}
+                                src={staff.image}
                                 alt={staff.name}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                               />
@@ -527,7 +527,7 @@ const StaffTable = () => {
                   {/* Image */}
                   <div className="flex items-center mb-4">
                     <img
-                      src={`${IMAGE_URL}${selectedItem.image}`}
+                      src={selectedItem.image}
                       alt={selectedItem.name}
                       className="min-w-32 h-32 m-auto rounded-lg border-2"
                       style={{ borderColor: '#E3C78A' }}
