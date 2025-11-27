@@ -138,7 +138,7 @@ const About = () => {
             row['No.'] = startIndex + index + 1;
         }
         if (visibleColumns.image) {
-            row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
+            row['Image'] = item.image ? item.image : '';
         }
         if (visibleColumns.title) {
             row['Title'] = item.title || '';
@@ -295,7 +295,7 @@ const About = () => {
                           <div className="flex items-center gap-3">
                             <div className="relative">
                               <img
-                                src={`${IMAGE_URL}${item.image}`}
+                                src={item.image}
                                 alt={item.name}
                                 className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
                               />
@@ -330,13 +330,13 @@ const About = () => {
                         <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="mv_table_action flex">
                             <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
-                            <button
+                            <div
                               onClick={() => handleEditClick(item)}
                               className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
                               title="Edit About"
                             >
                               <FiEdit className="text-[18px]" />
-                            </button>
+                            </div>
                             <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                           </div>
                         </td>
@@ -432,7 +432,7 @@ const About = () => {
                   {/* Image */}
                   <div className="flex items-center mb-4">
                     <img
-                      src={`${IMAGE_URL}${selectedItem.image}`}
+                      src={selectedItem.image}
                       alt={selectedItem.name}
                       className="min-w-32 h-32 m-auto"
                     />
