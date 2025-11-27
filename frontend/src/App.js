@@ -64,6 +64,8 @@ import AboutForm from './Pages/AboutForm.jsx';
 import RestaurantOrder from './Pages/RestaurantOrder.jsx';
 import BarOrder from './Pages/BarOrder.jsx';
 import CafeOrderList from './Pages/CafeOrderList.jsx';
+import HouseKeepingLayout from './component/HouseKeepingWorker/Layout';
+import HouseKeepingDashboard from './component/HouseKeepingWorker/Dashboard';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -428,6 +430,22 @@ function App() {
                   path='user-profile'
                   element={
                     <ProtectedRoute allowedRoles={['Accountant']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
+
+              <Route path='/worker' element={<HouseKeepingLayout />} >
+                <Route path='dashboard' element={
+                  <ProtectedRoute allowedRoles={['Worker']}>
+                    <HouseKeepingDashboard />
+                  </ProtectedRoute>
+                }></Route>
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Worker']}>
                       <Profile />
                     </ProtectedRoute>
                   }

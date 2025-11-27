@@ -33,7 +33,7 @@ const AllHouseKeeping = () => {
     // console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
-    const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
+    // const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
     // console.log('housekeepingStaffName', housekeepingStaff);
     useEffect(() => {
         dispatch(fetchFreeWorker());
@@ -53,10 +53,10 @@ const AllHouseKeeping = () => {
             // console.log('names', names);
 
             setHousekeepingStaff(filteredStaff);
-            setHousekeepingStaffName(names)
+            // setHousekeepingStaffName(names)
         } else {
             setHousekeepingStaff([]);
-            setHousekeepingStaffName([]);
+            // setHousekeepingStaffName([]);
         }
     }, [freeWorkers]);
 
@@ -66,8 +66,6 @@ const AllHouseKeeping = () => {
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
     const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
     const [roomId, setRoomId] = useState('');
-    // console.log('roomId', roomId);
-
 
     // Change this state from string to object
     const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
@@ -83,24 +81,18 @@ const AllHouseKeeping = () => {
         const roomId = selectedHousekeeping?.id;
         const workerId = selectedWorker.id;
 
-        // console.log('Assigning Worker:', {
-        //     roomId,
-        //     workerId,
-        //     workerName: selectedWorker.name
-        // });
-
         try {
             // Dispatch the API call
             await dispatch(assignWorkerToRoom({
                 roomId,
                 workerId
             })).unwrap();
-
+            dispatch(fetchFreeWorker());
             dispatch(fetchAllhousekeepingrooms());
 
             handleAssignWorkerClose();
         } catch (error) {
-            // console.error('Failed to assign worker:', error);
+            console.error('Failed to assign worker:', error);
         }
     };
 
@@ -730,16 +722,16 @@ const AllHouseKeeping = () => {
                                                     >
                                                         Select a worker
                                                     </div>
-                                                    {freeWorkers?.map((staff) => (
+                                                    {freeWorkers?.map((worker) => (
                                                         <div
-                                                            key={staff?._id || staff?.id}
+                                                            key={worker?._id || worker?.id}
                                                             onClick={() => {
-                                                                setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
+                                                                setSelectedWorker({ name: worker?.name || '', id: worker?._id || worker?.id || '' });
                                                                 setIsWorkerDropdownOpen(false);
                                                             }}
                                                             className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
                                                         >
-                                                            {staff?.name || 'Unnamed Staff'}
+                                                            {worker?.name || 'Unnamed worker'}
                                                         </div>
                                                     ))}
                                                 </div>
