@@ -218,7 +218,7 @@ const CabsDetails = () => {
                   <td className="px-4 py-3">
                     {vehicle.cabImage && (
                       <img
-                        src={`http://localhost:5000/${vehicle.cabImage.replace(/\\/g, '/')}`}
+                        src={vehicle.cabImage}
                         alt={vehicle.modelName}
                         className="h-10 w-16 object-cover rounded"
                         style={{ minWidth: 40, minHeight: 25 }}

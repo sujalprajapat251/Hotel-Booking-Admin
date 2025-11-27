@@ -209,9 +209,6 @@ exports.cancelCafeOrder = async (req, res) => {
 //     }
 // };
 
-
- 
-
 exports.addItemToTableOrder = async (req, res) => {
     try {
         const { product, qty, description, name, contact } = req.body;
@@ -424,7 +421,7 @@ exports.getAllOrderItems = async (req, res) => {
         const dept = await Department.findById(req.user.department);
         if (!dept || !dept.name) {
             return res.status(400).json({ status: 400, message: 'User department not found' });
-        }
+        }   
         const name = String(dept.name).trim().toLowerCase();
         let Model = null;
         if (name === 'cafe') Model = cafeOrder;
@@ -656,3 +653,78 @@ exports.getAllCafeunpaid = async (req, res) => {
         res.status(500).json({ status: 500, message: error.message });
     }
 }
+
+exports.getAllCafeOrdersByAdmin = async (req, res) => {
+    try {
+        const orders = await cafeOrder.find().sort({ createdAt: -1 })
+            .populate("items")
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+// cafe order by admin
+exports.getAllCafeOrdersByAdmin = async (req, res) => {
+    try {
+        const orders = await cafeOrder.find().sort({ createdAt: -1 })
+            .populate("items")
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+// bar order by admin
+exports.getAllBarOrdersByAdmin = async (req, res) => {
+    try {
+        const orders = await barOrder.find().sort({ createdAt: -1 })
+            .populate("items")
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+// restro order by admin
+exports.getAllRestaurantOrdersByAdmin = async (req, res) => {
+    try {
+        const orders = await restroOrder.find().sort({ createdAt: -1 })
+            .populate("items")
+            .populate("table")
+            .populate("room")
+            .populate("items.product");
+
+        res.status(200).json({
+            status: 200,
+            data: orders
+        });
+
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+};
