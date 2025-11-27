@@ -9,8 +9,9 @@ import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, Refres
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
-import { assignWorkerToRoom, fetchAllhousekeepingrooms } from '../Redux/Slice/housekeepingSlice.js';
+import { assignWorkerToRoom, fetchAllhousekeepingrooms, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
 import { getAllStaff } from '../Redux/Slice/staff.slice.js';
+import axios from 'axios';
 
 
 const AllHouseKeeping = () => {
@@ -19,7 +20,7 @@ const AllHouseKeeping = () => {
     const { creating } = useSelector((state) => state.housekeeping);
 
     const [housekeepingRooms, setHousekeepingRooms] = useState([]);
-    console.log('housekeepingRooms', housekeepingRooms);
+    // console.log('housekeepingRooms', housekeepingRooms);
 
     // Get data from Redux store including pagination
     const {
@@ -29,46 +30,43 @@ const AllHouseKeeping = () => {
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.housekeeping);
-    console.log('items', items);
+    // console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
     const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
-    console.log('housekeepingStaffName', housekeepingStaff);
+    // console.log('housekeepingStaffName', housekeepingStaff);
+    useEffect(() => {
+        dispatch(fetchFreeWorker());
+    }, [dispatch]);
+    const { freeWorkers } = useSelector((state) => state.housekeeping);
+    console.log('freeWorkers', freeWorkers);
 
     useEffect(() => {
-        dispatch(getAllStaff());
-    }, [dispatch])
-
-    const { staff } = useSelector((state) => state.staff);
-    console.log('staff', staff);
-
-    useEffect(() => {
-        if (staff && staff.length > 0) {
-            const filteredStaff = staff.filter(
+        if (freeWorkers && freeWorkers.length > 0) {
+            const filteredStaff = freeWorkers.filter(
                 (member) => member.department?.name === "Housekeeping"
             );
 
             const names = filteredStaff?.map((member) => member?.name);
 
-            console.log('filteredStaff', filteredStaff); // Full objects
-            console.log('names', names); // Just names
+            // console.log('filteredStaff', filteredStaff);
+            // console.log('names', names);
 
             setHousekeepingStaff(filteredStaff);
-            setHousekeepingStaffName(names) // or names, depending on what you need
+            setHousekeepingStaffName(names)
         } else {
             setHousekeepingStaff([]);
             setHousekeepingStaffName([]);
         }
-    }, [staff]);
+    }, [freeWorkers]);
 
-    console.log('housekeepingStaff', housekeepingStaff);
+    // console.log('housekeepingStaff', housekeepingStaff);
 
     const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
     const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
-    // const [selectedWorker, setSelectedWorker] = useState('');
     const [roomId, setRoomId] = useState('');
-    console.log('roomId', roomId);
+    // console.log('roomId', roomId);
 
 
     // Change this state from string to object
@@ -82,14 +80,14 @@ const AllHouseKeeping = () => {
     };
 
     const handleAssignWorkerSubmit = async () => {
-        const roomId = selectedHousekeeping?.rawData?.roomType?._id;
+        const roomId = selectedHousekeeping?.id;
         const workerId = selectedWorker.id;
 
-        console.log('Assigning Worker:', {
-            roomId,
-            workerId,
-            workerName: selectedWorker.name
-        });
+        // console.log('Assigning Worker:', {
+        //     roomId,
+        //     workerId,
+        //     workerName: selectedWorker.name
+        // });
 
         try {
             // Dispatch the API call
@@ -98,20 +96,17 @@ const AllHouseKeeping = () => {
                 workerId
             })).unwrap();
 
-            // Refresh the housekeeping rooms list after successful assignment
             dispatch(fetchAllhousekeepingrooms());
 
-            // Close the modal
             handleAssignWorkerClose();
         } catch (error) {
-            console.error('Failed to assign worker:', error);
-            // Error is already handled in the slice with setAlert
+            // console.error('Failed to assign worker:', error);
         }
     };
 
     const handleAssignWorkerClick = (housekeeping) => {
         setSelectedHousekeeping(housekeeping);
-        // Pre-select current worker if exists
+
         const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
         setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
         setIsAssignWorkerModalOpen(true);
@@ -149,11 +144,9 @@ const AllHouseKeeping = () => {
         No: true,
         workerName: true,
         date: true,
-        // checkOut: true,
         status: true,
         roomType: true,
         roomNo: true,
-        // documents: true,
         actions: true
     });
 
@@ -188,14 +181,14 @@ const AllHouseKeeping = () => {
         if (items && items.length > 0) {
             const formattedData = items?.map((item, index) => ({
                 id: item._id || item.id || index,
-                name: item.cleanassign || 'N/A',
+                name: item.cleanassign?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
                 status: item.cleanStatus || 'Pending',
                 roomNo: item.roomNumber || 'N/A',
                 roomType: item.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item // Keep raw data for other operations
             }));
-            console.log('formattedData', formattedData);
+            // console.log('formattedData', formattedData);
             setHousekeepingRooms(formattedData);
         } else {
             setHousekeepingRooms([]);
@@ -708,7 +701,7 @@ const AllHouseKeeping = () => {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-semibold mb-2" style={{ color: '#755647' }}>
-                                                Room Number: {selectedHousekeeping?.roomNo}
+                                                Room Number: {selectedHousekeeping?.roomNo || 'N/A'}
                                             </label>
                                         </div>
 
@@ -737,16 +730,16 @@ const AllHouseKeeping = () => {
                                                     >
                                                         Select a worker
                                                     </div>
-                                                    {housekeepingStaff?.map((staff) => (
+                                                    {freeWorkers?.map((staff) => (
                                                         <div
-                                                            key={staff._id}
+                                                            key={staff?._id || staff?.id}
                                                             onClick={() => {
-                                                                setSelectedWorker({ name: staff.name, id: staff._id });
+                                                                setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
                                                                 setIsWorkerDropdownOpen(false);
                                                             }}
                                                             className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
                                                         >
-                                                            {staff.name}
+                                                            {staff?.name || 'Unnamed Staff'}
                                                         </div>
                                                     ))}
                                                 </div>

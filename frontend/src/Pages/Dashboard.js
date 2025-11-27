@@ -679,12 +679,12 @@ export const Dashboard = () => {
               background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
             }}>
               <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Current Booking Details</h2>
-              <button className="transition-colors" style={{ color: '#A3876A' }}
+              {/* <button className="transition-colors" style={{ color: '#A3876A' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#876B56'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#A3876A'}
               >
                 <FaEllipsisV size={20} />
-              </button>
+              </button> */}
             </div>
 
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)]" style={{

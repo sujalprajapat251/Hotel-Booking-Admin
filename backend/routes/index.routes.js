@@ -136,6 +136,7 @@ indexRoutes.put('/complete/:id', auth, completeCleaning);
 indexRoutes.put('/approve/:roomId', auth, approveCleaning);
 indexRoutes.get('/getallhousekeeping', auth, getAllHousekeepignData);
 indexRoutes.get('/getworkertask/:workerId', auth, getWorkerTasks);
+indexRoutes.get('/getfreeworker', auth, getFreeWorkers);
 
 // ------------------------------- Cafe -------------------------------
 // Cafe Category routes
