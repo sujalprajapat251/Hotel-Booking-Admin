@@ -22,7 +22,7 @@ const BlogForm = () => {
     const fileInputRef = useRef(null);
     const [imagePreview, setImagePreview] = useState(blogData?.image ? `${IMAGE_URL}${blogData.image}` : null);
 
-    const tags = ['Cafe', 'Bar', 'Restaurant'];
+    const tags = ['Room', 'Cafe', 'Bar', 'Restaurant'];
     const tagDropdownRef = useRef(null);
     const [showTagDropdown, setShowTagDropdown] = useState(false);
 
@@ -61,9 +61,9 @@ const BlogForm = () => {
     const validationSchema = useMemo(() => (
         Yup.object({
             title: Yup.string().required('Title is required'),
-            tag: Yup.string().required('Tag is required'),
             subtitle: Yup.string().required('Sub Title is required'),
             description: Yup.string().required('Description is required'),
+            tag: Yup.string().required('Tag is required'),
             image: Yup.mixed()
                 .nullable()
                 .test('required', 'Image is required', function (value) {
@@ -89,6 +89,7 @@ const BlogForm = () => {
         subtitle: blogData?.subtitle || '',
         description: blogData?.description || '',
         tag: blogData?.tag || '',
+        count: blogData?.count ?? 0,
         image: null,
       },
       validationSchema,
