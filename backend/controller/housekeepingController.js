@@ -19,6 +19,40 @@ exports.getDirtyRooms = async (req, res) => {
     }
 };
 
+exports.getFreeWorkers = async (req, res) => {
+    try {
+        // Step 1: Get the department ID of Housekeeping
+        const housekeepingDept = await Department.findOne({ name: "Housekeeping" });
+
+        if (!housekeepingDept) {
+            return res.status(404).json({
+                success: false,
+                message: "Housekeeping department not found"
+            });
+        }
+
+        // Step 2: Find busy workers
+        const busyWorkers = await Housekeeping.find({
+            status: { $in: ["Pending", "In-Progress"] }
+        }).distinct("workerId");
+
+        // Step 3: Find free workers
+        const freeWorkers = await Staff.find({
+            department: housekeepingDept._id,
+            _id: { $nin: busyWorkers }
+        }).populate("department");
+
+        return res.json({
+            success: true,
+            message: "Free housekeeping workers fetched successfully",
+            data: freeWorkers
+        });
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 
 // ASSIGN WORKER TO DIRTY ROOM
 exports.assignWorker = async (req, res) => {

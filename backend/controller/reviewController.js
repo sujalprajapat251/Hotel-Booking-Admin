@@ -54,7 +54,7 @@ const getAllReviews = async (req, res) => {
             filter.roomId = roomId;
         }
 
-        const reviews = await Review.find(filter)
+        const reviews = await Review.find(filter).sort({ updatedAt: -1 })
             .populate({
                 path: "userId",
                 select: "name email photo"
