@@ -9,4 +9,4 @@ const s3 = new AWS.S3({
   signatureVersion: "v4"
 });
 
-exports = s3;
+module.exports = s3;
