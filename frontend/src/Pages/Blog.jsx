@@ -37,6 +37,8 @@ const Blog = () => {
       title: true,
       subtitle: true,
       description: true,
+      tag: true,
+      count: true,
       date: true,
       actions: true,
     });
@@ -110,6 +112,7 @@ const Blog = () => {
             subtitle: '',
             description: '',
             tag: '',
+            count: '',
             image: null,
         },
         validationSchema,
@@ -233,6 +236,7 @@ const Blog = () => {
             item.description?.toLowerCase().includes(searchLower) ||
             item.date?.toLowerCase().includes(searchLower) ||
             item.name?.toLowerCase().includes(searchLower) ||
+            item.tag?.toLowerCase().includes(searchLower) ||
             formattedCreatedAt.includes(searchLower) ||
             formattedDate.includes(searchLower) ||
             isoCreatedAt.includes(searchLower) ||
@@ -259,7 +263,7 @@ const Blog = () => {
                     row['No.'] = startIndex + index + 1;
                 }
                 if (visibleColumns.image) {
-                    row['Image'] = item.image ? `${IMAGE_URL}${item.image}` : '';
+                    row['Image'] = item.image ?  item.image : '';
                 }
                 if (visibleColumns.title) {
                     row['Title'] = item.title || '';
@@ -270,10 +274,12 @@ const Blog = () => {
                 if (visibleColumns.description) {
                     row['Description'] = stripHtmlTags(item.description);
                 }
-                // if (visibleColumns.date) {
-                //     row['Date'] = item.date || '';
-                // }
-                
+                if (visibleColumns.tag) {
+                    row['Tag'] = item.tag || '';
+                }
+                if (visibleColumns.count) {
+                    row['Count'] = item.count ?? 0;
+                }
                 return row;
             });
   
@@ -407,6 +413,12 @@ const Blog = () => {
                             {visibleColumns.description && (
                                 <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
                             )}
+                            {visibleColumns.tag && (
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Tag</th>
+                            )}
+                            {visibleColumns.count && (
+                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Count</th>
+                            )}
                             {visibleColumns.date && (
                                 <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
                             )}
@@ -444,7 +456,7 @@ const Blog = () => {
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative">
                                                         <img
-                                                            src={`${IMAGE_URL}${item.image}`}
+                                                            src={item.image}
                                                             alt={item.name}
                                                             className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
                                                         />
@@ -481,7 +493,16 @@ const Blog = () => {
                                                 />
                                             </td>
                                         )}
-                                        
+
+                                        {/* tag */}
+                                        {visibleColumns.tag && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.tag || ''}</td>
+                                        )}
+
+                                        {/* count */}
+                                        {visibleColumns.count && (
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.count ?? 0}</td>
+                                        )}
                                         {/* date */}
                                         {visibleColumns.date && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.createdAt ? formatDate(item.createdAt) : ''}</td>
@@ -501,6 +522,7 @@ const Blog = () => {
                                                             subtitle: item.subtitle || '',
                                                             description: item.description || '',
                                                             tag: item.tag || '',
+                                                            count: item.count || '',
                                                             image: null,
                                                         });
                                                         formik.setTouched({});
@@ -593,7 +615,7 @@ const Blog = () => {
                                     {/* Image */}
                                     <div className="flex items-center mb-4">
                                         <img
-                                            src={`${IMAGE_URL}${selectedItem.image}`}
+                                            src={selectedItem.image}
                                             alt={selectedItem.name}
                                             className="min-w-32 h-32 m-auto"
                                         />
@@ -607,19 +629,27 @@ const Blog = () => {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Sub Title:</span>
-                                            <span className="text-gray-900">{selectedItem.subtitle}</span>
+                                            <span className="text-gray-900 max-h-40 overflow-y-auto prose prose-sm max-w-none">{selectedItem.subtitle}</span>
                                         </div>
-                                        <div className="flex items-start gap-3">
+                                        <div className="flex items-start gap-3">    
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
                                             <div
-                                                className="text-gray-900"
+                                                className="text-gray-900 max-h-40 overflow-y-auto prose prose-sm max-w-none"
                                                 dangerouslySetInnerHTML={{ __html: selectedItem.description || '' }}
                                             />
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Tag:</span>
+                                            <span className="text-gray-900">{selectedItem.tag}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Count:</span>
+                                            <span className="text-gray-900">{selectedItem.count ?? 0}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>      
                     </div>
                 </div>
             )}
