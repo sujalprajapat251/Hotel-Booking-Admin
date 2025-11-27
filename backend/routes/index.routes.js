@@ -50,7 +50,7 @@ const {  deleteCafeTable, createTable, getTables, getTableById, updateTable, del
 const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
 const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
-const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment, getAllCafeunpaid } = require('../controller/cafeOrderController');
+const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment, getAllCafeunpaid, getAllCafeOrdersByAdmin, getAllBarOrdersByAdmin, getAllRestaurantOrdersByAdmin } = require('../controller/cafeOrderController');
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
 const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
@@ -263,7 +263,9 @@ indexRoutes.post('/cafe/tables/:tableId/order/items', auth ,addItemToTableOrder)
 indexRoutes.delete('/cafe/orders/:id/items/:itemId', auth , removeItemFromOrder)
 indexRoutes.post('/cafePayment/:orderId',auth,cafePayment)
 indexRoutes.get('/cafeUnpaidOrder',auth,getAllCafeunpaid)
-
+indexRoutes.get('/getallcafeorderbyadmin',auth,adminOnly,getAllCafeOrdersByAdmin);
+indexRoutes.get('/getallbarorderbyadmin',auth,adminOnly,getAllBarOrdersByAdmin);
+indexRoutes.get('/getallrestaurantorderbyadmin',auth,adminOnly,getAllRestaurantOrdersByAdmin);
 
 // admin login routes 
 indexRoutes.post('/adminlogin',adminLogin);
