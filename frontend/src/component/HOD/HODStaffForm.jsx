@@ -26,7 +26,7 @@ const StaffForm = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDepartmentName, setSelectedDepartmentName] = useState('');
-
+  const { currentUser, loading, success, message } = useSelector((state) => state.staff);
   const departmentRef = useRef(null);
   const designationRef = useRef(null);
   const genderRef = useRef(null);
@@ -157,7 +157,7 @@ const StaffForm = () => {
           email: values.email,
           mobileno: values.mobile,
           address: values.address,
-          department: "6916fac3cd8e354b48cfa99c",
+          department: currentUser?.department?._id,
           designation: values.designation,
           gender: values.gender,
           joiningdate: values.joiningDate,
@@ -226,7 +226,7 @@ const StaffForm = () => {
       
       // Set image preview if image exists
       if (staffData.image && typeof staffData.image === 'string') {
-        setImagePreview(`${IMAGE_URL}${staffData.image}`);
+        setImagePreview(`${staffData.image}`);
       }
     }
   }, [isEditMode, staffData]);

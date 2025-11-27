@@ -4,7 +4,7 @@ import { getAllCafecategory } from '../../Redux/Slice/cafecategorySlice';
 import { getAllCafeitem } from '../../Redux/Slice/cafeitemSlice';
 import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { IMAGE_URL } from '../../Utils/baseUrl';
+import { IMAGE_URL, SOCKET_URL } from '../../Utils/baseUrl';
 import { addItemToTableOrder, removeItemFromOrder } from '../../Redux/Slice/Waiter.slice';
 import { getCafeTableById, updateCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { getAllBarcategory } from '../../Redux/Slice/barcategorySlice';
@@ -38,32 +38,35 @@ export default function TableOrder() {
 
     useEffect(() => {
         if (!currentUser) return;
-      
+
         const dept = currentUser?.department?.name?.toLowerCase();
-      
+
         if (dept === "cafe") {
-          dispatch(getAllCafecategory());
-          dispatch(getAllCafeitem());
-        } 
-        else if (dept === "bar") {
-          dispatch(getAllBarcategory());
-          dispatch(getAllBaritem());
-        } 
-        else {
-          dispatch(getAllRestaurantcategory());
-          dispatch(getAllRestaurantitem());
+            dispatch(getAllCafecategory());
+            dispatch(getAllCafeitem());
         }
-      
-      }, [dispatch, currentUser]);
+        else if (dept === "bar") {
+            dispatch(getAllBarcategory());
+            dispatch(getAllBaritem());
+        }
+        else {
+            dispatch(getAllRestaurantcategory());
+            dispatch(getAllRestaurantitem());
+        }
 
-      useEffect(()=>{
+    }, [dispatch, currentUser]);
+
+    useEffect(() => {
         dispatch(getCafeTableById(id));
+    }, [id])
 
-      },[id])
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
-        const s = io(IMAGE_URL, { auth: { token, userId } });
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
+        s.on('connect', () => { console.log('socket connected', s.id); });
+        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+        s.on('error', (err) => { console.error('socket error', err?.message || err); });
         setSocket(s);
         s.on('cafe_order_changed', ({ tableId }) => {
             if (tableId === id) {
@@ -71,6 +74,26 @@ export default function TableOrder() {
             }
         });
         s.on('cafe_table_status_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        s.on('bar_order_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        s.on('bar_table_status_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        s.on('restaurant_order_changed', ({ tableId }) => {
+            if (tableId === id) {
+                dispatch(getCafeTableById(id));
+            }
+        });
+        s.on('restaurant_table_status_changed', ({ tableId }) => {
             if (tableId === id) {
                 dispatch(getCafeTableById(id));
             }
@@ -226,7 +249,7 @@ export default function TableOrder() {
                                         ${item.available === false ? "opacity-40" : "opacity-100"}`}
                                 >
                                     <img
-                                        src={`${IMAGE_URL}${item.image}`}
+                                        src={`${item.image}`}
                                         alt={item.name}
                                         className="w-12 sm:w-16 md:w-20 lg:w-24 aspect-square mx-auto rounded-full relative bottom-6 sm:bottom-8 md:bottom-10 shadow-xl"
                                     />
@@ -264,7 +287,7 @@ export default function TableOrder() {
                                         <div key={oi._id} className="border-b py-2 sm:py-3 opacity-80">
                                             <div className="flex items-center gap-1 sm:gap-2">
                                                 <img
-                                                    src={`${IMAGE_URL}${oi.product?.image}`}
+                                                    src={`${oi.product?.image}`}
                                                     alt={oi.product?.name}
                                                     className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
                                                 />
@@ -301,7 +324,7 @@ export default function TableOrder() {
                                         {/* ITEM ROW */}
                                         <div className="flex items-center gap-1 sm:gap-2 p-2 px-3">
                                             <img
-                                                src={`${IMAGE_URL}${item.product.image}`}
+                                                src={`${item.product.image}`}
                                                 alt={item.product.name}
                                                 className="w-10 sm:w-12 md:w-14 aspect-square rounded-xl flex-shrink-0"
                                             />

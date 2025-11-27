@@ -50,7 +50,7 @@ const restaurantOrderSchema = new mongoose.Schema({
     },
     room: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "hotelroom",
+        ref: "room",
         required: false
     },
     payment: {
@@ -60,6 +60,10 @@ const restaurantOrderSchema = new mongoose.Schema({
     },
     paymentMethod:{
         type: String,
+    },
+    total:{
+        type: Number,
+        default:0
     }
 }, { timestamps: true });
 

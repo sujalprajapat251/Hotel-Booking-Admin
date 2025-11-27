@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { IMAGE_URL } from '../../Utils/baseUrl';
+import { SOCKET_URL } from '../../Utils/baseUrl';
 import { getCafeOrderStatus, updateCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { getUserById } from '../../Redux/Slice/staff.slice';
@@ -21,13 +21,17 @@ export default function Dashboard() {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
-        const s = io(IMAGE_URL, { auth: { token, userId } });
-        s.on('cafe_order_changed', () => {
-            dispatch(getCafeOrderStatus());
-        });
-        s.on('cafe_table_status_changed', () => {
-            dispatch(getCafeOrderStatus());
-        });
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket','polling'], withCredentials: true });
+        s.on('connect', () => { console.log('socket connected', s.id); });
+        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+        s.on('error', (err) => { console.error('socket error', err?.message || err); });
+        const refresh = () => { dispatch(getCafeOrderStatus()); };
+        s.on('cafe_order_changed', refresh);
+        s.on('bar_order_changed', refresh);
+        s.on('restaurant_order_changed', refresh);
+        s.on('cafe_table_status_changed', refresh);
+        s.on('bar_table_status_changed', refresh);
+        s.on('restaurant_table_status_changed', refresh);
         return () => {
             s.disconnect();
         };
@@ -206,7 +210,7 @@ export default function Dashboard() {
                                             <div className="flex items-center gap-3 flex-1 min-w-0">
                                                 <div className="relative">
                                                     <img
-                                                        src={`${IMAGE_URL}${item?.product?.image}`}
+                                                        src={`${item?.product?.image}`}
                                                         alt={item.name}
                                                         className={`md:w-12 md:h-12 h-10 w-10 rounded-lg object-cover border-1 flex-shrink-0 ${isOrderPreparedByAnotherChef(item)
                                                             ? "border-gray-400"
@@ -257,7 +261,7 @@ export default function Dashboard() {
                                     {selected?.product?.image && (
                                         <div className="rounded-lg overflow-hidden shadow-sm">
                                             <img
-                                                src={`${IMAGE_URL}${selected?.product?.image}`}
+                                                src={`${selected?.product?.image}`}
                                                 alt={selected?.product?.name}
                                                 className="w-full aspect-video object-cover"
                                             />

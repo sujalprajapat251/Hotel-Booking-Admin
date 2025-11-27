@@ -13,7 +13,6 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   }
 
   const userRole = user.designation || "user";
-  console.log('user')
   // If no role restrictions, redirect based on user role
   if (allowedRoles.length === 0) {
     if (userRole === "admin") {

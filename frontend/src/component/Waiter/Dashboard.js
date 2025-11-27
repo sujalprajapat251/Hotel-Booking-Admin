@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Search } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
-import { IMAGE_URL } from '../../Utils/baseUrl';
+import { SOCKET_URL } from '../../Utils/baseUrl';
 import { updateCafeItemStatus } from '../../Redux/Slice/Chef.slice';
 import { io } from 'socket.io-client';
 export default function Dashboard() {
@@ -51,13 +51,17 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
-    const s = io(IMAGE_URL, { auth: { token, userId } });
-    s.on('cafe_order_changed', () => {
-      dispatch(getAllCafeTable());
-    });
-    s.on('cafe_table_status_changed', () => {
-      dispatch(getAllCafeTable());
-    });
+    const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket','polling'], withCredentials: true });
+    s.on('connect', () => { console.log('socket connected', s.id); });
+    s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+    s.on('error', (err) => { console.error('socket error', err?.message || err); });
+    const refresh = () => { dispatch(getAllCafeTable()); };
+    s.on('cafe_order_changed', refresh);
+    s.on('bar_order_changed', refresh);
+    s.on('restaurant_order_changed', refresh);
+    s.on('cafe_table_status_changed', refresh);
+    s.on('bar_table_status_changed', refresh);
+    s.on('restaurant_table_status_changed', refresh);
     return () => {
       s.disconnect();
     };
@@ -111,7 +115,7 @@ export default function Dashboard() {
                     <div className='py-3 border-b last:border-b-0'>
 
                       <div key={m.id} className="flex items-center gap-4 ">
-                        <img src={IMAGE_URL + `${m?.product?.image}`} alt="dish" className="w-14 h-14 rounded-full object-cover" />
+                        <img src={`${m?.product?.image}`} alt="dish" className="w-14 h-14 rounded-full object-cover" />
                         <div className="flex-1">
                           <div className="font-medium">{m?.product?.name}</div>
                           <div className="text-sm text-gray-500">Qty: {m.qty}</div>
