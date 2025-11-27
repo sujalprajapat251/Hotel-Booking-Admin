@@ -53,11 +53,13 @@ const Header = ({ onMenuClick }) => {
     if (userRole === 'Head of Department') {
       navigate('/hod/user-profile');
     } else if (userRole === 'admin') {
-       navigate("/user-profile");
+      navigate("/user-profile");
     } else if (userRole === 'Waiter') {
       navigate("/waiter/user-profile");
     } else if (userRole === 'Chef') {
       navigate("/chef/user-profile")
+    }else if (userRole === 'Worker') {
+      navigate("/worker/user-profile")
     } else if (userRole === 'Accountant') {
       navigate("/accountant/user-profile")
     } else {

@@ -20,20 +20,24 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       return <Navigate to="/dashboard" replace />;
     }
     else if (userRole === 'Waiter') {
-      <Navigate to="/waiter/dashboard" replace />
+      return <Navigate to="/waiter/dashboard" replace />
     }
     else if (userRole === 'Chef') {
-      <Navigate to="/chef/dashboard" replace />
+      return <Navigate to="/chef/dashboard" replace />
+    }
+    else if (userRole === 'Worker') {
+      return <Navigate to="/worker/dashboard" replace />
     }
     else if (userRole === 'Head of Department') {
-      <Navigate to="/hod/dashboard" replace />
+      return <Navigate to="/hod/dashboard" replace />
     }
     else if (userRole === 'Accountant') {
-      <Navigate to="/accountant/dashboard" replace />
+      return <Navigate to="/accountant/dashboard" replace />
     }
     else {
       return <Navigate to="/booking-dashboard" replace />;
     }
+
   }
 
   // Check if user's role is allowed
@@ -47,6 +51,9 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
     if (userRole === 'Chef') {
       return <Navigate to="/chef/dashboard" replace />
+    }
+    else if (userRole === 'Worker') {
+      return <Navigate to="/worker/dashboard" replace />
     }
     if (userRole === 'Head of Department') {
       return <Navigate to="/hod/dashboard" replace />

@@ -60,6 +60,9 @@ const LoginPage = () => {
                         else if (userRole === 'Chef') {
                             navigate("/chef/dashboard")
                         }
+                        else if (userRole === 'Worker') {
+                            navigate("/worker/dashboard")
+                        }
                         else if (userRole === 'Head of Department') {
                             navigate("/hod/dashboard")
                         }

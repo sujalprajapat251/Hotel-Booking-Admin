@@ -33,7 +33,7 @@ const AllHouseKeeping = () => {
     // console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
-    const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
+    // const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
     // console.log('housekeepingStaffName', housekeepingStaff);
     useEffect(() => {
         dispatch(fetchFreeWorker());
@@ -53,10 +53,10 @@ const AllHouseKeeping = () => {
             // console.log('names', names);
 
             setHousekeepingStaff(filteredStaff);
-            setHousekeepingStaffName(names)
+            // setHousekeepingStaffName(names)
         } else {
             setHousekeepingStaff([]);
-            setHousekeepingStaffName([]);
+            // setHousekeepingStaffName([]);
         }
     }, [freeWorkers]);
 
@@ -66,8 +66,6 @@ const AllHouseKeeping = () => {
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
     const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
     const [roomId, setRoomId] = useState('');
-    // console.log('roomId', roomId);
-
 
     // Change this state from string to object
     const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
@@ -83,25 +81,19 @@ const AllHouseKeeping = () => {
         const roomId = selectedHousekeeping?.id;
         const workerId = selectedWorker.id;
 
-        // console.log('Assigning Worker:', {
-        //     roomId,
-        //     workerId,
-        //     workerName: selectedWorker.name
-        // });
-
         try {
             // Dispatch the API call
             await dispatch(assignWorkerToRoom({
                 roomId,
                 workerId
             })).unwrap();
-
+            dispatch(fetchFreeWorker());
             dispatch(fetchAllhousekeepingrooms());
             dispatch(fetchFreeWorker())
 
             handleAssignWorkerClose();
         } catch (error) {
-            // console.error('Failed to assign worker:', error);
+            console.error('Failed to assign worker:', error);
         }
     };
 
