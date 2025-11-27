@@ -70,6 +70,7 @@ const adminSections = [
         subMenus: [
           { label: 'Bar Category', path: '/bar/barcategory' },
           { label: 'Bar Items', path: '/bar/baritems' },
+          { label: 'Bar Order', path: '/bar/barorder' },
         ]
       },
       {
@@ -79,6 +80,7 @@ const adminSections = [
         subMenus: [
           { label: 'Restaurant Category', path: '/restaurant/restaurantcategory' },
           { label: 'Restaurant Items', path: '/restaurant/restaurantitems' },
+          { label: 'Restaurant Order', path: '/restaurant/restaurantorder' },
         ]
       },
       {
