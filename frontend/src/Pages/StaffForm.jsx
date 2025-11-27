@@ -24,7 +24,7 @@ const DEPARTMENT_DESIGNATION_MAP = {
   Transport: ['Driver'],
   Restaurant :['Chef', 'Waiter','Accountant'],
   Bar :['Chef', 'Waiter','Accountant'],
-  Housekeeping: ['worker']
+  Housekeeping: ['Worker']
 };
 
 const StaffForm = () => {
