@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
+import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { FaEllipsisV } from 'react-icons/fa';
 import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -41,6 +40,36 @@ const AllBookings = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [itemToEdit, setItemToEdit] = useState(null);
+    const [editFormData, setEditFormData] = useState({
+        guest: {
+            fullName: '',
+            email: '',
+            phone: '',
+            idNumber: '',
+            nationality: '',
+            address: ''
+        },
+        reservation: {
+            checkInDate: '',
+            checkOutDate: '',
+            bookingSource: 'Direct',
+            occupancy: {
+                adults: 1,
+                children: 0
+            },
+            specialRequests: ''
+        },
+        payment: {
+            status: 'Pending',
+            totalAmount: 0,
+            currency: 'USD',
+            method: 'Cash'
+        },
+        status: 'Pending',
+        notes: ''
+    });
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         name: true,
@@ -226,23 +255,132 @@ const AllBookings = () => {
         setItemToDelete(null);
     };
 
-    // Prevent background page from scrolling when modal is open
-    useEffect(() => {
-        if (typeof document === 'undefined') return;
+    const handleEditClick = (bookingItem) => {
+        const rawData = bookingItem.rawData || {};
+        setItemToEdit(bookingItem);
+        setEditFormData({
+            guest: {
+                fullName: rawData.guest?.fullName || bookingItem.name || '',
+                email: rawData.guest?.email || '',
+                phone: rawData.guest?.phone || bookingItem.phone || '',
+                idNumber: rawData.guest?.idNumber || '',
+                nationality: rawData.guest?.nationality || '',
+                address: rawData.guest?.address || ''
+            },
+            reservation: {
+                checkInDate: rawData.reservation?.checkInDate ? new Date(rawData.reservation.checkInDate).toISOString().split('T')[0] : bookingItem.checkIn || '',
+                checkOutDate: rawData.reservation?.checkOutDate ? new Date(rawData.reservation.checkOutDate).toISOString().split('T')[0] : bookingItem.checkOut || '',
+                bookingSource: rawData.reservation?.bookingSource || 'Direct',
+                occupancy: {
+                    adults: rawData.reservation?.occupancy?.adults || 1,
+                    children: rawData.reservation?.occupancy?.children || 0
+                },
+                specialRequests: rawData.reservation?.specialRequests || ''
+            },
+            payment: {
+                status: rawData.payment?.status || bookingItem.status || 'Pending',
+                totalAmount: rawData.payment?.totalAmount || 0,
+                currency: rawData.payment?.currency || 'USD',
+                method: rawData.payment?.method || 'Cash'
+            },
+            status: rawData.status || 'Pending',
+            notes: rawData.notes || ''
+        });
+        setIsEditModalOpen(true);
+    };
 
-        if (isModalOpen) {
-            // save current overflow so we can restore it
-            bodyOverflowRef.current = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
+    const handleEditModalClose = () => {
+        setIsEditModalOpen(false);
+        setItemToEdit(null);
+        setEditFormData({
+            guest: {
+                fullName: '',
+                email: '',
+                phone: '',
+                idNumber: '',
+                nationality: '',
+                address: ''
+            },
+            reservation: {
+                checkInDate: '',
+                checkOutDate: '',
+                bookingSource: 'Direct',
+                occupancy: {
+                    adults: 1,
+                    children: 0
+                },
+                specialRequests: ''
+            },
+            payment: {
+                status: 'Pending',
+                totalAmount: 0,
+                currency: 'USD',
+                method: 'Cash'
+            },
+            status: 'Pending',
+            notes: ''
+        });
+    };
+
+    const handleEditFormChange = (section, field, value) => {
+        if (section === 'occupancy') {
+            setEditFormData(prev => ({
+                ...prev,
+                reservation: {
+                    ...prev.reservation,
+                    occupancy: {
+                        ...prev.reservation.occupancy,
+                        [field]: value
+                    }
+                }
+            }));
+        } else if (section === 'guest' || section === 'reservation' || section === 'payment') {
+            setEditFormData(prev => ({
+                ...prev,
+                [section]: {
+                    ...prev[section],
+                    [field]: value
+                }
+            }));
         } else {
-            // restore previous overflow
-            document.body.style.overflow = bodyOverflowRef.current || '';
+            setEditFormData(prev => ({
+                ...prev,
+                [field]: value
+            }));
         }
+    };
 
-        return () => {
-            document.body.style.overflow = bodyOverflowRef.current || '';
-        };
-    }, [isModalOpen]);
+    const handleEditSubmit = async (e) => {
+        e.preventDefault();
+        if (!itemToEdit) return;
+
+        try {
+            // Get booking ID from rawData or formatted data
+            const bookingId = itemToEdit.rawData?._id || itemToEdit.rawData?.id || itemToEdit.id;
+            if (!bookingId) {
+                dispatch(setAlert({ text: 'Booking ID not found', color: 'error' }));
+                return;
+            }
+
+            const updates = {
+                guest: editFormData.guest,
+                reservation: {
+                    ...editFormData.reservation,
+                    checkInDate: editFormData.reservation.checkInDate,
+                    checkOutDate: editFormData.reservation.checkOutDate
+                },
+                payment: editFormData.payment,
+                status: editFormData.status,
+                notes: editFormData.notes
+            };
+
+            await dispatch(updateBooking({ id: bookingId, updates })).unwrap();
+            await dispatch(fetchBookings({ page, limit, search: debouncedSearch || undefined }));
+            handleEditModalClose();
+        } catch (error) {
+            console.error('Failed to update booking:', error);
+        }
+    };
 
     // Pagination handlers
     const handlePageChange = (newPage) => {
@@ -470,14 +608,20 @@ const AllBookings = () => {
                                                             <div onClick={() => handleViewClick(bookingItem)} className="cursor-pointer">
                                                                 <IoEyeSharp className='text-[18px] text-quaternary hover:text-[#876B56] transition-colors' />
                                                             </div>
-                                                            <div>
-                                                                <FiEdit className="text-[#6777ef] text-[18px]" />
-                                                            </div>
-                                                            <div
-                                                                onClick={() => handleDeleteClick(bookingItem)}
+                                                            <button
+                                                                onClick={() => handleEditClick(bookingItem)}
+                                                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                title="Edit Booking"
                                                             >
-                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                                                            </div>
+                                                                <FiEdit size={16} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeleteClick(bookingItem)}
+                                                                className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                title="Delete Booking"
+                                                            >
+                                                                <RiDeleteBinLine className="text-[18px]" />
+                                                            </button>
                                                         </div>
                                                     </td>
                                                 )}
@@ -553,15 +697,24 @@ const AllBookings = () => {
                             style={{ backgroundColor: '#000000bf' }}
                             onClick={handleCloseModal}
                         ></div>
-                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
-                            <div className="relative transform overflow-auto rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-2xl border-2 max-h-[80vh]">
+                        <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
+                            <div 
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[85%] border-2 my-4 sm:my-8" 
+                                style={{
+                                    borderColor: '#E3C78A',
+                                    boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
                                 {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-6" style={{
+                                <div className="px-3 py-3 sm:px-6 sm:py-4" style={{
                                     background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
                                 }}>
                                     <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
-                                        <button type="button" onClick={handleCloseModal}
+                                        <h3 className="text-lg sm:text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
+                                        <button 
+                                            type="button" 
+                                            onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -569,123 +722,448 @@ const AllBookings = () => {
                                             </svg>
                                         </button>
                                     </div>
-                                    {/* Group guest, room, booking, and payment info */}
-                                    <div className="space-y-4">
-                                        {/* Guest Info */}
+
+                                    {/* Content with responsive grid */}
+                                    <div className="space-y-4 sm:space-y-6 max-h-[70vh] overflow-y-auto pr-1 sm:pr-2">
+                                        {/* Guest Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Guest Information</h4>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div><span className="font-semibold">Name:</span> <span>{selectedItem.name}</span></div>
-                                                {selectedItem.phone && <div><span className="font-semibold">Phone:</span> <span>{selectedItem.phone}</span></div>}
-                                                {selectedItem.rawData?.guest?.email && <div><span className="font-semibold">Email:</span> <span>{selectedItem.rawData.guest.email}</span></div>}
-                                                {selectedItem.rawData?.guest?.idNumber && <div><span className="font-semibold">ID Number:</span> <span>{selectedItem.rawData.guest.idNumber}</span></div>}
-                                                {selectedItem.rawData?.guest?.nationality && <div><span className="font-semibold">Nationality:</span> <span>{selectedItem.rawData.guest.nationality}</span></div>}
+                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Guest Information</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
+                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    style={{ backgroundColor: 'transparent' }}
+                                                >
+                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Name:</span>
+                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.name || 'N/A'}</span>
+                                                </div>
+                                                {selectedItem.phone && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Phone:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.phone}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.guest?.email && (
+                                                        <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}  
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Email:</span>
+                                                        <span className="text-sm sm:text-base break-words" style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.guest?.idNumber && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>ID Number:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        {/* Booking Info */}
+
+                                        {/* Booking Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Booking Info</h4>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div><span className="font-semibold">Check In:</span> <span>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span></div>
-                                                <div><span className="font-semibold">Check Out:</span> <span>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span></div>
-                                                {selectedItem.createdAt && <div><span className="font-semibold">Created At:</span> <span>{formatDate(selectedItem.createdAt)}</span></div>}
+                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Booking Information</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
+                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    style={{ backgroundColor: 'transparent' }}
+                                                >
+                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check In:</span>
+                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
+                                                </div>
+                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    style={{ backgroundColor: 'transparent' }}
+                                                >
+                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check Out:</span>
+                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
+                                                </div>
+                                                {selectedItem.createdAt && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Created At:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{formatDate(selectedItem.createdAt)}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        {/* Room Info */}
+
+                                        {/* Room Details */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Room Details</h4>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {selectedItem.RoomNumber && <div><span className="font-semibold">Room:</span> <span>{selectedItem.RoomNumber}</span></div>}
-                                                {selectedItem.roomType && <div><span className="font-semibold">Type:</span> <span>{selectedItem.roomType}</span></div>}
-                                                {selectedItem.rawData?.room?.floor && <div><span className="font-semibold">Floor:</span> <span>{selectedItem.rawData.room.floor}</span></div>}
-                                                {selectedItem.rawData?.room?.bedType && <div><span className="font-semibold">Bed Type:</span> <span>{selectedItem.rawData.room.bedType}</span></div>}
+                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Room Details</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
+                                                {selectedItem.rawData?.room?.roomNumber && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.roomType && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Room Type:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.roomType}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.room?.floor && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[50px]" style={{ color: '#755647' }}>Floor:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.room.floor}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.reservation?.occupancy && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Occupancy:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>
+                                                            Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, Children: {selectedItem.rawData.reservation.occupancy.children || 0}
+                                                        </span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        {/* Payment Status & Actions */}
+
+                                        {/* Payment Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Payment Info</h4>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div><span className="font-semibold">Status:</span> <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>{selectedItem.status}</span></div>
-                                                {selectedItem.totalAmount && <div><span className="font-semibold">Total Paid:</span> <span>{selectedItem.totalAmount}</span></div>}
-                                                {selectedItem.paymentMethod && <div><span className="font-semibold">Method:</span> <span>{selectedItem.paymentMethod}</span></div>}
+                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Payment Information</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4">
+                                                <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                    style={{ backgroundColor: 'transparent' }}
+                                                >
+                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Status:</span>
+                                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
+                                                        {selectedItem.status}
+                                                    </span>
+                                                </div>
+                                                {selectedItem.rawData?.payment?.totalAmount && (
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>
+                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.payment?.method && (
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                        style={{ backgroundColor: 'transparent' }}
+                                                    >
+                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Method:</span>
+                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Type:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.roomType}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Status:</span>
-                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
-                                                {selectedItem.status}
-                                            </span>
-                                        </div>
-                                        {selectedItem.rawData?.guest?.email && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.guest?.idNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>ID Number:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.guest?.nationality && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Nationality:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.nationality}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.reservation?.bookingReference && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Booking Ref:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.bookingReference}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.room?.roomNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.reservation?.occupancy && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Occupancy:</span>
-                                                <span style={{ color: '#876B56' }}>
-                                                    Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, 
-                                                    Children: {selectedItem.rawData.reservation.occupancy.children || 0}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.payment?.totalAmount && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
-                                                <span style={{ color: '#876B56' }}>
-                                                    {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
-                                                </span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.payment?.method && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Method:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.reservation?.specialRequests && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Special Requests:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
-                                            </div>
-                                        )}
-                                        {selectedItem.rawData?.notes && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
-                                                <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Notes:</span>
-                                                <span style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
+
+                                        {/* Additional Information */}
+                                        {(selectedItem.rawData?.reservation?.specialRequests || selectedItem.rawData?.notes) && (
+                                            <div>
+                                                <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Additional Information</h4>
+                                                <div className="grid grid-cols-1 md600:gap-4">
+                                                    {selectedItem.rawData?.reservation?.specialRequests && (
+                                                            <div className="flex items-start p-2 rounded-lg transition-colors" 
+                                                            style={{ backgroundColor: 'transparent' }}
+                                                        >
+                                                            <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Special Requests:</span>
+                                                            <span className="text-sm sm:text-base flex-1" style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
+                                                        </div>
+                                                    )}
+                                                    {selectedItem.rawData?.notes && (
+                                                        <div className="flex items-start p-2 rounded-lg transition-colors" 
+                                                            style={{ backgroundColor: 'transparent' }}  
+                                                        >
+                                                            <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Notes:</span>
+                                                            <span className="text-sm sm:text-base flex-1" style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         )}
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Edit Booking Modal */}
+                {isEditModalOpen && itemToEdit && (
+                    <div className="fixed inset-0 z-50 overflow-y-auto">
+                        <div
+                            className="fixed inset-0 transition-opacity"
+                            style={{ backgroundColor: '#000000bf' }}
+                            onClick={handleEditModalClose}
+                        ></div>
+                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                            <div 
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-4xl border-2" 
+                                style={{
+                                    borderColor: '#E3C78A',
+                                    boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Modal Header */}
+                                <div className="px-4 py-4 sm:p-6" style={{
+                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
+                                }}>
+                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
+                                        <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Edit Booking</h3>
+                                        <button 
+                                            type="button" 
+                                            onClick={handleEditModalClose}
+                                            className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                                            style={{ color: '#876B56' }}
+                                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(247,223,156,0.3)'; e.currentTarget.style.color = '#755647'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#876B56'; }}
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    {/* Form */}
+                                    <form onSubmit={handleEditSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                                        {/* Guest Information */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Guest Information</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={editFormData.guest.fullName}
+                                                        onChange={(e) => handleEditFormChange('guest', 'fullName', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={editFormData.guest.phone}
+                                                        onChange={(e) => handleEditFormChange('guest', 'phone', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                    <input
+                                                        type="email"
+                                                        value={editFormData.guest.email}
+                                                        onChange={(e) => handleEditFormChange('guest', 'email', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.guest.idNumber}
+                                                        onChange={(e) => handleEditFormChange('guest', 'idNumber', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.guest.nationality}
+                                                        onChange={(e) => handleEditFormChange('guest', 'nationality', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.guest.address}
+                                                        onChange={(e) => handleEditFormChange('guest', 'address', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Reservation Information */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Reservation Information</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Check In Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        value={editFormData.reservation.checkInDate}
+                                                        onChange={(e) => handleEditFormChange('reservation', 'checkInDate', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Check Out Date *</label>
+                                                    <input
+                                                        type="date"
+                                                        required
+                                                        value={editFormData.reservation.checkOutDate}
+                                                        onChange={(e) => handleEditFormChange('reservation', 'checkOutDate', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Booking Source</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.reservation.bookingSource}
+                                                        onChange={(e) => handleEditFormChange('reservation', 'bookingSource', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={editFormData.reservation.occupancy.adults}
+                                                        onChange={(e) => handleEditFormChange('occupancy', 'adults', parseInt(e.target.value) || 1)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Children</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={editFormData.reservation.occupancy.children}
+                                                        onChange={(e) => handleEditFormChange('occupancy', 'children', parseInt(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Special Requests</label>
+                                                    <textarea
+                                                        value={editFormData.reservation.specialRequests}
+                                                        onChange={(e) => handleEditFormChange('reservation', 'specialRequests', e.target.value)}
+                                                        rows="3"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment Information */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Payment Information</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                                                    <select
+                                                        value={editFormData.payment.status}
+                                                        onChange={(e) => handleEditFormChange('payment', 'status', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Paid">Paid</option>
+                                                        <option value="Partial">Partial</option>
+                                                        <option value="Refunded">Refunded</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount *</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        required
+                                                        value={editFormData.payment.totalAmount}
+                                                        onChange={(e) => handleEditFormChange('payment', 'totalAmount', parseFloat(e.target.value) || 0)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.payment.currency}
+                                                        onChange={(e) => handleEditFormChange('payment', 'currency', e.target.value.toUpperCase())}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                                    <input
+                                                        type="text"
+                                                        value={editFormData.payment.method}
+                                                        onChange={(e) => handleEditFormChange('payment', 'method', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Booking Status & Notes */}
+                                        <div>
+                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Booking Details</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Booking Status</label>
+                                                    <select
+                                                        value={editFormData.status}
+                                                        onChange={(e) => handleEditFormChange(null, 'status', e.target.value)}
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    >
+                                                        <option value="Pending">Pending</option>
+                                                        <option value="Confirmed">Confirmed</option>
+                                                        <option value="CheckedIn">Checked In</option>
+                                                        <option value="CheckedOut">Checked Out</option>
+                                                        <option value="Cancelled">Cancelled</option>
+                                                        <option value="NoShow">No Show</option>
+                                                    </select>
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                                    <textarea
+                                                        value={editFormData.notes}
+                                                        onChange={(e) => handleEditFormChange(null, 'notes', e.target.value)}
+                                                        rows="3"
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Form Actions */}
+                                        <div className="flex items-center justify-end gap-3 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
+                                            <button
+                                                type="button"
+                                                onClick={handleEditModalClose}
+                                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                                style={{ color: '#755647' }}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="submit"
+                                                disabled={loading}
+                                                className="px-6 py-2 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                style={{ backgroundColor: '#876B56' }}
+                                                onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#755647'; }}
+                                                onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#876B56'; }}
+                                            >
+                                                {loading ? 'Updating...' : 'Update Booking'}
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>

@@ -276,6 +276,20 @@ const getRoomsWithPagination = async (req, res) => {
       const total = await Room.countDocuments(query);
   
       // Build status statistics
+      const normalizeStatusKey = (status) => {
+        if (!status || typeof status !== 'string') return status;
+        const normalized = status.trim().toLowerCase();
+        const statusMap = {
+          available: 'Available',
+          occupied: 'Occupied',
+          reserved: 'Reserved',
+          maintenance: 'Maintenance',
+          'not ready': 'Maintenance',
+          housekeeping: 'Maintenance'
+        };
+        return statusMap[normalized] || status.trim();
+      };
+
       const statusAggregation = await Room.aggregate([
         { $match: query },
         {
@@ -285,25 +299,27 @@ const getRoomsWithPagination = async (req, res) => {
           }
         }
       ]);
-  
+
       const statusStats = {
         Occupied: 0,
         Reserved: 0,
         Available: 0,
         Maintenance: 0
       };
-  
+
+      let totalFiltered = 0;
       statusAggregation.forEach((item) => {
-        if (item && item._id && statusStats.hasOwnProperty(item._id)) {
-          statusStats[item._id] = item.count;
-        }
+        const key = normalizeStatusKey(item?._id);
+        if (!key) return;
+
+        statusStats[key] = item?.count || 0;
+        totalFiltered += item?.count || 0;
       });
-  
-      const totalFiltered =
-        statusStats.Occupied +
-        statusStats.Reserved +
-        statusStats.Available +
-        statusStats.Maintenance;
+
+      // Ensure total reflects at least the filtered documents when aggregation returns nothing
+      if (totalFiltered === 0) {
+        totalFiltered = total;
+      }
   
       const occupancyRate =
         totalFiltered > 0

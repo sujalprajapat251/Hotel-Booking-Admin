@@ -56,11 +56,32 @@ export const updateCab = createAsyncThunk(
     "cab/update",
     async (cabData, { dispatch, rejectWithValue }) => {
         try {
-            const { _id, ...updateFields } = cabData;
+            const { _id, cabImage, ...updateFields } = cabData;
             const formData = new FormData();
+            
+            // Append all fields except cabImage (we'll handle it separately)
             Object.entries(updateFields).forEach(([key, value]) => {
-                if (value !== undefined) formData.append(key, value);
+                if (value !== undefined && value !== null) {
+                    // Handle boolean values
+                    if (typeof value === 'boolean') {
+                        formData.append(key, value.toString());
+                    }
+                    // Handle File objects (for image)
+                    else if (value instanceof File) {
+                        formData.append(key, value);
+                    }
+                    // Handle other types
+                    else {
+                        formData.append(key, value);
+                    }
+                }
             });
+            
+            // Append the image file if it exists (and is a File object)
+            if (cabImage instanceof File) {
+                formData.append("cabImage", cabImage);
+            }
+            
             const token = localStorage.getItem("token");
             const response = await axios.put(`${BASE_URL}/updatecab/${_id}`, formData, {
                 headers: {

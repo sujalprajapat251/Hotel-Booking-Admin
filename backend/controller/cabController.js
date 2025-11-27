@@ -78,7 +78,8 @@ const updateCab = async (req, res) => {
         if (req.file) {
             if (existcab.cabImage) await deleteFromS3(existcab.cabImage);
             const uploadedUrl = await uploadToS3(req.file, "uploads/cabImage");
-            req.body.cabImage = uploadedUrl;
+            // Update updateData with the new image URL
+            updateData.cabImage = uploadedUrl;
         }
 
         const cab = await Cab.findByIdAndUpdate(req.params.id, updateData, { new: true });

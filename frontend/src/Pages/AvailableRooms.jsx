@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
+import { deleteRoom, fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
@@ -119,6 +119,10 @@ const AvailableRooms = () => {
   const [showModal, setShowModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [detailsRoom, setDetailsRoom] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
   const formatDateTimeLabel = useCallback((value) => {
     if (!value) return '—';
     try {
@@ -265,6 +269,18 @@ const AvailableRooms = () => {
     setSelectedRoom(null);
   }, []);
 
+  const handleDeleteClick = useCallback((room) => {
+    setRoomToDelete(room);
+    setDeleteError(null);
+    setDeleteModalOpen(true);
+  }, []);
+
+  const closeDeleteModal = useCallback(() => {
+    setDeleteModalOpen(false);
+    setRoomToDelete(null);
+    setDeleteError(null);
+  }, []);
+
   const refreshRooms = useCallback(() => {
     return dispatch(
       fetchRoomsPaginated({
@@ -330,6 +346,25 @@ const AvailableRooms = () => {
     },
     [bookingForDetailsRoom, dispatch, refreshRooms, handleDetailsClose]
   );
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!roomToDelete) return;
+    const id = roomToDelete.id || roomToDelete._id;
+    if (!id) {
+      setDeleteError('Room id is missing.');
+      return;
+    }
+    setDeleteLoading(true);
+    try {
+      await dispatch(deleteRoom(id)).unwrap();
+      await refreshRooms();
+      closeDeleteModal();
+    } catch (error) {
+      setDeleteError(error || 'Failed to delete room.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }, [roomToDelete, dispatch, refreshRooms, closeDeleteModal]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -865,7 +900,7 @@ const AvailableRooms = () => {
               };
 
               // RoomCard component for managing selected image state
-              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages }) => {
+              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete }) => {
                 const [selectedImage, setSelectedImage] = useState(mainImage);
 
                 return (
@@ -1058,35 +1093,49 @@ const AvailableRooms = () => {
                       </div>
                     )}
 
-                    {/* Action Button */}
-                    <button
-                      onClick={() => handleRoomAction(room)}
-                      className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg ${
-                        isAddGuestAction
-                          ? 'bg-senary hover:bg-quinary'
-                          : 'bg-quinary hover:bg-senary'
-                      }`}
-                    >
-                      {room.status === 'Occupied' || room.status === 'Reserved' ? (
-                        <div className='flex items-center gap-2'>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                            <circle cx="12" cy="12" r="3"></circle>
-                          </svg>
-                          Guest Details
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <line x1="20" y1="8" x2="20" y2="14"></line>
-                            <line x1="23" y1="11" x2="17" y2="11"></line>
-                          </svg>
-                          <span>Add Guest</span>
-                        </div>
-                      )}
-                    </button>
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
+                      <button
+                        onClick={() => handleRoomAction(room)}
+                        className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg ${
+                          isAddGuestAction
+                            ? 'bg-senary hover:bg-quinary'
+                            : 'bg-quinary hover:bg-senary'
+                        }`}
+                      >
+                        {room.status === 'Occupied' || room.status === 'Reserved' ? (
+                          <div className='flex items-center gap-2'>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            Guest Details
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="8.5" cy="7" r="4"></circle>
+                              <line x1="20" y1="8" x2="20" y2="14"></line>
+                              <line x1="23" y1="11" x2="17" y2="11"></line>
+                            </svg>
+                            <span>Add Guest</span>
+                          </div>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => onDelete(room)}
+                        className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 transition-all duration-200"
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polyline points="3 6 5 6 21 6"></polyline>
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m5 0V4a2 2 0 0 1 2-2h0a2 2 0 0 1 2 2v2"></path>
+                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        Delete Room
+                      </button>
+                    </div>
                   </div>
                 </div>
                 );
@@ -1094,7 +1143,7 @@ const AvailableRooms = () => {
 
               return (
                 <RoomCard
-                  key={room.id}
+                  key={room.id || room._id || room.roomNumber}
                   room={room}
                   statusConfig={statusConfig}
                   maxCapacity={maxCapacity}
@@ -1112,6 +1161,7 @@ const AvailableRooms = () => {
                   mainImage={mainImage}
                   subImages={subImages}
                   roomImages={roomImages}
+                  onDelete={handleDeleteClick}
                 />
               );
             })}
@@ -1134,6 +1184,50 @@ const AvailableRooms = () => {
           onCheckOut={() => handleBookingStatusChange('CheckedOut')}
           onCancelRoom={() => handleBookingStatusChange('Cancelled')}
         />
+      )}
+      {deleteModalOpen && roomToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-senary mb-1">
+                  Delete Room {roomToDelete.roomNumber}?
+                </h3>
+                <p className="text-sm text-quinary">
+                  This action cannot be undone. The room and its related data will be permanently removed.
+                </p>
+              </div>
+            </div>
+            {deleteError && (
+              <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
+                {typeof deleteError === 'string' ? deleteError : 'Failed to delete room.'}
+              </div>
+            )}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleteLoading}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-senary hover:bg-gray-50 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deleteLoading}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleteLoading ? 'Deleting...' : 'Delete Room'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {/* No Results Message */}
       {!loading && filteredRooms.length === 0 && (

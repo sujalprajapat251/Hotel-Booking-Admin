@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
-import { Search, Filter, Download, RefreshCw, Star, MapPin, Phone } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Download,
+  RefreshCw,
+  MapPin,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllDrivers, createDriver, updateDriver, deleteDriver } from "../Redux/Slice/driverSlice";
 import { getAllCabs } from "../Redux/Slice/cab.slice";
@@ -34,6 +43,8 @@ const DriverDetails = () => {
   const [driverLoading, setDriverLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [driverToDelete, setDriverToDelete] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   
   const defaultDriverFields = {
     _id: null,
@@ -52,14 +63,46 @@ const DriverDetails = () => {
 
   const [driverForm, setDriverForm] = useState(defaultDriverFields);
 
-  const filteredDrivers = drivers.filter((d) => {
-    const matchesSearch =
-      d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      d.mobileno?.includes(searchTerm) ||
-      (d.AssignedCab?.vehicleId?.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus = statusFilter === "All" ? true : d.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filteredDrivers = useMemo(() => {
+    return (drivers || []).filter((d) => {
+      const matchesSearch =
+        d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.mobileno?.includes(searchTerm) ||
+        d.AssignedCab?.vehicleId
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "All" ? true : d.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [drivers, searchTerm, statusFilter]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredDrivers.length / itemsPerPage)
+  );
+
+  const paginatedDrivers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredDrivers.slice(start, start + itemsPerPage);
+  }, [filteredDrivers, currentPage, itemsPerPage]);
+
+  const startItem =
+    filteredDrivers.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+  const endItem =
+    filteredDrivers.length === 0
+      ? 0
+      : Math.min(currentPage * itemsPerPage, filteredDrivers.length);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -172,23 +215,28 @@ const DriverDetails = () => {
         <h1 className="text-2xl font-semibold text-black">All Drivers</h1>
       </section>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="flex flex-col gap-3 md600:flex-row md600:items-center md600:justify-between p-4 border-b border-gray-200">
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+        <div className="flex flex-col gap-4 md600:flex-row md600:items-center md600:justify-between p-5 border-b border-gray-100">
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <p className="text-[16px] font-semibold text-gray-800">Driver Details</p>
+            <p className="text-[18px] font-semibold text-gray-900 whitespace-nowrap">
+              Driver Items
+            </p>
             <div className="relative max-w-md w-full">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search driver, ID, phone, vehicle..."
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                placeholder="Search driver, phone or cab..."
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
               />
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={18}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
             </div>
           </div>
 
-          <div className="flex items-center gap-1 justify-end">
+          <div className="flex items-center gap-2 justify-end">
             <button
               className="p-2 text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
               title="Add Driver"
@@ -198,30 +246,32 @@ const DriverDetails = () => {
             </button>
             <div className="relative">
               <button
-                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/30 rounded-lg transition-colors"
                 title="Filter Status"
                 onClick={() => setShowFilterMenu((prev) => !prev)}
               >
                 <Filter size={20} />
               </button>
               {showFilterMenu && (
-                <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                  {["All", "Available","Unavailable"].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        setStatusFilter(status);
-                        setShowFilterMenu(false);
-                      }}
-                      className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${
-                        statusFilter === status
-                          ? "text-[#6A4DFF] font-semibold"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
+                <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-xl shadow-lg z-10">
+                  {["All", "Available", "Leave", "Unavailable"].map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setStatusFilter(status);
+                          setShowFilterMenu(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${
+                          statusFilter === status
+                            ? "text-[#755647] font-semibold"
+                            : "text-gray-700"
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    )
+                  )}
                 </div>
               )}
             </div>
@@ -242,80 +292,99 @@ const DriverDetails = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#F7DF9C]/40 text-gray-600 uppercase text-xs">
+            <thead className="bg-[#F7DF9C] text-[#4B3A2F] uppercase text-xs tracking-wide">
               <tr>
-                {[
-                  "No",
-                  "Photo",
-                  "Name",
-                  "Phone",
-                  "Assigned Cab",
-                  "Status",
-                  "Emergency Contact",
-                  "Address",
-                  "Action",
-                ].map((header) => (
-                  <th key={header} className="px-4 py-3 whitespace-nowrap">
-                    {header}
-                  </th>
-                ))}
+                {["No", "Driver", "Contact", "Assigned Cab", "Status", "Address" ,"Action"].map(
+                  (header) => (
+                    <th
+                      key={header}
+                      className="px-5 py-4 font-semibold whitespace-nowrap"
+                    >
+                      {header}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
-              {filteredDrivers.map((driver, idx) => (
+              {paginatedDrivers.map((driver, idx) => (
                 <tr
                   key={driver._id || idx}
                   className="border-b border-gray-100 text-gray-700 hover:bg-gray-50"
                 >
-                  <td className="px-4 py-3">{idx + 1}</td>
-                  <td className="px-4 py-3">
-                    {driver.image ? (
-                      <img
-                        src={`http://localhost:5000/${driver.image.replace(/\\/g, '/')}`}
-                        alt={driver.name}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-[#E3C78A] flex items-center justify-center text-xs text-gray-500">
-                        No Image
+                  <td className="px-5 py-4 text-gray-600 font-semibold">
+                    {(currentPage - 1) * itemsPerPage + idx + 1}
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
+                        {driver.image ? (
+                          <img
+                            src={driver.image}
+                            alt={driver.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                            No Image
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div>
+                        <p className="font-semibold text-gray-900">
+                          {driver.name || "—"}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {driver.email || "no-email"}
+                        </p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {driver.name}
+                  <td className="px-5 py-4 text-gray-600">
+                    <div className="flex flex-col text-sm">
+                      <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
+                        <Phone size={14} />
+                        {driver.mobileno || "—"}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-green-600">
-                    <span className="inline-flex items-center gap-1">
-                      <Phone size={14} className="inline-block" />
-                      {driver.mobileno}
-                    </span>
+                  <td className="px-5 py-4">
+                    {driver.AssignedCab?.vehicleId || "Not Assigned"}
                   </td>
-                  <td className="px-4 py-3">{driver.AssignedCab?.vehicleId || "Not Assigned"}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[driver.status]}`}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[driver.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                        }`}
                     >
                       {driver.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-700">Hotel Number</td>
-                  <td className="px-4 py-3 text-gray-600">
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin size={14} className="text-orange-600" />
-                      {driver.address}
-                    </span>
+                  <td className="px-5 py-4 text-gray-600">
+                    <div className="flex flex-col text-sm">
+                      <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
+                        <MapPin size={14} className="text-orange-500" />
+                        {driver.address || "Address not set"}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 text-lg">
-                      <button 
-                        className="text-[#F59E0B] hover:text-[#D97706]" 
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3 text-lg">
+                      <button
+                        className="text-[#755647] hover:text-[#4B3A2F]"
+                        title="View"
+                        onClick={() => handleOpenEditModal(driver)}
+                      >
+                        <IoEyeSharp />
+                      </button>
+                      <button
+                        className="text-[#6A4DFF] hover:text-[#4C2CC7]"
                         title="Edit"
                         onClick={() => handleOpenEditModal(driver)}
                       >
                         <FiEdit />
                       </button>
-                      <button 
-                        className="text-[#EF4444] hover:text-[#DC2626]" 
+                      <button
+                        className="text-[#EF4444] hover:text-[#DC2626]"
                         title="Delete"
                         onClick={() => handleDeleteClick(driver)}
                       >
@@ -325,28 +394,74 @@ const DriverDetails = () => {
                   </td>
                 </tr>
               ))}
-              {filteredDrivers.length === 0 && (
+              {paginatedDrivers.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={9}
-                    className="text-center text-gray-500 py-6 text-sm"
-                  >
-                    No drivers match your filters.
+                  <td className="px-6 py-12 text-center" colSpan={6}>
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg
+                        className="w-16 h-16 mb-4 text-gray-300"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                        />
+                      </svg>
+                      <p className="text-lg font-medium">No drivers found</p>
+                      <p className="text-sm mt-1">
+                        Try adjusting your search or filters
+                      </p>
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between p-4 border-t border-gray-200 text-sm text-gray-600">
-          <div>Showing {filteredDrivers.length} drivers</div>
-          <div className="flex items-center gap-2">
-            <span>Items per page</span>
-            <select className="border border-gray-300 rounded-lg px-2 py-1 focus:ring-[#B79982] focus:border-[#B79982]">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-5 border-t border-gray-100 text-sm text-gray-600">
+          <div className="flex items-center gap-3">
+            <span className="text-gray-700 font-medium">Items per page</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B79982] focus:border-[#B79982]"
+            >
+              {[6, 10, 20, 50].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-700">
+              {startItem} - {endItem} of {filteredDrivers.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages || filteredDrivers.length === 0}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -494,7 +609,7 @@ const DriverDetails = () => {
                   <div className="mb-2">
                     <p className="text-xs text-gray-500 mb-1">Current Image:</p>
                     <img
-                      src={`http://localhost:5000/${driverForm.existingImage.replace(/\\/g, '/')}`}
+                      src={driverForm.existingImage}
                       alt="Current"
                       className="w-20 h-20 rounded-full object-cover border-2 border-gray-300"
                     />

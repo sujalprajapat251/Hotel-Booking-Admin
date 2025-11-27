@@ -273,7 +273,10 @@ const roomsSlice = createSlice({
       })
       .addCase(deleteRoom.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.items = state.items.filter((item) => {
+          const itemId = item?.id || item?._id;
+          return itemId !== action.payload;
+        });
       })
       .addCase(deleteRoom.rejected, (state, action) => {
         state.loading = false;

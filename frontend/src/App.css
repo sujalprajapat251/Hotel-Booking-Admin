@@ -33,3 +33,96 @@ body{
 .custom-quill .ql-container {
   height: auto;
 }
+
+/* Guest modal range picker */
+.guest-range-picker.ant-picker {
+  border-radius: 0.75rem;
+  background-color: #755647;
+  border: 1px solid #a3876a;
+  padding: 0 0.75rem;
+  color: #f7df9c;
+  box-shadow: 0 10px 25px rgba(117, 86, 71, 0.35);
+}
+
+.guest-range-picker.ant-picker-focused {
+  border: 1px solid #b79982;
+  box-shadow: 0 0 0 2px rgba(167, 135, 106, 0.35);
+}
+
+.guest-range-picker .ant-picker-input > input {
+  color: #f7df9c;
+  font-weight: 500;
+}
+
+.guest-range-picker .ant-picker-suffix {
+  color: #f7df9c;
+}
+
+.guest-range-picker .ant-picker-clear {
+  color: #e3c78a;
+}
+
+.guest-range-dropdown .ant-picker-panel-container {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(117, 86, 71, 0.45);
+}
+
+.guest-range-dropdown .ant-picker-panel {
+  background: linear-gradient(135deg, #876b56, #755647);
+  border: none;
+}
+
+.guest-range-dropdown
+  .ant-picker-date-panel
+  .ant-picker-content
+  th {
+  color: #f7df9c;
+  font-weight: 600;
+}
+
+.guest-range-dropdown .ant-picker-cell-in-view {
+  color: #f7df9c;
+}
+
+.guest-range-dropdown .ant-picker-cell-in-view.ant-picker-cell-disabled {
+  color: #b79982;
+  opacity: 0.4;
+}
+
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-today
+  .ant-picker-cell-inner::before {
+  border-color: #f7df9c;
+}
+
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-selected
+  .ant-picker-cell-inner,
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-range-start
+  .ant-picker-cell-inner,
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-range-end
+  .ant-picker-cell-inner {
+  background: linear-gradient(135deg, #f7df9c, #b79982);
+  color: #3c2417;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(167, 135, 106, 0.4);
+}
+
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-in-range
+  .ant-picker-cell-inner {
+  background: rgba(163, 135, 106, 0.2);
+  color: #fff2d1;
+}
+
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-range-hover-start::before,
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-range-hover-end::before,
+.guest-range-dropdown
+  .ant-picker-cell-in-view.ant-picker-cell-range-hover::before {
+  background: rgba(247, 223, 156, 0.2);
+}

@@ -1,9 +1,12 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { ConfigProvider, DatePicker } from "antd";
+import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../Redux/Slice/bookingSlice";
 import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
 
 const GuestModal = ({ onClose, room, onBooked }) => {
+  const { RangePicker } = DatePicker;
   const dispatch = useDispatch();
   const { creating, error } = useSelector((state) => state.booking || {});
   const { loading: cabBookingLoading } = useSelector((state) => state.cabBooking || {});
@@ -33,6 +36,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   });
 
   const CAB_FARE_RATE = 20; // Set your rate per km
+  const inputClasses =
+    "w-full border border-tertiary/40 rounded-lg p-2 bg-white/95 text-senary placeholder:text-quinary/60 focus:outline-none focus:ring-2 focus:ring-quaternary/40 focus:border-quaternary/60 transition";
+  const textareaClasses = `${inputClasses} h-24`;
 
   // Automatically update estimated fare when distance changes
   useEffect(() => {
@@ -77,6 +83,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     }
   }, [formState.checkInDate, cabServiceEnabled]);
 
+  const dateRangeValue = useMemo(() => {
+    const start = formState.checkInDate ? dayjs(formState.checkInDate) : null;
+    const end = formState.checkOutDate ? dayjs(formState.checkOutDate) : null;
+    return [start, end];
+  }, [formState.checkInDate, formState.checkOutDate]);
+
   const handleChange = (field) => (event) => {
     const { value, type, checked } = event.target;
     if (type === "checkbox") {
@@ -108,6 +120,24 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         [field]: value,
       }));
     }
+  };
+
+  const handleDateRangeChange = (dates) => {
+    if (!dates || dates.length === 0) {
+      setFormState((prev) => ({
+        ...prev,
+        checkInDate: "",
+        checkOutDate: "",
+      }));
+      return;
+    }
+
+    const [start, end] = dates;
+    setFormState((prev) => ({
+      ...prev,
+      checkInDate: start ? start.format("YYYY-MM-DD") : "",
+      checkOutDate: end ? end.format("YYYY-MM-DD") : "",
+    }));
   };
 
   const handleSubmit = async (event) => {
@@ -207,17 +237,17 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <form
-        className="bg-white w-[70%] max-h-[90vh] rounded-xl overflow-y-auto shadow-lg"
+        className="bg-white/95 w-[70%] max-h-[90vh] rounded-2xl overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
         onSubmit={handleSubmit}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-6 py-4 bg-green-600 text-white rounded-t-xl">
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-quaternary to-senary text-white rounded-t-2xl shadow-inner">
           <div>
             <h2 className="text-xl font-semibold">Add New Guest</h2>
             {roomSummary && (
-              <p className="text-sm text-green-100">
+              <p className="text-sm text-secondary">
                 {roomSummary.label} • {roomSummary.type}
                 {roomSummary.bed ? ` • ${roomSummary.bed}` : ""} • Sleeps{" "}
                 {roomSummary.capacity}
@@ -235,13 +265,13 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         </div>
 
         {/* TABS */}
-        <div className="flex border-b bg-gray-100">
+        <div className="flex border-b border-primary/40 bg-primary/20">
           <button
             type="button"
-            className={`flex-1 text-center py-3 font-medium ${
+            className={`flex-1 text-center py-3 font-medium transition ${
               activeTab === "personal"
-                ? "border-b-4 border-green-600 bg-white"
-                : "hover:bg-gray-200"
+                ? "border-b-4 border-senary bg-white text-senary shadow-inner"
+                : "text-quinary hover:bg-primary/30"
             }`}
             onClick={() => setActiveTab("personal")}
           >
@@ -250,10 +280,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
           <button
             type="button"
-            className={`flex-1 text-center py-3 font-medium ${
+            className={`flex-1 text-center py-3 font-medium transition ${
               activeTab === "reservation"
-                ? "border-b-4 border-green-600 bg-white"
-                : "hover:bg-gray-200"
+                ? "border-b-4 border-senary bg-white text-senary shadow-inner"
+                : "text-quinary hover:bg-primary/30"
             }`}
             onClick={() => setActiveTab("reservation")}
           >
@@ -273,7 +303,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           {/* PERSONAL TAB */}
           {activeTab === "personal" && (
             <div>
-              <h3 className="text-lg font-semibold border-l-4 border-green-600 pl-2 mb-4">
+              <h3 className="text-lg font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                 Personal Details
               </h3>
 
@@ -281,7 +311,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <label className="block mb-1 text-sm">Full Name*</label>
                 <input
                   type="text"
-                  className="w-full border rounded-lg p-2"
+                  className={inputClasses}
                   placeholder="Enter full name"
                   required
                   value={formState.fullName}
@@ -293,7 +323,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <label className="block mb-1 text-sm">Email Address</label>
                 <input
                   type="email"
-                  className="w-full border rounded-lg p-2"
+                  className={inputClasses}
                   placeholder="Enter email"
                   value={formState.email}
                   onChange={handleChange("email")}
@@ -305,7 +335,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <label className="block mb-1 text-sm">Phone Number*</label>
                   <input
                     type="text"
-                    className="w-full border rounded-lg p-2"
+                    className={inputClasses}
                     placeholder="Enter phone number"
                     required
                     value={formState.phone}
@@ -317,7 +347,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <label className="block mb-1 text-sm">ID Number</label>
                   <input
                     type="text"
-                    className="w-full border rounded-lg p-2"
+                    className={inputClasses}
                     placeholder="ID number"
                     value={formState.idNumber}
                     onChange={handleChange("idNumber")}
@@ -328,7 +358,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               <div>
                 <label className="block mb-1 text-sm">Address*</label>
                 <textarea
-                  className="w-full border rounded-lg p-2 h-24"
+                  className={textareaClasses}
                   placeholder="Enter address"
                   required
                   value={formState.address}
@@ -341,31 +371,45 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           {/* RESERVATION TAB */}
           {activeTab === "reservation" && (
             <div>
-              <h3 className="text-lg font-semibold border-l-4 border-green-600 pl-2 mb-4">
+              <h3 className="text-lg font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                 Booking Information
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1 text-sm">Check-in Date*</label>
-                  <input
-                    type="date"
-                    className="w-full border rounded-lg p-2"
-                    required
-                    value={formState.checkInDate}
-                    onChange={handleChange("checkInDate")}
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm">Check-out Date*</label>
-                  <input
-                    type="date"
-                    className="w-full border rounded-lg p-2"
-                    required
-                    value={formState.checkOutDate}
-                    onChange={handleChange("checkOutDate")}
-                  />
+                <div className="md:col-span-2">
+                  <label className="block mb-1 text-sm">Stay Dates*</label>
+                  <ConfigProvider
+                    theme={{
+                      token: {
+                        colorPrimary: "#A3876A",
+                        borderRadius: 12,
+                        controlHeight: 44,
+                      },
+                      components: {
+                        DatePicker: {
+                          colorBgContainer: "#755647",
+                          colorText: "#F7DF9C",
+                          colorTextPlaceholder: "#E3C78A",
+                          colorTextDisabled: "#B79982",
+                          cellActiveWithRangeBg: "#A3876A",
+                          cellRangeBg: "#876B56",
+                          cellRangeHoverBg: "#B79982",
+                          colorSplit: "#B79982",
+                        },
+                      },
+                    }}
+                  >
+                    <RangePicker
+                      className="guest-range-picker w-full h-11"
+                      value={dateRangeValue}
+                      onChange={handleDateRangeChange}
+                      format="DD/MM/YYYY"
+                      allowClear
+                      inputReadOnly
+                      placeholder={["DD/MM/YYYY", "DD/MM/YYYY"]}
+                      popupClassName="guest-range-dropdown"
+                    />
+                  </ConfigProvider>
                 </div>
               </div>
 
@@ -373,7 +417,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <div>
                   <label className="block mb-1 text-sm">Payment Status</label>
                   <select
-                    className="w-full border rounded-lg p-2"
+                    className={inputClasses}
                     value={formState.paymentStatus}
                     onChange={handleChange("paymentStatus")}
                   >
@@ -385,15 +429,15 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               {/* Cab Service Checkbox */}
-              <div className="mt-4 p-4 border rounded-lg bg-gray-50">
+              <div className="mt-4 p-4 border border-primary/50 rounded-2xl bg-primary/10 shadow-sm text-senary">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
                     checked={cabServiceEnabled}
                     onChange={handleChange("cabService")}
-                    className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    className="w-5 h-5 text-senary border-quaternary rounded focus:ring-senary/40 focus:outline-none"
                   />
-                  <span className="ml-2 text-sm font-medium text-gray-700">
+                  <span className="ml-2 text-sm font-medium text-quinary">
                     Add Cab Service
                   </span>
                 </label>
@@ -401,8 +445,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               {/* Cab Booking Details - Show only if checkbox is checked */}
               {cabServiceEnabled && (
-                <div className="mt-4 p-4 border rounded-lg bg-blue-50">
-                  <h4 className="text-md font-semibold border-l-4 border-blue-600 pl-2 mb-4">
+                <div className="mt-4 p-4 border border-primary/40 rounded-2xl bg-primary/5 shadow-sm">
+                  <h4 className="text-md font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                     Cab Booking Details
                   </h4>
 
@@ -410,7 +454,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     <div>
                       <label className="block mb-1 text-sm">Pick-up Location*</label>
                       <select
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         required={cabServiceEnabled}
                         value={formState.pickUpLocation}
                         onChange={handleChange("pickUpLocation")}
@@ -425,7 +469,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <label className="block mb-1 text-sm">Pick-up Time*</label>
                       <input
                         type="datetime-local"
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         required={cabServiceEnabled}
                         value={formState.pickUpTime}
                         onChange={handleChange("pickUpTime")}
@@ -437,7 +481,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     <div>
                       <label className="block mb-1 text-sm">Seating Capacity*</label>
                       <select
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         required={cabServiceEnabled}
                         value={formState.preferredSeatingCapacity}
                         onChange={handleChange("preferredSeatingCapacity")}
@@ -450,7 +494,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         <option value="9">9 Seater</option>
                         <option value="10+">10+ Seater</option>
                       </select>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-quinary/70 mt-1">
                         A cab with matching or higher capacity will be automatically assigned
                       </p>
                     </div>
@@ -461,7 +505,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <label className="block mb-1 text-sm">Booking Date</label>
                       <input
                         type="date"
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         value={formState.bookingDate}
                         onChange={handleChange("bookingDate")}
                       />
@@ -471,7 +515,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <label className="block mb-1 text-sm">Estimated Distance (km)</label>
                       <input
                         type="number"
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -486,13 +530,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <label className="block mb-1 text-sm">Estimated Fare</label>
                       <input
                         type="number"
-                        className="w-full border rounded-lg p-2"
+                        className={inputClasses}
                         placeholder="0.00"
                         min="0"
                         step="0.01"
                         value={formState.estimatedFare}
                         readOnly // Make field read-only so it cannot be edited by user
-                        onChange={handleChange("estimatedFare")}
                       />
                     </div>
                   </div>
@@ -500,7 +543,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="mt-4">
                     <label className="block mb-1 text-sm">Special Instructions</label>
                     <textarea
-                      className="w-full border rounded-lg p-2 h-20"
+                      className={`${inputClasses} h-20`}
                       placeholder="Any special instructions for the driver"
                       value={formState.specialInstructions}
                       onChange={handleChange("specialInstructions")}
@@ -510,7 +553,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="mt-4">
                     <label className="block mb-1 text-sm">Cab Booking Notes</label>
                     <textarea
-                      className="w-full border rounded-lg p-2 h-20"
+                      className={`${inputClasses} h-20`}
                       placeholder="Additional notes for cab booking"
                       value={formState.cabNotes}
                       onChange={handleChange("cabNotes")}
@@ -523,7 +566,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <div>
                   <label className="block mb-1 text-sm">Payment Method</label>
                   <select
-                    className="w-full border rounded-lg p-2"
+                    className={inputClasses}
                     value={formState.paymentMethod}
                     onChange={handleChange("paymentMethod")}
                   >
@@ -537,7 +580,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <label className="block mb-1 text-sm">Total Amount*</label>
                   <input
                     type="number"
-                    className="w-full border rounded-lg p-2"
+                    className={inputClasses}
                     placeholder="0.00"
                     required
                     min="0"
@@ -550,7 +593,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               <div className="mt-4">
                 <label className="block mb-1 text-sm">Notes</label>
                 <textarea
-                  className="w-full border rounded-lg p-2 h-20"
+                  className={`${inputClasses} h-20`}
                   placeholder="Special requests or notes"
                   value={formState.notes}
                   onChange={handleChange("notes")}
@@ -561,11 +604,11 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-end gap-4 p-6 border-t">
+        <div className="flex justify-end gap-4 p-6 border-t border-primary/40 bg-primary/10">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+            className="px-4 py-2 rounded-lg bg-secondary/40 text-quinary hover:bg-secondary/60 transition shadow-sm"
           >
             Cancel
           </button>
@@ -575,8 +618,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
             disabled={creating || cabBookingLoading}
             className={`px-4 py-2 rounded-lg text-white ${
               creating || cabBookingLoading
-                ? "bg-green-300 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
+                ? "bg-quaternary/40 cursor-not-allowed"
+                : "bg-senary hover:bg-quinary shadow-lg"
             }`}
           >
             {creating || cabBookingLoading ? "Saving..." : "Save Guest Details"}
