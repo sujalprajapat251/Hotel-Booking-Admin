@@ -36,6 +36,7 @@ const AllBookings = () => {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const dropdownRef = useRef(null);
+    const bodyOverflowRef = useRef('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -225,6 +226,24 @@ const AllBookings = () => {
         setItemToDelete(null);
     };
 
+    // Prevent background page from scrolling when modal is open
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+
+        if (isModalOpen) {
+            // save current overflow so we can restore it
+            bodyOverflowRef.current = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+        } else {
+            // restore previous overflow
+            document.body.style.overflow = bodyOverflowRef.current || '';
+        }
+
+        return () => {
+            document.body.style.overflow = bodyOverflowRef.current || '';
+        };
+    }, [isModalOpen]);
+
     // Pagination handlers
     const handlePageChange = (newPage) => {
         setPage(newPage);
@@ -238,11 +257,10 @@ const AllBookings = () => {
         setCurrentPage(1);
     };
 
-    // Use backend pagination data
-    const totalPages = reduxTotalPages || 1;
-    const startIndex = ((currentPage - 1) * itemsPerPage);
-    const endIndex = Math.min(startIndex + itemsPerPage, totalCount || 0);
-    const currentData = booking; // Already paginated from backend
+    const totalPages = Math.ceil(booking.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentData = booking.slice(startIndex, endIndex);
 
     return (
         <>
@@ -445,23 +463,18 @@ const AllBookings = () => {
                                                 )}
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="mv_table_action flex">
                                                             <div onClick={() => handleViewClick(bookingItem)} className="cursor-pointer">
                                                                 <IoEyeSharp className='text-[18px] text-quaternary hover:text-[#876B56] transition-colors' />
                                                             </div>
-                                                            <button
-                                                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="Edit Booking"
-                                                            >
-                                                                <FiEdit size={16} />
-                                                            </button>
-                                                            <button
+                                                            <div>
+                                                                <FiEdit className="text-[#6777ef] text-[18px]" />
+                                                            </div>
+                                                            <div
                                                                 onClick={() => handleDeleteClick(bookingItem)}
-                                                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                                                title="Delete Booking"
                                                             >
-                                                                <RiDeleteBinLine size={16} />
-                                                            </button>
+                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 )}
@@ -498,7 +511,6 @@ const AllBookings = () => {
                                         <option value={5}>5</option>
                                         <option value={10}>10</option>
                                         <option value={25}>25</option>
-                                        <option value={50}>50</option>
                                         <option value={100}>100</option>
                                     </select>
                                 </div>
@@ -506,28 +518,21 @@ const AllBookings = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {totalCount > 0 
-                                        ? `${startIndex + 1} - ${Math.min(endIndex, totalCount)} of ${totalCount}` 
-                                        : '0 - 0 of 0'}
+                                    {startIndex + 1} - {Math.min(endIndex, booking.length)} of {booking.length}
                                 </span>
 
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => handlePageChange(currentPage - 1)}
-                                        disabled={currentPage === 1 || loading}
-                                        className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Previous Page"
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
-                                    <span className="px-3 py-1 text-sm font-medium text-gray-700">
-                                        {currentPage} / {totalPages}
-                                    </span>
                                     <button
-                                        onClick={() => handlePageChange(currentPage + 1)}
-                                        disabled={currentPage === totalPages || loading}
-                                        className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Next Page"
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronRight size={20} />
                                     </button>
@@ -545,11 +550,8 @@ const AllBookings = () => {
                             style={{ backgroundColor: '#000000bf' }}
                             onClick={handleCloseModal}
                         ></div>
-                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[35%] sm:max-w-2xl border-2" style={{
-                                borderColor: '#E3C78A',
-                                boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                            }}>
+                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
+                            <div className="relative transform overflow-auto rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-2xl border-2 max-h-[80vh]">
                                 {/* Modal Header */}
                                 <div className="px-4 py-4 sm:p-6" style={{
                                     background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
@@ -558,9 +560,7 @@ const AllBookings = () => {
                                         <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
                                         <button type="button" onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
-                                            style={{ color: '#876B56' }}
-                                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(247,223,156,0.3)'; e.currentTarget.style.color = '#755647'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#876B56'; }}>
+                                        >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                             </svg>
@@ -570,7 +570,7 @@ const AllBookings = () => {
                                     <div className="space-y-4">
                                         {/* Guest Info */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Guest Information</h4>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Guest Information</h4>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div><span className="font-semibold">Name:</span> <span>{selectedItem.name}</span></div>
                                                 {selectedItem.phone && <div><span className="font-semibold">Phone:</span> <span>{selectedItem.phone}</span></div>}
@@ -581,7 +581,7 @@ const AllBookings = () => {
                                         </div>
                                         {/* Booking Info */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Booking Info</h4>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Booking Info</h4>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div><span className="font-semibold">Check In:</span> <span>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span></div>
                                                 <div><span className="font-semibold">Check Out:</span> <span>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span></div>
@@ -590,7 +590,7 @@ const AllBookings = () => {
                                         </div>
                                         {/* Room Info */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Room Details</h4>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Room Details</h4>
                                             <div className="grid grid-cols-2 gap-3">
                                                 {selectedItem.RoomNumber && <div><span className="font-semibold">Room:</span> <span>{selectedItem.RoomNumber}</span></div>}
                                                 {selectedItem.roomType && <div><span className="font-semibold">Type:</span> <span>{selectedItem.roomType}</span></div>}
@@ -600,79 +600,55 @@ const AllBookings = () => {
                                         </div>
                                         {/* Payment Status & Actions */}
                                         <div>
-                                            <h4 className="font-semibold text-lg text-quaternary mb-2">Payment Info</h4>
+                                            <h4 className="font-semibold text-lg text-quaternary mb-3">Payment Info</h4>
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div><span className="font-semibold">Status:</span> <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>{selectedItem.status}</span></div>
                                                 {selectedItem.totalAmount && <div><span className="font-semibold">Total Paid:</span> <span>{selectedItem.totalAmount}</span></div>}
                                                 {selectedItem.paymentMethod && <div><span className="font-semibold">Method:</span> <span>{selectedItem.paymentMethod}</span></div>}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
+                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                             <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Type:</span>
                                             <span style={{ color: '#876B56' }}>{selectedItem.roomType}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
+                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                             <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Status:</span>
                                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
                                                 {selectedItem.status}
                                             </span>
                                         </div>
                                         {selectedItem.rawData?.guest?.email && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.guest?.idNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>ID Number:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.guest?.nationality && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Nationality:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.guest.nationality}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.reservation?.bookingReference && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Booking Ref:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.bookingReference}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.room?.roomNumber && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.reservation?.occupancy && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Occupancy:</span>
                                                 <span style={{ color: '#876B56' }}>
                                                     Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, 
@@ -681,10 +657,7 @@ const AllBookings = () => {
                                             </div>
                                         )}
                                         {selectedItem.rawData?.payment?.totalAmount && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
                                                 <span style={{ color: '#876B56' }}>
                                                     {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
@@ -692,28 +665,19 @@ const AllBookings = () => {
                                             </div>
                                         )}
                                         {selectedItem.rawData?.payment?.method && (
-                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Method:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.reservation?.specialRequests && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Special Requests:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
                                             </div>
                                         )}
                                         {selectedItem.rawData?.notes && (
-                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
+                                            <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}>
                                                 <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Notes:</span>
                                                 <span style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
                                             </div>
@@ -746,14 +710,14 @@ const AllBookings = () => {
                                 <button
                                     type="button"
                                     onClick={handleDeleteModalClose}
-                                    className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="button"
                                     // onClick={handleDeleteConfirm}
-                                    className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                                 >
                                     Delete
                                 </button>

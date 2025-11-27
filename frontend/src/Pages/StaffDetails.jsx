@@ -30,6 +30,7 @@ const StaffTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const scrollPosition = useRef(0);
 
   const [visibleColumns, setVisibleColumns] = useState({
     No: true,
@@ -191,6 +192,31 @@ const StaffTable = () => {
   useEffect(() => {
     dispatch(getAllStaff());
   }, [dispatch]);
+
+  // Prevent background (body) scrolling when modal is open and restore on close
+  useEffect(() => {
+    if (isModalOpen) {
+      scrollPosition.current = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollPosition.current}px`;
+      document.body.style.width = '100%';
+    } else {
+      const top = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (top) {
+        const scrollY = -parseInt(top || '0');
+        window.scrollTo(0, scrollY);
+      }
+    }
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isModalOpen]);
 
   return (
     <>
@@ -492,30 +518,19 @@ const StaffTable = () => {
             onClick={handleCloseModal}
           ></div>
 
-          <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl border-2" style={{
-              borderColor: '#E3C78A',
-              boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-            }}>
+          <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
+            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-xl border">
               {/* Modal Header */}
               <div className="px-4 pt-5 pb-4 sm:p-6" style={{
                 background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
               }}>
                 <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Blog Details</h3>
+                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Staff Details</h3>
                   <button
                     type="button"
                     onClick={handleCloseModal}
                     className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                     style={{ color: '#876B56' }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
-                      e.currentTarget.style.color = '#755647';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = '#876B56';
-                    }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -536,52 +551,31 @@ const StaffTable = () => {
 
                   {/* Details */}
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Name:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Designation:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.designation}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Mobile No.:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.mobileno}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.email}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Gender:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.gender}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Joining Date:</span>
                       <span style={{ color: '#876B56' }}>{selectedItem.joiningdate?.split('T')[0]}</span>
                     </div>
-                    <div className="flex items-start gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
+                    <div className="flex items-start gap-3 p-2 rounded-lg transition-colors">
                       <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Address:</span>
                       <div
                         style={{ color: '#876B56' }}
