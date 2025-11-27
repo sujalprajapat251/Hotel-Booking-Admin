@@ -305,6 +305,7 @@ const Blog = () => {
         setCurrentPage(1);
     };
 
+    
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
@@ -443,8 +444,10 @@ const Blog = () => {
                                             <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative">
+                                                        {console.log(item.image)}
                                                         <img
-                                                            src={`${IMAGE_URL}${item.image}`}
+                                                            src={`${item.image}`}
+                                                            log
                                                             alt={item.name}
                                                             className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
                                                         />
