@@ -1,7 +1,7 @@
 const s3 = require("./s3Config.js");
 const { v4: uuid } = require("uuid");
 
-module.exports.uploadToS3 = async (file, folder) => {
+exports.uploadToS3 = async (file, folder) => {
   if (!file) return null;
 
   const fileKey = `${folder}/${Date.now()}-${uuid()}-${file.originalname.replace(/\s/g, "")}`;
@@ -17,7 +17,7 @@ module.exports.uploadToS3 = async (file, folder) => {
   return upload.Location;
 };
 
-module.exports.updateS3 = async (oldKey, newFile, folder) => {
+exports.updateS3 = async (oldKey, newFile, folder) => {
 
   if (oldKey) {
     await this.deleteFromS3(oldKey);
@@ -26,7 +26,7 @@ module.exports.updateS3 = async (oldKey, newFile, folder) => {
   return await this.uploadToS3(newFile, folder);
 };
 
-module.exports.deleteFromS3 = async (fileKey) => {
+exports.deleteFromS3 = async (fileKey) => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
     Key: fileKey
@@ -35,7 +35,7 @@ module.exports.deleteFromS3 = async (fileKey) => {
   return await s3.deleteObject(params).promise();
 };
 
-module.exports.deleteManyFromS3 = async (keys = []) => {
+exports.deleteManyFromS3 = async (keys = []) => {
   if (!keys.length) return;
 
   const params = {
@@ -48,7 +48,7 @@ module.exports.deleteManyFromS3 = async (keys = []) => {
   return await s3.deleteObjects(params).promise();
 };
 
-module.exports.listBucketObjects = async () => {
+exports.listBucketObjects = async () => {
   const params = {
     Bucket: process.env.AWS_BUCKET_NAME,
   };
