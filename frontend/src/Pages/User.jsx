@@ -131,9 +131,12 @@ const User = () => {
 
     return (
         <>
-            <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB] h-full'>
-                <p className=' text-[20px] font-semibold text-black '>All User</p>
-                <div className="w-full mt-3 md:mt-5">
+            <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+                <section className="py-5">
+                    <h1 className="text-2xl font-semibold text-black">All User</h1>
+                </section>
+
+                <div className="w-full">
                     <div className="bg-white rounded-lg shadow-md">
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">

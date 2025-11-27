@@ -663,7 +663,7 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div>
+          <div className="bg-white rounded-xl border-2 p-3 md:p-5 border-[#E3C78A] shadow-lg shadow-[#7556471f]">
             <Purpose />
           </div>
         </div>

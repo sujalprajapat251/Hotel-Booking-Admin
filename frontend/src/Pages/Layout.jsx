@@ -71,10 +71,16 @@ const Layout = () => {
           transition: 'margin-left 0.2s ease-in-out'
         }}
       >
-        <div className="sticky top-0 z-20">
+        <div className="fixed top-0 z-20 bg-white"
+          style={{
+            left: !isMobile && isSidebarOpen ? '288px' : !isMobile && !isSidebarOpen ? '80px' : '0',
+            right: 0,
+            transition: 'left 0.2s ease-in-out'
+          }}
+        >
           <Header onMenuClick={toggleSidebar} />
         </div>
-        <div className="flex-1 overflow-y-auto bg-slate-50">
+        <div className="flex-1 overflow-y-auto bg-slate-50 pt-[72px]">
           <Outlet />
         </div>
       </main>

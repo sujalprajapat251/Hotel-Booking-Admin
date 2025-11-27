@@ -175,7 +175,7 @@ const RoomType = () => {
   }, [dispatch])
 
   return (
-    <div className="px-4 md:px-8 py-6 h-full">
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">All Room Types</h1>
       </section>
