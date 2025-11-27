@@ -19,6 +19,11 @@ import { Home, Coffee, Heart, MoreHorizontal } from 'lucide-react';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
+import { getAllReview } from '../Redux/Slice/review.slice.js';
+import { Link } from 'react-router-dom'
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+dayjs.extend(relativeTime);
 
 export const Dashboard = () => {
 
@@ -192,7 +197,7 @@ export const Dashboard = () => {
     },
     {
       icon: <Coffee className="w-6 h-6" />,
-      name: 'Food & Beverage',
+      name: 'Cafe',
       amount: '$23,680',
       percentage: '18.4%',
       growth: '+12.3%',
@@ -202,7 +207,7 @@ export const Dashboard = () => {
     },
     {
       icon: <Heart className="w-6 h-6" />,
-      name: 'Spa & Wellness',
+      name: 'Bar',
       amount: '$8,750',
       percentage: '6.8%',
       growth: '-2.1%',
@@ -212,7 +217,7 @@ export const Dashboard = () => {
     },
     {
       icon: <MoreHorizontal className="w-6 h-6" />,
-      name: 'Other Services',
+      name: 'Restaurant',
       amount: '$6,500',
       percentage: '5.1%',
       growth: '+5.7%',
@@ -328,6 +333,43 @@ export const Dashboard = () => {
     dispatch(fetchBookings());
   }, [dispatch]);
 
+  // Reviews dynamic
+
+  const getReview = useSelector((state) => state.review.reviews);
+  const calculateRatingBreakdown = (reviews) => {
+    const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+    reviews.forEach(review => {
+      const rating = review.rating;
+      if (rating >= 1 && rating <= 5) {
+        breakdown[rating]++;
+      }
+    });
+
+    return [
+      { stars: 5, count: breakdown[5] },
+      { stars: 4, count: breakdown[4] },
+      { stars: 3, count: breakdown[3] },
+      { stars: 2, count: breakdown[2] },
+      { stars: 1, count: breakdown[1] },
+    ];
+  };
+
+  const ratingBreakdown = calculateRatingBreakdown(getReview);
+  const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
+
+  const calculateAverage = (reviews) => {
+    if (reviews.length === 0) return 0;
+    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return (sum / reviews.length).toFixed(1);
+  };
+
+  const averageRating = calculateAverage(getReview);
+
+  useEffect(() => {
+    dispatch(getAllReview());
+  }, [dispatch]);
+
 
   return (
     <>
@@ -341,23 +383,25 @@ export const Dashboard = () => {
           <div className='text-end'>
             <h2 className='font-bold md600:px-4 text-black'>Customer Ratings</h2>
             <div className='flex items-center md600:px-4 justify-end'>
-              <div className='flex'>
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className='relative'>
-                    <span className='text-gray-300 text-[16px] md600:text-[18px] lg:text-[20ox]' >★</span>
-                    <span
-                      className='text-[16px] md600:text-[18px] lg:text-[20ox] absolute top-0 left-0 overflow-hidden'
-                      style={{
-                        width: i < 4 ? '100%' : (i < 5 ? '50%' : '0%'),
-                        color: '#F7DF9C'
-                      }}
-                    >
-                      ★
+              <div className="flex">
+                {[...Array(5)].map((_, i) => {
+                  const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
+
+                  return (
+                    <span key={i} className="relative">
+                      <span className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]">★</span>
+                      <span
+                        className="text-yellow-400 text-[16px] md600:text-[18px] lg:text-[20px] absolute top-0 left-0 overflow-hidden"
+                        style={{ width: `${filledPercent}%` }}
+                      >
+                        ★
+                      </span>
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
-              <span className='ml-2 text-black'>4.5/5</span>
+
+              <span className='ml-2 text-black'>{`${averageRating}/5`}</span>
             </div>
           </div>
         </div>
@@ -875,83 +919,72 @@ export const Dashboard = () => {
           }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Customer Review</h2>
-              <a href="#" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
+              <Link to="/review" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
               >
                 View All
-              </a>
+              </Link>
             </div>
 
             <hr className="mb-6" style={{ borderColor: '#E3C78A' }} />
 
             <div className="space-y-6">
-              {reviews.map((review) => (
+              {getReview.slice(0, 2).map((review) => (
                 <div key={review.id} className="pb-6">
                   <div className="flex items-start gap-3 mb-3">
-                    <img
-                      src={review.avatar}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2"
-                      style={{ borderColor: '#E3C78A' }}
-                    />
+                    {review.photo ? (
+                      <img src={review.photo}
+                        alt={review.userId.name}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
+                        {(() => {
+                          if (review.userId.name) {
+                            const words = review.userId.name.trim().split(/\s+/);
+                            if (words.length >= 2) {
+                              return words[0][0] + words[1][0];
+                            } else {
+                              return words[0][0];
+                            }
+                          }
+                          return "";
+                        })()}
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-medium px-3 py-1 rounded text-sm" style={{
                           color: '#755647',
                           backgroundColor: '#F7DF9C'
                         }}>
-                          {review.name}
+                          {review.userId.name}
                         </span>
-                        <span className="text-sm" style={{ color: '#A3876A' }}>{review.time}</span>
+                        <span className="text-sm" style={{ color: '#A3876A' }}>{dayjs(review.createdAt).fromNow()}</span>
                       </div>
                       <div className="flex gap-0.5">
                         {renderStars(review.rating)}
                       </div>
                     </div>
                   </div>
-
+                  <h4 className="text-sm font-semibold text-[#755647]">
+                    {review.title}
+                  </h4>
                   <p className="text-sm leading-relaxed mb-3 ml-0" style={{ color: '#755647' }}>
-                    {review.review}
+                    {review.comment}
                   </p>
-
-                  <div className="flex items-center gap-2 ml-0">
-                    <button
-                      onClick={() => handleLike(review.id)}
-                      className="flex items-center gap-1 transition-colors"
-                      style={{
-                        color: review.userLiked === true ? '#876B56' : '#A3876A'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#876B56'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = review.userLiked === true ? '#876B56' : '#A3876A'}
-                    >
-                      <ThumbsUp className="w-5 h-5" fill={review.userLiked === true ? 'currentColor' : 'none'} />
-                      {review.likes > 0 && <span className="text-xs">{review.likes}</span>}
-                    </button>
-                    <button
-                      onClick={() => handleDislike(review.id)}
-                      className="flex items-center gap-1 transition-colors"
-                      style={{
-                        color: review.userLiked === false ? '#EC0927' : '#A3876A'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#EC0927'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = review.userLiked === false ? '#EC0927' : '#A3876A'}
-                    >
-                      <ThumbsDown className="w-5 h-5" fill={review.userLiked === false ? 'currentColor' : 'none'} />
-                      {review.dislikes > 0 && <span className="text-xs">{review.dislikes}</span>}
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>
 
             <div className="text-center mt-6 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
-              <a href="#" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
+              <Link to="/review" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
               >
                 View all Customer Reviews
-              </a>
+              </Link>
             </div>
           </div>
 

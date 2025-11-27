@@ -30,6 +30,7 @@ const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
+const { getRevenueDashboard, dashboard } = require('../controller/dashboardController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -136,6 +137,7 @@ indexRoutes.put('/complete/:id', auth, completeCleaning);
 indexRoutes.put('/approve/:roomId', auth, approveCleaning);
 indexRoutes.get('/getallhousekeeping', auth, getAllHousekeepignData);
 indexRoutes.get('/getworkertask/:workerId', auth, getWorkerTasks);
+indexRoutes.get('/getfreeworker', auth, getFreeWorkers);
 
 // ------------------------------- Cafe -------------------------------
 // Cafe Category routes
@@ -246,4 +248,9 @@ indexRoutes.post('/adminverifyOtp', adminverifyOtp)
 indexRoutes.post("/adminresendOtp", adminresendOtp);
 indexRoutes.post('/adminresetpassword', adminresetPassword);
 indexRoutes.put('/adminchangePassword', auth, adminchangePassword);
+
+// Dashboard Routes
+indexRoutes.get('/getrevenue', auth, adminOnly, getRevenueDashboard);
+indexRoutes.get('/getdashboard', auth, adminOnly, dashboard);
+
 module.exports = indexRoutes;
