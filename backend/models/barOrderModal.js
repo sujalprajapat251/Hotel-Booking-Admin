@@ -50,7 +50,7 @@ const barOrderSchema = new mongoose.Schema({
     },
     room: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "hotelroom",
+        ref: "room",
         required: false
     },
     payment: {
