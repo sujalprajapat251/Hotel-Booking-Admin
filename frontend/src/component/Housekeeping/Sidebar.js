@@ -11,11 +11,9 @@ const hodSections = [
     title: null,
     key: 'main',
     items: [
-      { icon: RxDashboard, label: 'Dashboard', path: '/hod/dashboard' },
-      { icon: LuUsers, label: 'Staff', path: '/hod/staff' },
-      { icon: FiGrid, label: 'Table', path: '/hod/table' },
-      { icon: FiLayers, label: 'History', path: '/hod/history' },
-      ],
+      { icon: RxDashboard, label: 'Dashboard', path: '/waiter/dashboard' },
+      { icon: LuUsers, label: 'Table', path: '/waiter/table' },
+    ],
   },
 ];
 
@@ -55,38 +53,31 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
   };
 
   return (
-    <div className="px-3 mb-1">
+    <div>
       <NavLink
         to={path}
         className={({ isActive: navActive }) =>
           [
-            'group relative flex w-full items-center text-left text-sm font-medium transition-all duration-300 rounded-xl overflow-hidden',
-            open ? 'px-4 py-3' : 'px-3 py-3 justify-center',
-            (navActive || isActive) ? 'text-senary font-semibold bg-primary/100 shadow-lg shadow-primary/30' : 'text-senary hover:bg-primary/30',
+            'group flex w-full items-center text-left text-sm font-medium transition',
+            open ? 'px-6 py-3' : 'px-3 py-3 justify-center',
+            (navActive || isActive) ? 'text-senary bg-primary/50' : 'text-quinary hover:bg-primary/30',
           ].join(' ')
         }
         aria-label={!open ? label : undefined}
         onClick={handleClick}
       >
-
-        {/* Animated shine effect on hover */}
-        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-
         <div
-          className={`relative flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}
+          className={`flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}
         >
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition-all duration-300 ${(isActive)
-              ? 'bg-primary text-senary scale-110'
-              : 'bg-primary/25 text-senary group-hover:bg-primary group-hover:scale-105'
-            }`}>
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/40 text-lg text-senary transition group-hover:bg-primary group-hover:text-senary">
             <Icon />
           </span>
           {open ? (
             <>
               <span className="truncate flex-1">{label}</span>
               {subMenus ? (
-                <span className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : 'rotate-0'}`}>
-                  <FiChevronDown className="w-4 h-4" />
+                <span className="text-senary">
+                  {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
                 </span>
               ) : null}
               {badge ? (
@@ -124,7 +115,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
   );
 };
 
-const HODSidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {  
+const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) => {  
   const sections = hodSections;
   const containerClasses = [
     'flex h-screen flex-col overflow-y-auto border-r border-secondary/20 bg-white shadow-sm transition-all duration-200 ease-in-out',
@@ -162,7 +153,7 @@ const HODSidebar = ({ open = true, isMobile = false, isCompact = false, onClose 
         {open ? (
           <div>
             <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-            <p className="text-xs text-gray-500">HOD Panel</p>
+            <p className="text-xs text-gray-500">Waiter Panel</p>
           </div>
         ) : null}
       </div>
@@ -188,4 +179,4 @@ const HODSidebar = ({ open = true, isMobile = false, isCompact = false, onClose 
   );
 };
 
-export default HODSidebar;
+export default Sidebar;

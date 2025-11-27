@@ -14,6 +14,7 @@ import { IMAGE_URL } from '../../Utils/baseUrl'
 const HODTable = () => {
   const dispatch = useDispatch();
   const getCafeTableData = useSelector((state) => state.cafeTable.cafeTable);
+  console.log("getCafeTableData",getCafeTableData);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -29,6 +30,7 @@ const HODTable = () => {
     No: true,
     title: true,
     limit: true,
+    status: true,
     actions: true
   });
 
@@ -143,6 +145,14 @@ const HODTable = () => {
         }
         if (visibleColumns.limit) {
           row['Limit'] = about.limit || '';
+        }
+        if (visibleColumns.status) {
+          const statusValue = about.status;
+          if (statusValue === true || statusValue === 'true' || statusValue === 1) {
+            row['Status'] = 'Available';
+          } else {
+            row['Status'] = 'Occupied';
+          }
         }
 
         return row;
@@ -308,6 +318,9 @@ const HODTable = () => {
                   {visibleColumns.limit && (
                     <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Limit</th>
                   )}
+                  {visibleColumns.status && (
+                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Status</th>
+                  )}
                   {visibleColumns.actions && (
                     <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                   )}
@@ -334,6 +347,19 @@ const HODTable = () => {
                         <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="flex items-center gap-2">
                             {about.limit}
+                          </div>
+                        </td>
+                      )}
+                      {visibleColumns.status && (
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-[4px] text-sm font-medium ${
+                              about.status 
+                                ? "bg-green-500 text-white" 
+                                : "bg-red-500 text-white"
+                            }`}>
+                              {about.status ? "Available" : "Occupied"}
+                            </span>
                           </div>
                         </td>
                       )}
