@@ -61,6 +61,9 @@ import AccountantDashboard from './component/Accountant/Dashboard.js'
 import AllBookings from './Pages/AllBookings.jsx';
 import AllHouseKeeping from './Pages/AllHouseKeeping.jsx';
 import AboutForm from './Pages/AboutForm.jsx';
+import RestaurantOrder from './Pages/RestaurantOrder.jsx';
+import BarOrder from './Pages/BarOrder.jsx';
+import CafeOrderList from './Pages/CafeOrderList.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -165,7 +168,7 @@ function App() {
                   <Route index element={<Navigate to="/cafe/cafecategory" replace />} />
                   <Route path='cafecategory' element={<Cafecategory />} />
                   <Route path='cafeitems' element={<CafeItems />} />
-                  <Route path='cafeorder' element={<HODHistory />} />
+                  <Route path='cafeorder' element={<CafeOrderList />} />
                 </Route>
 
                 <Route
@@ -179,6 +182,7 @@ function App() {
                   <Route index element={<Navigate to="/bar/barcategory" replace />} />
                   <Route path='barcategory' element={<Barcategory />} />
                   <Route path='baritems' element={<BarItems />} />
+                  <Route path='barorder' element={<BarOrder />} />
                 </Route>
 
                 <Route
@@ -192,6 +196,7 @@ function App() {
                   <Route index element={<Navigate to="/restaurant/restaurantcategory" replace />} />
                   <Route path='restaurantcategory' element={<Restaurantcategory />} />
                   <Route path='restaurantitems' element={<Restaurantitem />} />
+                  <Route path='restaurantorder' element={<RestaurantOrder />} />
                 </Route>
 
                 <Route

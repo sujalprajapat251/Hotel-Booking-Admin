@@ -233,7 +233,7 @@ const User = () => {
                                                 <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                     <div className="flex items-center gap-3">
                                                         {user.photo ? (
-                                                            <img src={`${IMAGE_URL}/photo/${user.photo}`}
+                                                            <img src={user.photo}
                                                                 alt={user.name}
                                                                 className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                                                             />
