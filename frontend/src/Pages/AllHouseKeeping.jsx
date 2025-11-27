@@ -97,6 +97,7 @@ const AllHouseKeeping = () => {
             })).unwrap();
 
             dispatch(fetchAllhousekeepingrooms());
+            dispatch(fetchFreeWorker())
 
             handleAssignWorkerClose();
         } catch (error) {
@@ -143,10 +144,10 @@ const AllHouseKeeping = () => {
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         workerName: true,
-        date: true,
+        // date: true,
         status: true,
-        roomType: true,
         roomNo: true,
+        roomType: true,
         actions: true
     });
 
@@ -323,11 +324,40 @@ const AllHouseKeeping = () => {
         setCurrentPage(1);
     };
 
+    const toIsoDate = (dateInput) => {
+        if (!dateInput) return '';
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+    };
+
+    // Filter bookings based on search term
+    const filteredBookings = housekeepingRooms.filter((item) => {
+        const searchLower = searchTerm.trim().toLowerCase();
+        if (!searchLower) return true;
+
+        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
+        const formattedDate = formatDate(item.date).toLowerCase();
+        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+        const isoDate = toIsoDate(item.date).toLowerCase();
+
+        return (
+            item.name?.toLowerCase().includes(searchLower) ||
+            item.category?.name?.toLowerCase().includes(searchLower) ||
+            item.price?.toString().includes(searchLower) ||
+            item.description?.toLowerCase().includes(searchLower) ||
+            formattedCreatedAt.includes(searchLower) ||
+            formattedDate.includes(searchLower) ||
+            isoCreatedAt.includes(searchLower) ||
+            isoDate.includes(searchLower)
+        );
+    });
+
     // Use backend pagination data
-    const totalPages = reduxTotalPages || 1;
-    const startIndex = ((currentPage - 1) * itemsPerPage);
-    const endIndex = Math.min(startIndex + itemsPerPage, totalCount || 0);
-    const currentData = housekeepingRooms; // Already paginated from backend
+    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const currentData = filteredBookings.slice(startIndex, endIndex);
 
     return (
         <>
@@ -357,13 +387,6 @@ const AllHouseKeeping = () => {
                                 {/* Action Buttons */}
                                 <div className="flex items-center gap-1 justify-end mt-2">
                                     <div className="relative" ref={dropdownRef}>
-                                        <button
-                                            // onClick={() => navigate('/staff/addstaff', { state: { mode: 'add' } })}
-                                            className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-                                            title="Add New Booking"
-                                        >
-                                            <FiPlusCircle size={20} />
-                                        </button>
                                         <button
                                             onClick={() => setShowColumnDropdown(!showColumnDropdown)}
                                             className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
@@ -447,13 +470,7 @@ const AllHouseKeeping = () => {
                                         currentData?.map((housekeeping, index) => (
                                             <tr
                                                 key={housekeeping.id}
-                                                className="transition-all duration-200"
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'linear-gradient(to right, rgba(247, 223, 156, 0.1), rgba(227, 199, 138, 0.1))';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'transparent';
-                                                }}
+                                                className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                             >
                                                 {visibleColumns.No && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
@@ -463,7 +480,7 @@ const AllHouseKeeping = () => {
                                                 {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-semibold text-[#755647]">{housekeeping.name}</span>
+                                                            <span className="text-sm font-medium text-gray-800">{housekeeping.name}</span>
                                                         </div>
                                                     </td>
                                                 )}
@@ -475,7 +492,7 @@ const AllHouseKeeping = () => {
                                                     </td>
                                                 )}
                                                 {visibleColumns.roomNo && (
-                                                    <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{housekeeping.roomNo}</td>
+                                                    <td className="x-5 py-2 md600:py-3 lg:px-6">{housekeeping.roomNo}</td>
                                                 )}
                                                 {visibleColumns.roomType && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
@@ -491,25 +508,21 @@ const AllHouseKeeping = () => {
                                                     </td>
                                                 )}
                                                 {visibleColumns.actions && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2">
-                                                            <div onClick={() => handleViewClick(housekeeping)} className="cursor-pointer">
-                                                                <IoEyeSharp className='text-[18px] text-quaternary hover:text-[#876B56] transition-colors' />
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                        <div className="mv_table_action flex">
+                                                            <div onClick={() => handleViewClick(housekeeping)}>
+                                                                <IoEyeSharp className='text-[18px] text-quaternary' />
                                                             </div>
-                                                            <button
+                                                            <div
                                                                 onClick={() => handleAssignWorkerClick(housekeeping)}
-                                                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                                                title="Assign Worker"
                                                             >
-                                                                <FiEdit size={16} />
-                                                            </button>
-                                                            <button
+                                                                <FiEdit className="text-[#6777ef] text-[18px]" />
+                                                            </div>
+                                                            {/* <div
                                                                 onClick={() => handleDeleteClick(housekeeping)}
-                                                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                                                                title="Delete Booking"
                                                             >
-                                                                <RiDeleteBinLine size={16} />
-                                                            </button>
+                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                                                            </div> */}
                                                         </div>
                                                     </td>
                                                 )}
@@ -539,43 +552,37 @@ const AllHouseKeeping = () => {
                                 <div className="relative">
                                     <select
                                         value={itemsPerPage}
-                                        onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+                                        onChange={(e) => {
+                                            setItemsPerPage(Number(e.target.value));
+                                            setCurrentPage(1);
+                                        }}
                                         className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
-                                        disabled={loading}
                                     >
                                         <option value={5}>5</option>
                                         <option value={10}>10</option>
                                         <option value={25}>25</option>
-                                        <option value={50}>50</option>
                                         <option value={100}>100</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+                            <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {totalCount > 0
-                                        ? `${startIndex + 1} - ${Math.min(endIndex, totalCount)} of ${totalCount}`
-                                        : '0 - 0 of 0'}
+                                    {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
                                 </span>
 
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => handlePageChange(currentPage - 1)}
-                                        disabled={currentPage === 1 || loading}
-                                        className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Previous Page"
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
-                                    <span className="px-3 py-1 text-sm font-medium text-gray-700">
-                                        {currentPage} / {totalPages}
-                                    </span>
                                     <button
-                                        onClick={() => handlePageChange(currentPage + 1)}
-                                        disabled={currentPage === totalPages || loading}
-                                        className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Next Page"
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronRight size={20} />
                                     </button>
@@ -589,63 +596,39 @@ const AllHouseKeeping = () => {
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity"
-                            style={{ backgroundColor: '#000000bf' }}
+                            className="fixed inset-0 transition-opacity absolute bg-black/40"
                             onClick={handleCloseModal}
                         ></div>
 
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[30%] sm:max-w-xl border-2" style={{
-                                borderColor: '#E3C78A',
-                                boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                            }}>
+                            <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-lg" >
                                 {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
-                                }}>
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Booking Details</h3>
+                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6" >
+                                    <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                                        <h3 className="text-lg font-semibold text-black">Booking Details</h3>
                                         <button
-                                            type="button"
-                                            onClick={handleCloseModal}
-                                            className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
-                                            style={{ color: '#876B56' }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
-                                                e.currentTarget.style.color = '#755647';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                e.currentTarget.style.color = '#876B56';
-                                            }}
-                                        >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
+                                        type="button"
+                                        onClick={handleCloseModal}
+                                        className="inline-flex items-center justify-center p-1"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
                                     </div>
 
                                     {/* Details */}
-                                    <div className="space-y-1">
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Worker Name:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Worker Name:</span>
+                                            <span className='text-gray-900'>{selectedItem.name}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Room Type:</span>
-                                            <span style={{ color: '#876B56' }}>{selectedItem.roomType}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Room Type:</span>
+                                            <span className='text-gray-900'>{selectedItem.roomType}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 p-2 rounded-lg transition-colors" style={{ backgroundColor: 'transparent' }}
-                                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.2)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                        >
-                                            <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Payment Status:</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Payment Status:</span>
                                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
                                                 {selectedItem.status}
                                             </span>
@@ -661,36 +644,17 @@ const AllHouseKeeping = () => {
                 {isAssignWorkerModalOpen && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity"
-                            style={{ backgroundColor: '#000000bf' }}
+                            className="fixed inset-0 transition-opacity absolute bg-black/40"
                             onClick={handleAssignWorkerClose}
                         ></div>
 
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform h-[300px] overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border-2" style={{
-                                borderColor: '#E3C78A',
-                                boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                            }}>
+                            <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                                 {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-6" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
-                                }}>
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Assign Worker</h3>
-                                        <button
-                                            type="button"
-                                            onClick={handleAssignWorkerClose}
-                                            className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
-                                            style={{ color: '#876B56' }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.3)';
-                                                e.currentTarget.style.color = '#755647';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.backgroundColor = 'transparent';
-                                                e.currentTarget.style.color = '#876B56';
-                                            }}
-                                        >
+                                <div className="px-4 py-4 sm:p-6">
+                                    <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
+                                        <h3 className="text-xl md:text-2xl font-bold text-black">Assign Worker</h3>
+                                        <button onClick={handleAssignWorkerClose} className="text-gray-500 hover:text-gray-800">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                             </svg>
@@ -700,59 +664,57 @@ const AllHouseKeeping = () => {
                                     {/* Form Content */}
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-sm font-semibold mb-2" style={{ color: '#755647' }}>
+                                            <label className="block text-sm font-semibold mb-2 text-black">
                                                 Room Number: {selectedHousekeeping?.roomNo || 'N/A'}
                                             </label>
                                         </div>
 
                                         <div className="relative" ref={workerDropdownRef}>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
                                                 Select Worker <span className="text-red-500">*</span>
                                             </label>
                                             <button
                                                 type="button"
                                                 onClick={() => setIsWorkerDropdownOpen(!isWorkerDropdownOpen)}
-                                                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                className="w-full flex items-center justify-between px-4 py-2 border bg-gray-100 rounded-[4px]"
                                             >
-                                                <span className={selectedWorker.name ? 'text-gray-800' : 'text-gray-400'}>
-                                                    {selectedWorker.name || 'Select a worker'}
+                                                <span className={`text-sm truncate ${selectedWorker.name ? 'text-gray-800' : 'text-gray-400'}`}>
+                                                    {selectedWorker.name || 'Select Worker'}
                                                 </span>
-                                                <ChevronDown size={18} className="text-gray-600" />
+                                                <ChevronDown
+                                                    size={18}
+                                                    className={`text-gray-600 transition-transform duration-200 ${isWorkerDropdownOpen ? 'rotate-180' : ''}`}
+                                                />
                                             </button>
                                             {isWorkerDropdownOpen && (
-                                                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1 max-h-24 overflow-y-auto">
-                                                    <div
-                                                        onClick={() => {
-                                                            setSelectedWorker({ name: '', id: '' });
-                                                            setIsWorkerDropdownOpen(false);
-                                                        }}
-                                                        className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-gray-400"
-                                                    >
-                                                        Select a worker
-                                                    </div>
-                                                    {freeWorkers?.map((staff) => (
-                                                        <div
-                                                            key={staff?._id || staff?.id}
-                                                            onClick={() => {
-                                                                setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
-                                                                setIsWorkerDropdownOpen(false);
-                                                            }}
-                                                            className="px-4 py-2 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                                                        >
-                                                            {staff?.name || 'Unnamed Staff'}
-                                                        </div>
-                                                    ))}
+                                                <div className="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto rounded-[4px]">
+                                                    {freeWorkers?.map((staff) => {
+                                                        const isSelected = selectedWorker.id && (selectedWorker.id === (staff?._id || staff?.id));
+                                                        return (
+                                                            <div
+                                                                key={staff?._id || staff?.id}
+                                                                onClick={() => {
+                                                                    setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
+                                                                    setIsWorkerDropdownOpen(false);
+                                                                }}
+                                                                className={`px-4 py-2 text-sm cursor-pointer transition-colors ${
+                                                                    isSelected ? 'bg-[#F7DF9C] text-black font-medium' : 'text-black hover:bg-[#F7DF9C]'
+                                                                }`}
+                                                            >
+                                                                {staff?.name || 'Unnamed Staff'}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
+                                        <div className="flex items-center justify-center gap-3 mt-6 pt-4 border-t border-gray-200">
                                             <button
                                                 type="button"
                                                 onClick={handleAssignWorkerClose}
-                                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                                style={{ color: '#876B56' }}
+                                                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-2 rounded"
                                             >
                                                 Cancel
                                             </button>
@@ -760,7 +722,7 @@ const AllHouseKeeping = () => {
                                                 type="button"
                                                 onClick={handleAssignWorkerSubmit}
                                                 disabled={!selectedWorker.name || creating}
-                                                className="px-6 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white disabled:opacity-50 disabled:cursor-not-allowed"
                                                 style={{
                                                     backgroundColor: selectedWorker.name && !creating ? '#876B56' : '#ccc'
                                                 }}
@@ -786,7 +748,7 @@ const AllHouseKeeping = () => {
                 )}
 
                 {/* Delete Modal */}
-                {isDeleteModalOpen && (
+                {/* {isDeleteModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center">
                         <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
                         <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
@@ -820,7 +782,7 @@ const AllHouseKeeping = () => {
                             </div>
                         </div>
                     </div>
-                )}
+                )} */}
             </div >
         </>
     )
