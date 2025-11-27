@@ -15,6 +15,7 @@ const CafeOrderList = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const scrollPosition = useRef(0);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -167,6 +168,31 @@ const CafeOrderList = () => {
   useEffect(() => {
     dispatch(getAllCafeOrder());
   }, [dispatch]);
+
+  // Prevent background (body) scrolling when modal is open and restore on close
+  useEffect(() => {
+    if (isModalOpen) {
+      scrollPosition.current = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollPosition.current}px`;
+      document.body.style.width = '100%';
+    } else {
+      const top = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (top) {
+        const scrollY = -parseInt(top || '0');
+        window.scrollTo(0, scrollY);
+      }
+    }
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+    };
+  }, [isModalOpen]);
 
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
