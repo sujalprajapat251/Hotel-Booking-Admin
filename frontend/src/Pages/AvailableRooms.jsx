@@ -869,6 +869,8 @@ const AvailableRooms = () => {
               const bedType = room.bed?.mainBed?.type || 'N/A';
               const price = room.price?.base || 0;
               const isAddGuestAction = room.status !== 'Occupied' && room.status !== 'Reserved';
+              const isDirty = room.cleanStatus === 'Dirty';
+              const isAddGuestDisabled = isAddGuestAction && isDirty;
 
               // Get amenities from features
               const amenities = room.features || [];
@@ -900,7 +902,7 @@ const AvailableRooms = () => {
               };
 
               // RoomCard component for managing selected image state
-              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete }) => {
+              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete }) => {
                 const [selectedImage, setSelectedImage] = useState(mainImage);
 
                 return (
@@ -1096,12 +1098,16 @@ const AvailableRooms = () => {
                     {/* Action Buttons */}
                     <div className="space-y-3">
                       <button
-                        onClick={() => handleRoomAction(room)}
-                        className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg ${
-                          isAddGuestAction
-                            ? 'bg-senary hover:bg-quinary'
-                            : 'bg-quinary hover:bg-senary'
+                        onClick={() => !isAddGuestDisabled && handleRoomAction(room)}
+                        disabled={isAddGuestDisabled}
+                        className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${
+                          isAddGuestDisabled
+                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                            : isAddGuestAction
+                            ? 'bg-senary hover:bg-quinary hover:shadow-lg'
+                            : 'bg-quinary hover:bg-senary hover:shadow-lg'
                         }`}
+                        title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
                       >
                         {room.status === 'Occupied' || room.status === 'Reserved' ? (
                           <div className='flex items-center gap-2'>
@@ -1120,6 +1126,11 @@ const AvailableRooms = () => {
                               <line x1="23" y1="11" x2="17" y2="11"></line>
                             </svg>
                             <span>Add Guest</span>
+                            {isDirty && (
+                              <span className="text-xs bg-red-500 px-2 py-0.5 rounded-full ml-1">
+                                Dirty
+                              </span>
+                            )}
                           </div>
                         )}
                       </button>
@@ -1151,6 +1162,8 @@ const AvailableRooms = () => {
                   bedType={bedType}
                   price={price}
                   isAddGuestAction={isAddGuestAction}
+                  isAddGuestDisabled={isAddGuestDisabled}
+                  isDirty={isDirty}
                   amenities={amenities}
                   roomBooking={roomBooking}
                   guestName={guestName}

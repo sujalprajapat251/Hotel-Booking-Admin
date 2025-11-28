@@ -177,7 +177,7 @@ const createBooking = async (req, res) => {
         await refreshRoomStatus(roomId);
 
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity' },
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus' },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
@@ -297,7 +297,7 @@ const getBookings = async (req, res) => {
         const bookings = await Booking.find(filter)
             .populate({
                 path: 'room',
-                select: 'roomNumber roomType status floor price',
+                select: 'roomNumber roomType status floor price cleanStatus',
                 populate: { path: 'roomType' }
             })
             .populate('createdBy', 'fullName email role')
@@ -323,7 +323,7 @@ const getBookingById = async (req, res) => {
     try {
         const { id } = req.params;
         const booking = await Booking.findById(id)
-            .populate('room', 'roomNumber roomType status capacity price')
+            .populate('room', 'roomNumber roomType status capacity price cleanStatus')
             .populate('createdBy', 'fullName email role');
 
         if (!booking) {
@@ -422,6 +422,11 @@ const updateBooking = async (req, res) => {
             if (Array.isArray(paymentPayload.transactions)) booking.payment.transactions = paymentPayload.transactions;
         }
 
+        // Track if status is changing to CheckedOut (before updating booking.status)
+        const originalStatus = booking.status;
+        const newStatus = req.body.status;
+        const isChangingToCheckedOut = newStatus === 'CheckedOut' && originalStatus !== 'CheckedOut';
+
         if (req.body.status) {
             booking.status = req.body.status;
         }
@@ -435,6 +440,11 @@ const updateBooking = async (req, res) => {
 
         console.log("booking0", booking);
 
+        // Update room cleanStatus to "Dirty" when booking status changes to CheckedOut
+        // Note: booking.room is already updated if roomChanged is true, so this will update the correct room
+        if (isChangingToCheckedOut) {
+            await Room.findByIdAndUpdate(booking.room, { cleanStatus: 'Dirty' });
+        }
 
         await refreshRoomStatus(booking.room);
         if (roomChanged && originalRoomId) {
@@ -442,7 +452,7 @@ const updateBooking = async (req, res) => {
         }
 
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity price' },
+            { path: 'room', select: 'roomNumber roomType status capacity price cleanStatus' },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 

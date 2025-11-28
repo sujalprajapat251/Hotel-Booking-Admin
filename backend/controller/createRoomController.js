@@ -1,6 +1,7 @@
 const Room = require('../models/createRoomModel');
 const RoomType = require('../models/roomtypeModel');
 const Feature = require('../models/featuresModel');
+const Booking = require('../models/bookingModel');
 const { Types } = require('mongoose');
 const { uploadToS3, deleteFromS3 } = require('../utils/s3Service');
 const { refreshRoomStatus } = require('./bookingController');
@@ -20,6 +21,8 @@ const formatRoom = (doc) => ({
     isSmokingAllowed: doc.isSmokingAllowed,
     isPetFriendly: doc.isPetFriendly,
     maintenanceNotes: doc.maintenanceNotes,
+    cleanStatus: doc.cleanStatus,
+    cleanassign: doc.cleanassign,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt
 });
@@ -167,6 +170,8 @@ const createRoom = async (req, res) => {
             isSmokingAllowed: isSmokingAllowed || false,
             isPetFriendly: isPetFriendly || false,
             maintenanceNotes: maintenanceNotes || '',
+            cleanStatus: 'Clean',
+            cleanassign: null,
         };
 
         const created = await Room.create(roomData);
@@ -213,11 +218,24 @@ const getRoomsWithPagination = async (req, res) => {
         status,
         floor,
         bedSize,
-        housekeeping
+        housekeeping,
+        checkInFrom,
+        checkOutTo
       } = req.query;
   
       page = parseInt(page);
       limit = parseInt(limit);
+  
+      // Parse date filters
+      const parseDate = (value) => {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+      };
+  
+      const checkInDate = parseDate(checkInFrom);
+      const checkOutDate = parseDate(checkOutTo);
+      const hasDateFilter = checkInDate && checkOutDate;
   
       // Build query
       const query = {};
@@ -270,6 +288,33 @@ const getRoomsWithPagination = async (req, res) => {
         }
   
         query.$or = searchConditions;
+      }
+  
+      // Date filter: Find rooms available during the specified date range
+      if (hasDateFilter) {
+        // Find all rooms that have active bookings overlapping with the date range
+        const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
+        const overlappingBookings = await Booking.find({
+          status: { $in: ACTIVE_BOOKING_STATUSES },
+          'reservation.checkInDate': { $lt: checkOutDate },
+          'reservation.checkOutDate': { $gt: checkInDate }
+        }).select('room').lean();
+        
+        // Get unique room IDs that are booked during this period
+        const bookedRoomIds = [...new Set(overlappingBookings.map(b => b.room?.toString()).filter(Boolean))];
+        
+        // Filter to show only rooms that are NOT booked (available) during the date range
+        if (bookedRoomIds.length > 0) {
+          // Convert string IDs to ObjectId for query
+          const bookedObjectIds = bookedRoomIds
+            .filter(id => Types.ObjectId.isValid(id))
+            .map(id => new Types.ObjectId(id));
+          
+          if (bookedObjectIds.length > 0) {
+            query._id = { $nin: bookedObjectIds };
+          }
+        }
+        // If no rooms are booked, all rooms pass the filter (query remains unchanged)
       }
   
       // Count total documents for pagination
@@ -558,75 +603,75 @@ const deleteRoom = async (req, res) => {
     }
   };
 
-const bedRules = {
-    "deluxe": [
-      { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 }},
-      { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 }},
-      { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 }},
-      { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 }},
-    ],
+// const bedRules = {
+//     "deluxe": [
+//       { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 }},
+//       { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 }},
+//       { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 }},
+//       { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 }},
+//     ],
   
-    "Super Deluxe Room": [
-      { 
-        mainBed: { type: "Queen", count: 1 },
-        childBed: { type: "Single", count: 1 }
-      }
-    ],
+//     "Super Deluxe Room": [
+//       { 
+//         mainBed: { type: "Queen", count: 1 },
+//         childBed: { type: "Single", count: 1 }
+//       }
+//     ],
   
-    "premium": [
-      { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 }},
-      { 
-        mainBed: { type: "Twin", count: 2 },
-        childBed: { type: "Double", count: 1 }
-      }
-    ]
-  };
+//     "premium": [
+//       { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 }},
+//       { 
+//         mainBed: { type: "Twin", count: 2 },
+//         childBed: { type: "Double", count: 1 }
+//       }
+//     ]
+//   };
   
-  const autoUpdateRoomBeds = async (req, res) => {
-    try {
-      const rooms = await Room.find({}).populate("roomType");
+//   const autoUpdateRoomBeds = async (req, res) => {
+//     try {
+//       const rooms = await Room.find({}).populate("roomType");
   
-      let updated = [];
+//       let updated = [];
   
-      for (let room of rooms) {
-        const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
+//       for (let room of rooms) {
+//         const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
   
-        if (!bedRules[typeName]) continue;
+//         if (!bedRules[typeName]) continue;
   
-        // choose random rule if multiple
-        const ruleSet = bedRules[typeName];
-        const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
+//         // choose random rule if multiple
+//         const ruleSet = bedRules[typeName];
+//         const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
   
-        await Room.updateOne(
-          { _id: room._id },
-          {
-            $set: {
-              bed: selectedRule,
-              capacity: {
-                adults: selectedRule.mainBed.count === 2 ? 2 : 1,
-                children: selectedRule.childBed.count
-              }
-            }
-          }
-        );
+//         await Room.updateOne(
+//           { _id: room._id },
+//           {
+//             $set: {
+//               bed: selectedRule,
+//               capacity: {
+//                 adults: selectedRule.mainBed.count === 2 ? 2 : 1,
+//                 children: selectedRule.childBed.count
+//               }
+//             }
+//           }
+//         );
   
-        updated.push({
-          roomNumber: room.roomNumber,
-          roomType: typeName,
-          bed: selectedRule
-        });
-      }
+//         updated.push({
+//           roomNumber: room.roomNumber,
+//           roomType: typeName,
+//           bed: selectedRule
+//         });
+//       }
   
-      res.status(200).json({
-        message: "Updated all rooms successfully!",
-        updatedCount: updated.length,
-        updatedRooms: updated
-      });
+//       res.status(200).json({
+//         message: "Updated all rooms successfully!",
+//         updatedCount: updated.length,
+//         updatedRooms: updated
+//       });
   
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
+//     } catch (err) {
+//       res.status(500).json({ error: err.message });
+//     }
+//   };
   
 // Utility controller: refresh status for all rooms
 const refreshAllRoomsStatus = async (req, res) => {
