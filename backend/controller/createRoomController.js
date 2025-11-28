@@ -603,75 +603,75 @@ const deleteRoom = async (req, res) => {
     }
   };
 
-// const bedRules = {
-//     "deluxe": [
-//       { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 }},
-//       { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 }},
-//       { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 }},
-//       { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 }},
-//     ],
+const bedRules = {
+    "deluxe": [
+      { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 }},
+    ],
   
-//     "Super Deluxe Room": [
-//       { 
-//         mainBed: { type: "Queen", count: 1 },
-//         childBed: { type: "Single", count: 1 }
-//       }
-//     ],
+    "Super Deluxe Room": [
+      { 
+        mainBed: { type: "Queen", count: 1 },
+        childBed: { type: "Single", count: 1 }
+      }
+    ],
   
-//     "premium": [
-//       { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 }},
-//       { 
-//         mainBed: { type: "Twin", count: 2 },
-//         childBed: { type: "Double", count: 1 }
-//       }
-//     ]
-//   };
+    "premium": [
+      { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 }},
+      { 
+        mainBed: { type: "Twin", count: 2 },
+        childBed: { type: "Double", count: 1 }
+      }
+    ]
+  };
   
-//   const autoUpdateRoomBeds = async (req, res) => {
-//     try {
-//       const rooms = await Room.find({}).populate("roomType");
+  const autoUpdateRoomBeds = async (req, res) => {
+    try {
+      const rooms = await Room.find({}).populate("roomType");
   
-//       let updated = [];
+      let updated = [];
   
-//       for (let room of rooms) {
-//         const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
+      for (let room of rooms) {
+        const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
   
-//         if (!bedRules[typeName]) continue;
+        if (!bedRules[typeName]) continue;
   
-//         // choose random rule if multiple
-//         const ruleSet = bedRules[typeName];
-//         const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
+        // choose random rule if multiple
+        const ruleSet = bedRules[typeName];
+        const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
   
-//         await Room.updateOne(
-//           { _id: room._id },
-//           {
-//             $set: {
-//               bed: selectedRule,
-//               capacity: {
-//                 adults: selectedRule.mainBed.count === 2 ? 2 : 1,
-//                 children: selectedRule.childBed.count
-//               }
-//             }
-//           }
-//         );
+        await Room.updateOne(
+          { _id: room._id },
+          {
+            $set: {
+              bed: selectedRule,
+              capacity: {
+                adults: selectedRule.mainBed.count === 2 ? 2 : 1,
+                children: selectedRule.childBed.count
+              }
+            }
+          }
+        );
   
-//         updated.push({
-//           roomNumber: room.roomNumber,
-//           roomType: typeName,
-//           bed: selectedRule
-//         });
-//       }
+        updated.push({
+          roomNumber: room.roomNumber,
+          roomType: typeName,
+          bed: selectedRule
+        });
+      }
   
-//       res.status(200).json({
-//         message: "Updated all rooms successfully!",
-//         updatedCount: updated.length,
-//         updatedRooms: updated
-//       });
+      res.status(200).json({
+        message: "Updated all rooms successfully!",
+        updatedCount: updated.length,
+        updatedRooms: updated
+      });
   
-//     } catch (err) {
-//       res.status(500).json({ error: err.message });
-//     }
-//   };
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  };
   
 // Utility controller: refresh status for all rooms
 const refreshAllRoomsStatus = async (req, res) => {
