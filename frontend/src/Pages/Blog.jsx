@@ -229,14 +229,17 @@ const Blog = () => {
         const formattedDate = formatDate(item.date).toLowerCase();
         const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
         const isoDate = toIsoDate(item.date).toLowerCase();
+        const plainDescription = stripHtmlTags(item.description).toLowerCase();
+        const countValue = item.count !== undefined && item.count !== null ? item.count.toString().toLowerCase() : '';
 
         return (
             item.title?.toLowerCase().includes(searchLower) ||
             item.subtitle?.toLowerCase().includes(searchLower) ||
-            item.description?.toLowerCase().includes(searchLower) ||
+            plainDescription.includes(searchLower) ||
             item.date?.toLowerCase().includes(searchLower) ||
             item.name?.toLowerCase().includes(searchLower) ||
             item.tag?.toLowerCase().includes(searchLower) ||
+            countValue.includes(searchLower) ||
             formattedCreatedAt.includes(searchLower) ||
             formattedDate.includes(searchLower) ||
             isoCreatedAt.includes(searchLower) ||
@@ -448,7 +451,7 @@ const Blog = () => {
                                         className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                     >
                                         {visibleColumns.no && (
-                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                                         )}
 
                                         {/* Guest Name */}

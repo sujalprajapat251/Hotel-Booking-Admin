@@ -119,6 +119,7 @@ const HODHistory = () => {
     if (!searchQuery.trim()) return true;
 
     const query = searchQuery.toLowerCase().trim();
+    const amountQuery = query.replace(/[^0-9.]/g, '');
     const name = (order?.name || '').toLowerCase();
     const contact = (order?.contact || '').toLowerCase();
     const fromSource = (order?.from || '').toLowerCase();
@@ -128,6 +129,16 @@ const HODHistory = () => {
       ?.map((item) => (item?.product?.name || '').toLowerCase())
       .join(' ') || '';
     const formattedDate = order?.createdAt ? formatDate(order.createdAt).toLowerCase() : '';
+    const amountValue = getOrderTotalAmount(order);
+    const amountString = amountValue.toString();
+    const amountFixed = amountValue.toFixed(2);
+    const amountWithCurrency = `₹${amountFixed}`.toLowerCase();
+    const hasNumericQuery = Boolean(amountQuery);
+    const amountMatchesNumber = hasNumericQuery && (
+      amountString.includes(amountQuery) ||
+      amountFixed.includes(amountQuery)
+    );
+    const amountMatchesCurrency = query.includes('₹') && amountWithCurrency.includes(query);
 
     return name.includes(query) ||
       contact.includes(query) ||
@@ -135,7 +146,9 @@ const HODHistory = () => {
       payment.includes(query) ||
       paymentMethod.includes(query) ||
       itemNames.includes(query) ||
-      formattedDate.includes(query);
+      formattedDate.includes(query) ||
+      amountMatchesNumber ||
+      amountMatchesCurrency;
   });
 
   const totalItems = filteredOrderHistory.length;

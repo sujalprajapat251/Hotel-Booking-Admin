@@ -40,7 +40,7 @@ exports.createBlog = async (req, res) => {
 // GET ALL BLOGS
 exports.getAllBlogs = async (req, res) => {
     try {
-        const blogData = await Blog.find().sort({ readcount: -1 });
+        const blogData = await Blog.find().sort({ createdAt: -1 });
 
         if (!blogData.length) {
             return res.status(200).json({

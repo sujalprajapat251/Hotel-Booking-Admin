@@ -127,6 +127,9 @@ const RestaurantOrder = () => {
       ?.map((item) => (item?.product?.name || '').toLowerCase())
       .join(' ') || '';
     const formattedDate = order?.createdAt ? formatDate(order.createdAt).toLowerCase() : '';
+    const amountValue = getOrderTotalAmount(order);
+    const amount = amountValue.toString().toLowerCase();
+    const amountWithCurrency = `₹${amountValue}`.toLowerCase();
 
     return name.includes(query) ||
       contact.includes(query) ||
@@ -134,7 +137,9 @@ const RestaurantOrder = () => {
       payment.includes(query) ||
       paymentMethod.includes(query) ||
       itemNames.includes(query) ||
-      formattedDate.includes(query);
+      formattedDate.includes(query) ||
+      amount.includes(query) ||
+      amountWithCurrency.includes(query);
   });
 
   const totalItems = filteredOrderHistory.length;
