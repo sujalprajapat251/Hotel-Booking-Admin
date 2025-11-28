@@ -1,3 +1,4 @@
+import { useSelector } from 'react-redux';
 import {
     BarChart,
     Bar,
@@ -9,18 +10,6 @@ import {
 } from 'recharts';
 
 const COLORS = ['#F7DF9C', '#E3C78A', '#B79982', '#A3876A', '#876B56', '#755647'];
-
-const data = [
-    { name: 'Jan', profit: 211 },
-    { name: 'Feb', profit: 422 },
-    { name: 'Mar', profit: 422 },
-    { name: 'Apr', profit: 422 },
-    { name: 'May', profit: 322 },
-    { name: 'Jun', profit: 378 },
-    { name: 'Jul', profit: 422 },
-    { name: 'Aug', profit: 289 },
-    { name: 'Sep', profit: 422 },
-];
 
 const RoundedBar = (props) => {
     const { fill, x, y, width, height } = props;
@@ -39,7 +28,44 @@ const RoundedBar = (props) => {
     );
 };
 
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div style={{
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: 'white',
+                padding: '8px 12px',
+                border: 'none',
+                borderRadius: '4px',
+                fontSize: '12px'
+            }}>
+                <p style={{ margin: 0 }}>
+                    Date: {payload[0].payload.name}, Bookings: {payload[0].value}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 const SimpleBarChart = () => {
+
+    const getDashboardData = useSelector((state) => state.dashboard.getDashboard);
+
+    const chartData = getDashboardData?.bookingTrend
+        ? Object.values(getDashboardData.bookingTrend)
+            .sort((a, b) => a._id - b._id)
+            .slice(-8)
+            .map(item => ({
+                name: item._id.toString(),
+                profit: item.value
+            }))
+        : [];
+
+    if (!chartData.length) {
+        return <div style={{ padding: '20px', textAlign: 'center' }}>No data available</div>;
+    }
+
     return (
         <div style={{
             width: '100%',
@@ -49,7 +75,7 @@ const SimpleBarChart = () => {
         }}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                    data={data}
+                    data={chartData}
                     margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 >
                     <XAxis
@@ -57,22 +83,13 @@ const SimpleBarChart = () => {
                         hide={true}
                     />
                     <YAxis hide={true} />
-                    <Tooltip
-                        contentStyle={{
-                            background: 'rgba(0, 0, 0, 0.7)',
-                            border: 'none',
-                            borderRadius: '2px',
-                            color: 'white'
-                        }}
-                        itemStyle={{ color: 'white' }}
-                        labelStyle={{ color: 'white' }}
-                    />
+                    <Tooltip content={<CustomTooltip />} />
                     <Bar
                         dataKey="profit"
                         shape={<RoundedBar />}
                         maxBarSize={11}
                     >
-                        {data.map((entry, index) => (
+                        {chartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Bar>

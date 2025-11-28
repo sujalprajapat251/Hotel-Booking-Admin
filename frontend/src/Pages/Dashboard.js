@@ -23,7 +23,10 @@ import { getAllReview } from '../Redux/Slice/review.slice.js';
 import { Link } from 'react-router-dom'
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getAllRevenue } from '../Redux/Slice/dashboard.silce.js';
+import { getAllDashboard, getAllReservation, getAllRevenue, getAllRoomAvailability } from '../Redux/Slice/dashboard.silce.js';
+import { IoBedOutline } from "react-icons/io5";
+import { IoIosRestaurant } from "react-icons/io";
+import { GiMartini } from "react-icons/gi";
 dayjs.extend(relativeTime);
 
 export const Dashboard = () => {
@@ -37,6 +40,8 @@ export const Dashboard = () => {
   } = useSelector((state) => state.booking);
 
   const getRevenueData = useSelector((state) => state.dashboard.getRevenue);
+  const getDashboardData = useSelector((state) => state.dashboard.getDashboard);
+  const getRoomAvailability = useSelector((state) => state.dashboard.getRoomAvailability);
 
   // ADD THIS useEffect - Transform Redux data to local state
   useEffect(() => {
@@ -88,26 +93,25 @@ export const Dashboard = () => {
   // };
 
   const roomData = {
-    occupied: 125,
-    reserved: 87,
-    available: 57,
-    notReady: 25
+    occupied: getRoomAvailability?.occupied || 0,
+    reserved: getRoomAvailability?.reserved || 0,
+    available: getRoomAvailability?.available || 0,
+    notReady: getRoomAvailability?.notReady || 0
   };
 
-  const total = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+const totalRooms = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+
   const percentages = {
-    occupied: (roomData.occupied / total) * 100,
-    reserved: (roomData.reserved / total) * 100,
-    available: (roomData.available / total) * 100,
-    notReady: (roomData.notReady / total) * 100
+    occupied: totalRooms > 0 ? (roomData.occupied / totalRooms) * 100 : 0,
+    reserved: totalRooms > 0 ? (roomData.reserved / totalRooms) * 100 : 0,
+    available: totalRooms > 0 ? (roomData.available / totalRooms) * 100 : 0,
+    notReady: totalRooms > 0 ? (roomData.notReady / totalRooms) * 100 : 0
   };
 
   const colors = {
-    primary: '#F7DF9C',
-    secondary: '#E3C78A',
-    tertiary: '#B79982',
-    quaternary: '#A3876A',
-    quinary: '#876B56',
+    primary: '#F4D9A6',
+    tertiary: '#A3876A',
+    quinary: '#8B6F47',
     senary: '#755647',
   };
 
@@ -188,7 +192,7 @@ export const Dashboard = () => {
   const revenueItems = [
     {
       name: 'Room Bookings',
-      icon: <Home className="w-6 h-6" />,
+      icon: <IoBedOutline className="w-6 h-6" />,
       bgColor: '#F7DF9C',
       iconColor: '#755647',
     },
@@ -200,13 +204,13 @@ export const Dashboard = () => {
     },
     {
       name: 'Restaurant',
-      icon: <Heart className="w-6 h-6" />,
+      icon: <IoIosRestaurant className="w-6 h-6" />,
       bgColor: '#A3876A',
       iconColor: '#FAF7F2',
     },
     {
       name: 'Bar',
-      icon: <MoreHorizontal className="w-6 h-6" />,
+      icon: <GiMartini className="w-6 h-6" />,
       bgColor: '#B79982',
       iconColor: '#FAF7F2',
     }
@@ -377,6 +381,9 @@ export const Dashboard = () => {
 
     dispatch(getAllReview());
     dispatch(getAllRevenue(yearMonth));
+    dispatch(getAllDashboard(yearMonth));
+    dispatch(getAllRoomAvailability());
+    dispatch(getAllReservation());
   }, [dispatch]);
 
 
@@ -424,10 +431,9 @@ export const Dashboard = () => {
             <div className='sm:flex justify-between items-end'>
               <div className='mb-5'>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Booking</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>1879</p>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.newBookings}</p>
                 <div className='flex gap-1 items-center mt-5'>
-                  <LuCircleArrowUp className='text-[20px] text-green-500' />
-                  <p className='text-green-500'>+7.5%</p>
+                  <p className='text-green-500'></p>
                 </div>
               </div>
               <div className='w-[220px] ms-auto'>
@@ -442,10 +448,9 @@ export const Dashboard = () => {
             <div className='sm:flex justify-between items-end'>
               <div className='mb-5'>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Available Rooms</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>55</p>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.availableRooms}</p>
                 <div className='flex gap-1 items-center mt-5'>
-                  <LuCircleArrowDown className='text-[20px] text-red-500' />
-                  <p className='text-red-500'>-5.7%</p>
+                  <p className='text-red-500'></p>
                 </div>
               </div>
               <div className='w-[180px] ms-auto'>
@@ -460,10 +465,9 @@ export const Dashboard = () => {
             <div className='sm:flex justify-between items-end'>
               <div className='mb-5'>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Revenue</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>$2287</p>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.totalRevenue}</p>
                 <div className='flex gap-1 items-center mt-5'>
-                  <LuCircleArrowUp className='text-[20px] text-green-500' />
-                  <p className='text-green-500'>+5.3%</p>
+                  <p className='text-green-500'></p>
                 </div>
               </div>
               <div className='w-[220px] h-[80px] ms-auto'>
@@ -478,10 +482,9 @@ export const Dashboard = () => {
             <div className='sm:flex justify-between items-end'>
               <div className='mb-5'>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Checkout</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>567</p>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.checkoutCount}</p>
                 <div className='flex gap-1 items-center mt-5'>
-                  <LuCircleArrowDown className='text-[20px] text-red-500' />
-                  <p className='text-red-500'>-2.4%</p>
+                  <p className='text-red-500'></p>
                 </div>
               </div>
               <div className='w-[220px] ms-auto'>

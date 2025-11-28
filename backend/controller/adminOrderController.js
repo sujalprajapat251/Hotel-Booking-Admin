@@ -4,6 +4,7 @@ const restroOrder = require('../models/restaurantOrderModal.js');
 const cafeTable = require('../models/cafeTableModel.js');
 const barTable = require("../models/barTableModel.js");
 const restroTable = require("../models/restaurantTableModel.js");
+const OrderRequest = require('../models/orderRequest.js');
 const { emitCafeOrderChanged, emitBarOrderChanged, emitRestaurantOrderChanged, emitCafeTableStatusChanged, emitBarTableStatusChanged, emitRestaurantTableStatusChanged } = require('../socketManager/socketManager.js');
 
 // exports.createCafeOrder = async (req, res) => {
@@ -562,6 +563,14 @@ exports.UpdateOrderItemStatus = async (req, res) => {
 
         await order.save();
 
+        if (order.from === 'room' && newStatus === 'Done') {
+            const toValue = name === 'restro' ? 'restaurant' : name;
+            const existing = await OrderRequest.findOne({ orderId: order._id, to: toValue, status: { $in: ['Pending', 'In-Progress'] } });
+            if (!existing) {
+                await OrderRequest.create({ roomId: order.room, workerId: null, to: toValue, orderId: order._id, status: 'Pending'});
+            }
+        }
+
         const populatedOrder = await Model.findById(orderId)
             .populate("table")
             .populate("room")
@@ -620,6 +629,7 @@ exports.cafePayment = async (req, res) => {
         if (name === 'cafe') { OrderModel = cafeOrder; TableModel = cafeTable; }
         else if (name === 'bar') { OrderModel = barOrder; TableModel = barTable; }
         else if (name === 'restaurant' || name === 'restro') { OrderModel = restroOrder; TableModel = restroTable; }
+
         if (!OrderModel || !TableModel) {
             return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
         }
@@ -642,6 +652,13 @@ exports.cafePayment = async (req, res) => {
                 message: "Order not found"
             });
         }
+        const totalAmount = (updatedOrder.items || []).reduce((sum, item) => {
+            const price = item.product && typeof item.product.price === 'number' ? item.product.price : 0;
+            const qty = typeof item.qty === 'number' ? item.qty : 1;
+            return sum + price * qty;
+        }, 0);
+        updatedOrder.total = totalAmount;
+        await updatedOrder.save();
         if (updatedOrder.table?._id) {
             await TableModel.findByIdAndUpdate(
                 updatedOrder.table._id,
@@ -692,7 +709,7 @@ exports.getAllCafeunpaid = async (req, res) => {
             return res.status(400).json({ status: 400, message: `Unsupported department: ${dept.name}` });
         }
 
-        const orders = await Model.find({ payment: "Pending" }).sort({ createdAt: -1 })
+        const orders = await Model.find({ payment: "Pending" , from:name}).sort({ createdAt: -1 })
             .populate("items")
             .populate("table")
             .populate("room")
@@ -702,7 +719,6 @@ exports.getAllCafeunpaid = async (req, res) => {
             status: 200,
             data: orders
         });
-
     } catch (error) {
         res.status(500).json({ status: 500, message: error.message });
     }

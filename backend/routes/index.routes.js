@@ -30,9 +30,10 @@ const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
-const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability } = require('../controller/dashboardController');
+const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, monthWiseOccupancy, orderDashboard, monthlyRevenue } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
+const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -258,6 +259,14 @@ indexRoutes.delete('/barorder/:id/items/:itemId', auth, removeItembarOrder);
 indexRoutes.post('/addrestaurantOrder', auth, addItemTorestroOrder);
 indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
 indexRoutes.delete('/restaurantorder/:id/items/:itemId', auth, removeItemrestroOrder);
+
+
+// order request api 
+indexRoutes.get('/getorderRequest', getPendingOrderRequests)
+indexRoutes.get('/getorderRequest/:workerId', getWorkerOrderRequests)
+indexRoutes.put('/orderRequest/:id/assign', auth, assignWorkerToOrderRequest)
+indexRoutes.put('/orderRequest/:id/status', auth, advanceOrderRequestStatus)
+
 // admin login routes 
 indexRoutes.post('/adminlogin', adminLogin);
 indexRoutes.post('/adminforgotPassword', adminforgotPassword);
@@ -270,6 +279,10 @@ indexRoutes.put('/adminchangePassword', auth, adminchangePassword);
 indexRoutes.get('/getrevenue', auth, adminOnly, getRevenueDashboard);
 indexRoutes.get("/roomavailability", auth, adminOnly, roomAvailability);
 indexRoutes.get('/getreservation', auth, adminOnly, reservationDaywise);
+indexRoutes.get('/getbookingtrends', auth, adminOnly, getBookingTrends);
 indexRoutes.get('/getdashboard', auth, adminOnly, dashboard);
+// indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthWiseOccupancy);
+indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthlyRevenue);
+indexRoutes.get('/getordersummery', auth, adminOnly, orderDashboard);
 
 module.exports = indexRoutes;

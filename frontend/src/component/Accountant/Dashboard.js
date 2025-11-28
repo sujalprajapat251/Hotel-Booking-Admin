@@ -105,7 +105,7 @@ export default function Dashboard() {
               {orders.length > 0 ? (
                 orders.map((o) => {
                   const items = o?.items || [];
-                  const title = o?.from === 'cafe' ? `Table: ${o?.table?.title || o?.table}` : `Room: ${o?.room || o?.name || 'Guest'}`;
+                  const title = (o?.from === 'cafe' || o.from ==="bar" || o.from==="restaurant") ? `Table: ${o?.table?.title || o?.table}` : `Room: ${o?.room || o?.name || 'Guest'}`;
                   return (
 
                     <div 
@@ -122,7 +122,6 @@ export default function Dashboard() {
                         <div className="text-xs text-gray-500">{ o?.contact  || ''}</div>
                       </div>
 
-                      {/* <div className="text-gray-400">›</div> */}
                     </div>
                   )
                 })

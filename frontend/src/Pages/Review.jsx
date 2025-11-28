@@ -43,7 +43,8 @@ const Review = () => {
 	const filteredBookings = getReview.filter(staff =>
 		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.comment.includes(searchQuery)
+		staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff.comment.toLowerCase().includes(searchQuery.toLowerCase())
 	);
 
 	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
