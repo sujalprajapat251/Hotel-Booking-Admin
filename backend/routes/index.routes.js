@@ -30,7 +30,7 @@ const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
-const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability } = require('../controller/dashboardController');
+const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, monthWiseOccupancy, orderDashboard, monthlyRevenue } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
 
@@ -270,6 +270,10 @@ indexRoutes.put('/adminchangePassword', auth, adminchangePassword);
 indexRoutes.get('/getrevenue', auth, adminOnly, getRevenueDashboard);
 indexRoutes.get("/roomavailability", auth, adminOnly, roomAvailability);
 indexRoutes.get('/getreservation', auth, adminOnly, reservationDaywise);
+indexRoutes.get('/getbookingtrends', auth, adminOnly, getBookingTrends);
 indexRoutes.get('/getdashboard', auth, adminOnly, dashboard);
+// indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthWiseOccupancy);
+indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthlyRevenue);
+indexRoutes.get('/getordersummery', auth, adminOnly, orderDashboard);
 
 module.exports = indexRoutes;
