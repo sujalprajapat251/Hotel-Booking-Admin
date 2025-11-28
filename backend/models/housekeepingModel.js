@@ -16,7 +16,6 @@ const hkTaskSchema = new mongoose.Schema({
         enum: ["Pending", "In-Progress", "Completed"],
         default: "Pending"
     },
-    notes: String,
 }, { timestamps: true });
 
 module.exports = mongoose.model("housekeeping", hkTaskSchema);

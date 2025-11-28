@@ -66,6 +66,7 @@ import BarOrder from './Pages/BarOrder.jsx';
 import CafeOrderList from './Pages/CafeOrderList.jsx';
 import HouseKeepingLayout from './component/HouseKeepingWorker/Layout';
 import HouseKeepingDashboard from './component/HouseKeepingWorker/Dashboard';
+import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -399,7 +400,8 @@ function App() {
                 <Route path='table' element={
                   <ProtectedRoute allowedRoles={['Waiter']}>
                     <WaiterTable />
-                  </ProtectedRoute>}></Route>
+                  </ProtectedRoute>}>
+                </Route>
                 <Route path='table/:id' element={
                   <ProtectedRoute allowedRoles={['Waiter']}>
                     <CafeOrder />
@@ -441,7 +443,14 @@ function App() {
                   <ProtectedRoute allowedRoles={['Worker']}>
                     <HouseKeepingDashboard />
                   </ProtectedRoute>
-                }></Route>
+                }>
+                </Route>
+                <Route path='task' element={
+                  <ProtectedRoute allowedRoles={['Worker']}>
+                    <Tasks />
+                  </ProtectedRoute>
+                }>
+                </Route>
                 <Route
                   path='user-profile'
                   element={

@@ -31,6 +31,7 @@ import reviewSlice from "./Slice/review.slice";
 import housekeepingSlice from "./Slice/housekeepingSlice";
 import viewOrderSlice from "./Slice/vieworederadmin.slice";
 import dashboardSlice from "./Slice/dashboard.silce";
+import WorkerSlice from "./Slice/WorkerSlice";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -64,5 +65,6 @@ export const rootReducer = combineReducers({
     accountant:accountantSlice,
     review: reviewSlice,
     vieworder: viewOrderSlice,
-    dashboard: dashboardSlice
+    dashboard: dashboardSlice,
+    worker: WorkerSlice,
 });

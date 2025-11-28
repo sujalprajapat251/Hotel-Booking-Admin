@@ -66,6 +66,7 @@ const StaffTable = () => {
 
   const filteredData = staff.filter(staff =>
     staff?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    staff?.gender?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     staff?.mobileno?.toString().includes(searchTerm) ||
     staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -144,8 +144,7 @@ exports.startCleaning = async (req, res) => {
 // WORKER COMPLETES CLEANING
 exports.completeCleaning = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { notes } = req.body;
+        const { id } = req.params; // task id
 
         const task = await Housekeeping.findById(id);
         if (!task) {
@@ -153,7 +152,6 @@ exports.completeCleaning = async (req, res) => {
         }
 
         task.status = "Completed";
-        task.notes = notes;
         await task.save();
 
         await Room.findByIdAndUpdate(task.roomId, { cleanStatus: "Completed" });
@@ -223,7 +221,12 @@ exports.getWorkerTasks = async (req, res) => {
         const { workerId } = req.params;
 
         const tasks = await Housekeeping.find({ workerId })
-            .populate("roomId")
+            .populate({
+                path: "roomId",
+                populate: {
+                    path: "roomType",   
+                }
+            })
             .populate("workerId")
             .sort({ createdAt: -1 });
 
@@ -234,9 +237,13 @@ exports.getWorkerTasks = async (req, res) => {
         });
 
     } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({
+            success: false,
+            error: error.message,
+        });
     }
 };
+
 
 
 
