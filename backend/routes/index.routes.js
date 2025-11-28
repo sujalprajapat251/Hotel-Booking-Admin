@@ -33,6 +33,7 @@ const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCle
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
+const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -258,6 +259,14 @@ indexRoutes.delete('/barorder/:id/items/:itemId', auth, removeItembarOrder);
 indexRoutes.post('/addrestaurantOrder', auth, addItemTorestroOrder);
 indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
 indexRoutes.delete('/restaurantorder/:id/items/:itemId', auth, removeItemrestroOrder);
+
+
+// order request api 
+indexRoutes.get('/getorderRequest', getPendingOrderRequests)
+indexRoutes.get('/getorderRequest/:workerId', getWorkerOrderRequests)
+indexRoutes.put('/orderRequest/:id/assign', auth, assignWorkerToOrderRequest)
+indexRoutes.put('/orderRequest/:id/status', auth, advanceOrderRequestStatus)
+
 // admin login routes 
 indexRoutes.post('/adminlogin', adminLogin);
 indexRoutes.post('/adminforgotPassword', adminforgotPassword);
