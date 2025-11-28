@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
-import { IMAGE_URL } from '../Utils/baseUrl';
 
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -23,8 +22,8 @@ const Header = ({ onMenuClick }) => {
   }, []);
 
   useEffect(() => {
-    if (currentUser && currentUser.photo) {
-      setImageUrl(IMAGE_URL + currentUser.photo);
+    if (currentUser && currentUser.image) {
+      setImageUrl(currentUser.image);
     } else {
       setImageUrl(userImg);
     }
