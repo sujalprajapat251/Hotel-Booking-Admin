@@ -608,20 +608,20 @@ const AllBookings = () => {
                                                             <div onClick={() => handleViewClick(bookingItem)} className="cursor-pointer">
                                                                 <IoEyeSharp className='text-[18px] text-quaternary hover:text-[#876B56] transition-colors' />
                                                             </div>
-                                                            <button
+                                                            <div
                                                                 onClick={() => handleEditClick(bookingItem)}
-                                                                className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                                                                // className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                                                                 title="Edit Booking"
                                                             >
-                                                                <FiEdit size={16} />
-                                                            </button>
-                                                            <button
+                                                                <FiEdit className="text-[#6777ef] text-[18px]"/>
+                                                            </div>
+                                                            <div    
                                                                 onClick={() => handleDeleteClick(bookingItem)}
-                                                                className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                                // className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                                 title="Delete Booking"
                                                             >
-                                                                <RiDeleteBinLine className="text-[18px]" />
-                                                            </button>
+                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                                                            </div>
                                                         </div>
                                                     </td>
                                                 )}

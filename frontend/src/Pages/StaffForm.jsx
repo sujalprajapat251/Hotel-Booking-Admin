@@ -277,7 +277,7 @@ const StaffForm = () => {
 
   return (
     <>
-      <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB] h-full'>
+      <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full max-h-[90vh]'>
         {/* <p className=' text-[20px] font-semiboldtext-black '>Add New Staff</p> */}
         <div className="w-full ">
           <div className="w-full mx-auto bg-white rounded-lg shadow-md overflow-hidden">
