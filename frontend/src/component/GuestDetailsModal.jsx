@@ -1,20 +1,20 @@
 import React from "react";
 
 const STATUS_BADGE_MAP = {
-  Confirmed: "bg-blue-100 text-blue-700",
+  Confirmed: "bg-primary/40 text-senary",
   CheckedIn: "bg-green-100 text-green-700",
-  CheckedOut: "bg-gray-200 text-gray-700",
+  CheckedOut: "bg-tertiary/40 text-senary",
   Cancelled: "bg-red-100 text-red-700",
-  Pending: "bg-yellow-100 text-yellow-700",
-  Reserved: "bg-indigo-100 text-indigo-700",
-  Occupied: "bg-purple-100 text-purple-700",
+  Pending: "bg-secondary/60 text-senary",
+  Reserved: "bg-quaternary/40 text-white",
+  Occupied: "bg-senary/80 text-primary",
 };
 
 const PAYMENT_BADGE_MAP = {
   Paid: "bg-green-100 text-green-700",
-  Pending: "bg-yellow-100 text-yellow-700",
+  Pending: "bg-secondary/60 text-senary",
   Overdue: "bg-red-100 text-red-700",
-  Refunded: "bg-gray-100 text-gray-700",
+  Refunded: "bg-tertiary/40 text-senary",
 };
 
 const formatDateTime = (value) => {
@@ -121,40 +121,43 @@ function GuestDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-xl">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white/95 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide">
         {/* HEADER */}
-        <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-purple-500 to-indigo-500 rounded-t-xl">
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-quaternary to-senary text-white rounded-t-2xl shadow-inner">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
             <span className="text-white text-xl font-semibold">
               Room {roomNumber} • Guest Details
             </span>
             <span
               className={`px-3 py-1 text-sm rounded-md ${
-                STATUS_BADGE_MAP[bookingStatus] || "bg-gray-100 text-gray-700"
+                STATUS_BADGE_MAP[bookingStatus] || "bg-primary/40 text-senary"
               }`}
             >
               {bookingStatus}
             </span>
             {reservation?.bookingReference && (
-              <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm rounded-md">
+              <span className="px-3 py-1 bg-secondary/60 text-senary text-sm rounded-md">
                 Ref: {reservation.bookingReference}
               </span>
             )}
           </div>
-          <button onClick={onClose} className="text-white text-xl">
-            ✕
+          <button 
+            onClick={onClose} 
+            className="text-white text-3xl leading-none hover:text-gray-200 transition-colors"
+          >
+            ×
           </button>
         </div>
 
         {loading && (
-          <div className="px-6 py-3 bg-blue-50 text-blue-700 text-sm">
+          <div className="px-6 py-3 bg-primary/20 text-senary text-sm border-b border-primary/40">
             Syncing booking details...
           </div>
         )}
 
         {!loading && !booking && (
-          <div className="px-6 py-3 bg-yellow-50 text-yellow-700 text-sm">
+          <div className="px-6 py-3 bg-secondary/30 text-senary text-sm border-b border-primary/40">
             No active booking found for this room.
           </div>
         )}
@@ -162,8 +165,10 @@ function GuestDetailsModal({
         {/* BODY */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-6">
           {/* GUEST INFORMATION */}
-          <div className="border rounded-lg p-4">
-            <h3 className="text-lg font-bold mb-3 text-green-600">Guest Information</h3>
+          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+            <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
+              Guest Information
+            </h3>
             <InfoItem label="Full Name" value={guest.fullName} />
             <InfoItem label="Address" value={guest.address} />
             <InfoItem label="Phone Number" value={guest.phone} />
@@ -173,8 +178,10 @@ function GuestDetailsModal({
           </div>
 
           {/* RESERVATION DETAILS */}
-          <div className="border rounded-lg p-4">
-            <h3 className="text-lg font-bold mb-3 text-blue-600">Reservation Details</h3>
+          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+            <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
+              Reservation Details
+            </h3>
             <InfoItem
               label="Check-In Date"
               value={formatDateTime(reservation.checkInDate)}
@@ -188,7 +195,7 @@ function GuestDetailsModal({
               label="Payment Status"
               value={payment.status}
               badgeColor={
-                PAYMENT_BADGE_MAP[payment.status] || "bg-gray-100 text-gray-700"
+                PAYMENT_BADGE_MAP[payment.status] || "bg-primary/40 text-senary"
               }
             />
             <InfoItem
@@ -200,8 +207,10 @@ function GuestDetailsModal({
           </div>
 
           {/* ROOM DETAILS */}
-          <div className="border rounded-lg p-4">
-            <h3 className="text-lg font-bold mb-3 text-orange-600">Room Details</h3>
+          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+            <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
+              Room Details
+            </h3>
             <InfoItem label="Room Type" value={roomType} />
             <InfoItem label="Bed Configuration" value={bedConfiguration} />
             <InfoItem label="Current Occupancy" value={occupancyText} />
@@ -212,25 +221,25 @@ function GuestDetailsModal({
                   ? `${formatCurrency(activeRoom.price.base, payment.currency)}/night`
                   : formatCurrency(payment.totalAmount, payment.currency)
               }
-              textColor="text-orange-600"
+              textColor="text-quaternary"
             />
             <InfoItem label="Floor" value={activeRoom?.floor} />
             <InfoItem
               label="Housekeeping Status"
               value={housekeepingStatus}
               badgeColor={
-                STATUS_BADGE_MAP[housekeepingStatus] || "bg-gray-100 text-gray-700"
+                STATUS_BADGE_MAP[housekeepingStatus] || "bg-primary/40 text-senary"
               }
             />
 
             {!!amenities.length && (
               <>
-                <h4 className="mt-4 mb-2 font-semibold text-lg">Room Amenities</h4>
+                <h4 className="mt-4 mb-2 font-semibold text-lg text-senary">Room Amenities</h4>
                 <div className="flex flex-wrap gap-2">
                   {amenities.map((amenity) => (
                     <span
                       key={amenity}
-                      className="px-3 py-1 bg-green-100 text-green-700 rounded-md text-sm"
+                      className="px-3 py-1 bg-primary/40 text-senary rounded-md text-sm"
                     >
                       {amenity}
                     </span>
@@ -242,8 +251,8 @@ function GuestDetailsModal({
         </div>
 
         {/* FOOTER */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t bg-gray-50">
-          <span className="text-gray-600 text-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t border-primary/40 bg-primary/10">
+          <span className="text-quinary text-sm">
             Last updated: {formatDateTime(lastUpdated)}
           </span>
 
@@ -251,8 +260,10 @@ function GuestDetailsModal({
             <button
               onClick={handleCheckOut}
               disabled={actionDisabled}
-              className={`px-5 py-2 rounded-md text-white ${
-                actionDisabled ? "bg-green-300 cursor-not-allowed" : "bg-green-600"
+              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${
+                actionDisabled 
+                  ? "bg-quaternary/40 cursor-not-allowed" 
+                  : "bg-green-600 hover:bg-green-700 shadow-lg"
               }`}
             >
               {loading ? "Processing..." : "Check Out"}
@@ -260,13 +271,18 @@ function GuestDetailsModal({
             <button
               onClick={handleCancelRoom}
               disabled={actionDisabled}
-              className={`px-5 py-2 rounded-md text-white ${
-                actionDisabled ? "bg-red-300 cursor-not-allowed" : "bg-red-500"
+              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${
+                actionDisabled 
+                  ? "bg-quaternary/40 cursor-not-allowed" 
+                  : "bg-red-500 hover:bg-red-600 shadow-lg"
               }`}
             >
               {loading ? "Please wait..." : "Cancel Room"}
             </button>
-            <button onClick={onClose} className="px-5 py-2 bg-gray-200 rounded-md">
+            <button 
+              onClick={onClose} 
+              className="px-5 py-2 bg-secondary/40 text-quinary hover:bg-secondary/60 rounded-lg transition shadow-sm"
+            >
               Close
             </button>
           </div>
@@ -279,12 +295,12 @@ function GuestDetailsModal({
 export default GuestDetailsModal;
 
 /* Reusable Component for Details */
-function InfoItem({ label, value, textColor = "text-gray-800", badgeColor }) {
+function InfoItem({ label, value, textColor = "text-senary", badgeColor }) {
   const displayValue = value ?? "—";
 
   return (
     <div className="mb-4">
-      <p className="text-xs font-semibold uppercase text-gray-500">{label}</p>
+      <p className="text-xs font-semibold uppercase text-quinary/70">{label}</p>
 
       {badgeColor ? (
         <span

@@ -23,6 +23,7 @@ import { getAllReview } from '../Redux/Slice/review.slice.js';
 import { Link } from 'react-router-dom'
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { getAllRevenue } from '../Redux/Slice/dashboard.silce.js';
 dayjs.extend(relativeTime);
 
 export const Dashboard = () => {
@@ -35,7 +36,7 @@ export const Dashboard = () => {
     items
   } = useSelector((state) => state.booking);
 
-  // ADD THIS useEffect - Transform Redux data to local state
+  const getRevenueData = useSelector((state) => state.dashboard.getRevenue);
 
   // ADD THIS useEffect - Transform Redux data to local state
   useEffect(() => {
@@ -186,44 +187,28 @@ export const Dashboard = () => {
 
   const revenueItems = [
     {
-      icon: <Home className="w-6 h-6" />,
       name: 'Room Bookings',
-      amount: '$89,520',
-      percentage: '69.7%',
-      growth: '+8.5%',
+      icon: <Home className="w-6 h-6" />,
       bgColor: '#F7DF9C',
       iconColor: '#755647',
-      isPositive: true
     },
     {
-      icon: <Coffee className="w-6 h-6" />,
       name: 'Cafe',
-      amount: '$23,680',
-      percentage: '18.4%',
-      growth: '+12.3%',
+      icon: <Coffee className="w-6 h-6" />,
       bgColor: '#E3C78A',
       iconColor: '#876B56',
-      isPositive: true
     },
     {
-      icon: <Heart className="w-6 h-6" />,
-      name: 'Bar',
-      amount: '$8,750',
-      percentage: '6.8%',
-      growth: '-2.1%',
-      bgColor: '#B79982',
-      iconColor: '#FAF7F2',
-      isPositive: false
-    },
-    {
-      icon: <MoreHorizontal className="w-6 h-6" />,
       name: 'Restaurant',
-      amount: '$6,500',
-      percentage: '5.1%',
-      growth: '+5.7%',
+      icon: <Heart className="w-6 h-6" />,
       bgColor: '#A3876A',
       iconColor: '#FAF7F2',
-      isPositive: true
+    },
+    {
+      name: 'Bar',
+      icon: <MoreHorizontal className="w-6 h-6" />,
+      bgColor: '#B79982',
+      iconColor: '#FAF7F2',
     }
   ];
 
@@ -328,6 +313,15 @@ export const Dashboard = () => {
     }));
   };
 
+  const mergedRevenueData = getRevenueData?.breakdown?.map((item) => {
+    const match = revenueItems.find(ui => ui.name === item.name);
+
+    return {
+      ...item,
+      ...match,
+      isPositive: Number(item.trend) >= 0
+    };
+  });
 
   useEffect(() => {
     dispatch(fetchBookings());
@@ -366,8 +360,23 @@ export const Dashboard = () => {
 
   const averageRating = calculateAverage(getReview);
 
+  const getCurrentYearMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  };
+
+  const formatNumber = (num) => {
+    if (!num) return "0";
+    return num.toLocaleString("en-IN");
+  };
+
   useEffect(() => {
+    const yearMonth = getCurrentYearMonth();
+
     dispatch(getAllReview());
+    dispatch(getAllRevenue(yearMonth));
   }, [dispatch]);
 
 
@@ -866,9 +875,15 @@ export const Dashboard = () => {
           }}>
             <h2 className="text-lg font-semibold" style={{ color: '#755647' }}>Revenue Summary</h2>
             <div className="text-center py-3">
-              <div className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: '#755647' }}>$128,450</div>
+              <div className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: '#755647' }}>${formatNumber(getRevenueData.totalRevenue)}</div>
               <div className="flex items-center justify-center gap-2 text-sm">
-                <span className="font-medium" style={{ color: '#4EB045' }}>↗ +$13,220 (+11.5%)</span>
+                <span className="font-medium" style={{ color: getRevenueData.difference >= 0 ? '#4EB045' : '#EC0927' }}>
+                  {getRevenueData.difference >= 0 ? '↗ +' : '↘ -'}
+                  ${formatNumber(Math.abs(getRevenueData.difference))}
+                  {" "}
+                  ({getRevenueData.percentageChange >= 0 ? (<><span style={{ color: '#4EB045' }}>+{getRevenueData.percentageChange}%</span></>
+                    ) : (<><span style={{ color: '#EC0927' }}>{getRevenueData.percentageChange}%</span></>)})
+                </span>
               </div>
               <div className="text-sm mt-1" style={{ color: '#A3876A' }}>vs. Previous Month</div>
             </div>
@@ -878,7 +893,7 @@ export const Dashboard = () => {
             {/* Revenue Breakdown Section */}
             <div>
               <h2 className="text-lg font-semibold mb-2" style={{ color: '#755647' }}>Revenue Breakdown</h2>
-              {revenueItems.map((item, index) => (
+              {mergedRevenueData?.map((item, index) => (
                 <div
                   key={index}
                   className="flex items-start gap-3 p-3 rounded-lg transition-colors"
@@ -897,14 +912,14 @@ export const Dashboard = () => {
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-sm font-medium" style={{ color: '#755647' }}>{item.name}</h3>
-                      <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#876B56' }}>{item.percentage}</span>
+                      <span className="text-sm font-semibold whitespace-nowrap" style={{ color: '#876B56' }}>{item.percent}%</span>
                     </div>
                     <div className="flex items-center justify-between gap-2 mt-1">
-                      <div className="text-lg font-bold" style={{ color: '#755647' }}>{item.amount}</div>
+                      <div className="text-lg font-bold" style={{ color: '#755647' }}>${formatNumber(item.amount)}</div>
                       <span className={`text-xs font-medium whitespace-nowrap`} style={{
                         color: item.isPositive ? '#4EB045' : '#EC0927'
                       }}>
-                        {item.isPositive ? '↗' : '↘'} {item.growth}
+                        {item.isPositive ? '↗' : '↘'} {item.trend}%
                       </span>
                     </div>
                   </div>
@@ -930,8 +945,8 @@ export const Dashboard = () => {
             <hr className="mb-6" style={{ borderColor: '#E3C78A' }} />
 
             <div className="space-y-6">
-              {getReview.slice(0, 2).map((review) => (
-                <div key={review.id} className="pb-6">
+              {getReview.slice(0, 2).map((review, index) => (
+                <div key={index} className="pb-6">
                   <div className="flex items-start gap-3 mb-3">
                     {review.photo ? (
                       <img src={review.photo}

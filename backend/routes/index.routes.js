@@ -30,7 +30,7 @@ const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
-const { getRevenueDashboard, dashboard } = require('../controller/dashboardController');
+const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
 
@@ -235,29 +235,29 @@ indexRoutes.get('/reviews/:id', getReviewById);
 
 // indexRoutes.post('/addCafeOrder',createCafeOrder)
 // admin side api 
-indexRoutes.get('/getCafeOrder',auth,getAllCafeOrders)
-indexRoutes.get('/getCafeOrderitems/:status',getAllOrderItemsStatus)
-indexRoutes.get('/getCafeOrderitems',auth,getAllOrderItems)
-indexRoutes.post('/CafeItemStatus', auth , UpdateOrderItemStatus);
-indexRoutes.post('/cafe/tables/:tableId/order/items', auth ,addItemToTableOrder)
-indexRoutes.delete('/cafe/orders/:id/items/:itemId', auth , removeItemFromOrder)
-indexRoutes.post('/cafePayment/:orderId',auth,cafePayment)
-indexRoutes.get('/cafeUnpaidOrder',auth,getAllCafeunpaid)
-indexRoutes.get('/getallcafeorderbyadmin',auth,adminOnly,getAllCafeOrdersByAdmin);
-indexRoutes.get('/getallbarorderbyadmin',auth,adminOnly,getAllBarOrdersByAdmin);
-indexRoutes.get('/getallrestaurantorderbyadmin',auth,adminOnly,getAllRestaurantOrdersByAdmin);
+indexRoutes.get('/getCafeOrder', auth, getAllCafeOrders)
+indexRoutes.get('/getCafeOrderitems/:status', getAllOrderItemsStatus)
+indexRoutes.get('/getCafeOrderitems', auth, getAllOrderItems)
+indexRoutes.post('/CafeItemStatus', auth, UpdateOrderItemStatus);
+indexRoutes.post('/cafe/tables/:tableId/order/items', auth, addItemToTableOrder)
+indexRoutes.delete('/cafe/orders/:id/items/:itemId', auth, removeItemFromOrder)
+indexRoutes.post('/cafePayment/:orderId', auth, cafePayment)
+indexRoutes.get('/cafeUnpaidOrder', auth, getAllCafeunpaid)
+indexRoutes.get('/getallcafeorderbyadmin', auth, adminOnly, getAllCafeOrdersByAdmin);
+indexRoutes.get('/getallbarorderbyadmin', auth, adminOnly, getAllBarOrdersByAdmin);
+indexRoutes.get('/getallrestaurantorderbyadmin', auth, adminOnly, getAllRestaurantOrdersByAdmin);
 
 
 // user side order api 
-indexRoutes.post('/addCafeOrder',auth,addItemTocafeOrder);
-indexRoutes.get('/mycafeorder/:roomId',auth,getOrdercafeByRoom);
-indexRoutes.delete('/cafeorder/:id/items/:itemId',auth,removeItemCafeOrder);
-indexRoutes.post('/addbarOrder',auth,addItemTobarOrder);
-indexRoutes.get('/mybarorder/:roomId',auth,getOrderbarByRoom);
-indexRoutes.delete('/barorder/:id/items/:itemId',auth,removeItembarOrder);
-indexRoutes.post('/addrestaurantOrder',auth,addItemTorestroOrder);
-indexRoutes.get('/myrestaurantorder/:roomId',auth,getOrderrestroByRoom);
-indexRoutes.delete('/restaurantorder/:id/items/:itemId',auth,removeItemrestroOrder);
+indexRoutes.post('/addCafeOrder', auth, addItemTocafeOrder);
+indexRoutes.get('/mycafeorder/:roomId', auth, getOrdercafeByRoom);
+indexRoutes.delete('/cafeorder/:id/items/:itemId', auth, removeItemCafeOrder);
+indexRoutes.post('/addbarOrder', auth, addItemTobarOrder);
+indexRoutes.get('/mybarorder/:roomId', auth, getOrderbarByRoom);
+indexRoutes.delete('/barorder/:id/items/:itemId', auth, removeItembarOrder);
+indexRoutes.post('/addrestaurantOrder', auth, addItemTorestroOrder);
+indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
+indexRoutes.delete('/restaurantorder/:id/items/:itemId', auth, removeItemrestroOrder);
 // admin login routes 
 indexRoutes.post('/adminlogin', adminLogin);
 indexRoutes.post('/adminforgotPassword', adminforgotPassword);
@@ -268,6 +268,8 @@ indexRoutes.put('/adminchangePassword', auth, adminchangePassword);
 
 // Dashboard Routes
 indexRoutes.get('/getrevenue', auth, adminOnly, getRevenueDashboard);
+indexRoutes.get("/roomavailability", auth, adminOnly, roomAvailability);
+indexRoutes.get('/getreservation', auth, adminOnly, reservationDaywise);
 indexRoutes.get('/getdashboard', auth, adminOnly, dashboard);
 
 module.exports = indexRoutes;

@@ -5,6 +5,11 @@ const RoomBooking = require("../models/bookingModel");
 const Room = require("../models/createRoomModel");
 const RoomType = require("../models/roomtypeModel");
 
+// ------------------------------------------------------------
+// COMMON FUNCTIONS
+// ------------------------------------------------------------
+
+// Line chart: booking trend by day
 function lineTrend(model, match = {}) {
     return model.aggregate([
         { $match: match },
@@ -18,11 +23,16 @@ function lineTrend(model, match = {}) {
     ]);
 }
 
-function revenueTrend(model, itemCollection, match = {}) {
+// Common revenue aggregation for Bar / Cafe / Restro
+function calculateRevenue(model, itemCollection, start, end) {
     return model.aggregate([
-        { $match: match },
+        {
+            $match: {
+                createdAt: { $gte: start, $lte: end },
+                payment: "Paid"
+            }
+        },
         { $unwind: "$items" },
-
         {
             $lookup: {
                 from: itemCollection,
@@ -32,18 +42,18 @@ function revenueTrend(model, itemCollection, match = {}) {
             }
         },
         { $unwind: "$productData" },
-
         {
             $group: {
-                _id: { $dayOfMonth: "$createdAt" },
+                _id: null,
                 total: { $sum: { $multiply: ["$items.qty", "$productData.price"] } }
             }
-        },
-
-        { $sort: { "_id": 1 } }
+        }
     ]);
 }
 
+// ------------------------------------------------------------
+// DASHBOARD API (ROOM PIE, NEW BOOKINGS, REVENUE SOURCES)
+// ------------------------------------------------------------
 exports.dashboard = async (req, res) => {
     const { month } = req.query;
 
@@ -56,82 +66,257 @@ exports.dashboard = async (req, res) => {
 
     let [year, mon] = month.split("-").map(Number);
     const start = new Date(year, mon - 1, 1);
-    const end = new Date(year, mon, 0);
+    const end = new Date(year, mon, 0, 23, 59, 59);
 
+    // Previous month
     let prevYear = year;
     let prevMon = mon - 1;
     if (prevMon === 0) {
         prevMon = 12;
         prevYear -= 1;
     }
-    const prevStart = new Date(prevYear, prevMon - 1, 1);
-    const prevEnd = new Date(prevYear, prevMon, 0);
 
-    // ================= 1. NEW BOOKINGS =================
+    const prevStart = new Date(prevYear, prevMon - 1, 1);
+    const prevEnd = new Date(prevYear, prevMon, 0, 23, 59, 59);
+
+    // ---------------- 1. NEW BOOKINGS ----------------
     const newBookings = await RoomBooking.countDocuments({ createdAt: { $gte: start, $lte: end } });
     const prevBookings = await RoomBooking.countDocuments({ createdAt: { $gte: prevStart, $lte: prevEnd } });
     const bookingTrend = await lineTrend(RoomBooking, { createdAt: { $gte: start, $lte: end } });
 
-    // ================= 2. ROOM PIE BY ROOM TYPE =================
-    const roomTypes = await RoomType.find(); // fetch all room types
+    // ---------------- 2. ROOM PIE ----------------
+    const roomTypes = await RoomType.find();
     const roomPie = [];
 
     for (let rt of roomTypes) {
-        const total = await Room.countDocuments({ roomType: rt._id });
-        const booked = await RoomBooking.countDocuments({ status: "Booked", roomType: rt.roomType });
-        const available = total - booked;
+
+        const totalRooms = await Room.countDocuments({ roomType: rt._id });
+
+        const bookedRooms = await RoomBooking.countDocuments({
+            "payment.status": "Paid",
+            room: { $in: await Room.find({ roomType: rt._id }).select("_id") }
+        });
+
+        const availableRooms = totalRooms - bookedRooms;
 
         roomPie.push({
             roomType: rt.roomType,
-            booked,
-            available
+            booked: bookedRooms,
+            available: availableRooms
         });
     }
 
-    // ================= 3. REVENUE BREAKDOWN =================
-    const barRevenue = await revenueTrend(BarOrder, "baritems", { payment: "Paid", createdAt: { $gte: start, $lte: end } });
-    const cafeRevenue = await revenueTrend(CafeOrder, "cafeitems", { payment: "Paid", createdAt: { $gte: start, $lte: end } });
-    const restroRevenue = await revenueTrend(RestroOrder, "restroitems", { payment: "Paid", createdAt: { $gte: start, $lte: end } });
+    // ---------------- 3. REVENUE SOURCES ----------------
+    const barRevenue = await calculateRevenue(BarOrder, "baritems", start, end);
+    const cafeRevenue = await calculateRevenue(CafeOrder, "cafeitems", start, end);
+    const restroRevenue = await calculateRevenue(RestroOrder, "restaurantitems", start, end);
 
-    // Room Booking revenue (assuming each booking has a `totalPrice`)
     const bookingRevenueData = await RoomBooking.aggregate([
-        { $match: { createdAt: { $gte: start, $lte: end }, status: "Booked" } },
-        { $group: { _id: null, total: { $sum: "$totalPrice" } } }
+        {
+            $match: {
+                createdAt: { $gte: start, $lte: end },
+                "payment.status": "Paid"
+            }
+        },
+        {
+            $group: { _id: null, total: { $sum: "$payment.totalAmount" } }
+        }
     ]);
+
     const bookingRevenue = bookingRevenueData[0]?.total || 0;
 
-    // Total revenue per source
     const revenueSources = {
-        bar: barRevenue.reduce((a, b) => a + b.total, 0),
-        cafe: cafeRevenue.reduce((a, b) => a + b.total, 0),
-        restro: restroRevenue.reduce((a, b) => a + b.total, 0),
+        bar: barRevenue[0]?.total || 0,
+        cafe: cafeRevenue[0]?.total || 0,
+        restro: restroRevenue[0]?.total || 0,
         roomBooking: bookingRevenue
     };
 
     const totalRevenue = Object.values(revenueSources).reduce((a, b) => a + b, 0);
 
-    // ================= 4. CHECKOUT =================
-    const checkoutCount = await RoomBooking.countDocuments({ status: "Checkout" });
-    const prevCheckout = await RoomBooking.countDocuments({ status: "Checkout", createdAt: { $gte: prevStart, $lte: prevEnd } });
-    const checkoutChange = prevCheckout > 0 ? ((checkoutCount - prevCheckout) / prevCheckout) * 100 : 0;
+    // ---------------- 4. CHECKOUT TOTAL ----------------
+    // FIXED: must use "CheckedOut" not "Checkout"
+    const checkoutCount = await RoomBooking.countDocuments({
+        status: "CheckedOut",
+        createdAt: { $gte: start, $lte: end }
+    });
 
-    res.json({
+    const prevCheckout = await RoomBooking.countDocuments({
+        status: "CheckedOut",
+        createdAt: { $gte: prevStart, $lte: prevEnd }
+    });
+
+    const checkoutChange =
+        prevCheckout > 0
+            ? ((checkoutCount - prevCheckout) / prevCheckout) * 100
+            : 0;
+
+    // ---------------- 5. ROOMTYPE-WISE CHECKOUT CHANGE ----------------
+    const roomTypeCheckout = [];
+
+    for (let rt of roomTypes) {
+
+        // Get room IDs for this roomType
+        const roomIds = await Room.find({ roomType: rt._id }).select("_id");
+
+        const currentCount = await RoomBooking.countDocuments({
+            status: "CheckedOut",
+            room: { $in: roomIds.map(r => r._id) },
+            createdAt: { $gte: start, $lte: end }
+        });
+
+        const previousCount = await RoomBooking.countDocuments({
+            status: "CheckedOut",
+            room: { $in: roomIds.map(r => r._id) },
+            createdAt: { $gte: prevStart, $lte: prevEnd }
+        });
+
+        const percentChange =
+            previousCount > 0
+                ? ((currentCount - previousCount) / previousCount) * 100
+                : 0;
+
+        roomTypeCheckout.push({
+            roomType: rt.roomType,
+            checkoutCount: currentCount,
+            prevCheckout: previousCount,
+            checkoutChange: percentChange.toFixed(2)
+        });
+    }
+
+    // ---------------- RESPONSE ----------------
+    return res.json({
+        success: true,
         newBookings,
         bookingTrend,
-        roomPie,            // roomPie grouped by roomType
-        availableRooms: roomPie.reduce((a, r) => a + r.available, 0),
-        revenue: totalRevenue,
-        revenueSources,     // revenue per source: bar, cafe, restro, roomBooking
+        roomPie,
+        availableRooms: roomPie.reduce((sum, r) => sum + r.available, 0),
+        totalRevenue,
+        revenueSources,
         checkoutCount,
-        checkoutChange
+        checkoutChange,
+        roomTypeCheckout
     });
 };
 
+// ------------------------------------------------------------
+// Room Availability API (Occupied , Reserved , Available, Not Ready)
+// ------------------------------------------------------------
+exports.roomAvailability = async (req, res) => {
+    try {
 
+        const occupied = await Room.countDocuments({ status: "Occupied" });
+        const reserved = await Room.countDocuments({ status: "Reserved" });
+        const available = await Room.countDocuments({ status: "Available" });
+        const notReady = await Room.countDocuments({ status: "Maintenance" });
 
+        return res.status(200).json({
+            success: true,
+            data: {
+                occupied,
+                reserved,
+                available,
+                notReady
+            }
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+            error: error.message
+        });
+    }
+};
+
+// ------------------------------------------------------------
+// Reservation API (Booked , cancelled)
+// ------------------------------------------------------------
+exports.reservationDaywise = async (req, res) => {
+    try {
+        const today = new Date();
+
+        const year = today.getFullYear();
+        const month = today.getMonth(); // 0–11
+
+        // Start of current month
+        const start = new Date(year, month, 1);
+
+        // Today (atyare sudhi)
+        const end = new Date(year, month, today.getDate(), 23, 59, 59);
+
+        // Fetch all bookings of this month
+        const reservations = await RoomBooking.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: start, $lte: end }
+                }
+            },
+            {
+                $project: {
+                    day: { $dayOfMonth: "$createdAt" },
+                    status: 1
+                }
+            },
+            {
+                $group: {
+                    _id: "$day",
+                    booked: {
+                        $sum: {
+                            $cond: [
+                                { $in: ["$status", ["Confirmed", "CheckedIn", "CheckedOut"]] },
+                                1,
+                                0
+                            ]
+                        }
+                    },
+                    canceled: {
+                        $sum: {
+                            $cond: [
+                                { $eq: ["$status", "Cancelled"] },
+                                1,
+                                0
+                            ]
+                        }
+                    }
+                }
+            },
+            { $sort: { _id: 1 } }
+        ]);
+
+        // Convert to formatted array (1 Jan, 2 Jan…)
+        const finalData = reservations.map((r) => {
+            const d = new Date(year, month, r._id);
+            const dayName = d.toLocaleString("en-US", { day: "numeric", month: "short" });
+
+            return {
+                day: dayName,
+                booked: r.booked,
+                canceled: r.canceled
+            };
+        });
+
+        return res.json({
+            success: true,
+            month: today.toLocaleString("en-US", { month: "long" }),
+            data: finalData
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// ------------------------------------------------------------
+// REVENUE DASHBOARD (DETAILED SOURCE WISE)
+// ------------------------------------------------------------
 exports.getRevenueDashboard = async (req, res) => {
     try {
-        const { month } = req.query; // Example => 2025-01
+        const { month } = req.query;
+
         if (!month) {
             return res.status(400).json({
                 success: false,
@@ -140,144 +325,23 @@ exports.getRevenueDashboard = async (req, res) => {
         }
 
         let [year, mon] = month.split("-");
-        const prevMonth = `${year}-${String(mon - 1).padStart(2, "0")}`;
+        mon = Number(mon);
 
-        const start = new Date(`${month}-01`);
-        const end = new Date(`${month}-31`);
+        const start = new Date(year, mon - 1, 1);
+        const end = new Date(year, mon, 0, 23, 59, 59);
 
-        const prevStart = new Date(`${prevMonth}-01`);
-        const prevEnd = new Date(`${prevMonth}-31`);
+        const prevMonth = mon === 1 ? 12 : mon - 1;
+        const prevYear = mon === 1 ? year - 1 : year;
 
-        // -------------------------------
-        // CURRENT MONTH CALCULATION
-        // -------------------------------
-        const barRevenue = await BarOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: start, $lte: end },
-                    payment: "Paid"
-                }
-            },
-            {
-                $lookup: {
-                    from: "baritems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productDetails"
-                }
-            },
-            {
-                $addFields: {
-                    totalAmountCalculated: {
-                        $sum: {
-                            $map: {
-                                input: "$items",
-                                as: "it",
-                                in: {
-                                    $multiply: [
-                                        "$$it.qty",
-                                        {
-                                            $let: {
-                                                vars: {
-                                                    p: {
-                                                        $arrayElemAt: [
-                                                            {
-                                                                $filter: {
-                                                                    input: "$productDetails",
-                                                                    as: "pd",
-                                                                    cond: { $eq: ["$$pd._id", "$$it.product"] }
-                                                                }
-                                                            },
-                                                            0
-                                                        ]
-                                                    }
-                                                },
-                                                in: "$$p.price"
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$totalAmountCalculated" }
-                }
-            }
-        ]);
+        const prevStart = new Date(prevYear, prevMonth - 1, 1);
+        const prevEnd = new Date(prevYear, prevMonth, 0, 23, 59, 59);
 
-        const cafeRevenue = await CafeOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: start, $lte: end },
-                    payment: "Paid"
-                }
-            },
+        // Current month
+        const barData = await calculateRevenue(BarOrder, "baritems", start, end);
+        const cafeData = await calculateRevenue(CafeOrder, "cafeitems", start, end);
+        const restroData = await calculateRevenue(RestroOrder, "restaurantitems", start, end);
 
-            { $unwind: "$items" },
-
-            {
-                $lookup: {
-                    from: "cafeitems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productData"
-                }
-            },
-
-            { $unwind: "$productData" },
-
-            {
-                $group: {
-                    _id: null,
-                    total: {
-                        $sum: {
-                            $multiply: ["$items.qty", "$productData.price"]
-                        }
-                    }
-                }
-            }
-        ]);
-
-        const restroRevenue = await RestroOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: start, $lte: end },
-                    payment: "Paid"
-                }
-            },
-
-            { $unwind: "$items" },
-
-            {
-                $lookup: {
-                    from: "restroitems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productData"
-                }
-            },
-
-            { $unwind: "$productData" },
-
-            {
-                $group: {
-                    _id: null,
-                    total: {
-                        $sum: {
-                            $multiply: ["$items.qty", "$productData.price"]
-                        }
-                    }
-                }
-            }
-        ]);
-
-        // 🔥 New Booking Schema: use payment.totalAmount & payment.status
-        const roomRevenue = await RoomBooking.aggregate([
+        const roomData = await RoomBooking.aggregate([
             {
                 $match: {
                     createdAt: { $gte: start, $lte: end },
@@ -287,142 +351,16 @@ exports.getRevenueDashboard = async (req, res) => {
             { $group: { _id: null, total: { $sum: "$payment.totalAmount" } } }
         ]);
 
-        const bar = barRevenue[0]?.total || 0;
-        const cafe = cafeRevenue[0]?.total || 0;
-        const restro = restroRevenue[0]?.total || 0;
-        const room = roomRevenue[0]?.total || 0;
-
+        const bar = barData[0]?.total || 0;
+        const cafe = cafeData[0]?.total || 0;
+        const restro = restroData[0]?.total || 0;
+        const room = roomData[0]?.total || 0;
         const currentTotal = bar + cafe + restro + room;
 
-        // -------------------------------
-        // PREVIOUS MONTH CALCULATION
-        // -------------------------------
-
-        const prevBar = await BarOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: prevStart, $lte: prevEnd },
-                    payment: "Paid"
-                }
-            },
-            {
-                $lookup: {
-                    from: "baritems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productDetails"
-                }
-            },
-            {
-                $addFields: {
-                    totalAmountCalculated: {
-                        $sum: {
-                            $map: {
-                                input: "$items",
-                                as: "it",
-                                in: {
-                                    $multiply: [
-                                        "$$it.qty",
-                                        {
-                                            $let: {
-                                                vars: {
-                                                    p: {
-                                                        $arrayElemAt: [
-                                                            {
-                                                                $filter: {
-                                                                    input: "$productDetails",
-                                                                    as: "pd",
-                                                                    cond: { $eq: ["$$pd._id", "$$it.product"] }
-                                                                }
-                                                            },
-                                                            0
-                                                        ]
-                                                    }
-                                                },
-                                                in: "$$p.price"
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: null,
-                    total: { $sum: "$totalAmountCalculated" }
-                }
-            }
-        ]);
-
-        const prevCafe = await CafeOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: prevStart, $lte: prevEnd },
-                    payment: "Paid"
-                }
-            },
-
-            { $unwind: "$items" },
-
-            {
-                $lookup: {
-                    from: "cafeitems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productData"
-                }
-            },
-
-            { $unwind: "$productData" },
-
-            {
-                $group: {
-                    _id: null,
-                    total: {
-                        $sum: {
-                            $multiply: ["$items.qty", "$productData.price"]
-                        }
-                    }
-                }
-            }
-        ]);
-
-        const prevRestro = await RestroOrder.aggregate([
-            {
-                $match: {
-                    createdAt: { $gte: prevStart, $lte: prevEnd },
-                    payment: "Paid"
-                }
-            },
-
-            { $unwind: "$items" },
-
-            {
-                $lookup: {
-                    from: "restroitems",
-                    localField: "items.product",
-                    foreignField: "_id",
-                    as: "productData"
-                }
-            },
-
-            { $unwind: "$productData" },
-
-            {
-                $group: {
-                    _id: null,
-                    total: {
-                        $sum: {
-                            $multiply: ["$items.qty", "$productData.price"]
-                        }
-                    }
-                }
-            }
-        ]);
-
+        // Previous month
+        const prevBar = await calculateRevenue(BarOrder, "baritems", prevStart, prevEnd);
+        const prevCafe = await calculateRevenue(CafeOrder, "cafeitems", prevStart, prevEnd);
+        const prevRestro = await calculateRevenue(RestroOrder, "restaurantitems", prevStart, prevEnd);
         const prevRoom = await RoomBooking.aggregate([
             {
                 $match: {
@@ -448,7 +386,6 @@ exports.getRevenueDashboard = async (req, res) => {
                 totalRevenue: currentTotal,
                 difference: diff,
                 percentageChange: percentChange,
-
                 breakdown: [
                     {
                         name: "Room Bookings",
@@ -490,3 +427,5 @@ exports.getRevenueDashboard = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
+
