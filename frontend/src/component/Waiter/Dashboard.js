@@ -17,8 +17,22 @@ export default function Dashboard() {
   const [activeTableId, setActiveTableId] = useState(null);
   useEffect(() => {
     if (orders?.length) {
-      setMenu(orders[0]?.lastUnpaidOrder || []);
-      setActiveTableId(orders[0]?.id || orders[0]?._id || null);
+      // If no active table is selected, set to first order
+      if (!activeTableId) {
+        setMenu(orders[0]?.lastUnpaidOrder || []);
+        setActiveTableId(orders[0]?.id || orders[0]?._id || null);
+      } else {
+        // Find the currently active table in the refreshed orders
+        const activeTable = orders.find(o => (o.id || o._id) === activeTableId);
+        if (activeTable) {
+          // Update menu for the active table with fresh data
+          setMenu(activeTable?.lastUnpaidOrder || []);
+        } else {
+          // If active table no longer exists, switch to first order
+          setMenu(orders[0]?.lastUnpaidOrder || []);
+          setActiveTableId(orders[0]?.id || orders[0]?._id || null);
+        }
+      }
     } else {
       setMenu([]);
       setActiveTableId(null);
