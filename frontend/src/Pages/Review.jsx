@@ -12,7 +12,7 @@ const Review = () => {
 	const dispatch = useDispatch();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [currentPage, setCurrentPage] = useState(1);
-	const [itemsPerPage, setItemsPerPage] = useState(4);
+	const [itemsPerPage, setItemsPerPage] = useState(5);
 	const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 	const [imageUrl, setImageUrl] = useState(userImg);
 

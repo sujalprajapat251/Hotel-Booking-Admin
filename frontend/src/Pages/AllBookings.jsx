@@ -892,31 +892,22 @@ const AllBookings = () => {
                 {isEditModalOpen && itemToEdit && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                            className="absolute inset-0 bg-black/40"
                             onClick={handleEditModalClose}
                         ></div>
-                        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center sm:p-0">
                             <div 
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-4xl border-2" 
-                                style={{
-                                    borderColor: '#E3C78A',
-                                    boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                                }}
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-3xl border" 
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-6" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
-                                }}>
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Edit Booking</h3>
+                                <div className="px-4 py-4 sm:p-6">
+                                    <div className="flex items-center justify-between border-b pb-3 mb-4">
+                                        <h3 className="text-xl font-bold text-black">Edit Booking</h3>
                                         <button 
                                             type="button" 
                                             onClick={handleEditModalClose}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
-                                            style={{ color: '#876B56' }}
-                                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(247,223,156,0.3)'; e.currentTarget.style.color = '#755647'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#876B56'; }}
                                         >
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -928,62 +919,62 @@ const AllBookings = () => {
                                     <form onSubmit={handleEditSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
                                         {/* Guest Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Guest Information</h4>
+                                            <h4 className="font-serif text-black text-lg mb-3">Guest Information:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Full Name *</label>
                                                     <input
                                                         type="text"
                                                         required
                                                         value={editFormData.guest.fullName}
                                                         onChange={(e) => handleEditFormChange('guest', 'fullName', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Phone *</label>
                                                     <input
                                                         type="text"
                                                         required
                                                         value={editFormData.guest.phone}
                                                         onChange={(e) => handleEditFormChange('guest', 'phone', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Email</label>
                                                     <input
                                                         type="email"
                                                         value={editFormData.guest.email}
                                                         onChange={(e) => handleEditFormChange('guest', 'email', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
+                                                    <label className="text-sm font-medium text-black mb-1">ID Number</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.guest.idNumber}
                                                         onChange={(e) => handleEditFormChange('guest', 'idNumber', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nationality</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Nationality</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.guest.nationality}
                                                         onChange={(e) => handleEditFormChange('guest', 'nationality', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Address</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.guest.address}
                                                         onChange={(e) => handleEditFormChange('guest', 'address', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                             </div>
@@ -991,64 +982,64 @@ const AllBookings = () => {
 
                                         {/* Reservation Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Reservation Information</h4>
+                                            <h4 className="font-serif text-black text-lg mb-3">Reservation Information:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Check In Date *</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Check In Date *</label>
                                                     <input
                                                         type="date"
                                                         required
                                                         value={editFormData.reservation.checkInDate}
                                                         onChange={(e) => handleEditFormChange('reservation', 'checkInDate', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Check Out Date *</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Check Out Date *</label>
                                                     <input
                                                         type="date"
                                                         required
                                                         value={editFormData.reservation.checkOutDate}
                                                         onChange={(e) => handleEditFormChange('reservation', 'checkOutDate', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Booking Source</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Booking Source</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.reservation.bookingSource}
                                                         onChange={(e) => handleEditFormChange('reservation', 'bookingSource', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Adults</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Adults</label>
                                                     <input
                                                         type="number"
                                                         min="1"
                                                         value={editFormData.reservation.occupancy.adults}
                                                         onChange={(e) => handleEditFormChange('occupancy', 'adults', parseInt(e.target.value) || 1)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Children</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Children</label>
                                                     <input
                                                         type="number"
                                                         min="0"
                                                         value={editFormData.reservation.occupancy.children}
                                                         onChange={(e) => handleEditFormChange('occupancy', 'children', parseInt(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div className="md:col-span-2">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Special Requests</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Special Requests</label>
                                                     <textarea
                                                         value={editFormData.reservation.specialRequests}
                                                         onChange={(e) => handleEditFormChange('reservation', 'specialRequests', e.target.value)}
                                                         rows="3"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                             </div>
@@ -1056,14 +1047,14 @@ const AllBookings = () => {
 
                                         {/* Payment Information */}
                                         <div>
-                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Payment Information</h4>
+                                            <h4 className="font-serif text-black text-lg mb-3">Payment Information:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Payment Status</label>
                                                     <select
                                                         value={editFormData.payment.status}
                                                         onChange={(e) => handleEditFormChange('payment', 'status', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     >
                                                         <option value="Pending">Pending</option>
                                                         <option value="Paid">Paid</option>
@@ -1072,7 +1063,7 @@ const AllBookings = () => {
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Total Amount *</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Total Amount *</label>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -1080,25 +1071,25 @@ const AllBookings = () => {
                                                         required
                                                         value={editFormData.payment.totalAmount}
                                                         onChange={(e) => handleEditFormChange('payment', 'totalAmount', parseFloat(e.target.value) || 0)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Currency</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.payment.currency}
                                                         onChange={(e) => handleEditFormChange('payment', 'currency', e.target.value.toUpperCase())}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Payment Method</label>
                                                     <input
                                                         type="text"
                                                         value={editFormData.payment.method}
                                                         onChange={(e) => handleEditFormChange('payment', 'method', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                             </div>
@@ -1106,14 +1097,14 @@ const AllBookings = () => {
 
                                         {/* Booking Status & Notes */}
                                         <div>
-                                            <h4 className="font-semibold text-lg mb-3" style={{ color: '#755647' }}>Booking Details</h4>
+                                            <h4 className="font-serif text-black text-lg mb-3">Booking Details:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Booking Status</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Booking Status</label>
                                                     <select
                                                         value={editFormData.status}
                                                         onChange={(e) => handleEditFormChange(null, 'status', e.target.value)}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     >
                                                         <option value="Pending">Pending</option>
                                                         <option value="Confirmed">Confirmed</option>
@@ -1124,34 +1115,30 @@ const AllBookings = () => {
                                                     </select>
                                                 </div>
                                                 <div className="md:col-span-2">
-                                                    <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                                                    <label className="text-sm font-medium text-black mb-1">Notes</label>
                                                     <textarea
                                                         value={editFormData.notes}
                                                         onChange={(e) => handleEditFormChange(null, 'notes', e.target.value)}
                                                         rows="3"
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Form Actions */}
-                                        <div className="flex items-center justify-end gap-3 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
+                                        <div className="flex items-center justify-center gap-3 pt-4 border-t">
                                             <button
                                                 type="button"
                                                 onClick={handleEditModalClose}
-                                                className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                                                style={{ color: '#755647' }}
+                                                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                                             >
                                                 Cancel
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={loading}
-                                                className="px-6 py-2 rounded-lg text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                style={{ backgroundColor: '#876B56' }}
-                                                onMouseEnter={e => { if (!loading) e.currentTarget.style.backgroundColor = '#755647'; }}
-                                                onMouseLeave={e => { if (!loading) e.currentTarget.style.backgroundColor = '#876B56'; }}
+                                                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                                             >
                                                 {loading ? 'Updating...' : 'Update Booking'}
                                             </button>
