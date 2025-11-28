@@ -1,15 +1,7 @@
+import { useSelector } from 'react-redux';
 import { Pie, PieChart, ResponsiveContainer, Tooltip, Cell } from 'recharts';
 
-const COLORS = ['#F7DF9C', '#E3C78A', '#B79982', '#A3876A', '#876B56', '#755647'];
-
-const data = [
-    { name: 'Vila', value: 400 },
-    { name: 'Dilux', value: 300 },
-    { name: 'Single', value: 300 },
-    { name: 'Double', value: 200 },
-    { name: 'Double', value: 200 },
-    { name: 'Vila', value: 400 },
-];
+const COLORS = ['#F7DF9C', '#B79982', '#755647'];
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -35,6 +27,15 @@ export default function CustomActiveShapePieChart({
     isAnimationActive = true,
     defaultIndex = undefined,
 }) {
+
+    const getDashboardData = useSelector((state) => state.dashboard.getDashboard);
+
+    const chartData = getDashboardData?.roomPie ? Object.values(getDashboardData.roomPie).map(item => ({ name: item.roomType, value: item.available })) : [];
+
+    if (!chartData.length) {
+        return <div style={{ padding: '20px', textAlign: 'center' }}>No data available</div>;
+    }
+
     return (
         <div style={{
             width: '100%',
@@ -51,15 +52,16 @@ export default function CustomActiveShapePieChart({
                     }}
                 >
                     <Pie
-                        data={data}
+                        data={chartData}
                         cx="50%"
                         cy="50%"
                         innerRadius="60%"
                         outerRadius="100%"
                         dataKey="value"
+                        nameKey="name"
                         isAnimationActive={isAnimationActive}
                     >
-                        {data.map((entry, index) => (
+                        {chartData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>

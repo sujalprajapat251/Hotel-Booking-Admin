@@ -9,8 +9,8 @@ import { FiUsers, FiUser } from "react-icons/fi";
 import { LuUserCheck, LuUserPlus } from "react-icons/lu";
 
 const purposeData = [
-    { name: 'Business', value: 156, color: '#876B56', icon: <BsSuitcaseLg className='text-[18px] font-bold' /> },
-    { name: 'Leisure', value: 96, color: '#B79982', icon: <TiWeatherSunny className='text-[18px] font-bold' /> },
+    { name: 'Room', value: 156, color: '#876B56', icon: <BsSuitcaseLg className='text-[18px] font-bold' /> },
+    { name: 'Cafe', value: 96, color: '#B79982', icon: <TiWeatherSunny className='text-[18px] font-bold' /> },
 ];
 
 const originData = [
@@ -45,7 +45,7 @@ const CenterLabel = ({ totalGuests, activeData }) => {
     return (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center transition-all duration-300 pointer-events-none">
             <div className="text-[12px] text-[#A3876A] mb-1 font-medium tracking-wide uppercase">
-                {activeData ? activeData.name : "Total Guests"}
+                {activeData ? activeData.name : "Total Amount"}
             </div>
 
             <div
@@ -66,13 +66,13 @@ const CenterLabel = ({ totalGuests, activeData }) => {
 
 export default function CustomActiveShapePieChart({ isAnimationActive = true }) {
     const [activeIndex, setActiveIndex] = useState(null);
-    const [activeTab, setActiveTab] = useState('purpose');
+    const [activeTab, setActiveTab] = useState('cafe');
 
     const getCurrentData = () => {
         switch (activeTab) {
-            case 'purpose': return purposeData;
-            case 'origin': return originData;
-            case 'age': return ageData;
+            case 'cafe': return purposeData;
+            case 'bar': return originData;
+            case 'restaurant': return ageData;
             default: return purposeData;
         }
     };
@@ -89,10 +89,10 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
 
     const getTitle = () => {
         switch (activeTab) {
-            case 'purpose': return 'Guest Purpose';
-            case 'origin': return 'Guest Origin';
-            case 'age': return 'Age Groups';
-            default: return 'Guest Purpose';
+            case 'cafe': return 'Cafe Order';
+            case 'bar': return 'Bar Order';
+            case 'restaurant': return 'Resturant Order';
+            default: return 'Cafe Order';
         }
     };
 
@@ -113,38 +113,38 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
             <div className="flex border-2 border-[#E3C78A] rounded-lg  shadow-sm overflow-auto ">
                 {/* PURPOSE TAB */}
                 <button
-                    onClick={() => setActiveTab('purpose')}
+                    onClick={() => setActiveTab('cafe')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 
-                    ${activeTab === 'purpose'
+                    ${activeTab === 'cafe'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <BsSuitcaseLg className="text-[18px]" /> Purpose
+                    <BsSuitcaseLg className="text-[18px]" /> Cafe
                 </button>
 
                 {/* ORIGIN TAB */}
                 <button
-                    onClick={() => setActiveTab('origin')}
+                    onClick={() => setActiveTab('bar')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 border-x border-[#E3C78A]
-                    ${activeTab === 'origin'
+                    ${activeTab === 'bar'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <IoLocationOutline className="text-[18px]" /> Origin
+                    <IoLocationOutline className="text-[18px]" /> Bar
                 </button>
 
                 {/* AGE TAB */}
                 <button
-                    onClick={() => setActiveTab('age')}
+                    onClick={() => setActiveTab('restaurant')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 
-                    ${activeTab === 'age'
+                    ${activeTab === 'restaurant'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <FiUsers className="text-[18px]" /> Age
+                    <FiUsers className="text-[18px]" /> Resturant
                 </button>
             </div>
 
