@@ -48,7 +48,6 @@ const LoginPage = () => {
             dispatch(login(values))
                 .then((response) => {
                     if (response.meta?.requestStatus === "fulfilled") {
-                        // Check user role and navigate accordingly
                         const userRole = response.payload?.user?.designation || 'user';
                         console.log('user', userRole)
                         if (userRole === 'admin') {

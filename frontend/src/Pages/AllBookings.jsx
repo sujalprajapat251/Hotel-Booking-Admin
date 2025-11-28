@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
-import { ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
@@ -83,6 +83,26 @@ const AllBookings = () => {
         documents: true,
         actions: true
     });
+    const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
+    const [showBookingStatusDropdown, setShowBookingStatusDropdown] = useState(false);
+    const paymentStatusRef = useRef(null);
+    const bookingStatusRef = useRef(null);
+
+    const paymentStatusOptions = [
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Paid', label: 'Paid' },
+        { value: 'Partial', label: 'Partial' },
+        { value: 'Refunded', label: 'Refunded' },
+    ];
+
+    const bookingStatusOptions = [
+        { value: 'Pending', label: 'Pending' },
+        { value: 'Confirmed', label: 'Confirmed' },
+        { value: 'CheckedIn', label: 'Checked In' },
+        { value: 'CheckedOut', label: 'Checked Out' },
+        { value: 'Cancelled', label: 'Cancelled' },
+        { value: 'NoShow', label: 'No Show' },
+    ];
 
     // Debounce search term
     useEffect(() => {
@@ -186,6 +206,12 @@ const AllBookings = () => {
         const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowColumnDropdown(false);
+            }
+            if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
+                setShowPaymentStatusDropdown(false);
+            }
+            if (bookingStatusRef.current && !bookingStatusRef.current.contains(event.target)) {
+                setShowBookingStatusDropdown(false);
             }
         };
 
@@ -476,13 +502,6 @@ const AllBookings = () => {
                                 {/* Action Buttons */}
                                 <div className="flex items-center gap-1 justify-end mt-2">
                                     <div className="relative" ref={dropdownRef}>
-                                        <button
-                                            // onClick={() => navigate('/staff/addstaff', { state: { mode: 'add' } })}
-                                            className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-                                            title="Add New Booking"
-                                        >
-                                            <FiPlusCircle size={20} />
-                                        </button>
                                         <button
                                             onClick={() => setShowColumnDropdown(!showColumnDropdown)}
                                             className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
@@ -1082,18 +1101,34 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-serif text-black text-lg mb-3">Payment Information:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
+                                                <div className="relative" ref={paymentStatusRef}>
                                                     <label className="text-sm font-medium text-black mb-1">Payment Status</label>
-                                                    <select
-                                                        value={editFormData.payment.status}
-                                                        onChange={(e) => handleEditFormChange('payment', 'status', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
+                                                        className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
                                                     >
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Paid">Paid</option>
-                                                        <option value="Partial">Partial</option>
-                                                        <option value="Refunded">Refunded</option>
-                                                    </select>
+                                                        <span className={editFormData.payment.status ? 'text-black' : 'text-gray-400'}>
+                                                            {paymentStatusOptions.find((opt) => opt.value === editFormData.payment.status)?.label || 'Select payment status'}
+                                                        </span>
+                                                        <ChevronDown size={18} className="text-gray-600" />
+                                                    </button>
+                                                    {showPaymentStatusDropdown && (
+                                                        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
+                                                            {paymentStatusOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    onClick={() => {
+                                                                        handleEditFormChange('payment', 'status', option.value);
+                                                                        setShowPaymentStatusDropdown(false);
+                                                                    }}
+                                                                    className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
+                                                                >
+                                                                    {option.label}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Total Amount *</label>
@@ -1132,20 +1167,34 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-serif text-black text-lg mb-3">Booking Details:</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
+                                                <div className="relative" ref={bookingStatusRef}>
                                                     <label className="text-sm font-medium text-black mb-1">Booking Status</label>
-                                                    <select
-                                                        value={editFormData.status}
-                                                        onChange={(e) => handleEditFormChange(null, 'status', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowBookingStatusDropdown((prev) => !prev)}
+                                                        className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
                                                     >
-                                                        <option value="Pending">Pending</option>
-                                                        <option value="Confirmed">Confirmed</option>
-                                                        <option value="CheckedIn">Checked In</option>
-                                                        <option value="CheckedOut">Checked Out</option>
-                                                        <option value="Cancelled">Cancelled</option>
-                                                        <option value="NoShow">No Show</option>
-                                                    </select>
+                                                        <span className={editFormData.status ? 'text-black' : 'text-gray-400'}>
+                                                            {bookingStatusOptions.find((opt) => opt.value === editFormData.status)?.label || 'Select booking status'}
+                                                        </span>
+                                                        <ChevronDown size={18} className="text-gray-600" />
+                                                    </button>
+                                                    {showBookingStatusDropdown && (
+                                                        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
+                                                            {bookingStatusOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    onClick={() => {
+                                                                        handleEditFormChange(null, 'status', option.value);
+                                                                        setShowBookingStatusDropdown(false);
+                                                                    }}
+                                                                    className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
+                                                                >
+                                                                    {option.label}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="md:col-span-2">
                                                     <label className="text-sm font-medium text-black mb-1">Notes</label>

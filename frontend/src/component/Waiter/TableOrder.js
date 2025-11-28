@@ -11,6 +11,8 @@ import { getAllBarcategory } from '../../Redux/Slice/barcategorySlice';
 import { getAllBaritem } from '../../Redux/Slice/baritemSlice';
 import { getAllRestaurantcategory } from '../../Redux/Slice/restaurantcategorySlice';
 import { getAllRestaurantitem } from '../../Redux/Slice/restaurantitemSlice';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 
 export default function TableOrder() {
     const dispatch = useDispatch();
@@ -165,30 +167,34 @@ export default function TableOrder() {
 
     const total = previousTotal + newItemsTotal;
 
-    const [name, setName] = useState('');
-    const [contact, setContact] = useState('');
-    useEffect(() => {
-        setName(previousOrder?.name || '');
-        setContact(previousOrder?.contact || '');
-    }, [previousOrder]);
-
-    const handleAddOrder = async () => {
-        try {
-            for (const i of selected) {
-                await dispatch(addItemToTableOrder({
-                    tableId: id,
-                    product: i.product._id,
-                    qty: i.qty,
-                    description: i.description || "",
-                    name,
-                    contact
-                })).unwrap();
+    const addOrderForm = useFormik({
+        enableReinitialize: true,
+        initialValues: {
+            name: previousOrder?.name || '',
+            contact: previousOrder?.contact || ''
+        },
+        validationSchema: Yup.object({
+            name: Yup.string().trim().required('Name is required').min(2, 'Name must be at least 2 characters').max(50, 'Name must be at most 50 characters'),
+            contact: Yup.string().trim().required('Contact is required').matches(/^[0-9]{10,15}$/, 'Contact must be 10-15 digits')
+        }),
+        onSubmit: async (values) => {
+            try {
+                for (const i of selected) {
+                    await dispatch(addItemToTableOrder({
+                        tableId: id,
+                        product: i.product._id,
+                        qty: i.qty,
+                        description: i.description || '',
+                        name: values.name,
+                        contact: values.contact
+                    })).unwrap();
+                }
+                setSelected([]);
+                dispatch(getCafeTableById(id));
+            } catch (error) {
             }
-            setSelected([]);
-            dispatch(getCafeTableById(id));
-        } catch (error) {
         }
-    }
+    });
 
     return (
         <div className="p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen">
@@ -280,7 +286,7 @@ export default function TableOrder() {
                     <div className="bg-white p-2 sm:p-4 sticky bottom-0 lg:static lg:h-full lg:max-h-screen flex flex-col">
                         <h1 className="text-center text-base sm:text-xl border-b p-1.5 sm:p-2">Order Detail</h1>
 
-                        <div className="mt-2 sm:mt-4 h-[250px] sm:h-[300px] md:h-[400px] overflow-auto flex-1">
+                        <div className="mt-2 sm:mt-4 max-h-[250px] sm:max-h-[300px] md:max-h-[400px] overflow-auto flex-1">
                             {previousOrder ? (
                                 <div className="mb-4">
                                     {previousOrder.items.map((oi) => (
@@ -386,32 +392,46 @@ export default function TableOrder() {
                                     </div>
                                 ))
                             )}
+                        </div>
+                        <form onSubmit={addOrderForm.handleSubmit}>
+                            <div className='border-b p-1.5 sm:p-2'>
+                                <input
+                                    name='name'
+                                    value={addOrderForm.values.name}
+                                    onChange={addOrderForm.handleChange}
+                                    onBlur={addOrderForm.handleBlur}
+                                    className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
+                                    placeholder='name'
+                                ></input>
+                                {addOrderForm.touched.name && addOrderForm.errors.name ? (
+                                    <p className="text-red-600 text-xs">{addOrderForm.errors.name}</p>
+                                ) : null}
+                                <input
+                                    name='contact'
+                                    value={addOrderForm.values.contact}
+                                    onChange={addOrderForm.handleChange}
+                                    onBlur={addOrderForm.handleBlur}
+                                    className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
+                                    placeholder='contact'
+                                ></input>
+                                {addOrderForm.touched.contact && addOrderForm.errors.contact ? (
+                                    <p className="text-red-600 text-xs">{addOrderForm.errors.contact}</p>
+                                ) : null}
+                            </div>
+                            <div className='py-2 sm:py-3 flex justify-between items-center'>
+                                <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
+                                <p className='text-sm sm:text-base'>Rs. {total}</p>
+                            </div>
+                            <div className='flex justify-end'>
+                                <button
+                                    type='submit'
+                                    className='ms-auto text-center bg-senary text-white py-2 px-3 rounded-sm text-sm sm:text-base cursor-pointer active:opacity-80'
+                                >
+                                    Add order
+                                </button>
+                            </div>
 
-                        </div>
-                        <div className='border-b p-1.5 sm:p-2'>
-                            <input
-                                value={name}
-                                onChange={(e) => { setName(e.target.value) }}
-                                className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
-                                placeholder='name'
-                            ></input>
-                            <input
-                                value={contact}
-                                onChange={(e) => { setContact(e.target.value) }}
-                                className="w-full px-2 sm:px-4 py-1.5 sm:py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-senary my-1 sm:my-2 text-xs sm:text-sm"
-                                placeholder='contact'
-                            ></input>
-                        </div>
-                        <div className='py-2 sm:py-3 flex justify-between items-center'>
-                            <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
-                            <p className='text-sm sm:text-base'>Rs. {total}</p>
-                        </div>
-                        <button
-                            className='text-center bg-senary text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base cursor-pointer active:opacity-80'
-                            onClick={handleAddOrder}
-                        >
-                            Add order
-                        </button>
+                        </form>
                     </div>
                 </div>
             </div>
