@@ -1,0 +1,201 @@
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { BASE_URL } from '../../Utils/baseUrl';
+import { setAlert } from './alert.slice';
+
+const handleErrors = (error, dispatch, rejectWithValue) => {
+    const errorMessage = error.response?.data?.message || 'An error occurred';
+    dispatch(setAlert({ text: errorMessage, color: 'error' }));
+    return rejectWithValue(error.response?.data || { message: errorMessage });
+};
+
+const buildError = (error) => {
+    if (error?.response?.data?.message) return error.response.data.message;
+    return error?.message || 'Something went wrong';
+};
+
+const getAuthHeaders = () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+
+// Updated fetchBookings to support pagination
+// export const fetchAllhousekeepingrooms = createAsyncThunk(
+//     'haousekeeping/fetchAllhousekeepingrooms',
+//     async (params = {}, { dispatch, rejectWithValue }) => {
+//         try {
+//             const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
+//                 params, // This will include page, limit, search, etc.
+//                 headers: getAuthHeaders()
+//             });
+//             // console.log('response', response.data);
+
+//             // Return the entire response data
+//             return response.data;
+//         } catch (error) {
+//             return handleErrors(error, dispatch, rejectWithValue);
+//         }
+//     }
+// );
+
+// Add this after your fetchAllhousekeepingrooms thunk
+// export const assignWorkerToRoom = createAsyncThunk(
+//     'housekeeping/assignWorkerToRoom',
+//     async ({ roomId, workerId }, { dispatch, rejectWithValue }) => {
+//         try {
+//             const response = await axios.post(
+//                 `${BASE_URL}/assign`,
+//                 { roomId, workerId },
+//                 { headers: getAuthHeaders() }
+//             );
+
+//             dispatch(setAlert({
+//                 text: response.data.message || 'Worker assigned successfully!',
+//                 color: 'success'
+//             }));
+
+//             return response.data;
+//         } catch (error) {
+//             return handleErrors(error, dispatch, rejectWithValue);
+//         }
+//     }
+// );
+
+export const fetchWorkerTasks = createAsyncThunk(
+    'worker/fetchWorkerTasks',
+    async ({ workerId }, { dispatch, rejectWithValue }) => {
+        // console.log('workerId', workerId);
+        try {
+            const response = await axios.get(`${BASE_URL}/getworkertask/${workerId}`,
+                { headers: getAuthHeaders() }
+            );
+            // console.log('responseeeeeeee', response.data);
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+)
+
+
+export const startWork = createAsyncThunk(
+    'worker/startWork',
+    async ({ id }, { dispatch, rejectWithValue }) => {  // Changed Id to id
+        console.log('taskId', id);
+        try {
+            const response = await axios.put(
+                `${BASE_URL}/start/${id}`,
+                {}, // Empty body
+                { headers: getAuthHeaders() } // Headers in config
+            );
+            // console.log('response', response.data);
+
+            dispatch(setAlert({
+                text: response.data.message || 'Task started successfully!',
+                color: 'success'
+            }));
+
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const completeTask = createAsyncThunk(
+    'worker/completeTask',
+    async ({ id }, { dispatch, rejectWithValue }) => {  // Changed Id to id
+        console.log('taskId', id);
+        try {
+            const response = await axios.put(
+                `${BASE_URL}/complete/${id}`,
+                {}, // Empty body
+                { headers: getAuthHeaders() } // Headers in config
+            );
+            console.log('response', response.data);
+
+            dispatch(setAlert({
+                text: response.data.message || 'Task started successfully!',
+                color: 'success'
+            }));
+
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+
+const initialState = {
+    items: [],
+    busyWorkers: [],
+    selected: null,
+    loading: false,
+    error: null,
+    creating: false,
+    lastCreated: null,
+    // Pagination state
+    totalCount: 0,
+    currentPage: 1,
+    totalPages: 0
+};
+
+const WorkerSlice = createSlice({
+    name: 'worker',
+    initialState,
+    reducers: {
+        clearBookingError: (state) => {
+            state.error = null;
+        },
+        resetLastCreatedBooking: (state) => {
+            state.lastCreated = null;
+        }
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchWorkerTasks.pending, (state) => {
+                state.loadingWorkers = true;
+                state.error = null;
+            })
+            .addCase(fetchWorkerTasks.fulfilled, (state, action) => {
+                state.loadingWorkers = false;
+                state.items = action.payload?.data || []; // Store in freeWorkers instead of items
+                // console.log('Free workers:', action.payload.data);
+            })
+            .addCase(fetchWorkerTasks.rejected, (state, action) => {
+                state.loadingWorkers = false;
+                state.error = action.payload;
+            })
+            .addCase(startWork.pending, (state) => {
+                state.loadingStart = true;
+                state.error = null;
+            })
+            .addCase(startWork.fulfilled, (state, action) => {
+                state.loadingStart = false;
+                state.start = action.payload?.data || []; // Store in freeWorkers instead of items
+                // console.log('Free workers:', action.payload.data);
+            })
+            .addCase(startWork.rejected, (state, action) => {
+                state.loadingStart = false;
+                state.error = action.payload;
+            })
+            .addCase(completeTask.pending, (state) => {
+                state.loadingStart = true;
+                state.error = null;
+            })
+            .addCase(completeTask.fulfilled, (state, action) => {
+                state.loadingStart = false;
+                state.start = action.payload?.data || []; // Store in freeWorkers instead of items
+                console.log('Free workers:', action.payload.data);
+            })
+            .addCase(completeTask.rejected, (state, action) => {
+                state.loadingStart = false;
+                state.error = action.payload;
+            })
+    }
+});
+
+export const { clearBookingError, resetLastCreatedBooking } = WorkerSlice.actions;
+export default WorkerSlice.reducer;

@@ -14,6 +14,7 @@ const AllBookings = () => {
 
     const dispatch = useDispatch();
     const [booking, setBooking] = useState([]);
+    console.log('booking', booking);
 
     // Get data from Redux store including pagination
     const {
@@ -122,7 +123,7 @@ const AllBookings = () => {
                 phone: item.guest?.phone || 'N/A',
                 roomType: item.room?.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item 
+                rawData: item
             }));
             console.log('formattedBookings', formattedBookings);
             setBooking(formattedBookings);
@@ -130,6 +131,36 @@ const AllBookings = () => {
             setBooking([]);
         }
     }, [items]);
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+
+    const normalizedBookings = booking.map(item => ({
+        ...item,
+        roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || ""
+    }));
+
+
+    const filteredBookings = normalizedBookings.filter((item) => {
+        const searchLower = searchTerm.trim().toLowerCase();
+        if (!searchLower) return true;
+
+        return (
+            item.name?.toLowerCase().includes(searchLower) ||
+            item.roomType?.toLowerCase().includes(searchLower) ||
+            item.status?.toLowerCase().includes(searchLower) ||
+            item.roomNo?.toString().includes(searchLower) ||
+            item.phone?.toString().includes(searchLower) ||
+            (item?.checkIn && formatDate(item.checkIn).toLowerCase().includes(searchLower)) ||
+            (item?.checkOut && formatDate(item.checkOut).toLowerCase().includes(searchLower))
+        );
+    });
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -170,14 +201,7 @@ const AllBookings = () => {
         dispatch(fetchBookings({ page: 1, limit }));
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
+
 
     const handleDownloadExcel = () => {
         try {
@@ -395,10 +419,13 @@ const AllBookings = () => {
         setCurrentPage(1);
     };
 
+
+
+
     const totalPages = Math.ceil(booking.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentData = booking.slice(startIndex, endIndex);
+    const currentData = filteredBookings.slice(startIndex, endIndex);
 
     return (
         <>
@@ -698,8 +725,8 @@ const AllBookings = () => {
                             onClick={handleCloseModal}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
-                            <div 
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[85%] border-2 my-4 sm:my-8" 
+                            <div
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[85%] border-2 my-4 sm:my-8"
                                 style={{
                                     borderColor: '#E3C78A',
                                     boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
@@ -712,8 +739,8 @@ const AllBookings = () => {
                                 }}>
                                     <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
                                         <h3 className="text-lg sm:text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                         >
@@ -729,14 +756,14 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Guest Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Name:</span>
                                                     <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.name || 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.phone && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Phone:</span>
@@ -744,15 +771,15 @@ const AllBookings = () => {
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
-                                                        <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}  
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
+                                                        style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Email:</span>
                                                         <span className="text-sm sm:text-base break-words" style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.idNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>ID Number:</span>
@@ -766,20 +793,20 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Booking Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check In:</span>
                                                     <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                                 </div>
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check Out:</span>
                                                     <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.createdAt && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Created At:</span>
@@ -794,7 +821,7 @@ const AllBookings = () => {
                                             <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Room Details</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
                                                 {selectedItem.rawData?.room?.roomNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
@@ -802,7 +829,7 @@ const AllBookings = () => {
                                                     </div>
                                                 )}
                                                 {selectedItem.roomType && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Room Type:</span>
@@ -810,7 +837,7 @@ const AllBookings = () => {
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.room?.floor && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[50px]" style={{ color: '#755647' }}>Floor:</span>
@@ -818,7 +845,7 @@ const AllBookings = () => {
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.reservation?.occupancy && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Occupancy:</span>
@@ -834,7 +861,7 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Payment Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4">
-                                                <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-2 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Status:</span>
@@ -843,7 +870,7 @@ const AllBookings = () => {
                                                     </span>
                                                 </div>
                                                 {selectedItem.rawData?.payment?.totalAmount && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
@@ -853,7 +880,7 @@ const AllBookings = () => {
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.payment?.method && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors"
                                                         style={{ backgroundColor: 'transparent' }}
                                                     >
                                                         <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Method:</span>
@@ -869,7 +896,7 @@ const AllBookings = () => {
                                                 <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Additional Information</h4>
                                                 <div className="grid grid-cols-1 md600:gap-4">
                                                     {selectedItem.rawData?.reservation?.specialRequests && (
-                                                            <div className="flex items-start p-2 rounded-lg transition-colors" 
+                                                        <div className="flex items-start p-2 rounded-lg transition-colors"
                                                             style={{ backgroundColor: 'transparent' }}
                                                         >
                                                             <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Special Requests:</span>
@@ -877,8 +904,8 @@ const AllBookings = () => {
                                                         </div>
                                                     )}
                                                     {selectedItem.rawData?.notes && (
-                                                        <div className="flex items-start p-2 rounded-lg transition-colors" 
-                                                            style={{ backgroundColor: 'transparent' }}  
+                                                        <div className="flex items-start p-2 rounded-lg transition-colors"
+                                                            style={{ backgroundColor: 'transparent' }}
                                                         >
                                                             <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Notes:</span>
                                                             <span className="text-sm sm:text-base flex-1" style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
@@ -903,8 +930,8 @@ const AllBookings = () => {
                             onClick={handleEditModalClose}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div 
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-4xl border-2" 
+                            <div
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-4xl border-2"
                                 style={{
                                     borderColor: '#E3C78A',
                                     boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
@@ -917,8 +944,8 @@ const AllBookings = () => {
                                 }}>
                                     <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
                                         <h3 className="text-xl font-bold" style={{ color: '#755647' }}>Edit Booking</h3>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={handleEditModalClose}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                             style={{ color: '#876B56' }}
