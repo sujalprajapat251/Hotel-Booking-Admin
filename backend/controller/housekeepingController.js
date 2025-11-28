@@ -144,28 +144,23 @@ exports.startCleaning = async (req, res) => {
 // WORKER COMPLETES CLEANING
 exports.completeCleaning = async (req, res) => {
     try {
-        const { id } = req.params; // task id
+        const { id } = req.params;
         const { notes } = req.body;
 
         const task = await Housekeeping.findById(id);
         if (!task) {
-            return res.status(404).json({
-                success: false,
-                message: "Task not found"
-            });
+            return res.status(404).json({ success: false, message: "Task not found" });
         }
 
         task.status = "Completed";
         task.notes = notes;
         await task.save();
 
-        await Room.findByIdAndUpdate(task.roomId, {
-            cleanStatus: "Completed"
-        });
+        await Room.findByIdAndUpdate(task.roomId, { cleanStatus: "Completed" });
 
         return res.json({
             success: true,
-            message: "Cleaning task completed..!",
+            message: "Cleaning task completed..! ",
             data: task
         });
 
@@ -173,6 +168,7 @@ exports.completeCleaning = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
+
 
 // HEAD SUPERVISOR APPROVES CLEANING (FINAL CLEAN)
 exports.approveCleaning = async (req, res) => {
