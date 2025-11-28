@@ -279,7 +279,7 @@ const Departments = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {[...currentData].reverse().map((item, index) => (
+              {currentData.map((item, index) => (
                 <tr
                   key={item._id || index}
                   className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"

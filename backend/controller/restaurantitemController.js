@@ -39,7 +39,7 @@ exports.createRestaurantItem = async (req, res) => {
 
 exports.getAllRestaurantItems = async (req, res) => {
     try {
-        const items = await RestaurantItem.find().populate("category")
+        const items = await RestaurantItem.find().populate("category").sort({ createdAt: -1 })
 
         return res.status(200).json({
             success: true,

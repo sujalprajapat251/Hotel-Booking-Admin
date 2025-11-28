@@ -465,7 +465,7 @@ const BarItems = () => {
                                         className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                     >
                                         {visibleColumns.no && (
-                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                                         )}
 
                                         {/* name */}
@@ -734,7 +734,7 @@ const BarItems = () => {
                                             {categories.length === 0 ? (
                                                 <div className="px-4 py-2 text-sm text-gray-500">No categories available</div>
                                             ) : (
-                                                [...categories].reverse().map((cat) => (
+                                                categories.map((cat) => (
                                                     <div
                                                         key={cat._id}
                                                         onClick={() => {

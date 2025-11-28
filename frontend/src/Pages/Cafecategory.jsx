@@ -301,7 +301,7 @@ const Cafecategory = () => {
                   </td>
                 </tr>
               ) : (
-                [...currentData].reverse().map((item, index) => (
+                currentData.map((item, index) => (
                   <tr
                     key={item._id || index}
                     className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"

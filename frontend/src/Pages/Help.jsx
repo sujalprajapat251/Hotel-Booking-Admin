@@ -137,7 +137,7 @@ const FAQPage = () => {
 
         <div className="flex flex-col mt-4 gap-4">
           {filteredFaqs && filteredFaqs.length > 0 ? (
-            [...filteredFaqs].reverse().map((faq, index) => (
+            filteredFaqs.map((faq, index) => (
               <div
                 key={faq.id || index}
                 className="bg-white border border-gray-200 rounded-lg p-4 transition-all"
