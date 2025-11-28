@@ -5,7 +5,6 @@ import * as XLSX from 'xlsx';
 import { useDispatch, useSelector } from "react-redux";
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { getAllReview } from "../Redux/Slice/review.slice";
-import { IMAGE_URL } from '../Utils/baseUrl';
 import userImg from "../Images/user.png";
 
 const Review = () => {
@@ -21,8 +20,8 @@ const Review = () => {
 	);
 
 	useEffect(() => {
-		if (currentUser && currentUser.photo) {
-			setImageUrl(IMAGE_URL + currentUser.photo);
+		if (currentUser && currentUser.image) {
+			setImageUrl(currentUser.image);
 		} else {
 			setImageUrl(userImg);
 		}
@@ -209,7 +208,7 @@ const Review = () => {
 						<div className="flex items-center gap-2 text-sm text-gray-700">
 							<span className="font-bold text-lg">{averageRating}</span>
 							<AiFillStar className="text-yellow-400" />
-							<a href="#" className="text-black underline">
+							<a className="text-black underline">
 								({totalReviews} reviews)
 							</a>
 						</div>
@@ -232,7 +231,7 @@ const Review = () => {
 									></div>
 								</div>
 
-								<a href="#" className="text-black text-sm underline whitespace-nowrap">
+								<a className="text-black text-sm underline whitespace-nowrap">
 									{item.count} reviews
 								</a>
 							</div>

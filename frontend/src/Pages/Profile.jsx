@@ -5,7 +5,6 @@ import { getUserById, updatestaff } from '../Redux/Slice/staff.slice';
 import { changePassword } from '../Redux/Slice/auth.slice';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import userImg from "../Images/user.png";
-import { IMAGE_URL } from "../Utils/baseUrl";
 import { FaCamera } from "react-icons/fa";
 
 const Profile = () => {
@@ -83,7 +82,7 @@ const Profile = () => {
 
   useEffect(() => {
     if (currentUser && currentUser.image) {
-      setImageUrl(IMAGE_URL + currentUser.image);
+      setImageUrl(currentUser.image);
     } else {
       setImageUrl(userImg);
     }
@@ -142,7 +141,7 @@ const Profile = () => {
     }
     // Reset avatar
     if (currentUser && currentUser.image) {
-      setImageUrl(IMAGE_URL + currentUser.image);
+      setImageUrl(currentUser.image);
     } else {
       setImageUrl(userImg);
     }
@@ -177,7 +176,7 @@ const Profile = () => {
       if (updatestaff.fulfilled.match(result)) {
         setAvatarFile(null);
         if (result.payload?.photo) {
-          setImageUrl(IMAGE_URL + result.payload.photo);
+          setImageUrl(result.payload.photo);
         }
         setIsEditMode(false);
       } else {
