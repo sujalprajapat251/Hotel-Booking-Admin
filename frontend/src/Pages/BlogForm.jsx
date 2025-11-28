@@ -188,7 +188,7 @@ const BlogForm = () => {
                         />
                         </button>
                         {showTagDropdown && (
-                            <div className="absolute top-full left-0 mt-1 z-50 w-full bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                            <div className="absolute top-full left-0 z-50 w-full bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
                                 {tags.map((tag, index) => (
                                 <div
                                     key={index}

@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search }
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
-
+import { GoDotFill } from "react-icons/go";
 
 const AllBookings = () => {
 
@@ -254,6 +254,24 @@ const AllBookings = () => {
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
     };
+
+    // Prevent background page from scrolling when modal is open
+    useEffect(() => {
+        if (typeof document === 'undefined') return;
+
+        if (isModalOpen || isDeleteModalOpen || isEditModalOpen) {
+            // save current overflow so we can restore it
+            bodyOverflowRef.current = document.body.style.overflow;
+            document.body.style.overflow = 'hidden';
+        } else {
+            // restore previous overflow
+            document.body.style.overflow = bodyOverflowRef.current || '';
+        }
+
+        return () => {
+            document.body.style.overflow = bodyOverflowRef.current || '';
+        };
+    }, [isModalOpen, isDeleteModalOpen, isEditModalOpen]);
 
     const handleEditClick = (bookingItem) => {
         const rawData = bookingItem.rawData || {};
@@ -533,13 +551,7 @@ const AllBookings = () => {
                                         currentData.map((bookingItem, index) => (
                                             <tr
                                                 key={bookingItem.id}
-                                                className="transition-all duration-200"
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = 'linear-gradient(to right, rgba(247, 223, 156, 0.1), rgba(227, 199, 138, 0.1))';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'transparent';
-                                                }}
+                                                className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                             >
                                                 {visibleColumns.No && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
@@ -549,7 +561,7 @@ const AllBookings = () => {
                                                 {visibleColumns.name && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-semibold text-[#755647]">{bookingItem.name}</span>
+                                                            <span className="text-sm text-black">{bookingItem.name}</span>
                                                         </div>
                                                     </td>
                                                 )}
@@ -610,14 +622,12 @@ const AllBookings = () => {
                                                             </div>
                                                             <div
                                                                 onClick={() => handleEditClick(bookingItem)}
-                                                                // className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                                                                 title="Edit Booking"
                                                             >
                                                                 <FiEdit className="text-[#6777ef] text-[18px]"/>
                                                             </div>
                                                             <div    
                                                                 onClick={() => handleDeleteClick(bookingItem)}
-                                                                // className="p-2 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                                 title="Delete Booking"
                                                             >
                                                                 <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
@@ -693,25 +703,18 @@ const AllBookings = () => {
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity"
-                            style={{ backgroundColor: '#000000bf' }}
+                            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                             onClick={handleCloseModal}
                         ></div>
-                        <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
+                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
                             <div 
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[85%] border-2 my-4 sm:my-8" 
-                                style={{
-                                    borderColor: '#E3C78A',
-                                    boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                                }}
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-2xl border max-h-[80vh]"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Modal Header */}
-                                <div className="px-3 py-3 sm:px-6 sm:py-4" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
-                                }}>
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-lg sm:text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
+                                <div className="bg-white px-3 mt-1 py-3 sm:px-6 sm:py-4">
+                                    <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                                        <h3 className="text-lg sm:text-xl font-semibold text-black">Booking Details</h3>
                                         <button 
                                             type="button" 
                                             onClick={handleCloseModal}
@@ -724,39 +727,38 @@ const AllBookings = () => {
                                     </div>
 
                                     {/* Content with responsive grid */}
-                                    <div className="space-y-4 sm:space-y-6 max-h-[70vh] overflow-y-auto pr-1 sm:pr-2">
+                                    <div className="space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto pr-1 sm:pr-2 pb-2 bg-white">
                                         {/* Guest Information */}
                                         <div>
-                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Guest Information</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
+                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                    <GoDotFill size={18}/>
+                                                </span> Guest Information</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
                                                 <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                    style={{ backgroundColor: 'transparent' }}
                                                 >
-                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Name:</span>
-                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.name || 'N/A'}</span>
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]" >Name:</span>
+                                                    <span className="text-sm sm:text-base">{selectedItem.name || 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.phone && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
                                                     >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Phone:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.phone}</span>
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Phone:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.phone}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
                                                         <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}  
                                                     >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Email:</span>
-                                                        <span className="text-sm sm:text-base break-words" style={{ color: '#876B56' }}>{selectedItem.rawData.guest.email}</span>
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Email:</span>
+                                                        <span className="text-sm sm:text-base break-words">{selectedItem.rawData.guest.email}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.idNumber && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
                                                     >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>ID Number:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.guest.idNumber}</span>
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">ID Number:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.guest.idNumber}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -764,26 +766,25 @@ const AllBookings = () => {
 
                                         {/* Booking Information */}
                                         <div>
-                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Booking Information</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                    style={{ backgroundColor: 'transparent' }}
-                                                >
-                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check In:</span>
-                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
+                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                    <GoDotFill size={18}/>
+                                                </span>Booking Information</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In:</span>
+                                                    <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                                 </div>
                                                 <div className="flex items-center p-1 rounded-lg transition-colors" 
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
-                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Check Out:</span>
-                                                    <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out:</span>
+                                                    <span className="text-sm sm:text-base">{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.createdAt && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[90px]" style={{ color: '#755647' }}>Created At:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{formatDate(selectedItem.createdAt)}</span>
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Created At:</span>
+                                                        <span className="text-sm sm:text-base">{formatDate(selectedItem.createdAt)}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -791,38 +792,33 @@ const AllBookings = () => {
 
                                         {/* Room Details */}
                                         <div>
-                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Room Details</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4 lg:gap-0">
+                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                    <GoDotFill size={18}/>
+                                                </span> Room Details</h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
                                                 {selectedItem.rawData?.room?.roomNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Room Number:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.room.roomNumber}</span>
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Room Number:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.room.roomNumber}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.roomType && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Room Type:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.roomType}</span>
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors" >
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Room Type:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.roomType}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.room?.floor && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[50px]" style={{ color: '#755647' }}>Floor:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.room.floor}</span>
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[50px]">Floor:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.room.floor}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.reservation?.occupancy && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[100px]" style={{ color: '#755647' }}>Occupancy:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Occupancy:</span>
+                                                        <span className="text-sm sm:text-base">
                                                             Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, Children: {selectedItem.rawData.reservation.occupancy.children || 0}
                                                         </span>
                                                     </div>
@@ -832,32 +828,30 @@ const AllBookings = () => {
 
                                         {/* Payment Information */}
                                         <div>
-                                            <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Payment Information</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 lg:grid-cols-3 md600:gap-4">
-                                                <div className="flex items-center p-2 rounded-lg transition-colors" 
-                                                    style={{ backgroundColor: 'transparent' }}
-                                                >
-                                                    <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Status:</span>
+                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                    <GoDotFill size={18}/>
+                                                </span> Payment Information
+                                            </h4>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[115px] sm:min-w-[130px]">Payment Status:</span>
                                                     <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
                                                         {selectedItem.status}
                                                     </span>
                                                 </div>
                                                 {selectedItem.rawData?.payment?.totalAmount && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[120px]" style={{ color: '#755647' }}>Total Amount:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Total Amount:</span>
+                                                        <span className="text-sm sm:text-base">
                                                             {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
                                                         </span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.payment?.method && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors" 
-                                                        style={{ backgroundColor: 'transparent' }}
-                                                    >
-                                                        <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[140px]" style={{ color: '#755647' }}>Payment Method:</span>
-                                                        <span className="text-sm sm:text-base" style={{ color: '#876B56' }}>{selectedItem.rawData.payment.method}</span>
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[120px] sm:min-w-[140px]">Payment Method:</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.payment.method}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -866,22 +860,22 @@ const AllBookings = () => {
                                         {/* Additional Information */}
                                         {(selectedItem.rawData?.reservation?.specialRequests || selectedItem.rawData?.notes) && (
                                             <div>
-                                                <h4 className="font-semibold text-base sm:text-lg mb-3" style={{ color: '#755647' }}>Additional Information</h4>
-                                                <div className="grid grid-cols-1 md600:gap-4">
+                                                <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                    <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                        <GoDotFill size={18}/>
+                                                    </span> Additional Information
+                                                </h4>
+                                                <div className="grid grid-cols-1 md600:gap-2">
                                                     {selectedItem.rawData?.reservation?.specialRequests && (
-                                                            <div className="flex items-start p-2 rounded-lg transition-colors" 
-                                                            style={{ backgroundColor: 'transparent' }}
-                                                        >
-                                                            <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Special Requests:</span>
-                                                            <span className="text-sm sm:text-base flex-1" style={{ color: '#876B56' }}>{selectedItem.rawData.reservation.specialRequests}</span>
+                                                            <div className="flex items-start p-2 rounded-lg transition-colors">
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[6   0px] sm:min-w-[60px]">Special Requests:</span>
+                                                            <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.reservation.specialRequests}</span>
                                                         </div>
                                                     )}
                                                     {selectedItem.rawData?.notes && (
-                                                        <div className="flex items-start p-2 rounded-lg transition-colors" 
-                                                            style={{ backgroundColor: 'transparent' }}  
-                                                        >
-                                                            <span className="font-semibold text-sm sm:text-base min-w-[100px] sm:min-w-[60px]" style={{ color: '#755647' }}>Notes:</span>
-                                                            <span className="text-sm sm:text-base flex-1" style={{ color: '#876B56' }}>{selectedItem.rawData.notes}</span>
+                                                        <div className="flex items-start p-2 rounded-lg transition-colors">
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[50px] sm:min-w-[60px]">Notes:</span>
+                                                            <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.notes}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -898,8 +892,7 @@ const AllBookings = () => {
                 {isEditModalOpen && itemToEdit && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity"
-                            style={{ backgroundColor: '#000000bf' }}
+                            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                             onClick={handleEditModalClose}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">

@@ -395,14 +395,12 @@ const StaffTable = () => {
                               <div onClick={() => handleViewClick(staff)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
                               <div
                                 onClick={() => navigate('/staff/addstaff', { state: { mode: 'edit', staff } })}
-                                // className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Edit Staff"
                               >
                                 <FiEdit className="text-[#6777ef] text-[18px]" />
                               </div>
                               <div
                                 onClick={() => handleDeleteClick(staff)}
-                                // className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete Staff"
                               >
                                 <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
@@ -517,24 +515,20 @@ const StaffTable = () => {
       {isModalOpen && selectedItem && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div
-            className="fixed inset-0 transition-opacity"
-            style={{ backgroundColor: '#000000bf' }}
+            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
             onClick={handleCloseModal}
           ></div>
 
           <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
             <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-xl border">
               {/* Modal Header */}
-              <div className="px-4 pt-5 pb-4 sm:p-6" style={{
-                background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
-              }}>
-                <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                  <h3 className="text-lg font-semibold" style={{ color: '#755647' }}>Staff Details</h3>
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sticky top-0 z-10 max-h-[80vh] overflow-y-auto">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+                  <h3 className="text-lg font-semibold text-black">Staff Details</h3>
                   <button
                     type="button"
                     onClick={handleCloseModal}
                     className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
-                    style={{ color: '#876B56' }}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -549,40 +543,38 @@ const StaffTable = () => {
                       src={selectedItem.image}
                       alt={selectedItem.name}
                       className="min-w-32 h-32 m-auto rounded-lg border-2"
-                      style={{ borderColor: '#E3C78A' }}
                     />
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Name:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.name}</span>
+                  <div className="space-y-3 overflow-y-auto">
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Name:</span>
+                      <span>{selectedItem.name}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Designation:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.designation}</span>
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Designation:</span>
+                      <span>{selectedItem.designation}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Mobile No.:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.mobileno}</span>
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
+                      <span>{selectedItem.mobileno}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Email:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.email}</span>
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Email:</span>
+                      <span>{selectedItem.email}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Gender:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.gender}</span>
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Gender:</span>
+                      <span>{selectedItem.gender}</span>
                     </div>
-                    <div className="flex items-center gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Joining Date:</span>
-                      <span style={{ color: '#876B56' }}>{selectedItem.joiningdate?.split('T')[0]}</span>
+                    <div className="flex items-center gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>
+                      <span>{selectedItem.joiningdate?.split('T')[0]}</span>
                     </div>
-                    <div className="flex items-start gap-3 p-2 rounded-lg transition-colors">
-                      <span className="font-semibold min-w-[120px]" style={{ color: '#755647' }}>Address:</span>
+                    <div className="flex items-start gap-3 rounded-lg transition-colors">
+                      <span className="font-semibold text-black min-w-[120px]">Address:</span>
                       <div
-                        style={{ color: '#876B56' }}
                         dangerouslySetInnerHTML={{ __html: selectedItem.address || '' }}
                       />
                     </div>
@@ -593,7 +585,6 @@ const StaffTable = () => {
           </div>
         </div>
       )}
-
     </>
   );
 };
