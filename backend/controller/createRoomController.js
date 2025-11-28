@@ -218,7 +218,7 @@ const getRoomsWithPagination = async (req, res) => {
         status,
         floor,
         bedSize,
-        housekeeping,
+        cleanStatus,
         checkInFrom,
         checkOutTo
       } = req.query;
@@ -258,9 +258,9 @@ const getRoomsWithPagination = async (req, res) => {
         query.status = status;
       }
   
-      // Housekeeping filter (maps to status)
-      if (housekeeping && housekeeping !== 'All Status') {
-        query.status = housekeeping;
+      // Housekeeping filter (maps to cleanStatus field)
+      if (cleanStatus && cleanStatus !== 'All Status') {
+        query.cleanStatus = cleanStatus;
       }
   
       // Floor filter

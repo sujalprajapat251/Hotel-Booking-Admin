@@ -77,6 +77,23 @@ export const fetchFreeWorker = createAsyncThunk(
     }
 )
 
+// Approve Cleaning (Head Supervisor)
+export const approveCleaningRoom = createAsyncThunk(
+  'housekeeping/approveCleaningRoom',
+  async (roomId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.put(
+        `${BASE_URL}/approve/${roomId}`,
+        {}, // no body needed
+        { headers: getAuthHeaders() }
+      );
+      dispatch(setAlert({ text: response.data.message || 'Room marked as clean!', color: 'success' }));
+      return response.data;
+    } catch (error) {
+      return handleErrors(error, dispatch, rejectWithValue);
+    }
+  }
+);
 
 
 const initialState = {
@@ -147,6 +164,28 @@ const housekeepingSlice = createSlice({
             })
             .addCase(assignWorkerToRoom.rejected, (state, action) => {
                 state.creating = false;
+                state.error = action.payload;
+            })
+            // Add reducer cases for approveCleaningRoom
+            .addCase(approveCleaningRoom.pending, (state) => {
+                state.updating = true;
+                state.error = null;
+            })
+            .addCase(approveCleaningRoom.fulfilled, (state, action) => {
+                state.updating = false;
+                const updatedRoom = action.payload?.data;
+                // Update items list if present
+                if (updatedRoom && Array.isArray(state.items)) {
+                  state.items = state.items.map(item => {
+                    if (item.id === updatedRoom._id || item._id === updatedRoom._id) {
+                      return { ...item, ...updatedRoom };
+                    }
+                    return item;
+                  });
+                }
+            })
+            .addCase(approveCleaningRoom.rejected, (state, action) => {
+                state.updating = false;
                 state.error = action.payload;
             });
     }

@@ -24,7 +24,7 @@ const AvailableRooms = () => {
 
   const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
   const bedSizes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
-  const housekeepingOptions = ['Available', 'Occupied', 'Reserved', 'Maintenance'];
+  const housekeepingOptions = ["Dirty", "Pending", "In-Progress", "Completed", "Clean"];
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -109,6 +109,14 @@ const AvailableRooms = () => {
     if (!filters.checkOutTo) {
       delete normalized.checkOutTo;
     }
+
+        // Map housekeeping to cleanStatus for backend
+        if (filters.housekeeping && filters.housekeeping !== 'All Status') {
+          normalized.cleanStatus = filters.housekeeping;
+        } else {
+          delete normalized.cleanStatus;
+        }
+        
 
     return normalized;
   }, [filters, roomTypes]);
@@ -205,7 +213,7 @@ const AvailableRooms = () => {
       }
 
       // Housekeeping filter (using status for now)
-      if (filters.housekeeping !== 'All Status' && room.status !== filters.housekeeping) {
+      if (filters.housekeeping !== 'All Status' && room.cleanStatus !== filters.housekeeping) {
         return false;
       }
 

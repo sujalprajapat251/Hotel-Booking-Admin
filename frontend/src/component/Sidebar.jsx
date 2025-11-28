@@ -24,11 +24,11 @@ import {
 } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
 import { IoHelpCircleOutline, IoPhonePortraitOutline, IoCarSportOutline } from "react-icons/io5";
-import { MdOutlineLocalCafe } from "react-icons/md";
+import { MdCleaningServices  } from "react-icons/md";
 import { VscChecklist, VscCodeReview } from "react-icons/vsc";
 import { RiBloggerLine } from "react-icons/ri";
 import { CiCoffeeCup } from "react-icons/ci";
-import { GiMartini } from "react-icons/gi";
+import { GiMartini, GiAutoRepair  } from "react-icons/gi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoIosRestaurant } from "react-icons/io";
 import { PiBroomLight } from "react-icons/pi";
@@ -137,6 +137,9 @@ const receptionistSections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Booking Dashboard', path: '/booking-dashboard' },
+      { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
+      { icon: MdCleaningServices, label: 'Cleanings', path: '/cleanings' },
+      { icon: GiAutoRepair, label: 'Maintenence', path: '/maintenence' },
     ],
   },
 ];
