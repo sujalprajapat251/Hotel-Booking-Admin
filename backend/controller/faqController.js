@@ -26,7 +26,7 @@ exports.createFAQ = async (req, res) => {
 
 exports.getAllFAQ = async (req, res) => {
     try {
-        const faqList = await FAQ.find().sort({ createdAt: -1 });
+        const faqList = await FAQ.find();
 
         res.status(200).json({
             success: true,

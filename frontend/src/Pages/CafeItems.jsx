@@ -735,7 +735,7 @@ const CafeItems = () => {
                                             {categories.length === 0 ? (
                                                 <div className="px-4 py-2 text-sm text-gray-500">No categories available</div>
                                             ) : (
-                                                [...categories].reverse().map((cat) => (
+                                                categories.map((cat) => (
                                                     <div
                                                         key={cat._id}
                                                         onClick={() => {

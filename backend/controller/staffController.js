@@ -40,7 +40,7 @@ exports.createStaff = async (req, res) => {
 exports.getAllStaff = async (req, res) => {
     try {
         const staffs = await Staff.find({ designation: { $ne: "admin" } })
-        .populate("department");
+        .populate("department").sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,

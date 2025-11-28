@@ -34,11 +34,16 @@ const TermsTable = () => {
     dispatch(getAllTerms());
   }, [dispatch]);
 
-  const filteredTerms = terms?.filter(
+  const filteredTerms = (terms ?? []).filter(
     (item) =>
       item?.title?.toLowerCase().includes(search.toLowerCase()) ||
       item?.description?.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    const calculatedPages = Math.max(1, Math.ceil(filteredTerms.length / itemsPerPage));
+    setCurrentPage((prev) => Math.min(prev, calculatedPages));
+  }, [filteredTerms.length, itemsPerPage]);
 
   const formik = useFormik({
     initialValues: {
@@ -92,10 +97,14 @@ const TermsTable = () => {
     setIsDeleteModalOpen(false);
   };
 
-  const totalPages = Math.ceil(filteredTerms.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const totalItems = filteredTerms.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage;
+  const endIndex = totalItems === 0 ? 0 : Math.min(startIndex + itemsPerPage, totalItems);
   const currentData = filteredTerms.slice(startIndex, endIndex);
+  const displayStart = totalItems === 0 ? 0 : startIndex + 1;
+  const displayEnd = totalItems === 0 ? 0 : endIndex;
 
   const handleRefresh = () => {
     dispatch(getAllTerms());
@@ -152,17 +161,19 @@ const TermsTable = () => {
           <table className="w-full min-w-[1000px]">
             <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
               <tr>
-                <th className="px-10 py-4 text-left text-sm font-semibold tracking-wide w-[20%]">Title</th>
-                <th className="px-10 py-4 text-left text-sm font-semibold tracking-wide w-[65%]">Description</th>
-                <th className="px-4 py-4 text-left text-sm font-semibold tracking-wide w-[15%]">Action</th>
+                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
+                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Title</th>
+                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
+                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-gray-200 bg-white">
-              {[...filteredTerms].reverse().map((item, index) => (
+              {currentData.map((item, index) => (
                 <tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10">
-                  <td className="px-10 py-6 font-medium text-gray-800 align-top text-[15px]">{item.title}</td>
-                  <td className="px-10 py-6 text-gray-700 align-top leading-relaxed text-[15px]">
+                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                  <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.title}</td>
+                  <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                     <div className="line-clamp-3">
                       {item.description || ''}
                     </div>
@@ -178,7 +189,7 @@ const TermsTable = () => {
               ))}
               {filteredTerms.length === 0 ? (
                 <tr>
-                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                  <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -216,20 +227,20 @@ const TermsTable = () => {
 
           <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">
-              {startIndex + 1} - {Math.min(endIndex, filteredTerms.length)} of {filteredTerms.length}
+              {displayStart} - {displayEnd} of {totalItems}
             </span>
 
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+                disabled={safeCurrentPage === 1}
                 className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={20} />
               </button>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                disabled={safeCurrentPage === totalPages || totalItems === 0}
                 className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={20} />
