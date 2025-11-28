@@ -14,7 +14,7 @@ exports.auth = async (req, res, next) => {
 
             let checkToken = jwt.verify(token, process.env.SECRET_KEY)
 
-            let checkUser = await Staff.findById(checkToken)
+            let checkUser = await Staff.findById(checkToken._id)
 
             if (!checkUser) {
                 return res.status(401).json({ status: 401, message: "User Not Found" })

@@ -6,6 +6,10 @@ const cafeOrder = require('../models/cafeOrderModal');
 const barOrder = require('../models/barOrderModal');
 const restaurantOrder = require('../models/restaurantOrderModal');
 
+const { emitCafeTableStatusChanged } = require('../socketManager/socketManager');
+const { emitBarTableStatusChanged } = require('../socketManager/socketManager');
+const { emitRestaurantTableStatusChanged } = require('../socketManager/socketManager');
+
 // exports.createCafeTable = async (req, res) => {
 //     try {
 //         const { title, limit } = req.body;
@@ -70,7 +74,15 @@ exports.createTable = async (req, res) => {
         }
 
         const newTable = await Model.create({ title, limit });
-
+        if (name === 'cafe') {
+            emitCafeTableStatusChanged(newTable?._id || req.params.id, newTable);
+        }
+        if (name === 'bar') {
+            emitBarTableStatusChanged(newTable?._id || req.params.id, newTable);
+        }
+        if( name === 'restaurant'){
+            emitRestaurantTableStatusChanged(newTable?._id || req.params.id, newTable);
+        }
         return res.status(200).json({
             status: 200,
             message: 'Table created successfully..!',
@@ -246,8 +258,13 @@ exports.updateTable = async (req, res) => {
             return res.status(404).json({ status: 404, message: 'Table not found' });
         }
         if (name === 'cafe') {
-            const { emitCafeTableStatusChanged } = require('../socketManager/socketManager');
             emitCafeTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
+        }
+        if (name === 'bar') {
+            emitBarTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
+        }
+        if( name === 'restaurant'){
+            emitRestaurantTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
         }
         return res.status(200).json({ status: 200, message: 'Table updated successfully..!', data: updatedTable });
     } catch (error) {
@@ -279,6 +296,15 @@ exports.deleteTable = async (req, res) => {
         const deletedTable = await Model.findByIdAndDelete(req.params.id);
         if (!deletedTable) {
             return res.status(404).json({ status: 404, message: 'Table not found' });
+        }
+        if (name === 'cafe') {
+            emitCafeTableStatusChanged(deletedTable?._id || req.params.id, deletedTable);
+        }
+        if (name === 'bar') {
+            emitBarTableStatusChanged(deletedTable?._id || req.params.id, deletedTable);
+        }
+        if( name === 'restaurant'){
+            emitRestaurantTableStatusChanged(deletedTable?._id || req.params.id, deletedTable);
         }
         return res.status(200).json({ status: 200, message: 'Table deleted successfully..!' });
     } catch (error) {

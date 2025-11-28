@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/userModel')
+const Staff = require('../models/staffModel')
 
 // Store user-to-socket mappings
 const userSocketMap = new Map();
@@ -24,7 +24,7 @@ function initializeSocket(io) {
       
       // Check if user exists
       // console.log(decoded._id);
-      const user = await User.findById(decoded._id);
+      const user = await Staff.findById(decoded._id);
       // console.log(user);
       if (!user) {
         return next(new Error('Authentication error: User not found'));
@@ -40,7 +40,7 @@ function initializeSocket(io) {
   });
 
   io.on("connection", (socket) => {
-    // console.log("New socket connection:", socket.id);
+    console.log("Socket connected:", socket.id, "userId:", socket.userId || null);
   
     // Handle user room joining
     socket.on("joinRoom", ({ userId }) => {
@@ -76,9 +76,13 @@ function initializeSocket(io) {
       }
     });
 
+    socket.on("error", (err) => {
+      console.error("Socket error:", err?.message || err);
+    });
+
     // Handle disconnect with cleanup
     socket.on("disconnect", (reason) => {
-      // console.log(`Socket ${socket.id} disconnected: ${reason}`);
+      console.log(`Socket ${socket.id} disconnected: ${reason}`);
        
       // Remove mappings on disconnect
       const userId = socketUserMap.get(socket.id);
@@ -195,7 +199,7 @@ function notifyMusicUpdated(music) {
 //     console.error('Error emitting task event:', error);
 //   }
 // }
-module.exports = { 
+  module.exports = { 
     initializeSocket,
     getUserSocketMap: () => userSocketMap,
     getSocketUserMap: () => socketUserMap,
@@ -206,10 +210,34 @@ module.exports = {
         ioInstance.emit('cafe_order_changed', { tableId, order });
       } catch {}
     },
+    emitBarOrderChanged: (tableId, order) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('bar_order_changed', { tableId, order });
+      } catch {}
+    },
+    emitRestaurantOrderChanged: (tableId, order) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('restaurant_order_changed', { tableId, order });
+      } catch {}
+    },
     emitCafeTableStatusChanged: (tableId, table) => {
       try {
         if (!ioInstance) return;
         ioInstance.emit('cafe_table_status_changed', { tableId, table });
+      } catch {}
+    },
+    emitBarTableStatusChanged: (tableId, table) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('bar_table_status_changed', { tableId, table });
+      } catch {}
+    },
+    emitRestaurantTableStatusChanged: (tableId, table) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('restaurant_table_status_changed', { tableId, table });
       } catch {}
     },
   };

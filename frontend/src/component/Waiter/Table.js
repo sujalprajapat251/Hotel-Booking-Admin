@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { IMAGE_URL } from '../../Utils/baseUrl';
+import { SOCKET_URL } from '../../Utils/baseUrl';
 export default function Dashboard() {
   const dispatch = useDispatch();
 
@@ -18,13 +18,19 @@ export default function Dashboard() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
-    const s = io(IMAGE_URL, { auth: { token, userId } });
-    s.on('cafe_order_changed', () => {
+    const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket','polling'], withCredentials: true });
+    s.on('connect', () => { console.log('socket connected', s.id); });
+    s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+    s.on('error', (err) => { console.error('socket error', err?.message || err); });
+    const refresh = () => {
       dispatch(getAllCafeTable());
-    });
-    s.on('cafe_table_status_changed', () => {
-      dispatch(getAllCafeTable());
-    });
+    };
+    s.on('cafe_order_changed', refresh);
+    s.on('bar_order_changed', refresh);
+    s.on('restaurant_order_changed', refresh);
+    s.on('cafe_table_status_changed', refresh);
+    s.on('bar_table_status_changed', refresh);
+    s.on('restaurant_table_status_changed', refresh);
     return () => {
       s.disconnect();
     };

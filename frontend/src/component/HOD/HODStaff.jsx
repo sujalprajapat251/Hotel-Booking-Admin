@@ -313,7 +313,7 @@ const HODStaff = () => {
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-3">
                               <img
-                                src={`${IMAGE_URL}${staff.image}`}
+                                src={`${staff.image}`}
                                 alt={staff.name}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                               />

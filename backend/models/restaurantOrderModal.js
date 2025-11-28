@@ -60,6 +60,10 @@ const restaurantOrderSchema = new mongoose.Schema({
     },
     paymentMethod:{
         type: String,
+    },
+    total:{
+        type: Number,
+        default:0
     }
 }, { timestamps: true });
 
