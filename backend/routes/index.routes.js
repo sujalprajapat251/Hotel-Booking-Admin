@@ -31,7 +31,7 @@ const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminre
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard } = require('../controller/dashboardController');
-const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
+// const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
 
 // auth Routes
