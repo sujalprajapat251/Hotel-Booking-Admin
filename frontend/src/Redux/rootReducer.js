@@ -68,5 +68,5 @@ export const rootReducer = combineReducers({
     vieworder: viewOrderSlice,
     dashboard: dashboardSlice,
     worker: WorkerSlice,
-    orderrequesr : orderRequestSlice,
+    orderrequest : orderRequestSlice,
 });
