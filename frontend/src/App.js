@@ -69,6 +69,7 @@ import HouseKeepingDashboard from './component/HouseKeepingWorker/Dashboard';
 import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
 import Cleaning from './Pages/Cleaning.jsx';
 import Maintenence from './Pages/Maintenence.jsx';
+import OrderRequest from './Pages/OrderRequest.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -110,7 +111,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                 {/* <Route
+                {/* <Route
                   path='/allbookings'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
@@ -330,6 +331,14 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <AllHouseKeeping />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/orderrequest'
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <OrderRequest />
                     </ProtectedRoute>
                   }
                 />

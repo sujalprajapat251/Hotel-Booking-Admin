@@ -32,6 +32,7 @@ import { GiMartini, GiAutoRepair  } from "react-icons/gi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoIosRestaurant } from "react-icons/io";
 import { PiBroomLight } from "react-icons/pi";
+import { HiInboxArrowDown } from 'react-icons/hi2';
 
 // Admin menu items
 const adminSections = [
@@ -103,6 +104,7 @@ const adminSections = [
         ]
       },
       { icon: PiBroomLight , label: 'House Keepings', path: '/housekeeping' },
+      { icon: HiInboxArrowDown , label: 'Order Request', path: '/orderrequest' },
       { icon: LuBuilding2, label: 'Departments', path: '/departments' },
       {
         icon: LuInfo,

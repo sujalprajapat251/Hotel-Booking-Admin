@@ -9,12 +9,13 @@ import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, Refres
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
-import { approveCleaningRoom, assignWorkerToRoom, fetchAllhousekeepingrooms, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
+import { approveCleaningRoom, assignWorkerToRoom, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
 import { getAllStaff } from '../Redux/Slice/staff.slice.js';
-import axios from 'axios';
+import { fetchAllOrderRequesr } from '../Redux/Slice/orderRequestSlice.js';
+// import axios from 'axios';
 
 
-const AllHouseKeeping = () => {
+const OrderRequest = () => {
 
     const dispatch = useDispatch();
     const { creating } = useSelector((state) => state.housekeeping);
@@ -22,15 +23,14 @@ const AllHouseKeeping = () => {
     const [housekeepingRooms, setHousekeepingRooms] = useState([]);
     // console.log('housekeepingRooms', housekeepingRooms);
 
-    // Get data from Redux store including pagination
     const {
-        items,
-        totalCount,
-        currentPage: reduxCurrentPage,
-        totalPages: reduxTotalPages,
-        loading
-    } = useSelector((state) => state.housekeeping);
-    // console.log('items', items);
+        items = [],
+        totalCount = 0,
+        currentPage: reduxCurrentPage = 1,
+        totalPages: reduxTotalPages = 1,
+        loading = false
+    } = useSelector((state) => state.orderrequest || {});
+    console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
     // const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
@@ -88,7 +88,7 @@ const AllHouseKeeping = () => {
                 workerId
             })).unwrap();
             dispatch(fetchFreeWorker());
-            dispatch(fetchAllhousekeepingrooms());
+            dispatch(fetchAllOrderRequesr());
             dispatch(fetchFreeWorker())
 
             handleAssignWorkerClose();
@@ -166,7 +166,7 @@ const AllHouseKeeping = () => {
             params.search = debouncedSearch;
         }
 
-        dispatch(fetchAllhousekeepingrooms(params));
+        dispatch(fetchAllOrderRequesr(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
     // Transform Redux data to local state (without sorting/slicing - backend handles this)
@@ -224,7 +224,7 @@ const AllHouseKeeping = () => {
         setDebouncedSearch("");
         setPage(1);
         setCurrentPage(1);
-        dispatch(fetchAllhousekeepingrooms({ page: 1, limit }));
+        dispatch(fetchAllOrderRequesr({ page: 1, limit }));
     };
 
     const formatDate = (dateString) => {
@@ -337,7 +337,7 @@ const AllHouseKeeping = () => {
         dispatch(approveCleaningRoom(id));
 
         setTimeout(() => {
-            dispatch(fetchAllhousekeepingrooms());
+            dispatch(fetchAllOrderRequesr());
         }, 3000);
     };
 
@@ -739,4 +739,4 @@ const AllHouseKeeping = () => {
     )
 }
 
-export default AllHouseKeeping
+export default OrderRequest

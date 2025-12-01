@@ -19,35 +19,15 @@ const getAuthHeaders = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// // Updated fetchBookings to support pagination
-// export const fetchAllhousekeepingrooms = createAsyncThunk(
-//     'haousekeeping/fetchAllhousekeepingrooms',
-//     async (params = {}, { dispatch, rejectWithValue }) => {
-//         try {
-//             const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
-//                 params, // This will include page, limit, search, etc.
-//                 headers: getAuthHeaders()
-//             });
-//             // console.log('response', response.data);
-
-//             // Return the entire response data
-//             return response.data;
-//         } catch (error) {
-//             return handleErrors(error, dispatch, rejectWithValue);
-//         }
-//     }
-// );
-
-
-export const fetchAllhousekeepingrooms = createAsyncThunk(
-    'housekeeping/fetchAllhousekeepingrooms',
+export const fetchAllOrderRequesr = createAsyncThunk(
+    'housekeeping/fetchAllOrderRequesr',
     async (params = {}, { dispatch, rejectWithValue }) => {
         try {
             // Log the request parameters
             console.log('📤 Fetching housekeeping rooms with params:', params);
 
-            const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
-                params, // This will include page, limit, search, etc.
+            const response = await axios.get(`${BASE_URL}/getorderRequest`, {
+                // params, // This will include page, limit, search, etc.
                 headers: getAuthHeaders()
             });
 
@@ -60,6 +40,7 @@ export const fetchAllhousekeepingrooms = createAsyncThunk(
                 totalPages: response.data?.pagination?.totalPages
             });
 
+            console.log('response', response.data);
             // Return the entire response data
             return response.data;
         } catch (error) {
@@ -142,32 +123,32 @@ const initialState = {
     totalPages: 0
 };
 
-const housekeepingSlice = createSlice({
-    name: 'housekeeping',
+const orderRequestSlice = createSlice({
+    name: 'orderrequest',
     initialState,
     reducers: {
-        clearBookingError: (state) => {
+        clearOrderRequestError: (state) => {
             state.error = null;
         },
-        resetLastCreatedBooking: (state) => {
+        resetLastCreatedOrderRequest: (state) => {
             state.lastCreated = null;
         }
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchAllhousekeepingrooms.pending, (state) => {
+            .addCase(fetchAllOrderRequesr.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            .addCase(fetchAllhousekeepingrooms.fulfilled, (state, action) => {
+            .addCase(fetchAllOrderRequesr.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload?.data || [];
-                // console.log('itemssss', action.payload.data);
+                state.items = action.payload || [];
+                console.log('itemssss', action.payload);
                 state.totalCount = action.payload.totalCount || 0;
                 state.currentPage = action.payload.currentPage || 1;
                 state.totalPages = action.payload.totalPages || 0;
             })
-            .addCase(fetchAllhousekeepingrooms.rejected, (state, action) => {
+            .addCase(fetchAllOrderRequesr.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             })
@@ -223,5 +204,5 @@ const housekeepingSlice = createSlice({
     }
 });
 
-export const { clearBookingError, resetLastCreatedBooking } = housekeepingSlice.actions;
-export default housekeepingSlice.reducer;
+export const { clearOrderRequestError, resetLastCreatedOrderRequest } = orderRequestSlice.actions;
+export default orderRequestSlice.reducer;
