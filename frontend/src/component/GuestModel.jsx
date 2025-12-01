@@ -83,6 +83,21 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     }
   }, [formState.checkInDate, cabServiceEnabled]);
 
+  useEffect(() => {
+    const scrollY = window.scrollY;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   const dateRangeValue = useMemo(() => {
     const start = formState.checkInDate ? dayjs(formState.checkInDate) : null;
     const end = formState.checkOutDate ? dayjs(formState.checkOutDate) : null;

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const STATUS_BADGE_MAP = {
   Confirmed: "bg-primary/40 text-senary",
@@ -50,6 +50,22 @@ function GuestDetailsModal({
   onCheckOut,
   onCancelRoom,
 }) {
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
   if (!room && !booking) return null;
 
   const activeRoom = room || booking?.room || {};

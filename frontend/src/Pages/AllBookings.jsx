@@ -32,8 +32,6 @@ const AllBookings = () => {
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
     // UI state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const dropdownRef = useRef(null);
     const bodyOverflowRef = useRef('');
@@ -109,7 +107,6 @@ const AllBookings = () => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
             setPage(1); // Reset to first page on search
-            setCurrentPage(1);
         }, 500);
 
         return () => clearTimeout(timer);
@@ -129,17 +126,6 @@ const AllBookings = () => {
 
         dispatch(fetchBookings(params));
     }, [dispatch, page, limit, debouncedSearch]);
-
-    useEffect(() => {
-        const params = {
-            page,
-            limit,
-        };
-
-        // Don't send search to backend - we'll filter client-side
-        dispatch(fetchBookings(params));
-    }, [dispatch, page, limit]); // Remove debouncedSearch from dependencies
-
 
     // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
@@ -177,21 +163,14 @@ const AllBookings = () => {
         roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || ""
     }));
 
+    const totalBookings = totalCount || 0;
+    const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
+    const currentPageValue = reduxCurrentPage || page || 1;
+    const serialOffset = (currentPageValue - 1) * limit;
+    const currentData = normalizedBookings;
+    const displayStart = totalBookings === 0 ? 0 : serialOffset + 1;
+    const displayEnd = totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings);
 
-    const filteredBookings = normalizedBookings.filter((item) => {
-        const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
-
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.roomType?.toLowerCase().includes(searchLower) ||
-            item.status?.toLowerCase().includes(searchLower) ||
-            item.roomNo?.toString().includes(searchLower) ||
-            item.phone?.toString().includes(searchLower) ||
-            (item?.checkIn && formatDate(item.checkIn).toLowerCase().includes(searchLower)) ||
-            (item?.checkOut && formatDate(item.checkOut).toLowerCase().includes(searchLower))
-        );
-    });
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -234,7 +213,6 @@ const AllBookings = () => {
         setSearchTerm("");
         setDebouncedSearch("");
         setPage(1);
-        setCurrentPage(1);
         dispatch(fetchBookings({ page: 1, limit }));
     };
 
@@ -251,7 +229,7 @@ const AllBookings = () => {
                 const row = {};
 
                 if (visibleColumns.No) {
-                    row['No.'] = ((page - 1) * limit) + index + 1;
+                    row['No.'] = ((currentPageValue - 1) * limit) + index + 1;
                 }
                 if (visibleColumns.name) {
                     row['Name'] = bookingItem.name || '';
@@ -436,6 +414,7 @@ const AllBookings = () => {
         try {
             // Get booking ID from rawData or formatted data
             const bookingId = itemToEdit.rawData?._id || itemToEdit.rawData?.id || itemToEdit.id;
+            alert(bookingId)
             if (!bookingId) {
                 dispatch(setAlert({ text: 'Booking ID not found', color: 'error' }));
                 return;
@@ -463,24 +442,15 @@ const AllBookings = () => {
 
     // Pagination handlers
     const handlePageChange = (newPage) => {
+        if (newPage < 1 || newPage > totalPages) return;
         setPage(newPage);
-        setCurrentPage(newPage);
     };
 
     const handleItemsPerPageChange = (newLimit) => {
         setLimit(newLimit);
-        setItemsPerPage(newLimit);
         setPage(1);
-        setCurrentPage(1);
     };
 
-
-
-
-    const totalPages = Math.ceil(booking.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
 
     return (
         <>
@@ -635,7 +605,7 @@ const AllBookings = () => {
                                             >
                                                 {visibleColumns.No && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        {startIndex + index + 1}
+                                                        {serialOffset + index + 1}
                                                     </td>
                                                 )}
                                                 {visibleColumns.name && (
@@ -740,7 +710,7 @@ const AllBookings = () => {
                                 <span className="text-sm text-gray-600">Items per page:</span>
                                 <div className="relative">
                                     <select
-                                        value={itemsPerPage}
+                                        value={limit}
                                         onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
                                         className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
                                         disabled={loading}
@@ -755,20 +725,20 @@ const AllBookings = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {filteredBookings.length > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+                                    {displayStart} - {displayEnd} of {totalBookings}
                                 </span>
 
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
+                                        onClick={() => handlePageChange(currentPageValue - 1)}
+                                        disabled={currentPageValue === 1}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
+                                        onClick={() => handlePageChange(currentPageValue + 1)}
+                                        disabled={currentPageValue === totalPages}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronRight size={20} />
