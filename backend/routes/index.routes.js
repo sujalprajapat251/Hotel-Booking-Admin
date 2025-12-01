@@ -32,7 +32,7 @@ const { createReview, getAllReviews, getReviewById } = require('../controller/re
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, monthWiseOccupancy, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
-const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrder } = require('../controller/userOrderController');
+const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 const { cafeDashboard, CafeDashboard } = require('../controller/hoddashboardController');
 
@@ -252,6 +252,7 @@ indexRoutes.get('/getallrestaurantorderbyadmin', auth, adminOnly, getAllRestaura
 
 // user side order api 
 indexRoutes.post('/createOrder', auth, createOrder);
+indexRoutes.post('/paymentintent',createOrderPaymentIntent)
 indexRoutes.get('/mycafeorder/:roomId', auth, getOrdercafeByRoom);
 indexRoutes.get('/mybarorder/:roomId', auth, getOrderbarByRoom);
 indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
