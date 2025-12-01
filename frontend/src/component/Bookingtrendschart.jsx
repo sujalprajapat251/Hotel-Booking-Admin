@@ -1,69 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ChevronDown } from 'lucide-react';
+import { getAllBookingtrends } from '../Redux/Slice/dashboard.silce';
 
-// Last 7 Days data
-const last7DaysData = [
-    { day: 'Fri', bookings: 58 },
-    { day: 'Sat', bookings: 64 },
-    { day: 'Sun', bookings: 69 },
-    { day: 'Mon', bookings: 71 },
-    { day: 'Tue', bookings: 66 },
-    { day: 'Wed', bookings: 63 },
-    { day: 'Thu', bookings: 73 },
-];
-
-// Last 30 Days data (day numbers 22 to 20 of next month)
-const last30DaysData = [
-    { day: '22', bookings: 45 },
-    { day: '23', bookings: 52 },
-    { day: '24', bookings: 48 },
-    { day: '25', bookings: 61 },
-    { day: '26', bookings: 42 },
-    { day: '27', bookings: 58 },
-    { day: '28', bookings: 68 },
-    { day: '29', bookings: 59 },
-    { day: '30', bookings: 55 },
-    { day: '31', bookings: 63 },
-    { day: '1', bookings: 58 },
-    { day: '2', bookings: 65 },
-    { day: '3', bookings: 70 },
-    { day: '4', bookings: 71 },
-    { day: '5', bookings: 67 },
-    { day: '6', bookings: 64 },
-    { day: '7', bookings: 58 },
-    { day: '8', bookings: 66 },
-    { day: '9', bookings: 72 },
-    { day: '10', bookings: 68 },
-    { day: '11', bookings: 61 },
-    { day: '12', bookings: 57 },
-    { day: '13', bookings: 63 },
-    { day: '14', bookings: 70 },
-    { day: '15', bookings: 75 },
-    { day: '16', bookings: 68 },
-    { day: '17', bookings: 62 },
-    { day: '18', bookings: 59 },
-    { day: '19', bookings: 66 },
-    { day: '20', bookings: 71 },
-];
-
-// This Year data (monthly)
-const thisYearData = [
-    { day: 'Jan', bookings: 550 },
-    { day: 'Feb', bookings: 675 },
-    { day: 'Mar', bookings: 590 },
-    { day: 'Apr', bookings: 710 },
-    { day: 'May', bookings: 640 },
-    { day: 'Jun', bookings: 600 },
-    { day: 'Jul', bookings: 720 },
-    { day: 'Aug', bookings: 690 },
-    { day: 'Sep', bookings: 650 },
-    { day: 'Oct', bookings: 700 },
-    { day: 'Nov', bookings: 670 },
-    { day: 'Dec', bookings: 728 },
-];
-
-// Color palette
 const colors = {
     primary: '#F7DF9C',
     secondary: '#E3C78A',
@@ -74,48 +14,32 @@ const colors = {
 };
 
 const BookingTrendsChart = () => {
+    const dispatch = useDispatch();
+    const bookingTrends = useSelector(state => state.dashboard.getBookingtrends);
     const [selectedPeriod, setSelectedPeriod] = useState('Last 7 Days');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
     const periods = ['Last 7 Days', 'Last 30 Days', 'This Year'];
 
-    const getChartData = () => {
-        switch (selectedPeriod) {
-            case 'Last 7 Days':
-                return last7DaysData;
-            case 'Last 30 Days':
-                return last30DaysData;
-            case 'This Year':
-                return thisYearData;
-            default:
-                return last7DaysData;
-        }
+    useEffect(() => {
+        dispatch(getAllBookingtrends(7));
+    }, [dispatch]);
+
+    const handlePeriodChange = (period) => {
+        setSelectedPeriod(period);
+        setIsDropdownOpen(false);
+
+        if (period === 'Last 7 Days') dispatch(getAllBookingtrends(7));
+        else if (period === 'Last 30 Days') dispatch(getAllBookingtrends(30));
+        else if (period === 'This Year') dispatch(getAllBookingtrends('year'));
     };
 
-    const getStats = () => {
-        const data = getChartData();
-        const total = data.reduce((sum, item) => sum + item.bookings, 0);
-        const average = Math.round(total / data.length);
+    const chartData = bookingTrends?.timeline || [];
 
-        return { total, average };
+    const stats = {
+        total: bookingTrends?.totalBookings || 0,
+        average: bookingTrends?.dailyAverage || 0
     };
-
-    const getYAxisConfig = () => {
-        switch (selectedPeriod) {
-            case 'Last 7 Days':
-                return { domain: [50, 80], ticks: [50, 55, 60, 65, 70, 75, 80] };
-            case 'Last 30 Days':
-                return { domain: [40, 80], ticks: [40, 50, 60, 70, 80] };
-            case 'This Year':
-                return { domain: [500, 750], ticks: [500, 550, 600, 650, 700, 750] };
-            default:
-                return { domain: [50, 80], ticks: [50, 60, 70, 80] };
-        }
-    };
-
-    const stats = getStats();
-    const chartData = getChartData();
-    const yAxisConfig = getYAxisConfig();
 
     return (
         <div className="w-full">
@@ -127,41 +51,26 @@ const BookingTrendsChart = () => {
                 <div className="relative">
                     <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-white rounded-lg transition-colors border"
-                        style={{
-                            color: colors.quinary,
-                            borderColor: colors.secondary
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                        className="flex items-center gap-2 px-4 py-2 text-sm bg-white rounded-lg border"
+                        style={{ color: colors.quinary, borderColor: colors.secondary }}
                     >
                         {selectedPeriod}
                         <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {isDropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-10 border" style={{ borderColor: colors.secondary }}>
-                            {periods.map((period) => (
+                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-10 border"
+                            style={{ borderColor: colors.secondary }}>
+                            {periods.map(period => (
                                 <button
                                     key={period}
-                                    onClick={() => {
-                                        setSelectedPeriod(period);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm transition-colors first:rounded-t-lg last:rounded-b-lg"
+                                    onClick={() => handlePeriodChange(period)}
+                                    className="w-full text-left px-4 py-2 text-sm"
                                     style={{
-                                        backgroundColor: selectedPeriod === period ? 'rgba(247, 223, 156, 0.2)' : 'transparent',
-                                        color: selectedPeriod === period ? colors.senary : colors.quinary
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (selectedPeriod !== period) {
-                                            e.currentTarget.style.backgroundColor = 'rgba(227, 199, 138, 0.1)';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (selectedPeriod !== period) {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                        }
+                                        backgroundColor:
+                                            selectedPeriod === period ? 'rgba(247, 223, 156, 0.2)' : 'transparent',
+                                        color:
+                                            selectedPeriod === period ? colors.senary : colors.quinary
                                     }}
                                 >
                                     {period}
@@ -192,10 +101,7 @@ const BookingTrendsChart = () => {
             </div>
 
             <ResponsiveContainer width="100%" height={240}>
-                <LineChart
-                    data={chartData}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
+                <LineChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <defs>
                         <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
                             <stop offset="0%" stopColor={colors.tertiary} />
@@ -205,26 +111,21 @@ const BookingTrendsChart = () => {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
                     <XAxis
-                        dataKey="day"
+                        dataKey="name"
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: colors.quaternary, fontSize: 11 }}
                         dy={10}
-                        interval={selectedPeriod === 'Last 30 Days' ? 1 : 0}
                     />
                     <YAxis
                         axisLine={false}
                         tickLine={false}
                         tick={{ fill: colors.quaternary, fontSize: 11 }}
-                        domain={yAxisConfig.domain}
-                        ticks={yAxisConfig.ticks}
                         label={{
-                            value: 'Number of Bookings',
+                            value: 'Bookings',
                             angle: -90,
-                            position: 'insideleft',
-                            offset : -10,
-                            textanchor: 'middle',
-                            style: { fill: colors.quaternary, fontSize: 14 }
+                            position: 'insideLeft',
+                            style: { fill: colors.quaternary, fontSize: 12 }
                         }}
                     />
                     <Tooltip
@@ -235,14 +136,13 @@ const BookingTrendsChart = () => {
                             padding: '8px 12px'
                         }}
                         formatter={(value) => [value, 'Bookings']}
-                        labelFormatter={(label) => selectedPeriod === 'Last 30 Days' ? `Day ${label}` : label}
                     />
                     <Line
                         type="monotone"
-                        dataKey="bookings"
+                        dataKey="count"
                         stroke="url(#lineGradient)"
                         strokeWidth={3}
-                        dot={{ fill: colors.tertiary, r: 4, strokeWidth: 0 }}
+                        dot={{ fill: colors.tertiary, r: 4 }}
                         activeDot={{ r: 6, fill: colors.senary, stroke: colors.primary, strokeWidth: 2 }}
                     />
                 </LineChart>

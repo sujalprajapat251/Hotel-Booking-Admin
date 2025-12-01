@@ -95,6 +95,69 @@ export const getAllReservation = createAsyncThunk(
     }
 );
 
+export const getAllOrdersummery = createAsyncThunk(
+    'revenue/getAllOrdersummery',
+    async (_, { dispatch, rejectWithValue }) => {
+
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/getordersummery`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const getAllBookingtrends = createAsyncThunk(
+    'revenue/getBookingtrends',
+    async (getCurrentRange, { dispatch, rejectWithValue }) => {
+
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/getbookingtrends?range=${getCurrentRange}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const getAllOccupancyrate = createAsyncThunk(
+    'revenue/getOccupancyrate',
+    async (getCurrentYear, { dispatch, rejectWithValue }) => {
+
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/getoccupancyrate?year=${getCurrentYear}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const dashboardSlice = createSlice({
     name: 'dashboardData',
     initialState: {
@@ -102,6 +165,9 @@ const dashboardSlice = createSlice({
         getDashboard: [],
         getRoomAvailability: [],
         getReservation: [],
+        getOrdersummery: [],
+        getBookingtrends: [],
+        getOccupancyrate: [],
         message: '',
         loading: false,
         isError: false,
@@ -182,6 +248,63 @@ const dashboardSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to fetch Reservation';
+            })
+
+            .addCase(getAllOrdersummery.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching Order Summery...';
+                state.isError = false;
+            })
+            .addCase(getAllOrdersummery.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'Order Summery fetched successfully';
+                state.getOrdersummery = action.payload;
+                state.isError = false;
+            })
+            .addCase(getAllOrdersummery.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch Order Summery';
+            })
+
+            .addCase(getAllBookingtrends.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching Booking Trends...';
+                state.isError = false;
+            })
+            .addCase(getAllBookingtrends.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'Booking Trends fetched successfully';
+                state.getBookingtrends = action.payload;
+                state.isError = false;
+            })
+            .addCase(getAllBookingtrends.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch Booking Trends';
+            })
+
+            .addCase(getAllOccupancyrate.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching Occupancy Rate...';
+                state.isError = false;
+            })
+            .addCase(getAllOccupancyrate.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'Occupancy Rate fetched successfully';
+                state.getOccupancyrate = action.payload;
+                state.isError = false;
+            })
+            .addCase(getAllOccupancyrate.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch Occupancy Rate';
             })
     },
 });

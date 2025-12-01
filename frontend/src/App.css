@@ -36,12 +36,11 @@ body{
 
 /* Guest modal range picker */
 .guest-range-picker.ant-picker {
-  border-radius: 0.75rem;
-  background-color: #755647;
-  border: 1px solid #a3876a;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
   padding: 0 0.75rem;
-  color: #f7df9c;
-  box-shadow: 0 10px 25px rgba(117, 86, 71, 0.35);
+  color: #000000;
 }
 
 .guest-range-picker.ant-picker-focused {

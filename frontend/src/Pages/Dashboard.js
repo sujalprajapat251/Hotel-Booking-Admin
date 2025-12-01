@@ -23,7 +23,7 @@ import { getAllReview } from '../Redux/Slice/review.slice.js';
 import { Link } from 'react-router-dom'
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getAllDashboard, getAllReservation, getAllRevenue, getAllRoomAvailability } from '../Redux/Slice/dashboard.silce.js';
+import { getAllDashboard, getAllOrdersummery, getAllReservation, getAllRevenue, getAllRoomAvailability } from '../Redux/Slice/dashboard.silce.js';
 import { IoBedOutline } from "react-icons/io5";
 import { IoIosRestaurant } from "react-icons/io";
 import { GiMartini } from "react-icons/gi";
@@ -33,7 +33,7 @@ export const Dashboard = () => {
 
   const dispatch = useDispatch();
   const [booking, setBooking] = useState([]);
-  console.log('booking', booking);
+  // console.log('booking', booking);
 
   const {
     items
@@ -384,6 +384,7 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
     dispatch(getAllDashboard(yearMonth));
     dispatch(getAllRoomAvailability());
     dispatch(getAllReservation());
+    dispatch(getAllOrdersummery());
   }, [dispatch]);
 
 

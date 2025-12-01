@@ -1,30 +1,10 @@
 import { useState } from 'react';
 import { Pie, PieChart, Cell, Tooltip, ResponsiveContainer } from 'recharts';
-import { BsSuitcaseLg } from "react-icons/bs";
-import { TiWeatherSunny } from "react-icons/ti";
-import { IoLocationOutline } from "react-icons/io5";
-import { SlCursor } from "react-icons/sl";
-import { BsGlobe2 } from "react-icons/bs";
-import { FiUsers, FiUser } from "react-icons/fi";
-import { LuUserCheck, LuUserPlus } from "react-icons/lu";
-
-const purposeData = [
-    { name: 'Room', value: 156, color: '#876B56', icon: <BsSuitcaseLg className='text-[18px] font-bold' /> },
-    { name: 'Cafe', value: 96, color: '#B79982', icon: <TiWeatherSunny className='text-[18px] font-bold' /> },
-];
-
-const originData = [
-    { name: 'Local', value: 78, color: '#F7DF9C', icon: <IoLocationOutline className='text-[18px] font-bold' /> },
-    { name: 'Domestic', value: 124, color: '#A3876A', icon: <SlCursor className='text-[18px] font-bold' /> },
-    { name: 'International', value: 50, color: '#755647', icon: <BsGlobe2 className='text-[18px] font-bold' /> },
-];
-
-const ageData = [
-    { name: '18-30', value: 63, color: '#E3C78A', icon: <FiUsers className='text-[18px] font-bold' /> },
-    { name: '31-45', value: 101, color: '#B79982', icon: <FiUser className='text-[18px] font-bold' /> },
-    { name: '46-60', value: 63, color: '#876B56', icon: <LuUserCheck className='text-[18px] font-bold' /> },
-    { name: '60+', value: 25, color: '#755647', icon: <LuUserPlus className='text-[18px] font-bold' /> },
-];
+import { IoBedOutline } from "react-icons/io5";
+import { useSelector } from 'react-redux';
+import { Coffee } from 'lucide-react';
+import { GiMartini } from 'react-icons/gi';
+import { IoIosRestaurant } from 'react-icons/io';
 
 const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
@@ -64,16 +44,54 @@ const CenterLabel = ({ totalGuests, activeData }) => {
     );
 };
 
+const convertApiToChart = (apiArray, colors, icons) => {
+    return apiArray.map((item, index) => ({
+        name: item.from,
+        value: item.totalAmount,
+        color: colors[index],
+        icon: icons[index]
+    }));
+};
+
 export default function CustomActiveShapePieChart({ isAnimationActive = true }) {
     const [activeIndex, setActiveIndex] = useState(null);
     const [activeTab, setActiveTab] = useState('cafe');
 
+    const getOrdersummery = useSelector((state) => state.dashboard.getOrdersummery);
+
+    const cafeData = convertApiToChart(
+        getOrdersummery?.cafe || [],
+        ["#f7df9c", "#B79982"],
+        [
+            <IoBedOutline className="text-[18px] font-bold" />,
+            <Coffee className="text-[18px] font-bold" />
+        ]
+    );
+
+    const barData = convertApiToChart(
+        getOrdersummery?.bar || [],
+        ["#f7df9c", "#755647"],
+        [
+            <IoBedOutline className="text-[18px] font-bold" />,
+            <GiMartini className="text-[18px] font-bold" />
+        ]
+    );
+
+    const restroData = convertApiToChart(
+        getOrdersummery?.restro || [],
+        ["#E3C78A", "#B79982"],
+        [
+            <IoBedOutline className="text-[18px] font-bold" />,
+            <IoIosRestaurant className="text-[18px] font-bold" />
+        ]
+    );
+
     const getCurrentData = () => {
         switch (activeTab) {
-            case 'cafe': return purposeData;
-            case 'bar': return originData;
-            case 'restaurant': return ageData;
-            default: return purposeData;
+            case "cafe": return cafeData;
+            case "bar": return barData;
+            case "restaurant": return restroData;
+            default: return cafeData;
         }
     };
 
@@ -82,7 +100,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
 
     const dataWithPercent = currentData.map(item => ({
         ...item,
-        percent: Math.round((item.value / totalGuests) * 100)
+        percent: totalGuests > 0 ? Math.round((item.value / totalGuests) * 100) : 0
     }));
 
     const activeData = activeIndex !== null ? dataWithPercent[activeIndex] : null;
@@ -91,7 +109,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
         switch (activeTab) {
             case 'cafe': return 'Cafe Order';
             case 'bar': return 'Bar Order';
-            case 'restaurant': return 'Resturant Order';
+            case 'restaurant': return 'Restaurant Order';
             default: return 'Cafe Order';
         }
     };
@@ -110,41 +128,38 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
             </div>
 
             {/* Tabs */}
-            <div className="flex border-2 border-[#E3C78A] rounded-lg  shadow-sm overflow-auto ">
-                {/* PURPOSE TAB */}
+            <div className="flex border-2 border-[#E3C78A] rounded-lg shadow-sm overflow-auto">
                 <button
                     onClick={() => setActiveTab('cafe')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 
-                    ${activeTab === 'cafe'
+                        ${activeTab === 'cafe'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <BsSuitcaseLg className="text-[18px]" /> Cafe
+                    <Coffee className="text-[18px]" /> Cafe
                 </button>
 
-                {/* ORIGIN TAB */}
                 <button
                     onClick={() => setActiveTab('bar')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 border-x border-[#E3C78A]
-                    ${activeTab === 'bar'
+                        ${activeTab === 'bar'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <IoLocationOutline className="text-[18px]" /> Bar
+                    <GiMartini className="text-[18px]" /> Bar
                 </button>
 
-                {/* AGE TAB */}
                 <button
                     onClick={() => setActiveTab('restaurant')}
                     className={`flex-1 py-3 px-3 font-semibold text-sm transition-all flex items-center justify-center gap-2 
-                    ${activeTab === 'restaurant'
+                        ${activeTab === 'restaurant'
                             ? "text-white bg-gradient-to-br from-[#876B56] to-[#755647] scale-[1] shadow-md"
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <FiUsers className="text-[18px]" /> Resturant
+                    <IoIosRestaurant className="text-[18px]" /> Restaurant
                 </button>
             </div>
 
@@ -193,7 +208,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
                     <div
                         key={index}
                         className={`flex justify-between items-center p-2 rounded-md cursor-pointer transition-all 
-                        ${index < dataWithPercent.length - 1 ? "border-b border-[#F7DF9C]" : ""}`}
+                            ${index < dataWithPercent.length - 1 ? "border-b border-[#F7DF9C]" : ""}`}
                         onMouseEnter={(e) => { e.currentTarget.classList.add("bg-[#F7DF9C33]", "translate-x-1"); }}
                         onMouseLeave={(e) => { e.currentTarget.classList.remove("bg-[#F7DF9C33]", "translate-x-1"); }}
                     >
@@ -218,17 +233,6 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
                         </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 pt-5 border-t-2 border-[#E3C78A] text-center">
-                <span className="text-[14px] text-[#876B56] font-semibold tracking-wide flex justify-center items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B79982" strokeWidth="2.5">
-                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-                        <polyline points="16 7 22 7 22 13" />
-                    </svg>
-                    {totalGuests} total active guests
-                </span>
             </div>
         </div>
     );
