@@ -110,14 +110,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                 <Route
+                 {/* <Route
                   path='/allbookings'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
                       <AllBookings />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 {/* Admin only routes */}
                 <Route
                   path='/dashboard'
