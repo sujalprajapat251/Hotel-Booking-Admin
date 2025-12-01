@@ -694,3 +694,37 @@ exports.getRevenueDashboard = async (req, res) => {
 };
 
 
+// ------------------------------------------------------------
+// Service Requests
+// ------------------------------------------------------------
+exports.serviceRequests = async (req, res) => {
+    try {
+        // ----- 1. COUNT STATUS WISE -----
+        const pending = await Room.countDocuments({ cleanStatus: "Pending" });
+        const inProgress = await Room.countDocuments({ cleanStatus: "In-Progress" });
+        const completed = await Room.countDocuments({ cleanStatus: "Completed" });
+
+        // ----- 2. LAST 3 CLEANING REQUESTS -----
+        const latestRequests = await Room.find({
+            cleanStatus: { $in: ["Pending", "In-Progress", "Completed"] }
+        })
+            .sort({ updatedAt: -1 })  // latest first
+            .limit(3)
+            .populate("cleanassign", "name") // worker name if needed
+            .select("roomNumber cleanStatus updatedAt cleanassign");
+
+        return res.json({
+            success: true,
+            counts: {
+                pending,
+                inProgress,
+                completed
+            },
+            latestRequests
+        });
+
+    } catch (error) {
+        console.error("Error:", error);
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+};
