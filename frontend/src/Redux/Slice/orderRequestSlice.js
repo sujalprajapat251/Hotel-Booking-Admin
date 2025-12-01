@@ -51,13 +51,13 @@ export const fetchAllOrderRequesr = createAsyncThunk(
 );
 
 // Add this after your fetchAllhousekeepingrooms thunk
-export const assignWorkerToRoom = createAsyncThunk(
+export const assignWorkerToOrderRequest = createAsyncThunk(
     'housekeeping/assignWorkerToRoom',
-    async ({ roomId, workerId }, { dispatch, rejectWithValue }) => {
+    async ({ Id, workerId }, { dispatch, rejectWithValue }) => {
         try {
-            const response = await axios.post(
-                `${BASE_URL}/assign`,
-                { roomId, workerId },
+            const response = await axios.put(
+                `${BASE_URL}/orderRequest/${Id}/assign`,
+                { workerId },
                 { headers: getAuthHeaders() }
             );
 
@@ -73,21 +73,21 @@ export const assignWorkerToRoom = createAsyncThunk(
     }
 );
 
-export const fetchFreeWorker = createAsyncThunk(
-    'housekeeping/fetchFreeWorker',
+// export const fetchFreeWorker = createAsyncThunk(
+//     'housekeeping/fetchFreeWorker',
 
-    async (_, { dispatch, rejectWithValue }) => {
-        try {
-            const response = await axios.get(`${BASE_URL}/getfreeworker`, {
-                headers: getAuthHeaders()
-            });
-            console.log('responseeeeeeee', response.data);
-            return response.data;
-        } catch (error) {
-            return handleErrors(error, dispatch, rejectWithValue);
-        }
-    }
-)
+//     async (_, { dispatch, rejectWithValue }) => {
+//         try {
+//             const response = await axios.get(`${BASE_URL}/getfreeworker`, {
+//                 headers: getAuthHeaders()
+//             });
+//             console.log('responseeeeeeee', response.data);
+//             return response.data;
+//         } catch (error) {
+//             return handleErrors(error, dispatch, rejectWithValue);
+//         }
+//     }
+// )
 
 // Approve Cleaning (Head Supervisor)
 export const approveCleaningRoom = createAsyncThunk(
@@ -142,7 +142,7 @@ const orderRequestSlice = createSlice({
             })
             .addCase(fetchAllOrderRequesr.fulfilled, (state, action) => {
                 state.loading = false;
-                state.items = action.payload || [];
+                state.items = action.payload?.data || [];
                 console.log('itemssss', action.payload);
                 state.totalCount = action.payload.totalCount || 0;
                 state.currentPage = action.payload.currentPage || 1;
@@ -152,30 +152,30 @@ const orderRequestSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            .addCase(fetchFreeWorker.pending, (state) => {
-                state.loadingWorkers = true;
-                state.error = null;
-            })
-            .addCase(fetchFreeWorker.fulfilled, (state, action) => {
-                state.loadingWorkers = false;
-                state.freeWorkers = action.payload?.data || []; // Store in freeWorkers instead of items
-                console.log('Free workers:', action.payload.data);
-            })
-            .addCase(fetchFreeWorker.rejected, (state, action) => {
-                state.loadingWorkers = false;
-                state.error = action.payload;
-            })
+            // .addCase(fetchFreeWorker.pending, (state) => {
+            //     state.loadingWorkers = true;
+            //     state.error = null;
+            // })
+            // .addCase(fetchFreeWorker.fulfilled, (state, action) => {
+            //     state.loadingWorkers = false;
+            //     state.freeWorkers = action.payload?.data || []; // Store in freeWorkers instead of items
+            //     console.log('Free workers:', action.payload.data);
+            // })
+            // .addCase(fetchFreeWorker.rejected, (state, action) => {
+            //     state.loadingWorkers = false;
+            //     state.error = action.payload;
+            // })
             // Add these new cases for assignWorkerToRoom
-            .addCase(assignWorkerToRoom.pending, (state) => {
+            .addCase(assignWorkerToOrderRequest.pending, (state) => {
                 state.creating = true;
                 state.error = null;
             })
-            .addCase(assignWorkerToRoom.fulfilled, (state, action) => {
+            .addCase(assignWorkerToOrderRequest.fulfilled, (state, action) => {
                 state.creating = false;
                 state.lastCreated = action.payload.data;
                 // Optionally update the items array if needed
             })
-            .addCase(assignWorkerToRoom.rejected, (state, action) => {
+            .addCase(assignWorkerToOrderRequest.rejected, (state, action) => {
                 state.creating = false;
                 state.error = action.payload;
             })

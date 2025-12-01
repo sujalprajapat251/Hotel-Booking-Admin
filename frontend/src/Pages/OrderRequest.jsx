@@ -9,9 +9,9 @@ import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, Refres
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
-import { approveCleaningRoom, assignWorkerToRoom, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
+import { approveCleaningRoom, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
 import { getAllStaff } from '../Redux/Slice/staff.slice.js';
-import { fetchAllOrderRequesr } from '../Redux/Slice/orderRequestSlice.js';
+import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../Redux/Slice/orderRequestSlice.js';
 // import axios from 'axios';
 
 
@@ -20,8 +20,8 @@ const OrderRequest = () => {
     const dispatch = useDispatch();
     const { creating } = useSelector((state) => state.housekeeping);
 
-    const [housekeepingRooms, setHousekeepingRooms] = useState([]);
-    // console.log('housekeepingRooms', housekeepingRooms);
+    const [orderRequestRooms, setOrderRequestRooms] = useState([]);
+    console.log('orderRequestRooms', orderRequestRooms);
 
     const {
         items = [],
@@ -64,59 +64,15 @@ const OrderRequest = () => {
 
     const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
-    const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
+    const [selectedorderRequest, setSelectedorderRequest] = useState(null);
+    console.log('selectedorderRequest', selectedorderRequest);
     const [roomId, setRoomId] = useState('');
 
     // Change this state from string to object
     const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
+    console.log('selectedWorker', selectedWorker);
 
-    const handleAssignWorkerClose = () => {
-        setIsAssignWorkerModalOpen(false);
-        setSelectedHousekeeping(null);
-        setSelectedWorker({ name: '', id: '' });
-        setIsWorkerDropdownOpen(false);
-    };
 
-    const handleAssignWorkerSubmit = async () => {
-        const roomId = selectedHousekeeping?.id;
-        const workerId = selectedWorker.id;
-
-        try {
-            // Dispatch the API call
-            await dispatch(assignWorkerToRoom({
-                roomId,
-                workerId
-            })).unwrap();
-            dispatch(fetchFreeWorker());
-            dispatch(fetchAllOrderRequesr());
-            dispatch(fetchFreeWorker())
-
-            handleAssignWorkerClose();
-        } catch (error) {
-            console.error('Failed to assign worker:', error);
-        }
-    };
-
-    const handleAssignWorkerClick = (housekeeping) => {
-        setSelectedHousekeeping(housekeeping);
-
-        const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
-        setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
-        setIsAssignWorkerModalOpen(true);
-    };
-
-    const workerDropdownRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target)) {
-                setIsWorkerDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     // Pagination state for API calls
     const [page, setPage] = useState(1);
@@ -136,10 +92,11 @@ const OrderRequest = () => {
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         workerName: true,
-        // date: true,
+        itemName: true,
+        floor: true,
         status: true,
         roomNo: true,
-        roomType: true,
+        to: true,
         actions: true
     });
 
@@ -174,19 +131,120 @@ const OrderRequest = () => {
         if (items && items.length > 0) {
             const formattedData = items?.map((item, index) => ({
                 id: item._id || item.id || index,
-                name: item.cleanassign?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
+                name: item.rawData?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
                 status: item.cleanStatus || 'Pending',
-                roomNo: item.roomNumber || 'N/A',
-                roomType: item.roomType?.roomType || 'N/A',
+                roomNo: item.roomId?.roomNumber || 'N/A',
+                to: item?.to || 'N/A',
+                floor: item?.roomId?.floor || 'N/A',
+                itemName: item?.orderId?.items?.map((ele) => ele?.product?.name).filter(Boolean) || [],
+                itemCount: item?.orderId?.items?.reduce((sum, ele) => sum + (ele?.qty || 1), 0) || 0,
+                totalAmount: item?.orderId?.items?.reduce((sum, ele) => {
+                    const price = ele?.product?.price || 0;
+                    const qty = ele?.qty || 1;
+                    return sum + price * qty;
+                }, 0) || 0,
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item // Keep raw data for other operations
             }));
-            // console.log('formattedData', formattedData);
-            setHousekeepingRooms(formattedData);
+            console.log('formattedData', formattedData);
+            setOrderRequestRooms(formattedData);
         } else {
-            setHousekeepingRooms([]);
+            setOrderRequestRooms([]);
         }
     }, [items]);
+
+    const handleAssignWorkerClose = () => {
+        setIsAssignWorkerModalOpen(false);
+        setSelectedorderRequest(null);
+        setSelectedWorker({ name: '', id: '' });
+        setIsWorkerDropdownOpen(false);
+    };
+
+    const handleAssignWorkerSubmit = async () => {
+        const workerId = selectedWorker.id;
+        const orderId = selectedorderRequest?.id; // Get the id from selected order request
+
+        console.log('Submitting:', { orderId, workerId });
+
+        if (!orderId || !workerId) {
+            dispatch(setAlert({
+                text: 'Please select both order and worker',
+                color: 'error'
+            }));
+            return;
+        }
+
+        try {
+            // Dispatch the API call
+            await dispatch(assignWorkerToOrderRequest({
+                Id: orderId, // Changed from orderId to Id to match your API
+                workerId
+            })).unwrap();
+
+            dispatch(fetchFreeWorker());
+            dispatch(fetchAllOrderRequesr());
+
+            handleAssignWorkerClose();
+        } catch (error) {
+            console.error('Failed to assign worker:', error);
+        }
+    };
+
+    const handleAssignWorkerClick = (housekeeping) => {
+        alert('ss');
+        console.log('Selected housekeeping:', housekeeping);
+        setSelectedorderRequest(housekeeping); // Store the entire object, not just id
+
+        const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
+        setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
+        setIsAssignWorkerModalOpen(true);
+    };
+
+    const workerDropdownRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target)) {
+                setIsWorkerDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Add these utility functions in your OrderRequest component (after the component declaration)
+
+    const getOrderItemCount = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+        return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
+    };
+
+    const getOrderTotalAmount = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+        return housekeeping.rawData.orderId.items.reduce((sum, item) => {
+            const price = item?.product?.price || 0;
+            const qty = item?.qty || 1;
+            return sum + price * qty;
+        }, 0);
+    };
+
+    const getItemPreview = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
+        const names = housekeeping.rawData.orderId.items
+            .map((item) => item?.product?.name)
+            .filter(Boolean);
+        if (!names.length) return 'No items';
+        if (names.length <= 2) return names.join(', ');
+        return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+    };
+
+    const getItemsList = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return [];
+        return housekeeping.rawData.orderId.items
+            .map((item) => item?.product?.name)
+            .filter(Boolean);
+    };
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -238,12 +296,12 @@ const OrderRequest = () => {
 
     const handleDownloadExcel = () => {
         try {
-            if (housekeepingRooms.length === 0) {
+            if (setOrderRequestRooms.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
             // Prepare data for Excel
-            const excelData = housekeepingRooms?.map((bookingItem, index) => {
+            const excelData = setOrderRequestRooms?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
@@ -314,7 +372,7 @@ const OrderRequest = () => {
     };
 
     // Filter bookings based on search term// Filter based on search term
-    const filteredBookings = housekeepingRooms.filter((item) => {
+    const filteredBookings = orderRequestRooms.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
@@ -334,6 +392,7 @@ const OrderRequest = () => {
     console.log('currentData', currentData);
 
     const handleApprove = (id) => {
+        alert('sds');
         dispatch(approveCleaningRoom(id));
 
         setTimeout(() => {
@@ -427,14 +486,20 @@ const OrderRequest = () => {
                                         {visibleColumns.workerName && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
                                         )}
+                                        {visibleColumns.itemName && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Item Name</th>
+                                        )}
                                         {visibleColumns.status && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Status</th>
                                         )}
                                         {visibleColumns.roomNo && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room No.</th>
                                         )}
-                                        {visibleColumns.roomType && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
+                                        {visibleColumns.floor && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Floor</th>
+                                        )}
+                                        {visibleColumns.to && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">To</th>
                                         )}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
@@ -444,7 +509,12 @@ const OrderRequest = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td
+                                                colSpan={
+                                                    Object.values(visibleColumns).filter(Boolean).length
+                                                }
+                                                className="px-6 py-12 text-center"
+                                            >
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                                     <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                                                     <p className="text-lg font-medium">Loading bookings...</p>
@@ -452,7 +522,7 @@ const OrderRequest = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
-                                        currentData?.map((housekeeping, index) => (
+                                        currentData.map((housekeeping, index) => (
                                             <tr
                                                 key={housekeeping.id}
                                                 className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
@@ -462,52 +532,100 @@ const OrderRequest = () => {
                                                         {startIndex + index + 1}
                                                     </td>
                                                 )}
+
                                                 {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-medium text-gray-800">{housekeeping.name}</span>
-                                                        </div>
-                                                    </td>
-                                                )}
-                                                {visibleColumns.status && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(housekeeping.status)}`}>
-                                                            {housekeeping.status}
-                                                        </span>
-                                                    </td>
-                                                )}
-                                                {visibleColumns.roomNo && (
-                                                    <td className="x-5 py-2 md600:py-3 lg:px-6">{housekeeping.roomNo}</td>
-                                                )}
-                                                {visibleColumns.roomType && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        <div className="flex items-center">
-                                                            <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
-                                                                backgroundColor: 'rgba(183, 153, 130, 0.2)',
-                                                                color: '#755647',
-                                                                borderColor: 'rgba(183, 153, 130, 0.3)'
-                                                            }}>
-                                                                {housekeeping.roomType?.split(' ')[0] || 'N/A'}
+                                                            <span className="text-sm font-medium text-gray-800">
+                                                                {housekeeping.name}
                                                             </span>
                                                         </div>
                                                     </td>
                                                 )}
+
+                                                {visibleColumns.itemName && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-gray-800">
+                                                                {housekeeping.itemCount || 0} item
+                                                                {housekeeping.itemCount === 1 ? "" : "s"}
+                                                            </span>
+
+                                                            <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                                                                {Array.isArray(housekeeping.itemName) &&
+                                                                    housekeeping.itemName.length > 0
+                                                                    ? housekeeping.itemName.length <= 2
+                                                                        ? housekeeping.itemName.join(", ")
+                                                                        : `${housekeeping.itemName
+                                                                            .slice(0, 2)
+                                                                            .join(", ")} +${housekeeping.itemName.length - 2
+                                                                        } more`
+                                                                    : "No items"}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.status && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <span
+                                                            className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(
+                                                                housekeeping.status
+                                                            )}`}
+                                                        >
+                                                            {housekeeping.status}
+                                                        </span>
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.roomNo && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        {housekeeping.roomNo}
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.floor && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        {housekeeping.floor}
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.to && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-sm font-medium text-gray-800">
+                                                                {housekeeping.to}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                )}
+
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        <div className="mv_table_action flex">
-                                                            <div onClick={() => handleViewClick(housekeeping)}>
-                                                                <IoEyeSharp className='text-[18px] text-quaternary' />
+                                                        <div className="mv_table_action flex items-center gap-3">
+                                                            <div
+                                                                onClick={() => handleViewClick(housekeeping)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                <IoEyeSharp className="text-[18px] text-quaternary" />
                                                             </div>
+
                                                             {housekeeping.status === "Completed" ? (
                                                                 <div
-                                                                    onClick={() => handleApprove(housekeeping?.id)}
-                                                                    title="Delete Booking"
+                                                                    onClick={() =>
+                                                                        handleApprove(housekeeping.id)
+                                                                    }
+                                                                    title="Approve Cleaning"
+                                                                    className="cursor-pointer"
                                                                 >
                                                                     <FiCheckCircle className="text-[#43b82c] text-[18px]" />
                                                                 </div>
                                                             ) : (
                                                                 <div
-                                                                    onClick={() => handleAssignWorkerClick(housekeeping)}
+                                                                    onClick={() =>
+                                                                        handleAssignWorkerClick(housekeeping)
+                                                                    }
+                                                                    className="cursor-pointer"
                                                                 >
                                                                     <FiEdit className="text-[#6777ef] text-[18px]" />
                                                                 </div>
@@ -519,18 +637,36 @@ const OrderRequest = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td
+                                                colSpan={
+                                                    Object.values(visibleColumns).filter(Boolean).length
+                                                }
+                                                className="px-6 py-12 text-center"
+                                            >
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
-                                                    <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                    <svg
+                                                        className="w-16 h-16 mb-4 text-gray-300"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={1.5}
+                                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                                                        />
                                                     </svg>
                                                     <p className="text-lg font-medium">No bookings found</p>
-                                                    <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                                    <p className="text-sm mt-1">
+                                                        Try adjusting your search or filters
+                                                    </p>
                                                 </div>
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
+
                             </table>
                         </div>
 
@@ -557,7 +693,7 @@ const OrderRequest = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {startIndex + 1} - {Math.min(endIndex, housekeepingRooms.length)} of {housekeepingRooms.length}
+                                    {startIndex + 1} - {Math.min(endIndex, setOrderRequestRooms.length)} of {setOrderRequestRooms.length}
                                 </span>
 
                                 <div className="flex items-center gap-1">
@@ -582,6 +718,7 @@ const OrderRequest = () => {
                 </div>
 
                 {/* View Booking Modal */}
+                {/* View Booking Modal */}
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
@@ -590,11 +727,11 @@ const OrderRequest = () => {
                         ></div>
 
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-lg" >
+                            <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-lg">
                                 {/* Modal Header */}
-                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6" >
+                                <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                                     <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
-                                        <h3 className="text-lg font-semibold text-black">Booking Details</h3>
+                                        <h3 className="text-lg font-semibold text-black">Order Request Details</h3>
                                         <button
                                             type="button"
                                             onClick={handleCloseModal}
@@ -613,15 +750,46 @@ const OrderRequest = () => {
                                             <span className='text-gray-900'>{selectedItem.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Room Type:</span>
-                                            <span className='text-gray-900'>{selectedItem.roomType}</span>
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Room No:</span>
+                                            <span className='text-gray-900'>{selectedItem.roomNo}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Payment Status:</span>
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Floor:</span>
+                                            <span className='text-gray-900'>{selectedItem.floor}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">To:</span>
+                                            <span className='text-gray-900'>{selectedItem.to}</span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-semibold text-gray-700 min-w-[120px]">Status:</span>
                                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
                                                 {selectedItem.status}
                                             </span>
                                         </div>
+
+                                        {/* Items Section */}
+                                        {selectedItem?.rawData?.orderId?.items?.length > 0 && (
+                                            <div className="pt-3 border-t border-gray-200">
+                                                <span className="font-semibold text-gray-700 block mb-2">Order Items:</span>
+                                                <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                                                    {selectedItem.rawData.orderId.items.map((item, index) => (
+                                                        <div key={item._id || index} className="flex justify-between items-center text-sm">
+                                                            <span className="text-gray-800">
+                                                                {item?.product?.name || 'Unknown Item'} x {item?.qty || 1}
+                                                            </span>
+                                                            <span className="text-gray-600 font-medium">
+                                                                ₹{((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                    <div className="pt-2 border-t border-gray-300 flex justify-between items-center font-semibold">
+                                                        <span className="text-gray-800">Total Amount:</span>
+                                                        <span className="text-gray-900">₹{selectedItem.totalAmount?.toFixed(2) || '0.00'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -654,7 +822,7 @@ const OrderRequest = () => {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-semibold mb-2 text-black">
-                                                Room Number: {selectedHousekeeping?.roomNo || 'N/A'}
+                                                Room Number: {selectedorderRequest?.roomNo || 'N/A'}
                                             </label>
                                         </div>
 
