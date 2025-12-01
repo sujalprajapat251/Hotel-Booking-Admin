@@ -4,18 +4,75 @@ const Staff = require("../models/staffModel");
 const Department = require("../models/departmentModel");
 
 // GET ALL DIRTY ROOMS
+// exports.getDirtyRooms = async (req, res) => {
+//     try {
+//         const rooms = await Room.find({ cleanStatus: { $ne: "Clean" } }).populate("roomType").populate("cleanassign").sort({ updatedAt: -1 });
+
+//         return res.json({
+//             success: true,
+//             message: "Dirty rooms fetched successfully..! ",
+//             data: rooms
+//         });
+
+//     } catch (error) {
+//         return res.status(500).json({ success: false, error: error.message });
+//     }
+// };
+
+
 exports.getDirtyRooms = async (req, res) => {
     try {
-        const rooms = await Room.find({ cleanStatus: { $ne: "Clean" } }).populate("roomType").populate("cleanassign").sort({ updatedAt: -1 });
+        // Extract pagination parameters from query
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
+
+        // Calculate skip value for pagination
+        const skip = (page - 1) * limit;
+
+        // Build search query
+        let searchQuery = { cleanStatus: { $ne: "Clean" } };
+
+        if (search) {
+            searchQuery.$or = [
+                { roomNumber: { $regex: search, $options: 'i' } },
+                { cleanStatus: { $regex: search, $options: 'i' } }
+            ];
+        }
+
+        // Get total count for pagination
+        const totalCount = await Room.countDocuments(searchQuery);
+
+        // Calculate total pages
+        const totalPages = Math.ceil(totalCount / limit);
+
+        // Fetch paginated rooms
+        const rooms = await Room.find(searchQuery)
+            .populate("roomType")
+            .populate("cleanassign")
+            .sort({ updatedAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
         return res.json({
             success: true,
-            message: "Dirty rooms fetched successfully..! ",
-            data: rooms
+            message: "Dirty rooms fetched successfully!",
+            data: rooms,
+            pagination: {
+                currentPage: page,
+                totalPages: totalPages,
+                totalCount: totalCount,
+                limit: limit,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            }
         });
 
     } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 };
 
@@ -224,7 +281,7 @@ exports.getWorkerTasks = async (req, res) => {
             .populate({
                 path: "roomId",
                 populate: {
-                    path: "roomType",   
+                    path: "roomType",
                 }
             })
             .populate("workerId")

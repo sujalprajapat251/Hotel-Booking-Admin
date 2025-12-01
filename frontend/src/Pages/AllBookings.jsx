@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
-import { FiEdit, FiPlusCircle } from 'react-icons/fi';
+import { FiCheckCircle, FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -129,6 +129,17 @@ const AllBookings = () => {
 
         dispatch(fetchBookings(params));
     }, [dispatch, page, limit, debouncedSearch]);
+
+    useEffect(() => {
+        const params = {
+            page,
+            limit,
+        };
+
+        // Don't send search to backend - we'll filter client-side
+        dispatch(fetchBookings(params));
+    }, [dispatch, page, limit]); // Remove debouncedSearch from dependencies
+
 
     // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
@@ -486,7 +497,7 @@ const AllBookings = () => {
                                 <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p>
 
                                 {/* Search Bar */}
-                                <div className="relative max-w-md">
+                                {/* <div className="relative max-w-md">
                                     <input
                                         type="text"
                                         placeholder="Search..."
@@ -495,6 +506,29 @@ const AllBookings = () => {
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
                                     />
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                </div> */}
+                                <div className="relative max-w-md">
+                                    <input
+                                        type="text"
+                                        placeholder="Search by name, phone, room, status, dates..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+                                    />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+
+                                    {/* Clear button */}
+                                    {searchTerm && (
+                                        <button
+                                            onClick={() => setSearchTerm('')}
+                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                            title="Clear search"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -670,9 +704,9 @@ const AllBookings = () => {
                                                                 onClick={() => handleEditClick(bookingItem)}
                                                                 title="Edit Booking"
                                                             >
-                                                                <FiEdit className="text-[#6777ef] text-[18px]"/>
+                                                                <FiEdit className="text-[#6777ef] text-[18px]" />
                                                             </div>
-                                                            <div    
+                                                            <div
                                                                 onClick={() => handleDeleteClick(bookingItem)}
                                                                 title="Delete Booking"
                                                             >
@@ -721,7 +755,7 @@ const AllBookings = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {startIndex + 1} - {Math.min(endIndex, booking.length)} of {booking.length}
+                                    {filteredBookings.length > 0 ? startIndex + 1 : 0} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
                                 </span>
 
                                 <div className="flex items-center gap-1">
@@ -739,6 +773,21 @@ const AllBookings = () => {
                                     >
                                         <ChevronRight size={20} />
                                     </button>
+
+                                    {/* <button
+                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        disabled={currentPage === 1 || loading}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronLeft size={20} />
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        disabled={currentPage === totalPages || loading}
+                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <ChevronRight size={20} />
+                                    </button> */}
                                 </div>
                             </div>
                         </div>
@@ -753,7 +802,7 @@ const AllBookings = () => {
                             onClick={handleCloseModal}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
-                            <div 
+                            <div
                                 className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-2xl border max-h-[80vh]"
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -761,8 +810,8 @@ const AllBookings = () => {
                                 <div className="bg-white px-3 mt-1 py-3 sm:px-6 sm:py-4">
                                     <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
                                         <h3 className="text-lg sm:text-xl font-semibold text-black">Booking Details</h3>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                         >
@@ -778,30 +827,30 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18}/>
+                                                    <GoDotFill size={18} />
                                                 </span> Guest Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
                                                 >
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]" >Name:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.name || 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.phone && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     >
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Phone:</span>
                                                         <span className="text-sm sm:text-base">{selectedItem.phone}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
-                                                        <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     >
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Email:</span>
                                                         <span className="text-sm sm:text-base break-words">{selectedItem.rawData.guest.email}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.idNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     >
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">ID Number:</span>
                                                         <span className="text-sm sm:text-base">{selectedItem.rawData.guest.idNumber}</span>
@@ -814,14 +863,14 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18}/>
+                                                    <GoDotFill size={18} />
                                                 </span>Booking Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
                                                 <div className="flex items-center p-1 rounded-lg transition-colors">
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                                 </div>
-                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out:</span>
@@ -840,7 +889,7 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18}/>
+                                                    <GoDotFill size={18} />
                                                 </span> Room Details</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
                                                 {selectedItem.rawData?.room?.roomNumber && (
@@ -876,7 +925,7 @@ const AllBookings = () => {
                                         <div>
                                             <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18}/>
+                                                    <GoDotFill size={18} />
                                                 </span> Payment Information
                                             </h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
@@ -908,12 +957,12 @@ const AllBookings = () => {
                                             <div>
                                                 <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
                                                     <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                        <GoDotFill size={18}/>
+                                                        <GoDotFill size={18} />
                                                     </span> Additional Information
                                                 </h4>
                                                 <div className="grid grid-cols-1 md600:gap-2">
                                                     {selectedItem.rawData?.reservation?.specialRequests && (
-                                                            <div className="flex items-start p-2 rounded-lg transition-colors">
+                                                        <div className="flex items-start p-2 rounded-lg transition-colors">
                                                             <span className="text-sm sm:text-base font-italic text-black min-w-[6   0px] sm:min-w-[60px]">Special Requests:</span>
                                                             <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.reservation.specialRequests}</span>
                                                         </div>
@@ -942,16 +991,16 @@ const AllBookings = () => {
                             onClick={handleEditModalClose}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center sm:p-0">
-                            <div 
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-3xl border" 
+                            <div
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-3xl border"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Modal Header */}
                                 <div className="px-4 py-4 sm:p-6">
                                     <div className="flex items-center justify-between border-b pb-3 mb-4">
                                         <h3 className="text-xl font-bold text-black">Edit Booking</h3>
-                                        <button 
-                                            type="button" 
+                                        <button
+                                            type="button"
                                             onClick={handleEditModalClose}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                         >
