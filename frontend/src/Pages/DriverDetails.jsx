@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
@@ -11,7 +11,10 @@ import {
   Phone,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 import { useDispatch, useSelector } from "react-redux";
 import { getAllDrivers, createDriver, updateDriver, deleteDriver } from "../Redux/Slice/driverSlice";
 import { getAllCabs } from "../Redux/Slice/cab.slice";
@@ -45,6 +48,15 @@ const DriverDetails = () => {
   const [driverToDelete, setDriverToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const gender= ["Male","Female","Other"];
+  const genderDropdownRef = useRef(null);
+  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
+  const assignedDropdownRef = useRef(null);
+  const [showAssignedDropdown, setShowAssignedDropdown] = useState(false);
+  const statusOptions = ["Available", "Unavailable", "Leave", "onTrip"];
+  const statusDropdownRef = useRef(null);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   
   const defaultDriverFields = {
     _id: null,
@@ -120,6 +132,9 @@ const DriverDetails = () => {
   const handleOpenAddModal = () => {
     setDriverForm(defaultDriverFields);
     setDriverModalMode("add");
+    setShowGenderDropdown(false);
+    setShowAssignedDropdown(false);
+    setShowStatusDropdown(false);
     setIsDriverModalOpen(true);
   };
 
@@ -144,6 +159,9 @@ const DriverDetails = () => {
       existingImage: driver.image || null,
     });
     setDriverModalMode("edit");
+    setShowGenderDropdown(false);
+    setShowAssignedDropdown(false);
+    setShowStatusDropdown(false);
     setIsDriverModalOpen(true);
   };
 
@@ -187,7 +205,29 @@ const DriverDetails = () => {
   const handleDriverModalCancel = () => {
     setIsDriverModalOpen(false);
     setDriverForm(defaultDriverFields);
+    setShowGenderDropdown(false);
+    setShowAssignedDropdown(false);
+    setShowStatusDropdown(false);
   };
+
+  // Close any open custom dropdown when clicking outside of them
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (!showGenderDropdown && !showAssignedDropdown && !showStatusDropdown) return;
+      const target = e.target;
+      const insideGender = genderDropdownRef.current && genderDropdownRef.current.contains(target);
+      const insideAssigned = assignedDropdownRef.current && assignedDropdownRef.current.contains(target);
+      const insideStatus = statusDropdownRef.current && statusDropdownRef.current.contains(target);
+      if (!insideGender && !insideAssigned && !insideStatus) {
+        setShowGenderDropdown(false);
+        setShowAssignedDropdown(false);
+        setShowStatusDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showGenderDropdown, showAssignedDropdown, showStatusDropdown]);
 
   // Delete Driver Handlers
   const handleDeleteClick = (driver) => {
@@ -209,36 +249,82 @@ const DriverDetails = () => {
     setDriverToDelete(null);
   };
 
+  const handleRefresh = () => {
+    dispatch(getAllDrivers());
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
+  const handleDownloadExcel = () => {
+    try {
+      if (filteredDrivers.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
+      }
+
+      // Prepare rows matching the table columns
+      const excelData = filteredDrivers.map((d, idx) => ({
+        No: idx + 1,
+        Name: d.name || "",
+        Gender: d.gender || "",
+        Email: d.email || "",
+        Mobile: d.mobileno || "",
+        "Assigned Cab": d.AssignedCab?.vehicleId || "Not Assigned",
+        Status: d.status || "",
+        Address: d.address || "",
+        "Joining Date": d.joiningdate ? new Date(d.joiningdate).toLocaleDateString() : "",
+        Image: d.image || "",
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Drivers");
+
+      // simple column width heuristic
+      const headers = Object.keys(excelData[0] || {});
+      const wscols = headers.map(() => ({ wch: 20 }));
+      worksheet["!cols"] = wscols;
+
+      const date = new Date();
+      const fileName = `Driver_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: "success" }));
+    } catch (error) {
+      console.error("Driver export failed", error);
+      dispatch(setAlert({ text: "Export failed..!", color: "error" }));
+    }
+  };
+
   return (
-    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 min-h-screen">
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">All Drivers</h1>
       </section>
 
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-        <div className="flex flex-col gap-4 md600:flex-row md600:items-center md600:justify-between p-5 border-b border-gray-100">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <p className="text-[18px] font-semibold text-gray-900 whitespace-nowrap">
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+          <div className="flex gap-2 md:gap-5 sm:justify-between">
+            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
               Driver Items
             </p>
-            <div className="relative max-w-md w-full">
+            <div className="relative max-w-md">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search driver, phone or cab..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
               />
               <Search
                 size={18}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 justify-end">
+          <div className="flex items-center gap-1 justify-end mt-2">
             <button
-              className="p-2 text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+              className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
               title="Add Driver"
               onClick={handleOpenAddModal}
             >
@@ -246,7 +332,7 @@ const DriverDetails = () => {
             </button>
             <div className="relative">
               <button
-                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/30 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
                 title="Filter Status"
                 onClick={() => setShowFilterMenu((prev) => !prev)}
               >
@@ -278,12 +364,14 @@ const DriverDetails = () => {
             <button
               className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
               title="Refresh"
+              onClick={handleRefresh}
             >
               <RefreshCw size={20} />
             </button>
             <button
               className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors"
               title="Download"
+              onClick={handleDownloadExcel}
             >
               <Download size={20} />
             </button>
@@ -310,7 +398,7 @@ const DriverDetails = () => {
               {paginatedDrivers.map((driver, idx) => (
                 <tr
                   key={driver._id || idx}
-                  className="border-b border-gray-100 text-gray-700 hover:bg-gray-50"
+                  className="border-b border-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                 >
                   <td className="px-5 py-4 text-gray-600 font-semibold">
                     {(currentPage - 1) * itemsPerPage + idx + 1}
@@ -368,28 +456,26 @@ const DriverDetails = () => {
                     </div>
                   </td>
                   <td className="px-5 py-4">
-                    <div className="flex items-center gap-3 text-lg">
-                      <button
-                        className="text-[#755647] hover:text-[#4B3A2F]"
+                    <div className="mv_table_action flex">
+                      <div
                         title="View"
-                        onClick={() => handleOpenEditModal(driver)}
+                        // onClick={() => handleOpenEditModal(driver)}
                       >
-                        <IoEyeSharp />
-                      </button>
-                      <button
-                        className="text-[#6A4DFF] hover:text-[#4C2CC7]"
+                        <IoEyeSharp className='text-[18px] text-quaternary' />
+                      </div>
+                      <div
+                        className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
                         title="Edit"
                         onClick={() => handleOpenEditModal(driver)}
                       >
-                        <FiEdit />
-                      </button>
-                      <button
-                        className="text-[#EF4444] hover:text-[#DC2626]"
+                        <FiEdit className="text-[18px]" />
+                      </div>
+                      <div
                         title="Delete"
                         onClick={() => handleDeleteClick(driver)}
                       >
-                        <RiDeleteBinLine />
-                      </button>
+                        <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                      </div>
                     </div>
                   </td>
                 </tr>
@@ -422,23 +508,24 @@ const DriverDetails = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-5 border-t border-gray-100 text-sm text-gray-600">
-          <div className="flex items-center gap-3">
-            <span className="text-gray-700 font-medium">Items per page</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B79982] focus:border-[#B79982]"
-            >
-              {[6, 10, 20, 50].map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">Items per page</span>
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={100}>100</option>
+              </select>
+              </div>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-700">
@@ -468,10 +555,10 @@ const DriverDetails = () => {
 
       {/* Unified Add/Edit Driver Modal */}
       {isDriverModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleDriverModalCancel}></div>
-          <div className="relative w-full max-w-2xl rounded-md bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-start justify-between mb-6">
+          <div className="relative w-full md:max-w-2xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-semibold text-black">
                 {driverModalMode === "add" ? "Add Driver" : "Edit Driver"}
               </h2>
@@ -481,34 +568,34 @@ const DriverDetails = () => {
                 </svg>
               </button>
             </div>
-            <form onSubmit={handleDriverSubmit} className="flex flex-col gap-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleDriverSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                  <label className="text-sm font-medium text-black mb-1">Name *</label>
                   <input
                     type="text"
                     name="name"
                     value={driverForm.name}
                     onChange={handleDriverInputChange}
                     placeholder="Driver Name"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                  <label className="text-sm font-medium text-black mb-1">Email *</label>
                   <input
                     type="email"
                     name="email"
                     value={driverForm.email}
                     onChange={handleDriverInputChange}
                     placeholder="driver@example.com"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="text-sm font-medium text-black mb-1">
                     Password {driverModalMode === "add" ? "*" : ""}
                   </label>
                   <input
@@ -517,94 +604,163 @@ const DriverDetails = () => {
                     value={driverForm.password}
                     onChange={handleDriverInputChange}
                     placeholder={driverModalMode === "add" ? "Password" : "Leave blank to keep current password"}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     required={driverModalMode === "add"}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
+                  <label className="text-sm font-medium text-black mb-1">Mobile Number *</label>
                   <input
                     type="tel"
                     name="mobileno"
                     value={driverForm.mobileno}
                     onChange={handleDriverInputChange}
                     placeholder="1234567890"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Gender *</label>
-                  <select
-                    name="gender"
-                    value={driverForm.gender}
-                    onChange={handleDriverInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                    required
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                  <label className="text-sm font-medium text-black mb-1">Gender *</label>
+                  <div className="relative" ref={genderDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowGenderDropdown((prev) => !prev)}
+                      name="gender"
+                      value={driverForm.gender}
+                      onChange={handleDriverInputChange}
+                      className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between "
+                      required
+                    >
+                      <span className="text-sm truncate">
+                          {driverForm.gender ? driverForm.gender : 'Select Gender'}
+                      </span>
+                      <ChevronDown
+                          size={18}
+                          className={`text-gray-600 transition-transform duration-200 ${showGenderDropdown ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    {showGenderDropdown && (
+                      <ul className="absolute z-50 w-full rounded-md bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                        {gender.map((option) => (
+                          <li
+                            key={option}
+                            onClick={() => {
+                              handleDriverInputChange({ target: { name: "gender", value: option } });
+                              setShowGenderDropdown(false);
+                            }}
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          >
+                            {option}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Joining Date *</label>
+                  <label className="text-sm font-medium text-black mb-1">Joining Date *</label>
                   <input
                     type="date"
                     name="joiningdate"
                     value={driverForm.joiningdate}
                     onChange={handleDriverInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assigned Cab</label>
-                  <select
-                    name="AssignedCab"
-                    value={driverForm.AssignedCab}
-                    onChange={handleDriverInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                  >
-                    <option value="">Select Cab (Optional)</option>
-                    {cabs && cabs.map((cab) => (
-                      <option key={cab._id} value={cab._id}>
-                        {cab.vehicleId} - {cab.modelName}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-sm font-medium text-black mb-1">Assigned Cab</label>
+                  <div className="relative" ref={assignedDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowAssignedDropdown((prev) => !prev)}
+                      name="AssignedCab"
+                      className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
+                    >
+                      <span className="text-sm truncate">
+                        {driverForm.AssignedCab
+                          ? (() => {
+                              const sel = (cabs || []).find((c) => c._id === driverForm.AssignedCab);
+                              return sel ? `${sel.vehicleId} - ${sel.modelName}` : 'Select Cab (Optional)';
+                            })()
+                          : 'Select Cab (Optional)'}
+                      </span>
+                      <ChevronDown size={18} className={`text-gray-600 transition-transform duration-200 ${showAssignedDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showAssignedDropdown && (
+                      <ul className="absolute z-50 w-full rounded-md bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                        <li
+                          onClick={() => {
+                            handleDriverInputChange({ target: { name: 'AssignedCab', value: '' } });
+                            setShowAssignedDropdown(false);
+                          }}
+                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                        >
+                          Select Cab (Optional)
+                        </li>
+                        {cabs && cabs.map((cab) => (
+                          <li
+                            key={cab._id}
+                            onClick={() => {
+                              handleDriverInputChange({ target: { name: 'AssignedCab', value: cab._id } });
+                              setShowAssignedDropdown(false);
+                            }}
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          >
+                            {cab.vehicleId} - {cab.modelName}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status *</label>
-                  <select
-                    name="status"
-                    value={driverForm.status}
-                    onChange={handleDriverInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                    required
-                  >
-                    <option value="Available">Available</option>
-                    <option value="Unavailable">Unavailable</option>
-                    <option value="Leave">Leave</option>
-                    <option value="onTrip">onTrip</option>
-                  </select>
+                  <label className="text-sm font-medium text-black mb-1">Status *</label>
+                  <div className="relative" ref={statusDropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowStatusDropdown((prev) => !prev)}
+                      name="status"
+                      className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
+                      required
+                    >
+                      <span className="text-sm truncate">{driverForm.status}</span>
+                      <ChevronDown size={18} className={`text-gray-600 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showStatusDropdown && (
+                      <ul className="absolute z-50 w-full rounded-md bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                        {statusOptions.map((opt) => (
+                          <li
+                            key={opt}
+                            onClick={() => {
+                              handleDriverInputChange({ target: { name: 'status', value: opt } });
+                              setShowStatusDropdown(false);
+                            }}
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          >
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                <label className="text-sm font-medium text-black mb-1">Address *</label>
                 <textarea
                   name="address"
                   value={driverForm.address}
                   onChange={handleDriverInputChange}
                   placeholder="Driver Address"
                   rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
+                <label className="text-sm font-medium text-black mb-1">Profile Image</label>
                 {driverModalMode === "edit" && driverForm.existingImage && (
                   <div className="mb-2">
                     <p className="text-xs text-gray-500 mb-1">Current Image:</p>
@@ -615,29 +771,40 @@ const DriverDetails = () => {
                     />
                   </div>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  name="image"
-                  onChange={handleDriverInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                />
+                <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
+                  <span className="truncate">
+                    {driverForm.image
+                      ? driverForm.image.name
+                      : (driverModalMode === "edit" && driverForm.existingImage
+                          ? driverForm.existingImage.split('/').pop()
+                          : 'Choose file')}
+                  </span>
+                  <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
+                  <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleDriverInputChange}
+                  />
+                </label>
                 {driverModalMode === "edit" && (
                   <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
                 )}
               </div>
-              <div className="flex justify-end gap-3 mt-4">
+              <div className="flex items-center justify-center pt-4 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={handleDriverModalCancel}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                   disabled={driverLoading}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-gray-900 rounded-lg hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-colors font-medium"
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                   disabled={driverLoading}
                 >
                   {driverLoading 
@@ -653,9 +820,9 @@ const DriverDetails = () => {
 
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={handleDeleteCancel}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Driver</h2>
               <button onClick={handleDeleteCancel} className="text-gray-500 hover:text-gray-800">
@@ -664,28 +831,28 @@ const DriverDetails = () => {
                 </svg>
               </button>
             </div>
-            <p className="text-gray-700 mb-8 text-center">
+            <p className="text-gray-700 mb-4 text-center">
               Are you sure you want to delete
               <span className="font-semibold mx-1">
                 {driverToDelete?.name || "this driver"}
               </span>
               ?
             </p>
-            <p className="text-sm text-gray-500 mb-8 text-center">
+            <p className="text-sm text-gray-500 mb-6 text-center">
               This action cannot be undone.
             </p>
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2">
               <button
                 type="button"
                 onClick={handleDeleteCancel}
-                className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteConfirm}
-                className="px-6 py-2 bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white rounded-lg hover:from-[#DC2626] hover:to-[#EF4444] transition-colors font-medium"
+                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
               >
                 Delete
               </button>
