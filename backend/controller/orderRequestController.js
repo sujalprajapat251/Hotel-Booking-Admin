@@ -6,6 +6,13 @@ exports.getPendingOrderRequests = async (req, res) => {
         const requests = await OrderRequest.find({ status: 'Pending' })
             .populate('roomId')
             .populate('orderId')
+            .populate('workerId')
+            .populate({
+                path: "orderId",
+                populate: {
+                    path: "items.product",
+                }
+            })
             .sort({ createdAt: -1 });
 
         return res.status(200).json({

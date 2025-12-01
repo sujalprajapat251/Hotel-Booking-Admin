@@ -32,7 +32,7 @@ const { createReview, getAllReviews, getReviewById } = require('../controller/re
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, monthWiseOccupancy, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
-const { addItemToRoomOrder, getOrdercafeByRoom, removeItemCafeOrder, addItemTobarOrder, getOrderbarByRoom, removeItembarOrder, addItemTocafeOrder, addItemTorestroOrder, getOrderrestroByRoom, removeItemrestroOrder } = require('../controller/userOrderController');
+const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrder } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 const { cafeDashboard, CafeDashboard } = require('../controller/hoddashboardController');
 
@@ -251,16 +251,10 @@ indexRoutes.get('/getallrestaurantorderbyadmin', auth, adminOnly, getAllRestaura
 
 
 // user side order api 
-indexRoutes.post('/addCafeOrder', auth, addItemTocafeOrder);
+indexRoutes.post('/createOrder', auth, createOrder);
 indexRoutes.get('/mycafeorder/:roomId', auth, getOrdercafeByRoom);
-indexRoutes.delete('/cafeorder/:id/items/:itemId', auth, removeItemCafeOrder);
-indexRoutes.post('/addbarOrder', auth, addItemTobarOrder);
 indexRoutes.get('/mybarorder/:roomId', auth, getOrderbarByRoom);
-indexRoutes.delete('/barorder/:id/items/:itemId', auth, removeItembarOrder);
-indexRoutes.post('/addrestaurantOrder', auth, addItemTorestroOrder);
 indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
-indexRoutes.delete('/restaurantorder/:id/items/:itemId', auth, removeItemrestroOrder);
-
 
 // order request api 
 indexRoutes.get('/getorderRequest', getPendingOrderRequests)
