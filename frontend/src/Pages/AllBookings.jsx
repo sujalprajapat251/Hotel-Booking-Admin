@@ -752,23 +752,17 @@ const AllBookings = () => {
                             className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                             onClick={handleCloseModal}
                         ></div>
-                        <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
-                            <div
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full max-w-[98%] sm:max-w-[95%] md:max-w-[90%] lg:max-w-[85%] border-2 my-4 sm:my-8"
-                                style={{
-                                    borderColor: '#E3C78A',
-                                    boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-                                }}
+                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
+                            <div 
+                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-2xl border max-h-[80vh]"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Modal Header */}
-                                <div className="px-3 py-3 sm:px-6 sm:py-4" style={{
-                                    background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.08) 0%, rgba(227, 199, 138, 0.09) 100%)'
-                                }}>
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: '#E3C78A' }}>
-                                        <h3 className="text-lg sm:text-xl font-bold" style={{ color: '#755647' }}>Booking Details</h3>
-                                        <button
-                                            type="button"
+                                <div className="bg-white px-3 mt-1 py-3 sm:px-6 sm:py-4">
+                                    <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
+                                        <h3 className="text-lg sm:text-xl font-semibold text-black">Booking Details</h3>
+                                        <button 
+                                            type="button" 
                                             onClick={handleCloseModal}
                                             className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
                                         >
@@ -809,7 +803,7 @@ const AllBookings = () => {
                                                 {selectedItem.rawData?.guest?.idNumber && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors" 
                                                     >
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">ID Number:</span>
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">ID Number:</span>
                                                         <span className="text-sm sm:text-base">{selectedItem.rawData.guest.idNumber}</span>
                                                     </div>
                                                 )}
@@ -827,7 +821,7 @@ const AllBookings = () => {
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                                 </div>
-                                                <div className="flex items-center p-1 rounded-lg transition-colors"
+                                                <div className="flex items-center p-1 rounded-lg transition-colors" 
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out:</span>
