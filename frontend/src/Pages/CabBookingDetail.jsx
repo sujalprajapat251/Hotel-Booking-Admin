@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FiPlusCircle, FiEdit, FiEye } from "react-icons/fi";
+import { FiPlusCircle, FiEdit} from "react-icons/fi";
+import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
 import {
   Search,
@@ -13,6 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import * as XLSX from 'xlsx';
+import { setAlert } from '../Redux/Slice/alert.slice';
 import { getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
 
 const statusColors = {
@@ -114,34 +117,91 @@ const CabBookingDetail = () => {
     });
   }, [cabBookings]);
 
+  const handleDownloadExcel = () => {
+    try {
+      if (filteredBookings.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
+      }
+
+      const excelData = filteredBookings.map((item, idx) => {
+        const dateStr = item.bookingDate ? new Date(item.bookingDate).toLocaleDateString('en-GB') : "";
+        const timeStr = item.pickupTime
+          ? new Date(item.pickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : "";
+        const fareVal = item.fare === "--" || item.fare == null ? "" : item.fare;
+
+        return {
+          No: idx + 1,
+          'Guest Name': item.guestName || "",
+          'Room/Guest ID': item.roomNumber || "",
+          'Pickup Location': item.pickupLocation || "",
+          'Drop Location': item.dropLocation || "",
+          Date: dateStr,
+          Time: timeStr,
+          Driver: item.driver || "",
+          Vehicle: item.vehicle || "",
+          'Distance (KM)': item.distance != null ? item.distance : "",
+          'Total Fare': fareVal,
+          'Payment Status': item.paymentStatus || "",
+          Method: item.paymentMethod || "",
+          'Trip Status': item.status || "",
+          Notes: item.notes || "",
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "CabBookings");
+
+      // set reasonable column widths per header
+      const headers = Object.keys(excelData[0] || {});
+      const wscols = headers.map((h) => {
+        if (["Guest Name", "Pickup Location", "Drop Location", "Notes"].includes(h)) return { wch: 30 };
+        if (["Room/Guest ID", "Driver", "Vehicle"].includes(h)) return { wch: 18 };
+        if (["Total Fare", "Distance (KM)"].includes(h)) return { wch: 12 };
+        return { wch: 14 };
+      });
+      worksheet["!cols"] = wscols;
+
+      const date = new Date();
+      const fileName = `Cab_Bookings_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: "success" }));
+    } catch (error) {
+      console.error("Export failed", error);
+      dispatch(setAlert({ text: "Export failed..!", color: "error" }));
+    }
+  };
+
   return (
-    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 min-h-screen">
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Cab Bookings</h1>
       </section>
-      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
-        <div className="flex flex-col gap-4 md600:flex-row md600:items-center md600:justify-between p-5 border-b border-gray-100">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <p className="text-[18px] font-semibold text-gray-900 whitespace-nowrap">All Cab Bookings</p>
-            <div className="relative max-w-md w-full">
+      <div className="bg-white rounded-lg shadow-md">
+        <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
+          <div className="flex gap-2 md:gap-5 sm:justify-between">
+            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Cab Bookings</p>
+            <div className="relative max-w-md">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by guest/room ID/driver/cab/location..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
               />
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 justify-end">
-            <button className="p-2 text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors" title="Add Booking">
+          <div className="flex items-center gap-1 justify-end mt-2">
+            <button className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" title="Add Booking">
               <FiPlusCircle size={20} />
             </button>
             <div className="relative">
               <button
-                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/30 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
                 title="Filter Status"
                 onClick={() => setShowFilterMenu((prev) => !prev)}
               >
@@ -172,14 +232,14 @@ const CabBookingDetail = () => {
               )}
             </div>
             <button
-              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
               title="Refresh"
               onClick={handleRefresh}
               disabled={loading}
             >
               <RefreshCw size={20} />
             </button>
-            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download">
+            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
               <Download size={20} />
             </button>
           </div>
@@ -214,7 +274,7 @@ const CabBookingDetail = () => {
             </thead>
             <tbody>
               {filteredBookings.map((booking, idx) => (
-                <tr key={booking.id} className="border-b border-gray-100 text-gray-700 hover:bg-gray-50">
+                <tr key={booking.id} className="border-b border-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
                   <td className="px-4 py-3">{(page - 1) * limit + idx + 1}</td>
                   <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{booking.guestName}</td>
                   <td className="px-4 py-3 whitespace-nowrap">{booking.roomNumber}</td>
@@ -268,17 +328,17 @@ const CabBookingDetail = () => {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{booking.notes}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3 text-lg">
-                      <button className="text-[#755647] hover:text-[#4B3A2F]" title="View">
-                        <FiEye />
-                      </button>
-                      <button className="text-[#6A4DFF] hover:text-[#4C2CC7]" title="Edit">
-                        <FiEdit />
-                      </button>
-                      <button className="text-[#EF4444] hover:text-[#DC2626]" title="Delete">
-                        <RiDeleteBinLine />
-                      </button>
+                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                    <div className="mv_table_action flex">
+                      <div title="View">
+                        <IoEyeSharp className='text-[18px] text-quaternary' />
+                      </div>
+                      <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"title="Edit">
+                        <FiEdit className="text-[18px]" />
+                      </div>
+                      <div title="Delete">
+                        <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                      </div>
                     </div>
                   </td>
                 </tr>
