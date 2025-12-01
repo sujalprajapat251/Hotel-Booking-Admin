@@ -239,15 +239,15 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <form
-        className="bg-white/95 w-[70%] max-h-[90vh] rounded-2xl overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
+        className="bg-white w-[70%] max-h-[90vh] rounded-lg overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
         onSubmit={handleSubmit}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-quaternary to-senary text-white rounded-t-2xl shadow-inner">
+        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">
           <div>
-            <h2 className="text-xl font-semibold">Add New Guest</h2>
+            <h2 className="text-xl font-semibold text-black">Add New Guest</h2>
             {roomSummary && (
-              <p className="text-sm text-secondary">
+              <p className="text-sm text-gray-600">
                 {roomSummary.label} • {roomSummary.type}
                 {roomSummary.bed ? ` • ${roomSummary.bed}` : ""} • Sleeps{" "}
                 {roomSummary.capacity}
@@ -308,10 +308,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </h3>
 
               <div className="mb-4">
-                <label className="block mb-1 text-sm">Full Name*</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name*</label>
                 <input
                   type="text"
-                  className={inputClasses}
+                  className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                   placeholder="Enter full name"
                   required
                   value={formState.fullName}
@@ -320,10 +320,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               <div className="mb-4">
-                <label className="block mb-1 text-sm">Email Address</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                 <input
                   type="email"
-                  className={inputClasses}
+                  className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                   placeholder="Enter email"
                   value={formState.email}
                   onChange={handleChange("email")}
@@ -332,10 +332,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block mb-1 text-sm">Phone Number*</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number*</label>
                   <input
                     type="text"
-                    className={inputClasses}
+                    className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                     placeholder="Enter phone number"
                     required
                     value={formState.phone}
@@ -344,10 +344,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-sm">ID Number</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">ID Number</label>
                   <input
                     type="text"
-                    className={inputClasses}
+                    className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                     placeholder="ID number"
                     value={formState.idNumber}
                     onChange={handleChange("idNumber")}
@@ -356,9 +356,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               <div>
-                <label className="block mb-1 text-sm">Address*</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Address*</label>
                 <textarea
-                  className={textareaClasses}
+                  className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                   placeholder="Enter address"
                   required
                   value={formState.address}
@@ -377,7 +377,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block mb-1 text-sm">Stay Dates*</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Stay Dates*</label>
                   <ConfigProvider
                     theme={{
                       token: {
@@ -415,9 +415,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block mb-1 text-sm">Payment Status</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
                   <select
-                    className={inputClasses}
+                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
                     value={formState.paymentStatus}
                     onChange={handleChange("paymentStatus")}
                   >
@@ -429,7 +429,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               {/* Cab Service Checkbox */}
-              <div className="mt-4 p-4 border border-primary/50 rounded-2xl bg-primary/10 shadow-sm text-senary">
+              <div className="mt-4 p-4 w-full text-black border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -437,7 +437,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     onChange={handleChange("cabService")}
                     className="w-5 h-5 text-senary border-quaternary rounded focus:ring-senary/40 focus:outline-none"
                   />
-                  <span className="ml-2 text-sm font-medium text-quinary">
+                  <span className="ml-2 text-sm font-medium text-black">
                     Add Cab Service
                   </span>
                 </label>
@@ -445,16 +445,16 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               {/* Cab Booking Details - Show only if checkbox is checked */}
               {cabServiceEnabled && (
-                <div className="mt-4 p-4 border border-primary/40 rounded-2xl bg-primary/5 shadow-sm">
+                <div className="mt-4 p-4 border border-gray-200 rounded-2xl shadow-sm">
                   <h4 className="text-md font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                     Cab Booking Details
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block mb-1 text-sm">Pick-up Location*</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Pick-up Location*</label>
                       <select
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
                         required={cabServiceEnabled}
                         value={formState.pickUpLocation}
                         onChange={handleChange("pickUpLocation")}
@@ -466,10 +466,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-sm">Pick-up Time*</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Pick-up Time*</label>
                       <input
                         type="datetime-local"
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                         required={cabServiceEnabled}
                         value={formState.pickUpTime}
                         onChange={handleChange("pickUpTime")}
@@ -479,9 +479,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block mb-1 text-sm">Seating Capacity*</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Seating Capacity*</label>
                       <select
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
                         required={cabServiceEnabled}
                         value={formState.preferredSeatingCapacity}
                         onChange={handleChange("preferredSeatingCapacity")}
@@ -494,7 +494,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         <option value="9">9 Seater</option>
                         <option value="10+">10+ Seater</option>
                       </select>
-                      <p className="text-xs text-quinary/70 mt-1">
+                      <p className="text-xs text-gray-600 mt-1">
                         A cab with matching or higher capacity will be automatically assigned
                       </p>
                     </div>
@@ -502,20 +502,20 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block mb-1 text-sm">Booking Date</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Booking Date</label>
                       <input
                         type="date"
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                         value={formState.bookingDate}
                         onChange={handleChange("bookingDate")}
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-sm">Estimated Distance (km)</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Estimated Distance (km)</label>
                       <input
                         type="number"
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                         placeholder="0"
                         min="0"
                         step="0.1"
@@ -527,10 +527,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
-                      <label className="block mb-1 text-sm">Estimated Fare</label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Estimated Fare</label>
                       <input
                         type="number"
-                        className={inputClasses}
+                        className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                         placeholder="0.00"
                         min="0"
                         step="0.01"
@@ -541,9 +541,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   </div>
 
                   <div className="mt-4">
-                    <label className="block mb-1 text-sm">Special Instructions</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Special Instructions</label>
                     <textarea
-                      className={`${inputClasses} h-20`}
+                      className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                       placeholder="Any special instructions for the driver"
                       value={formState.specialInstructions}
                       onChange={handleChange("specialInstructions")}
@@ -551,9 +551,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   </div>
 
                   <div className="mt-4">
-                    <label className="block mb-1 text-sm">Cab Booking Notes</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Cab Booking Notes</label>
                     <textarea
-                      className={`${inputClasses} h-20`}
+                      className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                       placeholder="Additional notes for cab booking"
                       value={formState.cabNotes}
                       onChange={handleChange("cabNotes")}
@@ -564,9 +564,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block mb-1 text-sm">Payment Method</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
                   <select
-                    className={inputClasses}
+                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
                     value={formState.paymentMethod}
                     onChange={handleChange("paymentMethod")}
                   >
@@ -577,10 +577,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-sm">Total Amount*</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Total Amount*</label>
                   <input
                     type="number"
-                    className={inputClasses}
+                    className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                     placeholder="0.00"
                     required
                     min="0"
@@ -591,9 +591,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               <div className="mt-4">
-                <label className="block mb-1 text-sm">Notes</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
                 <textarea
-                  className={`${inputClasses} h-20`}
+                  className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                   placeholder="Special requests or notes"
                   value={formState.notes}
                   onChange={handleChange("notes")}
@@ -604,11 +604,11 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-end gap-4 p-6 border-t border-primary/40 bg-primary/10">
+        <div className="flex justify-end gap-4 px-6 pb-6">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-lg bg-secondary/40 text-quinary hover:bg-secondary/60 transition shadow-sm"
+            className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-2 rounded"
           >
             Cancel
           </button>
@@ -616,11 +616,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           <button
             type="submit"
             disabled={creating || cabBookingLoading}
-            className={`px-4 py-2 rounded-lg text-white ${
-              creating || cabBookingLoading
-                ? "bg-quaternary/40 cursor-not-allowed"
-                : "bg-senary hover:bg-quinary shadow-lg"
-            }`}
+            className={`mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white`}
           >
             {creating || cabBookingLoading ? "Saving..." : "Save Guest Details"}
           </button>

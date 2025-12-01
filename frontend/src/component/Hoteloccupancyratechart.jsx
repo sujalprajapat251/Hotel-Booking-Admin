@@ -1,20 +1,7 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp } from 'lucide-react';
-
-const data = [
-    { month: 'Jan', rate: 66 },
-    { month: 'Feb', rate: 69 },
-    { month: 'Mar', rate: 72 },
-    { month: 'Apr', rate: 75 },
-    { month: 'May', rate: 78 },
-    { month: 'Jun', rate: 76 },
-    { month: 'Jul', rate: 79 },
-    { month: 'Aug', rate: 77 },
-    { month: 'Sep', rate: 73 },
-    { month: 'Oct', rate: 77 },
-    { month: 'Nov', rate: 80 },
-    { month: 'Dec', rate: 78.5 },
-];
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getAllOccupancyrate } from '../Redux/Slice/dashboard.silce';
 
 const colors = {
     primary: '#F7DF9C',
@@ -25,7 +12,32 @@ const colors = {
     senary: '#755647',
 };
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const HotelOccupancyDashboard = () => {
+
+    const dispatch = useDispatch();
+
+    const getCurrentYear = () => {
+        return new Date().getFullYear();
+    };
+
+    useEffect(() => {
+        dispatch(getAllOccupancyrate(getCurrentYear()));
+    }, [dispatch]);
+
+    const getOccupancyrate = useSelector((state) => state.dashboard.getOccupancyrate);
+
+    const formatNumber = (num) => {
+        if (!num) return "0";
+        return num.toLocaleString("en-IN");
+    };
+
+    const chartData = getOccupancyrate?.revenueByMonth?.map((item) => ({
+        month: MONTH_NAMES[item.month - 1],
+        rate: item.totalRevenue
+    })) || [];
+
     return (
         <div className="flex items-center justify-center">
             <div className="w-full">
@@ -36,19 +48,11 @@ const HotelOccupancyDashboard = () => {
                 <div className="flex justify-between items-end gap-4 mb-3">
                     <div>
                         <div className="text-[40px] font-bold" style={{ color: colors.quinary }}>
-                            78.5%
+                            {formatNumber(getOccupancyrate?.currentRevenue)}
                         </div>
                         <div className="text-sm mt-1" style={{ color: colors.quaternary }}>
                             Current Month
                         </div>
-                    </div>
-
-                    <div className="px-3 py-1.5 rounded-lg flex items-center gap-1 mb-2" style={{
-                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
-                        color: '#16a34a'
-                    }}>
-                        <TrendingUp size={16} />
-                        <span className="font-semibold text-sm">+6.2%</span>
                     </div>
                 </div>
 
@@ -58,22 +62,14 @@ const HotelOccupancyDashboard = () => {
                             Previous Month
                         </div>
                         <div className="text-2xl font-semibold" style={{ color: colors.quinary }}>
-                            72.3%
-                        </div>
-                    </div>
-                    <div>
-                        <div className="text-sm mb-1" style={{ color: colors.quaternary }}>
-                            YTD Average
-                        </div>
-                        <div className="text-2xl font-semibold" style={{ color: colors.quinary }}>
-                            75.8%
+                            {formatNumber(getOccupancyrate?.prevRevenue)}
                         </div>
                     </div>
                 </div>
 
                 <ResponsiveContainer width="100%" height={180}>
                     <AreaChart
-                        data={data}
+                        data={chartData}
                         margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
                         <defs>
@@ -93,9 +89,7 @@ const HotelOccupancyDashboard = () => {
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: colors.quaternary, fontSize: 12 }}
-                            domain={[60, 90]}
-                            ticks={[60, 65, 70, 75, 80, 85, 90]}
-                            tickFormatter={(value) => `${value}%`}
+                            tickFormatter={(value) => `${value}`}
                         />
                         <Tooltip
                             contentStyle={{
@@ -104,7 +98,7 @@ const HotelOccupancyDashboard = () => {
                                 borderRadius: '8px',
                                 padding: '8px 12px'
                             }}
-                            formatter={(value) => [`${value}%`, 'Occupancy']}
+                            formatter={(value) => [`${value}`, 'Revenue']}
                         />
                         <Area
                             type="monotone"

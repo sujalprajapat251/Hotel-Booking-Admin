@@ -31,7 +31,7 @@ export const fetchBookings = createAsyncThunk(
         params, // This will include page, limit, search, etc.
         headers: getAuthHeaders()
       });
-      console.log('response', response.data);
+      // console.log('response', response.data);
       
       // Return the entire response data
       return response.data;
