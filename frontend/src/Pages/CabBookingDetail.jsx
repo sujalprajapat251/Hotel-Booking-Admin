@@ -13,6 +13,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
@@ -50,6 +51,8 @@ const CabBookingDetail = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
 
   const totalPages = Math.max(1, Math.ceil((totalCount || 0) / limit));
   const showingStart = cabBookings.length ? (page - 1) * limit + 1 : 0;
@@ -71,10 +74,11 @@ const CabBookingDetail = () => {
   }, [dispatch, page, limit, debouncedSearch, statusFilter]);
 
   const handleRefresh = () => {
-    const params = { page, limit };
-    if (debouncedSearch) params.search = debouncedSearch;
-    if (statusFilter !== "All") params.status = statusFilter;
-    dispatch(getAllCabBookings(params));
+    setSearchTerm("");         // clear search input
+    setDebouncedSearch("");    // clear debounced search
+    setStatusFilter("All");    // reset filter
+    setPage(1);                // reset page
+    dispatch(getAllCabBookings({ page: 1, limit }));
   };
 
   const handleLimitChange = (e) => {
@@ -174,6 +178,16 @@ const CabBookingDetail = () => {
     }
   };
 
+  const openView = (booking) => {
+    setSelectedBooking(booking);
+    setShowViewModal(true);
+  };
+
+  const closeView = () => {
+    setSelectedBooking(null);
+    setShowViewModal(false);
+  };
+
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
@@ -188,7 +202,7 @@ const CabBookingDetail = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by guest/room ID/driver/cab/location..."
+                placeholder="Search..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
               />
               <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -244,9 +258,9 @@ const CabBookingDetail = () => {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#F7DF9C] text-[#4B3A2F] uppercase text-xs tracking-wide">
+            <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] z-10 shadow-sm">
               <tr>
                 {[
                   "No",
@@ -266,7 +280,7 @@ const CabBookingDetail = () => {
                   "Notes",
                   "Action",
                 ].map((header) => (
-                  <th key={header} className="px-4 py-3 whitespace-nowrap">
+                  <th key={header} className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647] whitespace-nowrap">
                     {header}
                   </th>
                 ))}
@@ -274,37 +288,37 @@ const CabBookingDetail = () => {
             </thead>
             <tbody>
               {filteredBookings.map((booking, idx) => (
-                <tr key={booking.id} className="border-b border-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
-                  <td className="px-4 py-3">{(page - 1) * limit + idx + 1}</td>
-                  <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{booking.guestName}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{booking.roomNumber}</td>
-                  <td className="px-4 py-3">
+                <tr key={booking.id} className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
+                  <td className="px-4 py-3 text-gray-800">{(page - 1) * limit + idx + 1}</td>
+                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.guestName}</td>
+                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.roomNumber}</td>
+                  <td className="px-4 py-3 text-gray-800">
                     <span className="inline-flex items-center gap-1 whitespace-nowrap">
                       <MapPin size={14} className="text-blue-600" />
                       {booking.pickupLocation}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-800">
                     <span className="inline-flex items-center gap-1">
                       <MapPin size={14} className="text-red-600" />
                       {booking.dropLocation}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-800">
                     <span className="inline-flex items-center gap-1">
                       <Calendar size={14} />
                       {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString("en-GB") : "—"}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 text-gray-800">
                     <span className="inline-flex items-center gap-1 whitespace-nowrap">
                       <Clock size={14} />
                       {booking.pickupTime ? new Date(booking.pickupTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                     </span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">{booking.driver}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{booking.vehicle}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{booking.distance}</td>
+                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.driver}</td>
+                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.vehicle}</td>
+                  <td className="px-4 py-3 font-medium text-gray-800">{booking.distance}</td>
                   <td className="px-4 py-3 text-[#15803D] font-semibold">
                     {booking.fare === "--" ? "—" : `₹${booking.fare}`}
                   </td>
@@ -317,7 +331,7 @@ const CabBookingDetail = () => {
                       {booking.paymentStatus}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{booking.paymentMethod}</td>
+                  <td className="px-4 py-3 text-gray-800">{booking.paymentMethod}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
@@ -327,13 +341,15 @@ const CabBookingDetail = () => {
                       {booking.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{booking.notes}</td>
+                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.notes}</td>
                   <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                    <div className="mv_table_action flex">
+                    <div className="mv_table_action flex items-center gap-2">
                       <div title="View">
-                        <IoEyeSharp className='text-[18px] text-quaternary' />
+                        <button onClick={() => openView(booking)} className="p-1 rounded hover:bg-gray-100">
+                          <IoEyeSharp className="text-[18px] text-quaternary" />
+                        </button>
                       </div>
-                      <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"title="Edit">
+                      <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit">
                         <FiEdit className="text-[18px]" />
                       </div>
                       <div title="Delete">
@@ -355,8 +371,8 @@ const CabBookingDetail = () => {
                     </div>
                   </td>
                 </tr>
-              )}
-              {loading && (
+              )}  
+              {/* {loading && (
                 <tr>
                   <td colSpan={16} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
@@ -365,44 +381,141 @@ const CabBookingDetail = () => {
                     </div>
                 </td>
                 </tr>
-              )}
+              )} */}
             </tbody>
           </table>
         </div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between p-5 border-t border-gray-100 text-sm text-gray-600">
-          <div className="text-gray-700 font-medium">
-            Showing {filteredBookings.length ? `${showingStart}-${showingEnd}` : 0} of {totalCount || 0} bookings
+
+        {/* View Modal */}
+        {showViewModal && selectedBooking && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+            <div className="w-full max-w-[90%] md:max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-3 border-b">
+                <h3 className="text-xl font-semibold text-black mt-2 ml-3">Booking Details</h3>
+                <button onClick={closeView} className="p-1 rounded hover:bg-gray-100">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-4 md:p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 space-y-2 text-[15px]">
+                  <div>
+                    <div className="flex items-center justify-start gap-10 mt-2">
+                      <div className="font-semibold text-black">Guest Name:</div>
+                      <div className="font-medium text-black">{selectedBooking.guestName}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-2">
+                      <div className="font-semibold text-black">Room/Guest ID:</div>
+                      <div className="font-medium text-black">{selectedBooking.roomNumber}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-3">
+                      <div className="font-semibold text-black">Pickup Location:</div>
+                      <div className="font-medium text-black">{selectedBooking.pickupLocation}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-4">
+                      <div className="font-semibold text-black">Drop Location:</div>
+                      <div className="font-medium text-black">{selectedBooking.dropLocation}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-16">
+                      <div className="font-semibold text-black">Date:</div>
+                      <div className="font-medium text-black">{selectedBooking.bookingDate ? new Date(selectedBooking.bookingDate).toLocaleDateString('en-GB') : '—'}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-10">
+                      <div className="font-semibold text-black">Time:</div>
+                      <div className="font-medium text-black">{selectedBooking.pickupTime ? new Date(selectedBooking.pickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-12">
+                      <div className="font-semibold text-black">Driver:</div>
+                      <div className="font-medium text-black">{selectedBooking.driver}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-6">
+                      <div className="font-semibold text-black">Vehicle:</div>
+                      <div className="font-medium text-black">{selectedBooking.vehicle}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-3">
+                      <div className="font-semibold text-black">Distance(KM):</div>
+                      <div className="font-medium text-black">{selectedBooking.distance ?? '—'}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-2">
+                      <div className="font-semibold text-black">Total Fare:</div>
+                      <div className="font-medium text-black">{selectedBooking.fare === '--' ? '—' : `₹${selectedBooking.fare}`}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-2">
+                      <div className="font-semibold text-black">Payment Status:</div>
+                      <div className="font-medium text-black">{selectedBooking.paymentStatus}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-start gap-6">
+                      <div className="font-semibold text-black">Method:</div>
+                      <div className="font-medium text-black">{selectedBooking.paymentMethod}</div>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="flex items-start justify-start gap-1 md:gap-2">
+                      <div className="font-semibold text-black">Notes:</div>
+                      <div className="ml-4 font-medium text-black text-right">{selectedBooking.notes}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-            <div className="flex items-center gap-3">
-              <span className="text-gray-700">Items per page</span>
+        )}
+
+        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">Items per page:</span>
+            <div className="relative">
               <select
-                className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#B79982] focus:border-[#B79982]"
                 value={limit}
-                onChange={handleLimitChange}
+                onChange={(e) => handleLimitChange(e)}
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
               >
-                {[10, 20, 50].map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={100}>100</option>
               </select>
             </div>
-            <div className="flex items-center gap-3">
+          </div>
+
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+            <span className="text-sm text-gray-600">
+              {showingStart} - {showingEnd} of {totalCount}
+            </span>
+            <div className="flex items-center gap-1">
               <button
-                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-2"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                disabled={page === 1 || loading}
+                disabled={page === 1}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronLeft size={20} />
               </button>
-              <span className="text-gray-700">
-                Page {page} of {totalPages}
-              </span>
+
               <button
-                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed p-2"
                 onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={page === totalPages || loading}
+                disabled={page === totalPages}
+                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <ChevronRight size={20} />
               </button>

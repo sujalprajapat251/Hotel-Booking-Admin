@@ -78,7 +78,7 @@ const AllBookings = () => {
         status: true,
         phone: true,
         roomType: true,
-        documents: true,
+        // documents: true,
         actions: true
     });
     const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
@@ -467,20 +467,10 @@ const AllBookings = () => {
                                 <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p>
 
                                 {/* Search Bar */}
-                                {/* <div className="relative max-w-md">
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-                                    />
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                                </div> */}
                                 <div className="relative max-w-md">
                                     <input
                                         type="text"
-                                        placeholder="Search by name, phone, room, status, dates..."
+                                        placeholder="Search..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
@@ -579,9 +569,6 @@ const AllBookings = () => {
                                         {visibleColumns.roomType && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
                                         )}
-                                        {visibleColumns.documents && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Documents</th>
-                                        )}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                                         )}
@@ -657,13 +644,13 @@ const AllBookings = () => {
                                                         </div>
                                                     </td>
                                                 )}
-                                                {visibleColumns.documents && (
+                                                {/* {visibleColumns.documents && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2 text-sm text-gray-700">
                                                             <HiOutlineDocumentChartBar size={22} className='text-[#EC5C09] hover:text-[#EC0927] transition-colors cursor-pointer' />
                                                         </div>
                                                     </td>
-                                                )}
+                                                )} */}
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="mv_table_action flex">

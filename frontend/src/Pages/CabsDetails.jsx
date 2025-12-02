@@ -21,6 +21,7 @@ const CabsDetails = () => {
   const vehicleInventory = useSelector((state) => state.cab.cabs) || [];
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedCab, setSelectedCab] = useState(null);
+  const [viewModalOpen, setViewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // new
   const [cabToDelete, setCabToDelete] = useState(null); // new
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -28,7 +29,7 @@ const CabsDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const statusOptions = ["Available", "onTrip", "Maintenance"];
+  const statusOptions = ["Available", "On Trip", "Maintenance"];
   const statusDropdownRef = useRef(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
@@ -179,7 +180,18 @@ const CabsDetails = () => {
     }
   };
 
-  return (
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'Available':
+          return 'border border-green-500 text-green-600 bg-green-50';
+      case 'On Trip':
+          return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+      default:  
+          return 'border border-red-500 text-red-600 bg-red-50';
+    }
+  };
+
+  return (  
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Cab Inventory</h1>
@@ -194,7 +206,7 @@ const CabsDetails = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search vehicle, type or number..."
+                placeholder="Search..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
               />
               <Search
@@ -259,9 +271,9 @@ const CabsDetails = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
           <table className="w-full text-sm text-left">
-            <thead className="bg-[#F7DF9C] text-[#4B3A2F] uppercase text-xs tracking-wide">
+            <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] z-10 shadow-sm">
               <tr>
                 {[
                   "No",
@@ -274,7 +286,7 @@ const CabsDetails = () => {
                 ].map((header) => (
                   <th
                     key={header}
-                    className="px-5 py-4 font-semibold whitespace-nowrap"
+                    className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]"
                   >
                     {header}
                   </th>
@@ -285,7 +297,7 @@ const CabsDetails = () => {
               {paginatedVehicles.map((vehicle, index) => (
                 <tr
                   key={vehicle._id || vehicle.vehicleId}
-                  className="border-b border-gray-100 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200 transition-colors"
+                  className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200 transition-colors"
                 >
                   <td className="px-5 py-4 text-gray-600 font-semibold">
                     {(currentPage - 1) * itemsPerPage + index + 1}
@@ -306,23 +318,23 @@ const CabsDetails = () => {
                         )}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm font-medium text-black">
                           {vehicle.modelName}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-600">
                           {vehicle.registrationNumber}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-gray-600">
+                  <td className="px-5 py-4 text-black">
                     {vehicle.fuelType || "—"}
                   </td>
-                  <td className="px-5 py-4 font-semibold text-gray-900">
+                  <td className="px-5 py-4 text-black">
                     ₹{vehicle.perKmCharge || 0}
                   </td>
                   <td
-                    className="px-5 py-4 text-gray-500 text-sm"
+                    className="px-5 py-4 text-black"
                     style={{ maxWidth: 280 }}
                   >
                     <span
@@ -338,7 +350,7 @@ const CabsDetails = () => {
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(vehicle.status)}`}>
                         {vehicle.status}
                       </span>
                     </div>
@@ -349,8 +361,9 @@ const CabsDetails = () => {
                         title="View"
                         onClick={() => {
                           setSelectedCab(vehicle);
-                          // setEditModalOpen(true);
+                          setViewModalOpen(true);
                         }}
+                        className="mr-2 cursor-pointer"
                       >
                         <IoEyeSharp className='text-[18px] text-quaternary' />
                       </div>
@@ -405,7 +418,7 @@ const CabsDetails = () => {
 
         <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
-            <span className="text-sm text-gray-600">Items per page</span>
+            <span className="text-sm text-gray-600">Items per page:</span>
             <div className="relative">
               <select
                 value={itemsPerPage}
@@ -422,7 +435,7 @@ const CabsDetails = () => {
               </select>
             </div>
           </div>
-          <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">
               {startItem} - {endItem} of {filteredVehicles.length}
             </span>
@@ -452,6 +465,9 @@ const CabsDetails = () => {
           cab={selectedCab}
           onClose={() => setEditModalOpen(false)}
         />
+      )}
+      {viewModalOpen && selectedCab && (
+        <ViewCabModal cab={selectedCab} onClose={() => setViewModalOpen(false)} />
       )}
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
@@ -542,7 +558,7 @@ const CabsDetails = () => {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Model Name <span>*</span>
+                    Model Name
                   </label>
                   <input
                     type="text"
@@ -558,7 +574,7 @@ const CabsDetails = () => {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Registration Number <span>*</span>
+                    Registration Number
                   </label>
                   <input
                     type="text"
@@ -574,7 +590,7 @@ const CabsDetails = () => {
                 <label
                   className="text-sm font-medium text-black mb-1"
                 >
-                  Vehicle ID <span>*</span>
+                  Vehicle ID
                 </label>
                 <input
                   type="text"
@@ -590,7 +606,7 @@ const CabsDetails = () => {
                 <label
                   className="text-sm font-medium text-black mb-1"
                 >
-                  Seating Capacity <span>*</span>
+                  Seating Capacity
                 </label>
                 <input
                   type="number"
@@ -604,7 +620,7 @@ const CabsDetails = () => {
               </div>
               <div>
                 <label className="text-sm font-medium text-black mb-1">
-                  Status <span>*</span>
+                  Status
                 </label>
                 <div className="relative" ref={statusDropdownRef}>
                   <button
@@ -639,7 +655,7 @@ const CabsDetails = () => {
               </div>
               <div>
                 <label className="text-sm font-medium text-black mb-1">
-                  Fuel Type <span>*</span>
+                  Fuel Type
                 </label>
                 <input
                   type="text"
@@ -665,7 +681,7 @@ const CabsDetails = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-black mb-1">
-                Per Km Charge <span>*</span>
+                Per Km Charge
               </label>
               <input
                 type="number"
@@ -679,7 +695,7 @@ const CabsDetails = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-black mb-1">
-                Description <span>*</span>
+                Description
               </label>
               <textarea
                 name="description"
@@ -691,7 +707,7 @@ const CabsDetails = () => {
             </div>
             <div>
               <label className="text-sm font-medium text-black mb-1">
-                Cab Image <span>*</span>
+                Cab Image
               </label>
               <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
                 <span className="truncate">
@@ -842,7 +858,7 @@ function EditCabModal({ cab, onClose }) {
               {/* Image Upload Section */}
               <div>
                 <label className="text-sm font-medium text-black mb-1">
-                  Cab Image <span>*</span>
+                  Cab Image 
                 </label>
                 <div className="mb-4">
                   {imagePreview && (
@@ -879,7 +895,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Model Name <span>*</span>
+                    Model Name 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -895,7 +911,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Registration Number <span>*</span>
+                    Registration Number 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -911,7 +927,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Vehicle ID <span>*</span>
+                    Vehicle ID 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -925,7 +941,7 @@ function EditCabModal({ cab, onClose }) {
 
                 <div>
                   <label className="text-sm font-medium text-black mb-1">
-                    Seating Capacity <span>*</span>
+                    Seating Capacity 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -942,7 +958,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Fuel Type <span>*</span>
+                    Fuel Type 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -958,7 +974,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Per Km Charge <span>*</span>
+                    Per Km Charge 
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -991,7 +1007,7 @@ function EditCabModal({ cab, onClose }) {
 
               {/* Driver Assigned Checkbox */}
               <div
-                className="flex items-center gap-2 p-2 rounded-lg transition-colors"
+                className="flex items-center gap-2 rounded-lg transition-colors"
               >
                 <input
                   type="checkbox"
@@ -1001,7 +1017,7 @@ function EditCabModal({ cab, onClose }) {
                   className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
                 />
                 <label
-                  className="text-sm font-medium text-black mb-1"
+                  className="text-sm font-medium text-black"
                 >
                   Driver Assigned
                 </label>
@@ -1009,7 +1025,7 @@ function EditCabModal({ cab, onClose }) {
 
               {/* Form Actions */}
               <div
-                className="flex items-center justify-center gap-3 pt-4 border-t"
+                className="flex items-center justify-center gap-2 pt-4 border-t"
               >
                 <button
                   type="button"
@@ -1026,6 +1042,120 @@ function EditCabModal({ cab, onClose }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ViewCabModal({ cab, onClose }) {
+  useEffect(() => {
+    document.body.classList.add('overflow-hidden');
+    return () => document.body.classList.remove('overflow-hidden');
+  }, []);
+
+  const formatDate = (d) => {
+    if (!d) return '—';
+    try {
+      return new Date(d).toLocaleDateString();
+    } catch {
+      return d;
+    }
+  };
+
+  const getStatusStyle = (status) => {
+    switch (status) {
+      case 'Available':
+          return 'border border-green-500 text-green-600 bg-green-50';
+      case 'On Trip':
+            return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+      default:
+          return 'border border-red-500 text-red-600 bg-red-50';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
+      <div className="relative w-full max-w-2xl rounded-md bg-white p-6 shadow-xl mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-start justify-between mb-4">
+          <h2 className="text-2xl font-semibold text-black">Cab Details</h2>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center mb-6">
+          <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-100 mb-3" style={{width: 112, height: 112}}>
+            {cab.cabImage ? (
+              <img
+                src={cab.cabImage}
+                alt={cab.modelName}
+                className="block"
+                style={{width: '100%', height: '100%', objectFit: 'cover', maxWidth: 112, maxHeight: 112}}
+              />
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">No Image</div>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[15px] text-black">
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Model Name:</span>
+            <span className="truncate">{cab.modelName || '—'}</span>
+          </div>
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Registration No.:</span>
+            <span>{cab.registrationNumber || '—'}</span>
+          </div>
+
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Vehicle ID:</span>
+            <span>{cab.vehicleId || '—'}</span>
+          </div>
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Seating Capacity:</span>
+            <span>{cab.seatingCapacity || '—'}</span>
+          </div>
+
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Fuel Type:</span>
+            <span>{cab.fuelType || '—'}</span>
+          </div>
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Per Km Charge:</span>
+            <span>₹{cab.perKmCharge != null ? cab.perKmCharge : '—'}</span>
+          </div>
+
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Driver Assigned:</span>
+            <span>{cab.driverAssigned ? 'Yes' : 'No'}</span>
+          </div>
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Status:</span>
+            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(cab.status)}`}>
+              {cab.status || '—'}
+            </span>
+          </div>
+
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Created At:</span>
+            <span>{formatDate(cab.createdAt)}</span>
+          </div>
+          <div className="flex items-start">
+            <span className="w-36 font-semibold text-black">Updated At:</span>
+            <span>{formatDate(cab.updatedAt)}</span>
+          </div>
+
+          <div className="md:col-span-2">
+            <div className="flex items-start">
+              <span className="w-36 font-semibold text-black">Description:</span>
+              <div className="text-black max-h-24 overflow-y-auto break-words" style={{whiteSpace: 'pre-wrap'}}>{cab.description || '—'}</div>
+            </div>
           </div>
         </div>
       </div>
