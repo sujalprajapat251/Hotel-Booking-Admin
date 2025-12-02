@@ -1,11 +1,37 @@
 const CafeOrder = require('../models/cafeOrderModal');
+const BarOrder = require('../models/barOrderModal');
+const RestroOrder = require('../models/restaurantOrderModal');
 const Staff = require('../models/staffModel');
 const Department = require('../models/departmentModel');
 
 // --------------------------------------------
-// CAFE PRICE CALCULATION
+// DEPARTMENT CONFIGURATION
 // --------------------------------------------
-function calculateCafeRevenue(start, end, fromType = null) {
+const DEPARTMENT_CONFIG = {
+    cafe: {
+        orderModel: CafeOrder,
+        itemCollection: "cafeitems",
+        departmentName: "Cafe",
+        fromValues: { direct: "cafe", room: "room" }
+    },
+    bar: {
+        orderModel: BarOrder,
+        itemCollection: "baritems",
+        departmentName: "Bar",
+        fromValues: { direct: "bar", room: "room" }
+    },
+    restaurant: {
+        orderModel: RestroOrder,
+        itemCollection: "restaurantitems",
+        departmentName: "Restaurant",
+        fromValues: { direct: "restaurant", room: "room" }
+    }
+};
+
+// --------------------------------------------
+// GENERIC REVENUE CALCULATION (FOR ALL DEPARTMENTS)
+// --------------------------------------------
+function calculateRevenue(orderModel, itemCollection, start, end, fromType = null) {
     const matchQuery = {
         createdAt: { $gte: start, $lte: end },
         payment: "Paid"
@@ -13,12 +39,12 @@ function calculateCafeRevenue(start, end, fromType = null) {
 
     if (fromType) matchQuery.from = fromType;
 
-    return CafeOrder.aggregate([
+    return orderModel.aggregate([
         { $match: matchQuery },
         { $unwind: "$items" },
         {
             $lookup: {
-                from: "cafeitems",
+                from: itemCollection,
                 localField: "items.product",
                 foreignField: "_id",
                 as: "productData"
@@ -36,13 +62,61 @@ function calculateCafeRevenue(start, end, fromType = null) {
     ]);
 }
 
-// ------------------------------------------------------------
-// REAL CAFE DASHBOARD API (WITH TOTAL CAFE STAFF)
-// ------------------------------------------------------------
-exports.CafeDashboard = async (req, res) => {
-    try {
-        const { month } = req.query;
+// --------------------------------------------
+// HELPER FUNCTION: GET DEPARTMENT CONFIG FROM USER
+// --------------------------------------------
+async function getDepartmentConfigFromUser(req) {
+    if (!req.user) {
+        return { error: { status: 401, message: 'Unauthorized' } };
+    }
 
+    const dept = await Department.findById(req.user.department);
+    if (!dept || !dept.name) {
+        return { error: { status: 400, message: 'User department not found' } };
+    }
+
+    const name = String(dept.name).trim().toLowerCase();
+    let deptKey = null;
+    
+    if (name === 'cafe') deptKey = 'cafe';
+    else if (name === 'bar') deptKey = 'bar';
+    else if (name === 'restaurant' || name === 'restro') deptKey = 'restaurant';
+    
+    if (!deptKey || !DEPARTMENT_CONFIG[deptKey]) {
+        return { error: { status: 400, message: `Unsupported department: ${dept.name}` } };
+    }
+
+    return { config: DEPARTMENT_CONFIG[deptKey], deptKey, departmentName: dept.name };
+}
+
+// --------------------------------------------
+// CAFE PRICE CALCULATION (BACKWARD COMPATIBILITY)
+// --------------------------------------------
+function calculateCafeRevenue(start, end, fromType = null) {
+    const config = DEPARTMENT_CONFIG.cafe;
+    return calculateRevenue(config.orderModel, config.itemCollection, start, end, fromType);
+}
+
+// ------------------------------------------------------------
+// DYNAMIC DEPARTMENT DASHBOARD API (CAFE, BAR, RESTAURANT)
+// Automatically detects department from logged-in user
+// ------------------------------------------------------------
+exports.DepartmentDashboard = async (req, res) => {
+    try {
+        // Get department config from user
+        const deptResult = await getDepartmentConfigFromUser(req);
+        if (deptResult.error) {
+            return res.status(deptResult.error.status).json({
+                success: false,
+                message: deptResult.error.message
+            });
+        }
+
+        const { config, deptKey, departmentName } = deptResult;
+        const { orderModel, itemCollection, fromValues } = config;
+
+        // Validate month
+        const { month } = req.query;
         if (!month || !/^\d{4}-\d{2}$/.test(month)) {
             return res.status(400).json({
                 success: false,
@@ -56,26 +130,26 @@ exports.CafeDashboard = async (req, res) => {
         const end = new Date(year, mon, 0, 23, 59, 59);
 
         // --------------------------------------------
-        // 1️⃣ CAFE + ROOM SERVICE ORDER COUNTS
+        // 1️⃣ DIRECT + ROOM SERVICE ORDER COUNTS
         // --------------------------------------------
-        const cafeOrders = await CafeOrder.countDocuments({
+        const directOrders = await orderModel.countDocuments({
             createdAt: { $gte: start, $lte: end },
             payment: "Paid",
-            from: "cafe"
+            from: fromValues.direct
         });
 
-        const roomOrders = await CafeOrder.countDocuments({
+        const roomOrders = await orderModel.countDocuments({
             createdAt: { $gte: start, $lte: end },
             payment: "Paid",
-            from: "room"
+            from: fromValues.room
         });
 
-        const newOrders = cafeOrders + roomOrders;
+        const newOrders = directOrders + roomOrders;
 
         // --------------------------------------------
         // 2️⃣ ORDER TREND
         // --------------------------------------------
-        const cafeOrderTrend = await CafeOrder.aggregate([
+        const orderTrendData = await orderModel.aggregate([
             { $match: { createdAt: { $gte: start, $lte: end }, payment: "Paid" } },
             {
                 $group: {
@@ -86,7 +160,7 @@ exports.CafeDashboard = async (req, res) => {
             { $sort: { "_id": 1 } }
         ]);
 
-        const orderTrend = cafeOrderTrend.map(d => ({
+        const orderTrend = orderTrendData.map(d => ({
             date: d._id,
             count: d.count
         }));
@@ -94,26 +168,25 @@ exports.CafeDashboard = async (req, res) => {
         // --------------------------------------------
         // 3️⃣ REVENUE SPLIT
         // --------------------------------------------
-        const cafeRevenueData = await calculateCafeRevenue(start, end, "cafe");
-        const cafeRevenue = cafeRevenueData[0]?.total || 0;
+        const directRevenueData = await calculateRevenue(orderModel, itemCollection, start, end, fromValues.direct);
+        const directRevenue = directRevenueData[0]?.total || 0;
 
-        const roomRevenueData = await calculateCafeRevenue(start, end, "room");
+        const roomRevenueData = await calculateRevenue(orderModel, itemCollection, start, end, fromValues.room);
         const roomRevenue = roomRevenueData[0]?.total || 0;
 
-        const totalCafeRevenue = cafeRevenue + roomRevenue;
+        const totalRevenue = directRevenue + roomRevenue;
 
         // --------------------------------------------
-        // 4️⃣ STAFF → ONLY CAFÉ DEPARTMENT → DESIGNATION WISE + TOTAL
+        // 4️⃣ STAFF → DEPARTMENT WISE → DESIGNATION WISE + TOTAL
         // --------------------------------------------
+        const departmentDoc = await Department.findById(req.user.department);
 
-        const cafeDepartment = await Department.findOne({ name: "Cafe" });
+        let departmentStaff = {};
+        let totalStaff = 0;
 
-        let cafeStaff = {};
-        let totalChefStaff = 0;
-
-        if (cafeDepartment) {
+        if (departmentDoc) {
             const staffGroup = await Staff.aggregate([
-                { $match: { department: cafeDepartment._id } },
+                { $match: { department: departmentDoc._id } },
                 {
                     $group: {
                         _id: "$designation",
@@ -123,14 +196,14 @@ exports.CafeDashboard = async (req, res) => {
             ]);
 
             // Convert array → object
-            cafeStaff = staffGroup.reduce((acc, item) => {
+            departmentStaff = staffGroup.reduce((acc, item) => {
                 acc[item._id] = item.count;
                 return acc;
             }, {});
 
-            // Total staff inside café department
-            totalChefStaff = await Staff.countDocuments({
-                department: cafeDepartment._id
+            // Total staff inside department
+            totalStaff = await Staff.countDocuments({
+                department: departmentDoc._id
             });
         }
 
@@ -139,24 +212,25 @@ exports.CafeDashboard = async (req, res) => {
         // --------------------------------------------
         return res.json({
             success: true,
-
+            department: deptKey,
+            departmentName: departmentName,
+            
             newOrders,
             totalOrder: newOrders,
             orderSources: {
-                cafeOrders,
-                roomOrders
+                direct: directOrders,
+                room: roomOrders
             },
             orderTrend,
 
-            totalCafeRevenue,
+            totalRevenue,
             revenueSources: {
-                cafe: cafeRevenue,
+                direct: directRevenue,
                 room: roomRevenue
             },
 
-            totalChefStaff,
-            cafeStaff,         
-               
+            totalStaff,
+            departmentStaff,
         });
 
     } catch (error) {
@@ -167,3 +241,165 @@ exports.CafeDashboard = async (req, res) => {
         });
     }
 };
+
+// PAYMENT METHOD WISE — REVENUE + COUNT (DYNAMIC)
+// Automatically detects department from logged-in user
+exports.getDepartmentPaymentSummary = async (req, res) => {
+    try {
+        // Get department config from user
+        const deptResult = await getDepartmentConfigFromUser(req);
+        if (deptResult.error) {
+            return res.status(deptResult.error.status).json({
+                success: false,
+                message: deptResult.error.message
+            });
+        }
+
+        const { config, deptKey } = deptResult;
+        const { orderModel, itemCollection } = config;
+
+        const paymentSummary = await orderModel.aggregate([
+            { 
+                $match: { payment: "Paid" } 
+            },
+
+            // Break items array
+            { $unwind: "$items" },
+
+            // Join item prices
+            {
+                $lookup: {
+                    from: itemCollection,
+                    localField: "items.product",
+                    foreignField: "_id",
+                    as: "productData"
+                }
+            },
+            { $unwind: "$productData" },
+
+            // Group by payment method
+            {
+                $group: {
+                    _id: "$paymentMethod",     // UPI, Cash, Card...
+                    totalOrders: { $sum: 1 },
+                    totalRevenue: { 
+                        $sum: {
+                            $multiply: ["$items.qty", "$productData.price"]
+                        }
+                    }
+                }
+            }
+        ]);
+
+        // Convert into nice object
+        const formatted = paymentSummary.reduce((acc, item) => {
+            acc[item._id || "Unknown"] = {
+                orders: item.totalOrders,
+                revenue: item.totalRevenue
+            };
+            return acc;
+        }, {});
+
+        res.json({
+            success: true,
+            department: deptKey,
+            paymentMethodSummary: formatted
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// REVENUE BY MONTH (DYNAMIC)
+// Automatically detects department from logged-in user
+exports.getDepartmentRevenueByMonth = async (req, res) => {
+    try {
+        // Get department config from user
+        const deptResult = await getDepartmentConfigFromUser(req);
+        if (deptResult.error) {
+            return res.status(deptResult.error.status).json({
+                success: false,
+                message: deptResult.error.message
+            });
+        }
+
+        const { config, deptKey } = deptResult;
+        const { orderModel, itemCollection } = config;
+
+        // Validate year
+        const { year } = req.query;
+        if (!year || !/^\d{4}$/.test(year)) {
+            return res.status(400).json({
+                success: false,
+                message: "Year is required (format: YYYY)"
+            });
+        }
+
+        const start = new Date(`${year}-01-01`);
+        const end = new Date(`${year}-12-31T23:59:59`);
+
+        const data = await orderModel.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: start, $lte: end },
+                    payment: "Paid"
+                }
+            },
+            { $unwind: "$items" },
+
+            {
+                $lookup: {
+                    from: itemCollection,
+                    localField: "items.product",
+                    foreignField: "_id",
+                    as: "productData"
+                }
+            },
+            { $unwind: "$productData" },
+
+            // Group by month
+            {
+                $group: {
+                    _id: { 
+                        month: { $month: "$createdAt" }   // 1–12
+                    },
+                    totalRevenue: {
+                        $sum: {
+                            $multiply: ["$items.qty", "$productData.price"]
+                        }
+                    }
+                }
+            },
+
+            { $sort: { "_id.month": 1 } }
+        ]);
+
+        // Convert array → readable format
+        const formatted = Array.from({ length: 12 }, (_, i) => {
+            const monthData = data.find(d => d._id.month === i + 1);
+            return {
+                month: i + 1,                           // 1 → Jan
+                revenue: monthData ? monthData.totalRevenue : 0
+            };
+        });
+
+        return res.json({
+            success: true,
+            department: deptKey,
+            year,
+            monthlyRevenue: formatted
+        });
+
+    } catch (err) {
+        console.log(err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+

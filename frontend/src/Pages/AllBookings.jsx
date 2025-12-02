@@ -480,7 +480,7 @@ const AllBookings = () => {
                                 <div className="relative max-w-md">
                                     <input
                                         type="text"
-                                        placeholder="Search by name, phone, room, status, dates..."
+                                        placeholder="Search"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"

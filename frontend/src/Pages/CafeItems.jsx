@@ -366,7 +366,7 @@ const CafeItems = () => {
                             formik.resetForm();
                             setIsAddModalOpen(true);
                           }}
-                          className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                          className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
                           title="Show/Hide Columns"
                         >
                             <FiPlusCircle size={20}/>
@@ -496,7 +496,7 @@ const CafeItems = () => {
                                         {visibleColumns.price && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="flex items-center gap-2">
-                                                    {item.price}
+                                                    ${item.price}
                                                 </div>
                                             </td>
                                         )}

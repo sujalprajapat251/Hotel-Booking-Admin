@@ -415,7 +415,7 @@ const HODHistory = () => {
                           </td>
                         )}
                         {visibleColumns.amount && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{orderAmount}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">${orderAmount}</td>
                         )}
                         {visibleColumns.payment && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
@@ -439,14 +439,13 @@ const HODHistory = () => {
                             <div className="mv_table_action flex">
                               <div 
                                 onClick={() => handleViewOrder(order)}
-                                className="cursor-pointer hover:opacity-70 transition-opacity"
+                                className="cursor-pointer transition-opacity"
                               >
                                 <IoEyeSharp className='text-[18px] text-quaternary' />
                               </div>
                             </div>
                           </td>
                         )}
-
                       </tr>
                     );
                   })}
