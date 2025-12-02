@@ -2,6 +2,7 @@ const Room = require("../models/createRoomModel");
 const Housekeeping = require("../models/housekeepingModel");
 const Staff = require("../models/staffModel");
 const Department = require("../models/departmentModel");
+const OrderRequest = require("../models/orderRequest");
 
 // GET ALL DIRTY ROOMS
 // exports.getDirtyRooms = async (req, res) => {
@@ -78,7 +79,6 @@ exports.getDirtyRooms = async (req, res) => {
 
 exports.getFreeWorkers = async (req, res) => {
     try {
-        // Step 1: Get the department ID of Housekeeping
         const housekeepingDept = await Department.findOne({ name: "Housekeeping" });
 
         if (!housekeepingDept) {
@@ -88,12 +88,21 @@ exports.getFreeWorkers = async (req, res) => {
             });
         }
 
-        // Step 2: Find busy workers
-        const busyWorkers = await Housekeeping.find({
+        const busyHK = await Housekeeping.find({
             status: { $in: ["Pending", "In-Progress"] }
         }).distinct("workerId");
 
-        // Step 3: Find free workers
+        const busyOR = await OrderRequest.find({
+            status: { $in: ["Pending", "In-Progress"] },
+            workerId: { $ne: null }
+        }).distinct("workerId");
+
+        const busySet = new Set([...
+            busyHK.map(id => String(id)),
+            ...busyOR.map(id => String(id))
+        ]);
+        const busyWorkers = Array.from(busySet);
+
         const freeWorkers = await Staff.find({
             department: housekeepingDept._id,
             _id: { $nin: busyWorkers }
