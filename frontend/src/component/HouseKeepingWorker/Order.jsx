@@ -1,31 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { fetchBookings } from '../../Redux/Slice/bookingSlice.js';
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import { FiCheckCircle, FiEdit } from 'react-icons/fi';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { setAlert } from '../../Redux/Slice/alert.slice';
-import { completeTask, fetchWorkerTasks, startWork } from '../../Redux/Slice/WorkerSlice';
+import { setAlert } from '../../Redux/Slice/alert.slice.js';
+import { IoEyeSharp } from 'react-icons/io5';
+import { approveCleaningRoom, fetchFreeWorker } from '../../Redux/Slice/housekeepingSlice.js';
+import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../../Redux/Slice/orderRequestSlice.js';
+import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
 
-const Tasks = () => {
+const Order = () => {
 
     const dispatch = useDispatch();
     const workerId = localStorage.getItem("userId");
 
     useEffect(() => {
-        dispatch(fetchWorkerTasks({ workerId }));
+        dispatch(fetchOrderTasks({ workerId }));
     }, [dispatch]);
 
     const {
-        items,
+        orders,
         totalCount,
         currentPage: reduxCurrentPage,
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.worker);
+    console.log('orders', orders);
 
 
-    const [assigndTask, setAssigndTask] = useState([]);
-    // console.log('assigndTask', assigndTask?.map((ele, id) => ele?.id));
+    const [assigndOrder, setAssigndOrder] = useState([]);
+    // console.log('assigndOrder', assigndOrder);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -39,13 +43,15 @@ const Tasks = () => {
 
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
-        roomNo: true,
-        roomType: true,
+        // workerName: true,
+        itemName: true,
+        floor: true,
         status: true,
+        roomNo: true,
+        to: true,
         actions: true
     });
 
-    // Debounce search term
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -57,23 +63,31 @@ const Tasks = () => {
     }, [searchTerm]);
 
     useEffect(() => {
-        if (items && items.length > 0) {
-            const formattedData = items?.map((item, index) => ({
+        if (orders && orders.length > 0) {
+            const formattedData = orders?.map((item, index) => ({
                 id: item._id || item.id || index,
-                name: item.cleanassign?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
-                status: item.status || 'Pending',
+                // name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
+                status: item.cleanStatus || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
-                roomType: item?.roomId.roomType?.roomType || 'N/A',
-                // createdAt: item.createdAt || item.reservation?.checkInDate,
-                // rawData: item // Keep raw data for other operations
+                to: item?.to || 'N/A',
+                floor: item?.roomId?.floor || 'N/A',
+                itemName: item?.orderId?.items?.map((ele) => ele?.product?.name).filter(Boolean) || [],
+                itemCount: item?.orderId?.items?.reduce((sum, ele) => sum + (ele?.qty || 1), 0) || 0,
+                totalAmount: item?.orderId?.items?.reduce((sum, ele) => {
+                    const price = ele?.product?.price || 0;
+                    const qty = ele?.qty || 1;
+                    return sum + price * qty;
+                }, 0) || 0,
+                createdAt: item.createdAt || item.reservation?.checkInDate,
+                rawData: item
             }));
-            console.log('formattedData', formattedData);
-            setAssigndTask(formattedData);
+            // console.log('formattedData', formattedData);
+            setAssigndOrder(formattedData);
 
         } else {
-            setAssigndTask([]);
+            setAssigndOrder([]);
         }
-    }, [items]);
+    }, [orders]);
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -87,6 +101,12 @@ const Tasks = () => {
                 return 'border border-gray-500 text-gray-600 bg-gray-50';
         }
     };
+
+    const handleAcceptorder = () => {
+        const orderId = assigndOrder?.id;
+
+        dispatch(acceptWorkeorders(orderId))
+    }
 
     const toggleColumn = (column) => {
         setVisibleColumns(prev => ({
@@ -111,38 +131,42 @@ const Tasks = () => {
         setDebouncedSearch("");
         setPage(1);
         setCurrentPage(1);
-        dispatch(fetchBookings({ page: 1, limit }));
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
+        dispatch(fetchOrderTasks({ workerId }));
     };
 
     const handleDownloadExcel = () => {
         try {
-            if (assigndTask.length === 0) {
+            if (assigndOrder.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            const excelData = assigndTask?.map((bookingItem, index) => {
+            const excelData = assigndOrder?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
                     row['No.'] = ((page - 1) * limit) + index + 1;
                 }
-                if (visibleColumns.roomNo) {
-                    row['Room No'] = bookingItem.roomNo || '';
+                if (visibleColumns.itemName) {
+                    const items = bookingItem.itemName;
+
+                    row['Item Name'] = Array.isArray(items) && items.length > 0
+                        ? items.length <= 2
+                            ? items.join(", ")
+                            : `${items.slice(0, 2).join(", ")} +${items.length - 2} more`
+                        : "No items";
+                }
+
+                if (visibleColumns.floor) {
+                    row['Floor'] = bookingItem.floor || '';
                 }
                 if (visibleColumns.status) {
                     row['Status'] = bookingItem.status || '';
                 }
-                if (visibleColumns.roomType) {
-                    row['Room Type'] = bookingItem.roomType || '';
+                if (visibleColumns.roomNo) {
+                    row['Room No'] = bookingItem.roomNo || '';
+                }
+                if (visibleColumns.to) {
+                    row['To'] = bookingItem.to || '';
                 }
                 return row;
             });
@@ -169,37 +193,19 @@ const Tasks = () => {
         }
     };
 
-    // Pagination handlers
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-        setCurrentPage(newPage);
-    };
-
-    const handleItemsPerPageChange = (newLimit) => {
-        setLimit(newLimit);
-        setItemsPerPage(newLimit);
-        setPage(1);
-        setCurrentPage(1);
-    };
-
-    const toIsoDate = (dateInput) => {
-        if (!dateInput) return '';
-        const date = new Date(dateInput);
-        if (Number.isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-    };
-
     // Filter bookings based on search term
-    const filteredBookings = assigndTask.filter((item) => {
+    const filteredBookings = assigndOrder.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
         return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.roomNo?.toString().includes(searchLower) ||
+            item.to?.toLowerCase().includes(searchLower) ||
             item.roomType?.toLowerCase().includes(searchLower) ||
-            item.status?.toLowerCase().includes(searchLower)
-            // formatDate(item.createdAt).toLowerCase().includes(searchLower)
+            item.status?.toLowerCase().includes(searchLower) ||
+            item.roomNo?.toString().includes(searchLower) ||
+            item.floor?.toString().includes(searchLower) ||
+            item.itemName?.toString().includes(searchLower) ||
+            item.itemCount?.toString().includes(searchLower)
         );
     });
 
@@ -208,13 +214,13 @@ const Tasks = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    console.log('currentData', currentData);
+    // console.log('currentData', currentData);
 
     return (
         <>
             <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
                 <section className="py-5">
-                    <h1 className="text-2xl font-semibold text-black">Assigned tasks</h1>
+                    <h1 className="text-2xl font-semibold text-black">Assigned Order</h1>
                 </section>
 
                 <div className="w-full">
@@ -222,7 +228,7 @@ const Tasks = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Tasks</p>
+                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Order</p>
 
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">
@@ -293,14 +299,23 @@ const Tasks = () => {
                                         {visibleColumns.No && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No.</th>
                                         )}
+                                        {/* {visibleColumns.workerName && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
+                                        )} */}
+                                        {visibleColumns.itemName && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Item Name</th>
+                                        )}
                                         {visibleColumns.status && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Status</th>
                                         )}
                                         {visibleColumns.roomNo && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room No.</th>
                                         )}
-                                        {visibleColumns.roomType && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
+                                        {visibleColumns.floor && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Floor</th>
+                                        )}
+                                        {visibleColumns.to && (
+                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">To</th>
                                         )}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
@@ -310,7 +325,12 @@ const Tasks = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td
+                                                colSpan={
+                                                    Object.values(visibleColumns).filter(Boolean).length
+                                                }
+                                                className="px-6 py-12 text-center"
+                                            >
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                                     <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                                                     <p className="text-lg font-medium">Loading bookings...</p>
@@ -318,9 +338,9 @@ const Tasks = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
-                                        currentData?.map((tasks, index) => (
+                                        currentData.map((orders, index) => (
                                             <tr
-                                                key={tasks.id}
+                                                key={orders.id}
                                                 className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                                             >
                                                 {visibleColumns.No && (
@@ -328,93 +348,133 @@ const Tasks = () => {
                                                         {startIndex + index + 1}
                                                     </td>
                                                 )}
-                                                {visibleColumns.status && (
+                                                {visibleColumns.itemName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(tasks.status)}`}>
-                                                            {tasks.status}
-                                                        </span>
-                                                    </td>
-                                                )}
-                                                {visibleColumns.roomNo && (
-                                                    <td className="x-5 py-2 md600:py-3 lg:px-6">{tasks.roomNo}</td>
-                                                )}
-                                                {visibleColumns.roomType && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        <div className="flex items-center">
-                                                            <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
-                                                                backgroundColor: 'rgba(183, 153, 130, 0.2)',
-                                                                color: '#755647',
-                                                                borderColor: 'rgba(183, 153, 130, 0.3)'
-                                                            }}>
-                                                                {tasks.roomType?.split(' ')[0] || 'N/A'}
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-medium text-gray-800">
+                                                                {orders.itemCount || 0} item
+                                                                {orders.itemCount === 1 ? "" : "s"}
+                                                            </span>
+
+                                                            <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                                                                {Array.isArray(orders.itemName) &&
+                                                                    orders.itemName.length > 0
+                                                                    ? orders.itemName.length <= 2
+                                                                        ? orders.itemName.join(", ")
+                                                                        : `${orders.itemName
+                                                                            .slice(0, 2)
+                                                                            .join(", ")} +${orders.itemName.length - 2
+                                                                        } more`
+                                                                    : "No items"}
                                                             </span>
                                                         </div>
                                                     </td>
                                                 )}
+
+                                                {visibleColumns.status && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <span
+                                                            className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(
+                                                                orders.status
+                                                            )}`}
+                                                        >
+                                                            {orders.status}
+                                                        </span>
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.roomNo && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        {orders.roomNo}
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.floor && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        {orders.floor}
+                                                    </td>
+                                                )}
+
+                                                {visibleColumns.to && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-sm font-medium text-gray-800">
+                                                                {orders.to}
+                                                            </span>
+                                                        </div>
+                                                    </td>
+                                                )}
+
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                                                        <div className="mv_table_action flex">
-                                                            {
-                                                                tasks.status === "Completed" ? (
-                                                                    <span className="font-bold text-green-600">
-                                                                        Approved
-                                                                    </span>
-                                                                ) : tasks.status === "In-Progress" ? (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            dispatch(completeTask({ id: tasks.id }))
-                                                                                .unwrap()
-                                                                                .then(() => {
-                                                                                    dispatch(fetchWorkerTasks({ workerId }));
-                                                                                })
-                                                                                .catch((error) => {
-                                                                                    console.error('Failed to complete task:', error);
-                                                                                });
-                                                                        }}
-                                                                        className="w-[150px] text-center py-2 text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
-                                                                        disabled={loading}
-                                                                    >
-                                                                        Complete Task
-                                                                    </button>
-                                                                ) : (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            dispatch(startWork({ id: tasks.id }))
-                                                                                .unwrap()
-                                                                                .then(() => {
-                                                                                    dispatch(fetchWorkerTasks({ workerId }));
-                                                                                })
-                                                                                .catch((error) => {
-                                                                                    console.error('Failed to start task:', error);
-                                                                                });
-                                                                        }}
-                                                                        className="w-[150px] py-2 text-center text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
-                                                                        disabled={loading}
-                                                                    >
-                                                                        Accept Task
-                                                                    </button>
-                                                                )
-                                                            }
-
-                                                        </div>
+                                                        {
+                                                            orders.status === "Completed" ? (
+                                                                <span className="font-bold text-green-600">
+                                                                    Approved
+                                                                </span>
+                                                            ) : orders.status === "In-Progress" ? (
+                                                                <button
+                                                                    // onClick={() => {
+                                                                    //     dispatch(completeTask({ id: orders.id }))
+                                                                    //         .unwrap()
+                                                                    //         .then(() => {
+                                                                    //             dispatch(fetchWorkerorders({ workerId }));
+                                                                    //         })
+                                                                    //         .catch((error) => {
+                                                                    //             console.error('Failed to complete task:', error);
+                                                                    //         });
+                                                                    // }}
+                                                                    className="w-[150px] text-center py-2 text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
+                                                                    disabled={loading}
+                                                                >
+                                                                    Complete Task
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={handleAcceptorder()}
+                                                                    className="w-[150px] py-2 text-center text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
+                                                                    disabled={loading}
+                                                                >
+                                                                    Accept Order
+                                                                </button>
+                                                            )
+                                                        }
                                                     </td>
                                                 )}
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td
+                                                colSpan={
+                                                    Object.values(visibleColumns).filter(Boolean).length
+                                                }
+                                                className="px-6 py-12 text-center"
+                                            >
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
-                                                    <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                    <svg
+                                                        className="w-16 h-16 mb-4 text-gray-300"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
+                                                        <path
+                                                            strokeLinecap="round"
+                                                            strokeLinejoin="round"
+                                                            strokeWidth={1.5}
+                                                            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                                                        />
                                                     </svg>
-                                                    <p className="text-lg font-medium">No Working Data found</p>
-                                                    <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                                    <p className="text-lg font-medium">No bookings found</p>
+                                                    <p className="text-sm mt-1">
+                                                        Try adjusting your search or filters
+                                                    </p>
                                                 </div>
                                             </td>
                                         </tr>
                                     )}
                                 </tbody>
+
                             </table>
                         </div>
 
@@ -469,4 +529,4 @@ const Tasks = () => {
     )
 }
 
-export default Tasks
+export default Order

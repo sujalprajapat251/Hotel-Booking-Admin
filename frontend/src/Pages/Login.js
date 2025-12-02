@@ -6,6 +6,7 @@ import { useFormik } from "formik";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import { forgotPassword, login, resendOtp, resetPassword, verifyOtp } from "../Redux/Slice/auth.slice";
 import { useDispatch } from "react-redux";
+
 const LoginPage = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch();
@@ -28,7 +29,6 @@ const LoginPage = () => {
             inputRefs.current[index - 1]?.focus();
         }
     };
-
 
     // admin login handling 
     const [showPassword, setShowPassword] = useState(false);
@@ -77,7 +77,6 @@ const LoginPage = () => {
         }
     })
 
-
     // forgot passoword
     const forgetVal = {
         email: ""
@@ -100,7 +99,6 @@ const LoginPage = () => {
     const resendOtp = () => {
         dispatch(forgotPassword(emailData))
     }
-
 
     // otp varify
     const OtpFormik = useFormik({
@@ -144,6 +142,7 @@ const LoginPage = () => {
             action.resetForm()
         }
     })
+    
     return (
         <div className="flex h-[100vh] bg-[#876B56] sp_login">
             <div className="left">

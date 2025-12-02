@@ -4,23 +4,6 @@ const Staff = require("../models/staffModel");
 const Department = require("../models/departmentModel");
 const OrderRequest = require("../models/orderRequest");
 
-// GET ALL DIRTY ROOMS
-// exports.getDirtyRooms = async (req, res) => {
-//     try {
-//         const rooms = await Room.find({ cleanStatus: { $ne: "Clean" } }).populate("roomType").populate("cleanassign").sort({ updatedAt: -1 });
-
-//         return res.json({
-//             success: true,
-//             message: "Dirty rooms fetched successfully..! ",
-//             data: rooms
-//         });
-
-//     } catch (error) {
-//         return res.status(500).json({ success: false, error: error.message });
-//     }
-// };
-
-
 exports.getDirtyRooms = async (req, res) => {
     try {
         // Extract pagination parameters from query
