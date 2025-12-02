@@ -9,7 +9,9 @@ import { ChevronDown } from 'lucide-react';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import { FiEdit } from 'react-icons/fi';
 import { IoEyeSharp } from 'react-icons/io5';
+import SingleRoomModal from '../component/SingleRoomModal';
 import { useNavigate } from 'react-router-dom';
+import { RiDeleteBinLine } from 'react-icons/ri';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
@@ -425,6 +427,8 @@ const AvailableRooms = () => {
     };
   }, [aggregatedStats, roomStats, total]);
 
+
+
   // Card data configuration
   const cards = [
     {
@@ -477,6 +481,8 @@ const AvailableRooms = () => {
     }
   ];
 
+  // view single room data here 
+  const [viewId, setViewId] = useState(null);
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
@@ -919,7 +925,6 @@ const AvailableRooms = () => {
               // RoomCard component for managing selected image state
               const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete }) => {
                 const [selectedImage, setSelectedImage] = useState(mainImage);
-
                 return (
                   <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                     {/* Image Gallery Section */}
@@ -951,16 +956,16 @@ const AvailableRooms = () => {
                               {statusConfig.text}
                             </div>
                           ) : null}
-                          
+
 
                         </div>
                         <div className='absolute bottom-4 right-4 flex  gap-3 '>
-
-                        <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
+                          <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
                             navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
                           }} />
-                        <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' />
-                          </div>
+                          <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
+                          <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-[#876B56]  text-[18px]" />
+                        </div>
                         {/* Image Counter */}
                         {roomImages.length > 0 && (
                           <div className="absolute bottom-3 left-3 bg-black/60 text-white px-2 py-1 rounded-md text-xs font-medium">
@@ -977,8 +982,8 @@ const AvailableRooms = () => {
                               key={idx}
                               onClick={() => setSelectedImage(img)}
                               className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${selectedImage === img
-                                  ? 'border-senary shadow-md scale-105'
-                                  : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-senary shadow-md scale-105'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                             >
                               <img
@@ -1123,10 +1128,10 @@ const AvailableRooms = () => {
                           onClick={() => !isAddGuestDisabled && handleRoomAction(room)}
                           disabled={isAddGuestDisabled}
                           className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
-                              ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                              : isAddGuestAction
-                                ? 'bg-senary hover:bg-quinary hover:shadow-lg'
-                                : 'bg-quinary hover:bg-senary hover:shadow-lg'
+                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                            : isAddGuestAction
+                              ? 'bg-senary hover:bg-quinary hover:shadow-lg'
+                              : 'bg-quinary hover:bg-senary hover:shadow-lg'
                             }`}
                           title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
                         >
@@ -1155,8 +1160,7 @@ const AvailableRooms = () => {
                             </div>
                           )}
                         </button>
-                        <button
-                          onClick={() => onDelete(room)}
+                        {/* <button
                           className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 transition-all duration-200"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1166,7 +1170,7 @@ const AvailableRooms = () => {
                             <line x1="14" y1="11" x2="14" y2="17"></line>
                           </svg>
                           Delete Room
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   </div>
@@ -1219,6 +1223,14 @@ const AvailableRooms = () => {
           onCancelRoom={() => handleBookingStatusChange('Cancelled')}
         />
       )}
+      {/* view single room detail  */}
+      {viewId && (
+        <SingleRoomModal
+          id={viewId}
+          onClose={() => setViewId(null)}
+        />
+      )
+      }
       {deleteModalOpen && roomToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={closeDeleteModal}></div>

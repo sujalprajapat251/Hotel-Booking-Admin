@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
-
+import notification from "../Images/notification.png"
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -57,7 +57,7 @@ const Header = ({ onMenuClick }) => {
       navigate("/waiter/user-profile");
     } else if (userRole === 'Chef') {
       navigate("/chef/user-profile")
-    }else if (userRole === 'Worker') {
+    } else if (userRole === 'Worker') {
       navigate("/worker/user-profile")
     } else if (userRole === 'Accountant') {
       navigate("/accountant/user-profile")
@@ -74,6 +74,7 @@ const Header = ({ onMenuClick }) => {
     navigate('/');
   }
 
+  const [notifi, setNotifi] = useState(false);
   return (
     <>
       <header className="flex flex-col">
@@ -88,7 +89,7 @@ const Header = ({ onMenuClick }) => {
               <FiMenu />
             </button>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 ">
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
@@ -139,6 +140,11 @@ const Header = ({ onMenuClick }) => {
                   </button>
                 </div>
               ) : null}
+            </div>
+            <img src={notification} className='h-8 aspect-square' onClick={() => { setNotifi((prev) => !prev) }}>
+            </img>
+            <div className={`h-[400px] max-h-[400px] bg-white w-[300px] absolute top-full right-4 p-4   border rounded -z-[1] transform-all duration-700  ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
+              <h1 className='text-xl text-senary border-b-2 font-semibold pb-2 text-center'>Notification</h1>
             </div>
           </div>
         </div>

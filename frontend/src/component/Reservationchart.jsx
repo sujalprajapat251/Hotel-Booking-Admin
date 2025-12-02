@@ -123,7 +123,7 @@ const StackedBarChart = () => {
                 <CustomLegend payload={props.payload} hiddenBars={hiddenBars} onClick={handleLegendClick} />
               )}
             />
-
+        
             <Bar
               dataKey="booked"
               stackId="a"

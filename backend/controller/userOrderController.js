@@ -313,7 +313,7 @@ exports.createOrderPaymentIntent = async (req, res) => {
         const amountMinor = Math.round(totalAmount * 100);
         const intent = await stripe.paymentIntents.create({
             amount: amountMinor,
-            currency: 'inr',
+            currency: 'usd',
             payment_method_types: ['card']
         });
         return res.status(200).json({ status: 200, clientSecret: intent.client_secret, paymentIntentId: intent.id, amount: totalAmount });
