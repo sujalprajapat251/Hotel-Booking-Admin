@@ -1,12 +1,16 @@
-import React from 'react';
-import { LuCircleArrowDown, LuCircleArrowUp } from "react-icons/lu";
-import Newbookingchart from '../Newbookingchart';
-import Availablerooms from '../Availavleroomschart';
-import Revenuechart from '../Revenuechart';
-import Checkoutchart from '../Checkoutchart';
+import React, { useEffect } from 'react';
+import HODbookingchart from '../HOD/HODbookingchart';
+import HODtotalRevenue from '../HOD/HODtotalRevenuechart';
+import TotalOrderchart from '../HOD/HODTotalOrderchart';
+import HODtotalStaffchart from '../HOD/HODtotalStaffchart';
 import Reservationchart from '../Reservationchart';
+import { getAllHodDashboard } from '../../Redux/Slice/HODdashboard.silce';
+import { useDispatch, useSelector } from 'react-redux';
 
 const HODDashboard = () => {
+
+  const dispatch = useDispatch();
+  const getHodDashboard = useSelector((state) => state.HODDashboard.getHodDashboard);
 
   const roomData = {
     occupied: 125,
@@ -56,6 +60,24 @@ const HODDashboard = () => {
     }
   ];
 
+  const getCurrentYearMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    return `${year}-${month}`;
+  };
+
+  const formatNumber = (num) => {
+    if (!num) return "0";
+    return num.toLocaleString("en-IN");
+  };
+
+  useEffect(() => {
+    const yearMonth = getCurrentYearMonth();
+
+    dispatch(getAllHodDashboard(yearMonth));
+  }, [dispatch]);
+
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
       <div className="mb-6">
@@ -68,17 +90,27 @@ const HODDashboard = () => {
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
           <div className='sm:flex justify-between items-end'>
-            <div className='mb-5'>
-              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Booking</p>
-              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>1879</p>
-              <div className='flex gap-1 items-center mt-5'>
-                <LuCircleArrowUp className='text-[20px] text-green-500' />
-                <p className='text-green-500'>+7.5%</p>
-              </div>
+            <div className=''>
+              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Orders</p>
+              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.newOrders}</p>
             </div>
-            <div className='w-[220px] ms-auto'>
-              <Newbookingchart />
+          </div>
+          <div className='w-[220px] ms-auto'>
+            <HODbookingchart />
+          </div>
+        </div>
+        <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
+          borderColor: '#E3C78A',
+          boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+        }}>
+          <div className='sm:flex justify-between items-end'>
+            <div className=''>
+              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Revenue</p>
+              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalRevenue}</p>
             </div>
+          </div>
+          <div className='w-[180px] ms-auto'>
+            <HODtotalRevenue />
           </div>
         </div>
         <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
@@ -87,16 +119,12 @@ const HODDashboard = () => {
         }}>
           <div className='sm:flex justify-between items-end'>
             <div className='mb-5'>
-              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Available Rooms</p>
-              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>55</p>
-              <div className='flex gap-1 items-center mt-5'>
-                <LuCircleArrowDown className='text-[20px] text-red-500' />
-                <p className='text-red-500'>-5.7%</p>
-              </div>
+              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Order</p>
+              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalOrder}</p>
             </div>
-            <div className='w-[180px] ms-auto'>
-              <Availablerooms />
-            </div>
+          </div>
+          <div className='w-[220px] h-[80px] ms-auto'>
+            <TotalOrderchart />
           </div>
         </div>
         <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
@@ -105,34 +133,12 @@ const HODDashboard = () => {
         }}>
           <div className='sm:flex justify-between items-end'>
             <div className='mb-5'>
-              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Revenue</p>
-              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>$2287</p>
-              <div className='flex gap-1 items-center mt-5'>
-                <LuCircleArrowUp className='text-[20px] text-green-500' />
-                <p className='text-green-500'>+5.3%</p>
-              </div>
-            </div>
-            <div className='w-[220px] h-[80px] ms-auto'>
-              <Revenuechart />
+              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Staff</p>
+              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalStaff}</p>
             </div>
           </div>
-        </div>
-        <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
-          borderColor: '#E3C78A',
-          boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-        }}>
-          <div className='sm:flex justify-between items-end'>
-            <div className='mb-5'>
-              <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Checkout</p>
-              <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>567</p>
-              <div className='flex gap-1 items-center mt-5'>
-                <LuCircleArrowDown className='text-[20px] text-red-500' />
-                <p className='text-red-500'>-2.4%</p>
-              </div>
-            </div>
-            <div className='w-[220px] ms-auto'>
-              <Checkoutchart />
-            </div>
+          <div className='w-[220px] ms-auto'>
+            <HODtotalStaffchart />
           </div>
         </div>
       </div>
