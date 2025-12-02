@@ -33,6 +33,7 @@ import viewOrderSlice from "./Slice/vieworederadmin.slice";
 import dashboardSlice from "./Slice/dashboard.silce";
 import WorkerSlice from "./Slice/WorkerSlice";
 import orderRequestSlice from "./Slice/orderRequestSlice";
+import HODdashboardSlice from "./Slice/HODdashboard.silce";
 
 export const rootReducer = combineReducers({
     alert:alertSlice,
@@ -69,4 +70,5 @@ export const rootReducer = combineReducers({
     dashboard: dashboardSlice,
     worker: WorkerSlice,
     orderrequest : orderRequestSlice,
+    HODDashboard: HODdashboardSlice
 });
