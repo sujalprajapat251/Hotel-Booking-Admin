@@ -47,11 +47,11 @@ export default function Dashboard() {
               <img src={tableImg} alt="table" className="w-24 mx-auto" />
               <p className='text-center mt-3 text-sm sm:text-base'>
                 {item.title} &nbsp; member: {item.limit}
-              </p>
+              </p>  
               <div className='absolute right-3 top-4'>
                 {item.status === true ?
-                  <p className='bg-green-400 px-2 py-0.5 text-xs rounded-[4px]'>Available</p> :
-                  <p className='bg-red-500 px-2 py-0.5 text-xs rounded-[4px]'>Occupied</p>
+                  <p className='px-2 py-0.5 text-xs rounded-xl border border-green-500 text-green-600 bg-green-50'>Available</p> :
+                  <p className='px-2 py-0.5 text-xs rounded-xl border border-red-500 text-red-600 bg-red-50'>Occupied</p>
                 }
               </div>
             </div>

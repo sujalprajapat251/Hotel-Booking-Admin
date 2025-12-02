@@ -135,7 +135,7 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">Qty: {m.qty}</div>
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
-                        <div className="text-sm font-medium">₹{m?.product?.price}.00</div>
+                        <div className="text-sm font-medium">${m?.product?.price}.00</div>
                       </div>
                       {m.status === "Done" ?(
                         <div className="flex justify-end gap-3" onClick={()=>handleserved(m)}>
@@ -156,7 +156,7 @@ export default function Dashboard() {
               </div>
               <div className="flex items-center justify-between mt-4 py-3">
                 <div className="font-semibold">Total</div>
-                <div className="font-semibold">₹ {total}</div>
+                <div className="font-semibold">${total}</div>
               </div>
             </div>
           </main>

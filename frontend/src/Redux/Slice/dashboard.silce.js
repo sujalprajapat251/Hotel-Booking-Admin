@@ -158,6 +158,27 @@ export const getAllOccupancyrate = createAsyncThunk(
     }
 );
 
+export const getAllServicerequests = createAsyncThunk(
+    'revenue/getAllServicerequests',
+    async (_, { dispatch, rejectWithValue }) => {
+
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.get(`${BASE_URL}/servicerequests`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    }
+                }
+            );
+
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 const dashboardSlice = createSlice({
     name: 'dashboardData',
     initialState: {
@@ -168,6 +189,7 @@ const dashboardSlice = createSlice({
         getOrdersummery: [],
         getBookingtrends: [],
         getOccupancyrate: [],
+        getServicerequests: [],
         message: '',
         loading: false,
         isError: false,
@@ -305,6 +327,25 @@ const dashboardSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to fetch Occupancy Rate';
+            })
+
+            .addCase(getAllServicerequests.pending, (state) => {
+                state.loading = true;
+                state.message = 'Fetching Service Requests...';
+                state.isError = false;
+            })
+            .addCase(getAllServicerequests.fulfilled, (state, action) => {
+                state.loading = false;
+                state.success = true;
+                state.message = 'Service Requests fetched successfully';
+                state.getServicerequests = action.payload;
+                state.isError = false;
+            })
+            .addCase(getAllServicerequests.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to fetch Service Requests';
             })
     },
 });

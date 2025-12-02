@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { LuCircleArrowDown, LuCircleArrowUp } from "react-icons/lu";
 import '../Style/Sujal.css';
-import { FaEllipsisV, FaWrench } from 'react-icons/fa';
+import { FaWrench } from 'react-icons/fa';
 import { HiOutlineDocumentChartBar } from "react-icons/hi2";
 import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -10,28 +9,30 @@ import Availablerooms from '../component/Availavleroomschart';
 import Revenuechart from '../component/Revenuechart';
 import Checkoutchart from '../component/Checkoutchart';
 import Reservationchart from '../component/Reservationchart';
-import { MdBolt, MdPeople, MdBarChart, MdBuild, MdShield, MdPerson, MdDescription, MdSettings, MdNotifications, MdWarning, MdClock, MdLocalDining, MdBusiness, MdBeachAccess, MdLockClock, MdPunchClock, MdAccessTime } from 'react-icons/md';
-import { BrickWallShield, BrickWallShieldIcon, LucideBrickWallShield } from 'lucide-react';
+import { MdBolt, MdPeople, MdPerson, MdNotifications, MdBusiness, MdAccessTime, MdCheckCircle, MdCleaningServices } from 'react-icons/md';
 import Purpose from '../component/Purpose.jsx';
 import HotelOccupancyDashboard from '../component/Hoteloccupancyratechart.jsx';
 import BookingTrendsChart from '../component/Bookingtrendschart.jsx';
-import { Home, Coffee, Heart, MoreHorizontal } from 'lucide-react';
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Coffee } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
 import { getAllReview } from '../Redux/Slice/review.slice.js';
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getAllDashboard, getAllOrdersummery, getAllReservation, getAllRevenue, getAllRoomAvailability } from '../Redux/Slice/dashboard.silce.js';
+import { getAllDashboard, getAllOrdersummery, getAllReservation, getAllRevenue, getAllRoomAvailability, getAllServicerequests } from '../Redux/Slice/dashboard.silce.js';
 import { IoBedOutline } from "react-icons/io5";
 import { IoIosRestaurant } from "react-icons/io";
 import { GiMartini } from "react-icons/gi";
+import { PiBroomLight } from 'react-icons/pi';
+import { VscChecklist } from 'react-icons/vsc';
+import { CiCoffeeCup } from 'react-icons/ci';
 dayjs.extend(relativeTime);
 
 export const Dashboard = () => {
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [booking, setBooking] = useState([]);
   // console.log('booking', booking);
 
@@ -42,6 +43,7 @@ export const Dashboard = () => {
   const getRevenueData = useSelector((state) => state.dashboard.getRevenue);
   const getDashboardData = useSelector((state) => state.dashboard.getDashboard);
   const getRoomAvailability = useSelector((state) => state.dashboard.getRoomAvailability);
+  const getServicerequests = useSelector((state) => state.dashboard.getServicerequests);
 
   // ADD THIS useEffect - Transform Redux data to local state
   useEffect(() => {
@@ -79,19 +81,6 @@ export const Dashboard = () => {
     }
   };
 
-  // const getStatusColor = (status) => {
-  //   switch (status) {
-  //     case 'Paid':
-  //       return '#4EB045';
-  //     case 'Unpaid':
-  //       return '#EC0927';
-  //     case 'Pending':
-  //       return '#F7DF9C';
-  //     default:
-  //       return '#gray';
-  //   }
-  // };
-
   const roomData = {
     occupied: getRoomAvailability?.occupied || 0,
     reserved: getRoomAvailability?.reserved || 0,
@@ -99,7 +88,7 @@ export const Dashboard = () => {
     notReady: getRoomAvailability?.notReady || 0
   };
 
-const totalRooms = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+  const totalRooms = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
 
   const percentages = {
     occupied: totalRooms > 0 ? (roomData.occupied / totalRooms) * 100 : 0,
@@ -140,54 +129,78 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
   ];
 
   const quickAccessItems = [
-    { title: "Room Management", icon: <MdBusiness className="text-4xl" />, badge: 3, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments" },
-    { title: "Staff Roster", icon: <MdPeople className="text-4xl" />, bgColor: "bg-secondary/40", iconColor: "text-quinary" },
-    { title: "Reports", icon: <MdBarChart className="text-4xl" />, bgColor: "bg-primary/40", iconColor: "text-quaternary" },
-    { title: "Maintenance", icon: <FaWrench className="text-4xl" />, badge: 7, bgColor: "bg-tertiary/30", iconColor: "text-senary" },
-    { title: "Housekeeping", icon: <LucideBrickWallShield className="text-4xl" />, badge: 12, bgColor: "bg-quaternary/30", iconColor: "text-senary" },
-    { title: "Guest Services", icon: <MdPerson className="text-4xl" />, bgColor: "bg-secondary/30", iconColor: "text-quinary" },
-    { title: "Billing", icon: <MdDescription className="text-4xl" />, bgColor: "bg-primary/30", iconColor: "text-senary" },
-    { title: "Settings", icon: <MdSettings className="text-4xl" />, badge: 3, bgColor: "bg-tertiary/40", iconColor: "text-quaternary" },
+    { title: "Room Management", icon: <MdBusiness className="text-4xl" />, badge: 3, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/rooms/available" },
+    { title: "Staff Details", icon: <MdPeople className="text-4xl" />, bgColor: "bg-secondary/40", iconColor: "text-quinary", path: "/staff/staffdetails" },
+    { title: "Bookings", icon: <VscChecklist className="text-4xl" />, bgColor: "bg-primary/40", iconColor: "text-quaternary", path: "/allbookings" },
+    { title: "User List", icon: <MdPerson className="text-4xl" />, bgColor: "bg-secondary/30", iconColor: "text-quinary", path: "/user" },
+    { title: "Housekeeping", icon: <PiBroomLight className="text-4xl" />, badge: 12, bgColor: "bg-quaternary/30", iconColor: "text-senary", path: "/housekeeping" },
+    { title: "Cafe Order", icon: <CiCoffeeCup className="text-4xl" />, badge: 7, bgColor: "bg-tertiary/30", iconColor: "text-senary", path: "/cafe/cafeorder" },
+    { title: "Bar Order", icon: <GiMartini className="text-4xl" />, bgColor: "bg-primary/30", iconColor: "text-senary", path: "/bar/barorder" },
+    { title: "Restaurant Order", icon: <IoIosRestaurant className="text-4xl" />, badge: 3, bgColor: "bg-tertiary/40", iconColor: "text-quaternary", path: "/restaurant/restaurantorder" },
   ];
 
   const serviceSummary = [
-    { label: "PENDING", count: 3, color: "text-yellow-600" },
-    { label: "IN PROGRESS", count: 2, color: "text-quinary" },
-    { label: "HIGH PRIORITY", count: 2, color: "text-red-600" },
+    { label: "PENDING", count: getServicerequests?.counts?.pending || 0, color: "text-yellow-600" },
+    { label: "IN PROGRESS", count: getServicerequests?.counts?.inProgress || 0, color: "text-blue-600" },
+    { label: "COMPLETED", count: getServicerequests?.counts?.completed || 0, color: "text-green-600" },
   ];
 
-  const recentRequests = [
-    {
-      title: "Extra towels and pillows",
-      room: "Room 205",
-      time: "39h ago",
-      timeValue: "10m",
-      status: "Pending",
-      borderColor: "border-primary",
-      bgColor: "bg-primary/10",
-      icon: <MdLocalDining className="text-quaternary text-2xl" />
+  const statusConfig = {
+    Pending: {
+      icon: <MdCleaningServices className="text-yellow-700 text-2xl" />,
+      borderColor: "border-yellow-500",
+      bgColor: "bg-yellow-50",
+      statusColor: "bg-yellow-100 text-yellow-700"
     },
-    {
-      title: "Air conditioning not working",
-      room: "Room 312",
-      time: "39h ago",
-      timeValue: "45m",
-      status: "In_progress",
-      borderColor: "border-quinary",
-      bgColor: "bg-quinary/10",
-      icon: <FaWrench className="text-senary text-xl" />
+
+    InProgress: {
+      icon: <FaWrench className="text-blue-700 text-2xl" />,
+      borderColor: "border-blue-500",
+      bgColor: "bg-blue-50",
+      statusColor: "bg-blue-100 text-blue-700"
     },
-    {
-      title: "Urgent cleaning required",
-      room: "Room 108",
-      time: "39h ago",
-      timeValue: "20m",
-      status: "Pending",
-      borderColor: "border-red-400",
-      bgColor: "bg-red-50",
-      icon: <LucideBrickWallShield className="text-red-500 text-2xl" />
-    },
-  ];
+
+    Completed: {
+      icon: <MdCheckCircle className="text-green-700 text-2xl" />,
+      borderColor: "border-green-500",
+      bgColor: "bg-green-50",
+      statusColor: "bg-green-100 text-green-700"
+    }
+  };
+
+  const formatTimeAgo = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (seconds < 60) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  };
+
+  const recentRequests = ([...(getServicerequests?.latestRequests || [])])
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 3).map((req) => {
+      const normalizedStatus = req.cleanStatus.replace(/[-\s]/g, "");
+      const config = statusConfig[normalizedStatus] || statusConfig["Pending"];
+
+      return {
+        title: `Cleaning requested by ${req?.cleanassign?.name ?? "Guest"}`,
+        room: `Room ${req.roomNumber}`,
+        time: formatTimeAgo(req.updatedAt),
+        timeValue: formatTimeAgo(req.updatedAt),
+        status: normalizedStatus,
+        icon: config.icon,
+        borderColor: config.borderColor,
+        bgColor: config.bgColor,
+        statusColor: config.statusColor
+      };
+    });
 
   const revenueItems = [
     {
@@ -385,8 +398,12 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
     dispatch(getAllRoomAvailability());
     dispatch(getAllReservation());
     dispatch(getAllOrdersummery());
+    dispatch(getAllServicerequests());
   }, [dispatch]);
 
+  const handleNavigateQuickAccess = (route) => {
+    navigate(route);
+  }
 
   return (
     <>
@@ -580,6 +597,7 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
                     e.currentTarget.style.borderColor = '#E3C78A';
                     e.currentTarget.style.transform = 'translateY(0)';
                   }}
+                  onClick={() => handleNavigateQuickAccess(item.path)}
                 >
                   {index === 0 && (
                     <div className="absolute -top-16 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
@@ -624,13 +642,11 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
             {/* Summary Cards */}
             <div className="grid grid-cols-3 2xl:grid-cols-1 3xl:grid-cols-3 gap-3 md:gap-4 mb-3">
               {serviceSummary.map((item, index) => (
-                <div key={index} className="text-center 2xl:flex 3xl:flex-col 3xl:gap-0  items-center 2xl:gap-5 p-2 md:p-3 lg:p-4 rounded-lg" style={{
+                <div key={index} className="text-center p-3 rounded-lg" style={{
                   backgroundColor: 'rgba(247, 223, 156, 0.2)'
                 }}>
-                  <p className={`text-[20px] md:text-[24px] lg:text-[28px] font-bold ${item.color} mb-1`}>
-                    {item.count}
-                  </p>
-                  <p className="text-[12px] md:text-[14px] lg:text-[18px] md:text-sm font-medium" style={{ color: '#755647' }}>
+                  <p className={`text-[24px] font-bold ${item.color}`}>{item.count}</p>
+                  <p className="text-[14px] font-medium" style={{ color: "#755647" }}>
                     {item.label}
                   </p>
                 </div>
@@ -641,9 +657,10 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
             <div className="space-y-3">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold" style={{ color: '#755647' }}>Recent Requests</h3>
-                <button className="text-sm font-medium transition-colors" style={{ color: '#876B56' }}
+                <button className="text-sm font-medium transition-colors cursor-pointer" style={{ color: '#876B56' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
+                  onClick={() => (navigate('/housekeeping'))}
                 >
                   View All
                 </button>
@@ -652,71 +669,28 @@ const totalRooms = roomData.occupied + roomData.reserved + roomData.available + 
               {recentRequests.map((request, index) => (
                 <div
                   key={index}
-                  className={`flex items-start gap-2 mdLgap-3 p-2 md:p-3 lg:p-4 rounded-lg border-l-4 ${request.borderColor} ${request.bgColor} hover:shadow-md transition-shadow duration-200`}
+                  className={`flex items-start gap-3 p-3 rounded-lg border-l-4 ${request.borderColor} ${request.bgColor}`}
                 >
-                  <div className="flex-shrink-0 mt-1">
-                    {request.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm md:text-base" style={{ color: '#755647' }}>
+                  <div className="flex-shrink-0 mt-1">{request.icon}</div>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm" style={{ color: "#755647" }}>
                       {request.title}
                     </p>
-                    <p className="text-xs md:text-sm mt-1" style={{ color: '#A3876A' }}>
-                      {request.room} · {request.time}
+                    <p className="text-xs mt-1" style={{ color: "#A3876A" }}>
+                      {request.room}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                    <span className={`text-xs px-2 py-1 rounded-full ${request.status === 'Pending'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-blue-100 text-blue-700'
-                      }`}>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-xs px-2 py-1 rounded-full ${request.statusColor}`}>
                       {request.status}
                     </span>
                     <div className="flex items-center gap-1 text-xs" style={{ color: '#A3876A' }}>
-                      <MdAccessTime className="text-sm" />
+                      <MdAccessTime />
                       <span>{request.timeValue}</span>
                     </div>
                   </div>
                 </div>
               ))}
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <button className="relative flex items-center justify-center gap-2 px-3 py-2 md:px-4 md:py-3 bg-white border-2 rounded-lg transition-all duration-200"
-                  style={{ borderColor: '#E3C78A' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#B79982';
-                    e.currentTarget.style.backgroundColor = 'rgba(247, 223, 156, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#E3C78A';
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }}
-                >
-                  <MdAccessTime className='text-[20px]' style={{ color: '#876B56' }} />
-                  <span className="text-sm font-medium" style={{ color: '#755647' }}>Handle Pending</span>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    3
-                  </span>
-                </button>
-                <button className="relative flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 rounded-lg transition-all duration-200"
-                  style={{ borderColor: '#E3C78A' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#B79982';
-                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#E3C78A';
-                    e.currentTarget.style.backgroundColor = 'white';
-                  }}
-                >
-                  <MdWarning className="text-red-500 text-[20px]" />
-                  <span className="text-sm font-medium" style={{ color: '#755647' }}>Urgent Only</span>
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                    2
-                  </span>
-                </button>
-              </div>
             </div>
           </div>
 

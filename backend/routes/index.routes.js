@@ -30,11 +30,11 @@ const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
-const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, monthWiseOccupancy, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
+const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
 // const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
-const { cafeDashboard, CafeDashboard } = require('../controller/hoddashboardController');
+const {  DepartmentDashboard, getDepartmentPaymentSummary, getDepartmentRevenueByMonth } = require('../controller/hoddashboardController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -79,7 +79,7 @@ indexRoutes.put('/updatedepartment/:id', auth, adminOnly, updateDepartment);
 indexRoutes.delete('/deletetdepartment/:id', auth, adminOnly, deleteDepartment);
 
 // staff Routes
-indexRoutes.post('/createstaff', auth, adminOnly, upload.single("image"), createStaff);
+indexRoutes.post('/createstaff', auth, upload.single("image"), createStaff);
 indexRoutes.get('/getallstaff', auth, adminOnly, getAllStaff);
 indexRoutes.get('/getstaff', auth, getStaff);
 indexRoutes.get('/getstaff/:id', auth, getStaffById);
@@ -277,13 +277,14 @@ indexRoutes.get("/roomavailability", auth, adminOnly, roomAvailability);
 indexRoutes.get('/getreservation', auth, adminOnly, reservationDaywise);
 indexRoutes.get('/getbookingtrends', auth, adminOnly, getBookingTrends);
 indexRoutes.get('/getdashboard', auth, adminOnly, dashboard);
-// indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthWiseOccupancy);
 indexRoutes.get('/getoccupancyrate', auth, adminOnly, monthlyRevenue);
 indexRoutes.get('/getordersummery', auth, adminOnly, orderDashboard);
 indexRoutes.get('/servicerequests', auth, adminOnly, serviceRequests);
 
-// HOD Dashboard Route
-indexRoutes.get('/gethoddashboard', auth, CafeDashboard);
+// HOD Dashboard Routes
+indexRoutes.get('/gethoddashboard', auth, DepartmentDashboard);
+indexRoutes.get('/getdepartmentpaymentsummary', auth, getDepartmentPaymentSummary);
+indexRoutes.get('/getdepartmentrevenuebymonth', auth, getDepartmentRevenueByMonth);
 
 
 module.exports = indexRoutes;

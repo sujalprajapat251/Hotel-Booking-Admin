@@ -129,7 +129,7 @@ const CafeOrderList = () => {
     const formattedDate = order?.createdAt ? formatDate(order.createdAt).toLowerCase() : '';
     const amountValue = getOrderTotalAmount(order);
     const amount = amountValue.toString().toLowerCase();
-    const amountWithCurrency = `₹${amountValue}`.toLowerCase();
+    const amountWithCurrency = `$${amountValue}`.toLowerCase();
 
     return name.includes(query) ||
       contact.includes(query) ||
@@ -357,7 +357,7 @@ const CafeOrderList = () => {
                     {visibleColumns.contact && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">{columnLabels.contact}</th>
                     )}
-                    {visibleColumns.items && (
+                    {visibleColumns.items && (       
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">{columnLabels.items}</th>
                     )}
                     {visibleColumns.amount && (
@@ -417,7 +417,7 @@ const CafeOrderList = () => {
                           </td>
                         )}
                         {visibleColumns.amount && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{orderAmount}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">${orderAmount}</td>
                         )}
                         {visibleColumns.payment && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
@@ -441,7 +441,7 @@ const CafeOrderList = () => {
                             <div className="mv_table_action flex">
                               <div
                                 onClick={() => handleViewOrder(order)}
-                                className="cursor-pointer hover:opacity-70 transition-opacity"
+                                className="cursor-pointer transition-opacity"
                               >
                                 <IoEyeSharp className='text-[18px] text-quaternary' />
                               </div>
@@ -591,8 +591,8 @@ const CafeOrderList = () => {
                             <tr key={item?._id || index} className="border-b border-gray-100">
                               <td className="py-3 px-3 text-sm text-gray-800">{item?.product?.name || 'N/A'}</td>
                               <td className="py-3 px-3 text-sm text-gray-800 text-center">{qty}</td>
-                              <td className="py-3 px-3 text-sm text-gray-800 text-right">₹{price.toFixed(2)}</td>
-                              <td className="py-3 px-3 text-sm text-gray-800 text-right">₹{total.toFixed(2)}</td>
+                              <td className="py-3 px-3 text-sm text-gray-800 text-right">${price.toFixed(2)}</td>
+                              <td className="py-3 px-3 text-sm text-gray-800 text-right">${total.toFixed(2)}</td>
                             </tr>
                           );
                         })
@@ -610,7 +610,7 @@ const CafeOrderList = () => {
               <div className='px-6 bg-[#f9fafb] border-t-2 border-gray-100'>
                 <div className="flex items-center justify-between py-6">
                   <span className="text-xl font-bold text-gray-800">Total Amount</span>
-                  <span className="text-xl font-bold text-gray-800">₹{getOrderTotalAmount(selectedOrder).toFixed(2)}</span>
+                  <span className="text-xl font-bold text-gray-800">${getOrderTotalAmount(selectedOrder).toFixed(2)}</span>
                 </div>
 
                 {/* Payment Information */}

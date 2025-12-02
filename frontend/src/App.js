@@ -70,6 +70,7 @@ import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
 import Cleaning from './Pages/Cleaning.jsx';
 import Maintenence from './Pages/Maintenence.jsx';
 import OrderRequest from './Pages/OrderRequest.jsx';
+import Order from './component/HouseKeepingWorker/Order.jsx';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -482,6 +483,12 @@ function App() {
                 <Route path='task' element={
                   <ProtectedRoute allowedRoles={['Worker']}>
                     <Tasks />
+                  </ProtectedRoute>
+                }>
+                </Route>
+                <Route path='order' element={
+                  <ProtectedRoute allowedRoles={['Worker']}>
+                    <Order />
                   </ProtectedRoute>
                 }>
                 </Route>

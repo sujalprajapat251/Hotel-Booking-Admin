@@ -306,7 +306,7 @@ const CabBookingDetail = () => {
                   <td className="px-4 py-3 whitespace-nowrap">{booking.vehicle}</td>
                   <td className="px-4 py-3 font-medium text-gray-900">{booking.distance}</td>
                   <td className="px-4 py-3 text-[#15803D] font-semibold">
-                    {booking.fare === "--" ? "—" : `₹${booking.fare}`}
+                    {booking.fare === "--" ? "—" : `$${booking.fare}`}
                   </td>
                   <td className="px-4 py-3">
                     <span

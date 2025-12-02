@@ -228,6 +228,18 @@ const HODTable = () => {
     }
   };
 
+  const getStatusStyle = (status) => {
+    console.log("status",status);
+    switch (status) {
+        case true:
+            return 'border border-green-500 text-green-600 bg-green-50';
+        case false:
+            return 'border border-red-500 text-red-600 bg-red-50';
+        default:
+            return 'border border-red-500 text-red-600 bg-red-50';
+    }
+};
+
   return (
     <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
       <p className='text-[20px] font-semibold text-black'>Table Management</p>
@@ -263,7 +275,7 @@ const HODTable = () => {
                       setIsAddModalOpen(true);
                     }}
                     className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#ecffed] rounded-lg transition-colors"
-                    title="Show/Hide Columns"
+                    title="Add Table"
                   >
                     <FiPlusCircle size={20} />
                   </button>
@@ -360,11 +372,7 @@ const HODTable = () => {
                       {visibleColumns.status && (
                         <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                           <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1 rounded-[4px] text-sm font-medium ${
-                              about.status 
-                                ? "bg-green-500 text-white" 
-                                : "bg-red-500 text-white"
-                            }`}>
+                            <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusStyle(about.status)}`}>
                               {about.status ? "Available" : "Occupied"}
                             </span>
                           </div>

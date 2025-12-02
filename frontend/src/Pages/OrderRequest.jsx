@@ -1,19 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { FaEllipsisV } from 'react-icons/fa';
-import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
-import { FiCheckCircle, FiEdit, FiPlusCircle } from 'react-icons/fi';
-import { RiDeleteBinLine } from 'react-icons/ri';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
+import { FiCheckCircle, FiEdit } from 'react-icons/fi';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
 import { approveCleaningRoom, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
-import { getAllStaff } from '../Redux/Slice/staff.slice.js';
 import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../Redux/Slice/orderRequestSlice.js';
-// import axios from 'axios';
-
 
 const OrderRequest = () => {
 
@@ -33,13 +26,11 @@ const OrderRequest = () => {
     console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
-    // const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
-    // console.log('housekeepingStaffName', housekeepingStaff);
+
     useEffect(() => {
         dispatch(fetchFreeWorker());
     }, [dispatch]);
     const { freeWorkers } = useSelector((state) => state.housekeeping);
-    // console.log('freeWorkers', freeWorkers);
 
     useEffect(() => {
         if (freeWorkers && freeWorkers.length > 0) {
@@ -47,48 +38,26 @@ const OrderRequest = () => {
                 (member) => member.department?.name === "Housekeeping"
             );
 
-            const names = filteredStaff?.map((member) => member?.name);
-
-            // console.log('filteredStaff', filteredStaff);
-            // console.log('names', names);
-
             setHousekeepingStaff(filteredStaff);
-            // setHousekeepingStaffName(names)
         } else {
             setHousekeepingStaff([]);
-            // setHousekeepingStaffName([]);
         }
     }, [freeWorkers]);
-
-    // console.log('housekeepingStaff', housekeepingStaff);
 
     const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
     const [selectedorderRequest, setSelectedorderRequest] = useState(null);
-    console.log('selectedorderRequest', selectedorderRequest);
-    const [roomId, setRoomId] = useState('');
-
-    // Change this state from string to object
     const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
-    console.log('selectedWorker', selectedWorker);
-
-
-
-    // Pagination state for API calls
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
-
-    // UI state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const dropdownRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    // const [itemToDelete, setItemToDelete] = useState(null);
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         workerName: true,
@@ -100,25 +69,22 @@ const OrderRequest = () => {
         actions: true
     });
 
-    // Debounce search term
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page on search
+            setPage(1);
             setCurrentPage(1);
         }, 500);
 
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
-    // Fetch bookings with pagination parameters
     useEffect(() => {
         const params = {
             page,
             limit,
         };
 
-        // Add search parameter if exists
         if (debouncedSearch) {
             params.search = debouncedSearch;
         }
@@ -126,12 +92,11 @@ const OrderRequest = () => {
         dispatch(fetchAllOrderRequesr(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
-    // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
         if (items && items.length > 0) {
             const formattedData = items?.map((item, index) => ({
                 id: item._id || item.id || index,
-                name: item.rawData?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
+                name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
                 status: item.cleanStatus || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 to: item?.to || 'N/A',
@@ -144,9 +109,8 @@ const OrderRequest = () => {
                     return sum + price * qty;
                 }, 0) || 0,
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item // Keep raw data for other operations
+                rawData: item
             }));
-            console.log('formattedData', formattedData);
             setOrderRequestRooms(formattedData);
         } else {
             setOrderRequestRooms([]);
@@ -162,8 +126,7 @@ const OrderRequest = () => {
 
     const handleAssignWorkerSubmit = async () => {
         const workerId = selectedWorker.id;
-        const orderId = selectedorderRequest?.id; // Get the id from selected order request
-
+        const orderId = selectedorderRequest?.id;
         console.log('Submitting:', { orderId, workerId });
 
         if (!orderId || !workerId) {
@@ -177,13 +140,12 @@ const OrderRequest = () => {
         try {
             // Dispatch the API call
             await dispatch(assignWorkerToOrderRequest({
-                Id: orderId, // Changed from orderId to Id to match your API
+                Id: orderId,
                 workerId
             })).unwrap();
 
             dispatch(fetchFreeWorker());
             dispatch(fetchAllOrderRequesr());
-
             handleAssignWorkerClose();
         } catch (error) {
             console.error('Failed to assign worker:', error);
@@ -191,9 +153,7 @@ const OrderRequest = () => {
     };
 
     const handleAssignWorkerClick = (housekeeping) => {
-        alert('ss');
-        console.log('Selected housekeeping:', housekeeping);
-        setSelectedorderRequest(housekeeping); // Store the entire object, not just id
+        setSelectedorderRequest(housekeeping);
 
         const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
         setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
@@ -213,38 +173,36 @@ const OrderRequest = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Add these utility functions in your OrderRequest component (after the component declaration)
+    // const getOrderItemCount = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
+    // };
 
-    const getOrderItemCount = (housekeeping) => {
-        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
-        return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
-    };
+    // const getOrderTotalAmount = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => {
+    //         const price = item?.product?.price || 0;
+    //         const qty = item?.qty || 1;
+    //         return sum + price * qty;
+    //     }, 0);
+    // };
 
-    const getOrderTotalAmount = (housekeeping) => {
-        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
-        return housekeeping.rawData.orderId.items.reduce((sum, item) => {
-            const price = item?.product?.price || 0;
-            const qty = item?.qty || 1;
-            return sum + price * qty;
-        }, 0);
-    };
+    // const getItemPreview = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
+    //     const names = housekeeping.rawData.orderId.items
+    //         .map((item) => item?.product?.name)
+    //         .filter(Boolean);
+    //     if (!names.length) return 'No items';
+    //     if (names.length <= 2) return names.join(', ');
+    //     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+    // };
 
-    const getItemPreview = (housekeeping) => {
-        if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
-        const names = housekeeping.rawData.orderId.items
-            .map((item) => item?.product?.name)
-            .filter(Boolean);
-        if (!names.length) return 'No items';
-        if (names.length <= 2) return names.join(', ');
-        return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-    };
-
-    const getItemsList = (housekeeping) => {
-        if (!housekeeping?.rawData?.orderId?.items?.length) return [];
-        return housekeeping.rawData.orderId.items
-            .map((item) => item?.product?.name)
-            .filter(Boolean);
-    };
+    // const getItemsList = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return [];
+    //     return housekeeping.rawData.orderId.items
+    //         .map((item) => item?.product?.name)
+    //         .filter(Boolean);
+    // };
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -300,26 +258,42 @@ const OrderRequest = () => {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            // Prepare data for Excel
-            const excelData = setOrderRequestRooms?.map((bookingItem, index) => {
+
+            const excelData = orderRequestRooms?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
                     row['No.'] = ((page - 1) * limit) + index + 1;
                 }
                 if (visibleColumns.workerName) {
-                    row['Worker Name'] = bookingItem.workerName || '';
+                    row['Worker Name'] = bookingItem.name || '';
+                }
+                if (visibleColumns.itemName) {
+                    const items = bookingItem.itemName;
+
+                    row['Item Name'] = Array.isArray(items) && items.length > 0
+                        ? items.length <= 2
+                            ? items.join(", ")
+                            : `${items.slice(0, 2).join(", ")} +${items.length - 2} more`
+                        : "No items";
+                }
+
+                if (visibleColumns.floor) {
+                    row['Floor'] = bookingItem.floor || '';
                 }
                 if (visibleColumns.status) {
                     row['Status'] = bookingItem.status || '';
                 }
-                if (visibleColumns.roomType) {
-                    row['Room Type'] = bookingItem.roomType || '';
+                if (visibleColumns.roomNo) {
+                    row['Room No'] = bookingItem.roomNo || '';
+                }
+                if (visibleColumns.to) {
+                    row['To'] = bookingItem.to || '';
                 }
                 return row;
             });
 
-            // Create a new workbook
+
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
@@ -351,36 +325,20 @@ const OrderRequest = () => {
         setSelectedItem(null);
     };
 
-    // Pagination handlers
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-        setCurrentPage(newPage);
-    };
 
-    const handleItemsPerPageChange = (newLimit) => {
-        setLimit(newLimit);
-        setItemsPerPage(newLimit);
-        setPage(1);
-        setCurrentPage(1);
-    };
-
-    const toIsoDate = (dateInput) => {
-        if (!dateInput) return '';
-        const date = new Date(dateInput);
-        if (Number.isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-    };
-
-    // Filter bookings based on search term// Filter based on search term
     const filteredBookings = orderRequestRooms.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
         return (
             item.name?.toLowerCase().includes(searchLower) ||
+            item.to?.toLowerCase().includes(searchLower) ||
             item.roomType?.toLowerCase().includes(searchLower) ||
             item.status?.toLowerCase().includes(searchLower) ||
-            item.roomNo?.toString().includes(searchLower)
+            item.roomNo?.toString().includes(searchLower) ||
+            item.floor?.toString().includes(searchLower) ||
+            item.itemName?.toString().includes(searchLower) ||
+            item.itemCount?.toString().includes(searchLower)
         );
     });
 
@@ -389,7 +347,7 @@ const OrderRequest = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    console.log('currentData', currentData);
+
 
     const handleApprove = (id) => {
         alert('sds');
@@ -404,7 +362,7 @@ const OrderRequest = () => {
         <>
             <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
                 <section className="py-5">
-                    <h1 className="text-2xl font-semibold text-black">Housekeeping</h1>
+                    <h1 className="text-2xl font-semibold text-black">Order Request</h1>
                 </section>
 
                 <div className="w-full">
@@ -412,7 +370,7 @@ const OrderRequest = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Housekeeping</p>
+                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Order Request</p>
 
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">
@@ -779,13 +737,13 @@ const OrderRequest = () => {
                                                                 {item?.product?.name || 'Unknown Item'} x {item?.qty || 1}
                                                             </span>
                                                             <span className="text-gray-600 font-medium">
-                                                                ₹{((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
+                                                                ${((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
                                                             </span>
-                                                        </div>
+                                                        </div>  
                                                     ))}
                                                     <div className="pt-2 border-t border-gray-300 flex justify-between items-center font-semibold">
                                                         <span className="text-gray-800">Total Amount:</span>
-                                                        <span className="text-gray-900">₹{selectedItem.totalAmount?.toFixed(2) || '0.00'}</span>
+                                                        <span className="text-gray-900">${selectedItem.totalAmount?.toFixed(2) || '0.00'}</span>
                                                     </div>
                                                 </div>
                                             </div>

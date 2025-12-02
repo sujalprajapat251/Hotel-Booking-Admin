@@ -36,6 +36,13 @@ exports.getWorkerOrderRequests = async (req, res) => {
 
         const requests = await OrderRequest.find({ workerId })
             .populate('roomId')
+            .populate('orderId')
+            .populate({
+                path: "orderId",
+                populate: {
+                    path: "items.product",
+                }
+            })
             .sort({ createdAt: -1 });
 
         return res.status(200).json({

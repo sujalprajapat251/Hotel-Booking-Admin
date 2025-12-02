@@ -273,7 +273,7 @@ export default function TableOrder() {
                                                 + add
                                             </p>
 
-                                            <p className="text-secondary text-xs sm:text-sm">Rs.{item.price}</p>
+                                            <p className="text-quinary text-xs sm:text-sm">${item.price}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -299,7 +299,7 @@ export default function TableOrder() {
                                                 />
                                                 <div className="ms-1 sm:ms-3 flex-1 min-w-0">
                                                     <h3 className="font-semibold text-xs sm:text-sm truncate">{oi.product?.name}</h3>
-                                                    <p className="text-xs sm:text-sm text-gray-500">Rs.{oi.product?.price}</p>
+                                                    <p className="text-xs sm:text-sm text-gray-500">${oi.product?.price}</p>
                                                     <p className="text-xs text-gray-500">Qty: {oi.qty}</p>
                                                     {oi.description && <p className="text-xs text-gray-400 truncate">{oi.description}</p>}
                                                 </div>
@@ -420,7 +420,7 @@ export default function TableOrder() {
                             </div>
                             <div className='py-2 sm:py-3 flex justify-between items-center'>
                                 <h3 className='font-semibold text-sm sm:text-lg'>Total</h3>
-                                <p className='text-sm sm:text-base'>Rs. {total}</p>
+                                <p className='text-sm sm:text-base'>${total}</p>
                             </div>
                             <div className='flex justify-end'>
                                 <button

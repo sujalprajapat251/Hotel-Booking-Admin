@@ -19,58 +19,13 @@ const getAuthHeaders = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-
-// Updated fetchBookings to support pagination
-// export const fetchAllhousekeepingrooms = createAsyncThunk(
-//     'haousekeeping/fetchAllhousekeepingrooms',
-//     async (params = {}, { dispatch, rejectWithValue }) => {
-//         try {
-//             const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
-//                 params, // This will include page, limit, search, etc.
-//                 headers: getAuthHeaders()
-//             });
-//             // console.log('response', response.data);
-
-//             // Return the entire response data
-//             return response.data;
-//         } catch (error) {
-//             return handleErrors(error, dispatch, rejectWithValue);
-//         }
-//     }
-// );
-
-// Add this after your fetchAllhousekeepingrooms thunk
-// export const assignWorkerToRoom = createAsyncThunk(
-//     'housekeeping/assignWorkerToRoom',
-//     async ({ roomId, workerId }, { dispatch, rejectWithValue }) => {
-//         try {
-//             const response = await axios.post(
-//                 `${BASE_URL}/assign`,
-//                 { roomId, workerId },
-//                 { headers: getAuthHeaders() }
-//             );
-
-//             dispatch(setAlert({
-//                 text: response.data.message || 'Worker assigned successfully!',
-//                 color: 'success'
-//             }));
-
-//             return response.data;
-//         } catch (error) {
-//             return handleErrors(error, dispatch, rejectWithValue);
-//         }
-//     }
-// );
-
 export const fetchWorkerTasks = createAsyncThunk(
     'worker/fetchWorkerTasks',
     async ({ workerId }, { dispatch, rejectWithValue }) => {
-        // console.log('workerId', workerId);
         try {
             const response = await axios.get(`${BASE_URL}/getworkertask/${workerId}`,
                 { headers: getAuthHeaders() }
             );
-            // console.log('responseeeeeeee', response.data);
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -78,18 +33,16 @@ export const fetchWorkerTasks = createAsyncThunk(
     }
 )
 
-
 export const startWork = createAsyncThunk(
     'worker/startWork',
-    async ({ id }, { dispatch, rejectWithValue }) => {  // Changed Id to id
+    async ({ id }, { dispatch, rejectWithValue }) => {
         console.log('taskId', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/start/${id}`,
-                {}, // Empty body
-                { headers: getAuthHeaders() } // Headers in config
+                {},
+                { headers: getAuthHeaders() }
             );
-            // console.log('response', response.data);
 
             dispatch(setAlert({
                 text: response.data.message || 'Task started successfully!',
@@ -105,15 +58,53 @@ export const startWork = createAsyncThunk(
 
 export const completeTask = createAsyncThunk(
     'worker/completeTask',
-    async ({ id }, { dispatch, rejectWithValue }) => {  // Changed Id to id
+    async ({ id }, { dispatch, rejectWithValue }) => {
         console.log('taskId', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/complete/${id}`,
-                {}, // Empty body
-                { headers: getAuthHeaders() } // Headers in config
+                {},
+                { headers: getAuthHeaders() }
             );
             console.log('response', response.data);
+
+            dispatch(setAlert({
+                text: response.data.message || 'Task started successfully!',
+                color: 'success'
+            }));
+
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
+export const fetchOrderTasks = createAsyncThunk(
+    'worker/fetchOrderTasks',
+    async ({ workerId }, { dispatch, rejectWithValue }) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/getorderRequest/${workerId}`,
+                { headers: getAuthHeaders() }
+            );
+            console.log('response', response);
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+)
+
+export const acceptWorkeorders = createAsyncThunk(
+    'worker/acceptWorkeorders',
+    async ({ id }, { dispatch, rejectWithValue }) => {
+        console.log('order', id);
+        try {
+            const response = await axios.put(
+                `${BASE_URL}/orderRequest/${id}/status`,
+                {},
+                { headers: getAuthHeaders() }
+            );
 
             dispatch(setAlert({
                 text: response.data.message || 'Task started successfully!',
@@ -136,7 +127,6 @@ const initialState = {
     error: null,
     creating: false,
     lastCreated: null,
-    // Pagination state
     totalCount: 0,
     currentPage: 1,
     totalPages: 0
@@ -161,8 +151,7 @@ const WorkerSlice = createSlice({
             })
             .addCase(fetchWorkerTasks.fulfilled, (state, action) => {
                 state.loadingWorkers = false;
-                state.items = action.payload?.data || []; // Store in freeWorkers instead of items
-                // console.log('Free workers:', action.payload.data);
+                state.items = action.payload?.data || [];
             })
             .addCase(fetchWorkerTasks.rejected, (state, action) => {
                 state.loadingWorkers = false;
@@ -174,8 +163,7 @@ const WorkerSlice = createSlice({
             })
             .addCase(startWork.fulfilled, (state, action) => {
                 state.loadingStart = false;
-                state.start = action.payload?.data || []; // Store in freeWorkers instead of items
-                // console.log('Free workers:', action.payload.data);
+                state.start = action.payload?.data || [];
             })
             .addCase(startWork.rejected, (state, action) => {
                 state.loadingStart = false;
@@ -187,11 +175,35 @@ const WorkerSlice = createSlice({
             })
             .addCase(completeTask.fulfilled, (state, action) => {
                 state.loadingStart = false;
-                state.start = action.payload?.data || []; // Store in freeWorkers instead of items
+                state.start = action.payload?.data || [];
                 console.log('Free workers:', action.payload.data);
             })
             .addCase(completeTask.rejected, (state, action) => {
                 state.loadingStart = false;
+                state.error = action.payload;
+            })
+            .addCase(fetchOrderTasks.pending, (state) => {
+                state.loadingWorkers = true;
+                state.error = null;
+            })
+            .addCase(fetchOrderTasks.fulfilled, (state, action) => {
+                state.loadingWorkers = false;
+                state.orders = action.payload?.data || [];
+            })
+            .addCase(fetchOrderTasks.rejected, (state, action) => {
+                state.loadingWorkers = false;
+                state.error = action.payload;
+            })
+            .addCase(acceptWorkeorders.pending, (state) => {
+                state.loadingWorkers = true;
+                state.error = null;
+            })
+            .addCase(acceptWorkeorders.fulfilled, (state, action) => {
+                state.loadingWorkers = false;
+                state.orders = action.payload?.data || [];
+            })
+            .addCase(acceptWorkeorders.rejected, (state, action) => {
+                state.loadingWorkers = false;
                 state.error = action.payload;
             })
     }
