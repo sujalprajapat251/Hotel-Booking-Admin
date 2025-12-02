@@ -737,13 +737,13 @@ const OrderRequest = () => {
                                                                 {item?.product?.name || 'Unknown Item'} x {item?.qty || 1}
                                                             </span>
                                                             <span className="text-gray-600 font-medium">
-                                                                ₹{((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
+                                                                ${((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
                                                             </span>
-                                                        </div>
+                                                        </div>  
                                                     ))}
                                                     <div className="pt-2 border-t border-gray-300 flex justify-between items-center font-semibold">
                                                         <span className="text-gray-800">Total Amount:</span>
-                                                        <span className="text-gray-900">₹{selectedItem.totalAmount?.toFixed(2) || '0.00'}</span>
+                                                        <span className="text-gray-900">${selectedItem.totalAmount?.toFixed(2) || '0.00'}</span>
                                                     </div>
                                                 </div>
                                             </div>
