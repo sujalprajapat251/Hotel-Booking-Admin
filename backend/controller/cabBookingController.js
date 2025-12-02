@@ -233,7 +233,9 @@ exports.getAllCabBookings = async (req, res) => {
             assignedDriver,
             dateFrom,
             dateTo,
-            search
+            search,
+            page = 1,
+            limit = 10
         } = req.query;
 
         const filter = {};
@@ -260,6 +262,10 @@ exports.getAllCabBookings = async (req, res) => {
                 { notes: regex }
             ];
         }
+        
+        const skip = (page - 1) * limit;
+
+        const totalCount = await CabBooking.countDocuments(filter);
 
         const cabBookings = await CabBooking.find(filter)
             .populate({
@@ -278,11 +284,13 @@ exports.getAllCabBookings = async (req, res) => {
                 path: "assignedDriver",
                 select: "name email mobileno"
             })
-            .sort({ bookingDate: -1, createdAt: -1 });
+            .sort({ bookingDate: -1, createdAt: -1 })
+            .skip(skip)
+            .limit(Number(limit));
 
         res.status(200).json({
             success: true,
-            count: cabBookings.length,
+            count: totalCount,
             data: cabBookings
         });
     } catch (error) {
