@@ -85,7 +85,7 @@ const StaffForm = () => {
       : Yup.mixed()
         .required('Image is required')
         .test('fileSize', 'File size must be less than 5MB', (value) => {
-          if (!value) return false;
+          if (!value) return false; 
           return value.size <= 5242880;
         })
         .test('fileType', 'Only JPG, JPEG, PNG formats are allowed', (value) => {

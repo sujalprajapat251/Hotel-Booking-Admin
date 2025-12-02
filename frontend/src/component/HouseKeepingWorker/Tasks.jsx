@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchBookings } from '../../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
-import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { completeTask, fetchWorkerTasks, startWork } from '../../Redux/Slice/WorkerSlice';
@@ -25,13 +25,11 @@ const Tasks = () => {
 
 
     const [assigndTask, setAssigndTask] = useState([]);
-    // console.log('assigndTask', assigndTask?.map((ele, id) => ele?.id));
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
     const [debouncedSearch, setDebouncedSearch] = useState('');
 
-    // UI state
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
@@ -45,11 +43,10 @@ const Tasks = () => {
         actions: true
     });
 
-    // Debounce search term
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page on search
+            setPage(1); 
             setCurrentPage(1);
         }, 500);
 
@@ -64,8 +61,6 @@ const Tasks = () => {
                 status: item.status || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 roomType: item?.roomId.roomType?.roomType || 'N/A',
-                // createdAt: item.createdAt || item.reservation?.checkInDate,
-                // rawData: item // Keep raw data for other operations
             }));
             console.log('formattedData', formattedData);
             setAssigndTask(formattedData);
@@ -114,15 +109,6 @@ const Tasks = () => {
         dispatch(fetchBookings({ page: 1, limit }));
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
     const handleDownloadExcel = () => {
         try {
             if (assigndTask.length === 0) {
@@ -169,27 +155,6 @@ const Tasks = () => {
         }
     };
 
-    // Pagination handlers
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-        setCurrentPage(newPage);
-    };
-
-    const handleItemsPerPageChange = (newLimit) => {
-        setLimit(newLimit);
-        setItemsPerPage(newLimit);
-        setPage(1);
-        setCurrentPage(1);
-    };
-
-    const toIsoDate = (dateInput) => {
-        if (!dateInput) return '';
-        const date = new Date(dateInput);
-        if (Number.isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-    };
-
-    // Filter bookings based on search term
     const filteredBookings = assigndTask.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
@@ -199,11 +164,9 @@ const Tasks = () => {
             item.roomNo?.toString().includes(searchLower) ||
             item.roomType?.toLowerCase().includes(searchLower) ||
             item.status?.toLowerCase().includes(searchLower)
-            // formatDate(item.createdAt).toLowerCase().includes(searchLower)
         );
     });
 
-    // Use backend pagination data
     const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;

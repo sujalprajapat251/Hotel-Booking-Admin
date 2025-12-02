@@ -16,6 +16,7 @@ const buildError = (error) => {
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
+    console.log('token', token);
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -31,7 +32,7 @@ export const fetchWorkerTasks = createAsyncThunk(
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
-)
+);
 
 export const startWork = createAsyncThunk(
     'worker/startWork',
@@ -98,7 +99,7 @@ export const fetchOrderTasks = createAsyncThunk(
 export const acceptWorkeorders = createAsyncThunk(
     'worker/acceptWorkeorders',
     async ({ id }, { dispatch, rejectWithValue }) => {
-        console.log('order', id);
+        // console.log('order', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/orderRequest/${id}/status`,
@@ -117,7 +118,6 @@ export const acceptWorkeorders = createAsyncThunk(
         }
     }
 );
-
 
 const initialState = {
     items: [],
@@ -195,15 +195,16 @@ const WorkerSlice = createSlice({
                 state.error = action.payload;
             })
             .addCase(acceptWorkeorders.pending, (state) => {
-                state.loadingWorkers = true;
+                state.loadingStart = true;
                 state.error = null;
             })
             .addCase(acceptWorkeorders.fulfilled, (state, action) => {
-                state.loadingWorkers = false;
-                state.orders = action.payload?.data || [];
+                state.loadingStart = false;
+                state.start = action.payload?.data || [];
+                console.log('Free workers:', action.payload.data);
             })
             .addCase(acceptWorkeorders.rejected, (state, action) => {
-                state.loadingWorkers = false;
+                state.loadingStart = false;
                 state.error = action.payload;
             })
     }

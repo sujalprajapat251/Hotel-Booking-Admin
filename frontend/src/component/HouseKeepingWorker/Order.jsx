@@ -1,12 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { FiCheckCircle, FiEdit } from 'react-icons/fi';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice.js';
-import { IoEyeSharp } from 'react-icons/io5';
-import { approveCleaningRoom, fetchFreeWorker } from '../../Redux/Slice/housekeepingSlice.js';
-import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../../Redux/Slice/orderRequestSlice.js';
 import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
 
 const Order = () => {
@@ -25,11 +21,8 @@ const Order = () => {
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.worker);
-    console.log('orders', orders);
-
 
     const [assigndOrder, setAssigndOrder] = useState([]);
-    // console.log('assigndOrder', assigndOrder);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -43,7 +36,6 @@ const Order = () => {
 
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
-        // workerName: true,
         itemName: true,
         floor: true,
         status: true,
@@ -55,7 +47,7 @@ const Order = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page on search
+            setPage(1); 
             setCurrentPage(1);
         }, 500);
 
@@ -66,8 +58,7 @@ const Order = () => {
         if (orders && orders.length > 0) {
             const formattedData = orders?.map((item, index) => ({
                 id: item._id || item.id || index,
-                // name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
-                status: item.cleanStatus || 'Pending',
+                status: item.status || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 to: item?.to || 'N/A',
                 floor: item?.roomId?.floor || 'N/A',
@@ -81,7 +72,6 @@ const Order = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item
             }));
-            // console.log('formattedData', formattedData);
             setAssigndOrder(formattedData);
 
         } else {
@@ -102,10 +92,16 @@ const Order = () => {
         }
     };
 
-    const handleAcceptorder = () => {
-        const orderId = assigndOrder?.id;
-
-        dispatch(acceptWorkeorders(orderId))
+    const handleAcceptorder = (orderId) => {
+        dispatch(acceptWorkeorders({ id: orderId }))
+            .unwrap()
+            .then(() => {
+                // Refresh the order list after accepting
+                dispatch(fetchOrderTasks({ workerId }));
+            })
+            .catch((error) => {
+                console.error('Failed to accept order:', error);
+            });
     }
 
     const toggleColumn = (column) => {
@@ -193,7 +189,6 @@ const Order = () => {
         }
     };
 
-    // Filter bookings based on search term
     const filteredBookings = assigndOrder.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
@@ -209,12 +204,10 @@ const Order = () => {
         );
     });
 
-    // Use backend pagination data
     const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    // console.log('currentData', currentData);
 
     return (
         <>
@@ -299,9 +292,6 @@ const Order = () => {
                                         {visibleColumns.No && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No.</th>
                                         )}
-                                        {/* {visibleColumns.workerName && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
-                                        )} */}
                                         {visibleColumns.itemName && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Item Name</th>
                                         )}
@@ -414,16 +404,7 @@ const Order = () => {
                                                                 </span>
                                                             ) : orders.status === "In-Progress" ? (
                                                                 <button
-                                                                    // onClick={() => {
-                                                                    //     dispatch(completeTask({ id: orders.id }))
-                                                                    //         .unwrap()
-                                                                    //         .then(() => {
-                                                                    //             dispatch(fetchWorkerorders({ workerId }));
-                                                                    //         })
-                                                                    //         .catch((error) => {
-                                                                    //             console.error('Failed to complete task:', error);
-                                                                    //         });
-                                                                    // }}
+                                                                    onClick={() => handleAcceptorder(orders?.id)}
                                                                     className="w-[150px] text-center py-2 text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
                                                                     disabled={loading}
                                                                 >
@@ -431,7 +412,7 @@ const Order = () => {
                                                                 </button>
                                                             ) : (
                                                                 <button
-                                                                    onClick={handleAcceptorder()}
+                                                                    onClick={() => handleAcceptorder(orders?.id)}
                                                                     className="w-[150px] py-2 text-center text-white rounded-lg font-semibold bg-tertiary hover:text-tertiary hover:bg-primary"
                                                                     disabled={loading}
                                                                 >

@@ -13,7 +13,7 @@ import { MdBolt, MdPeople, MdPerson, MdNotifications, MdBusiness, MdAccessTime, 
 import Purpose from '../component/Purpose.jsx';
 import HotelOccupancyDashboard from '../component/Hoteloccupancyratechart.jsx';
 import BookingTrendsChart from '../component/Bookingtrendschart.jsx';
-import { Coffee } from 'lucide-react';
+import { Coffee, Phone } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
 import { getAllReview } from '../Redux/Slice/review.slice.js';
@@ -34,7 +34,6 @@ export const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [booking, setBooking] = useState([]);
-  // console.log('booking', booking);
 
   const {
     items
@@ -45,7 +44,6 @@ export const Dashboard = () => {
   const getRoomAvailability = useSelector((state) => state.dashboard.getRoomAvailability);
   const getServicerequests = useSelector((state) => state.dashboard.getServicerequests);
 
-  // ADD THIS useEffect - Transform Redux data to local state
   useEffect(() => {
     if (items && items.length > 0) {
       const formattedBookings = items
@@ -58,15 +56,13 @@ export const Dashboard = () => {
           status: item.payment?.status || 'Pending',
           phone: item.guest?.phone || 'N/A',
           roomType: item.room?.roomType?.roomType || 'N/A',
-          createdAt: item.createdAt || item.reservation?.checkInDate // For sorting by latest
+          createdAt: item.createdAt || item.reservation?.checkInDate 
         }))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // Sort by latest first
-        .slice(0, 8); // Take only first 10
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
+        .slice(0, 8); 
       setBooking(formattedBookings);
     }
   }, [items]);
-
-
 
   const getStatusStyle = (status) => {
     switch (status) {
@@ -239,7 +235,7 @@ export const Dashboard = () => {
       review: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam vel rutrum ex, at ornare mi. In quis scelerisque dui, eget rhoncus orci. Fusce et sodales ipsum. Nam id nunc euismod, aliquet arcu quis, mattis nisi.',
       likes: 0,
       dislikes: 0,
-      userLiked: null // null = no action, true = liked, false = disliked
+      userLiked: null 
     },
     {
       id: 2,
@@ -283,7 +279,6 @@ export const Dashboard = () => {
           </svg>
         );
       } else {
-        // Empty star
         stars.push(
           <svg key={i} className="w-5 h-5 fill-none" viewBox="0 0 24 24" strokeWidth="1.5" style={{ stroke: '#755647' }}>
             <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -298,13 +293,10 @@ export const Dashboard = () => {
     setReviews(reviews.map(review => {
       if (review.id === reviewId) {
         if (review.userLiked === true) {
-          // Already liked, remove like
           return { ...review, likes: review.likes - 1, userLiked: null };
         } else if (review.userLiked === false) {
-          // Was disliked, switch to like
           return { ...review, likes: review.likes + 1, dislikes: review.dislikes - 1, userLiked: true };
         } else {
-          // No action yet, add like
           return { ...review, likes: review.likes + 1, userLiked: true };
         }
       }
@@ -316,13 +308,10 @@ export const Dashboard = () => {
     setReviews(reviews.map(review => {
       if (review.id === reviewId) {
         if (review.userLiked === false) {
-          // Already disliked, remove dislike
           return { ...review, dislikes: review.dislikes - 1, userLiked: null };
         } else if (review.userLiked === true) {
-          // Was liked, switch to dislike
           return { ...review, likes: review.likes - 1, dislikes: review.dislikes + 1, userLiked: false };
         } else {
-          // No action yet, add dislike
           return { ...review, dislikes: review.dislikes + 1, userLiked: false };
         }
       }
@@ -343,8 +332,6 @@ export const Dashboard = () => {
   useEffect(() => {
     dispatch(fetchBookings());
   }, [dispatch]);
-
-  // Reviews dynamic
 
   const getReview = useSelector((state) => state.review.reviews);
   const calculateRatingBreakdown = (reviews) => {
@@ -420,7 +407,6 @@ export const Dashboard = () => {
               <div className="flex">
                 {[...Array(5)].map((_, i) => {
                   const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
-
                   return (
                     <span key={i} className="relative">
                       <span className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]">★</span>
@@ -434,12 +420,10 @@ export const Dashboard = () => {
                   );
                 })}
               </div>
-
               <span className='ml-2 text-black'>{`${averageRating}/5`}</span>
             </div>
           </div>
         </div>
-
 
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5'>
           <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
@@ -511,7 +495,6 @@ export const Dashboard = () => {
             </div>
           </div>
         </div>
-
 
         <div className='mt-5 rounded-lg shadow-sm w-full'>
           <div className='lg:flex gap-5 justify-between'>
@@ -710,12 +693,6 @@ export const Dashboard = () => {
               background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
             }}>
               <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Current Booking Details</h2>
-              {/* <button className="transition-colors" style={{ color: '#A3876A' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#876B56'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#A3876A'}
-              >
-                <FaEllipsisV size={20} />
-              </button> */}
             </div>
 
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)]" style={{
@@ -739,10 +716,8 @@ export const Dashboard = () => {
                   background: #876B56;
                 }
               `}</style>
-              <table className="w-full min-w-[1000px] themed-scrollbar">
-                <thead className="sticky top-0 z-10 shadow-sm" style={{
-                  background: 'linear-gradient(135deg, #F7DF9C 0%, #E3C78A 100%)'
-                }}>
+              <table className="w-full min-w-[1000px] themed-scrollbar whitespace-nowrap">
+                <thead className="sticky top-0 z-10 shadow-sm bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]">
                   <tr>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>#</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Name</th>
@@ -752,7 +727,6 @@ export const Dashboard = () => {
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Status</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Phone</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Room Type</th>
-                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Documents</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Actions</th>
                   </tr>
                 </thead>
@@ -771,15 +745,6 @@ export const Dashboard = () => {
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm font-medium" style={{ color: '#876B56' }}>{index + 1}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
-                          {/* <div className="relative">
-                            <img
-                              src={booking.image}
-                              alt={booking.name}
-                              className="w-11 h-11 rounded-full object-cover border-2 shadow-sm"
-                              style={{ borderColor: '#E3C78A' }}
-                            />
-                            <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full" style={{ backgroundColor: getStatusColor(booking.status) }}></div>
-                          </div> */}
                           <span className="text-sm font-semibold" style={{ color: '#755647' }}>{booking.name}</span>
                         </div>
                       </td>
@@ -791,7 +756,12 @@ export const Dashboard = () => {
                           {booking.status}
                         </span>
                       </td>
-                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{booking.phone}</td>
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>
+                        <div className="flex items-center gap-2 text-sm text-gray-700">
+                          <Phone
+                            size={16} className='text-green-600' />{booking.phone}
+                        </div>
+                      </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center">
                           <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
@@ -799,23 +769,17 @@ export const Dashboard = () => {
                             color: '#755647',
                             borderColor: 'rgba(183, 153, 130, 0.3)'
                           }}>
-                            {/* {booking.roomType} */}
                             {booking.roomType?.split(' ')[0] || 'N/A'}
                           </span>
                         </div>
                       </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
-                        <button className="text-[#EC5C09] hover:text-[#EC0927] transition-colors p-2 hover:bg-orange-50 rounded-md">
-                          <HiOutlineDocumentChartBar size={22} />
-                        </button>
-                      </td>
-                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
-                          <button className="text-[#4F15E0] hover:text-[#3d0fb3] transition-colors p-2 hover:bg-purple-50 rounded-md">
-                            <FiEdit size={18} />
+                          <button className=" transition-colors p-2 hover:bg-purple-50 rounded-md">
+                            <FiEdit className="text-[#6777ef] text-[18px]" />
                           </button>
-                          <button className="text-[#EC5C09] hover:text-[#EC0927] transition-colors p-2 hover:bg-orange-50 rounded-md">
-                            <RiDeleteBinLine size={18} />
+                          <button className="transition-colors p-2 hover:bg-orange-50 rounded-md">
+                            <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
                           </button>
                         </div>
                       </td>
@@ -860,7 +824,7 @@ export const Dashboard = () => {
                   ${formatNumber(Math.abs(getRevenueData.difference))}
                   {" "}
                   ({getRevenueData.percentageChange >= 0 ? (<><span style={{ color: '#4EB045' }}>+{getRevenueData.percentageChange}%</span></>
-                    ) : (<><span style={{ color: '#EC0927' }}>{getRevenueData.percentageChange}%</span></>)})
+                  ) : (<><span style={{ color: '#EC0927' }}>{getRevenueData.percentageChange}%</span></>)})
                 </span>
               </div>
               <div className="text-sm mt-1" style={{ color: '#A3876A' }}>vs. Previous Month</div>

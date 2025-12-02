@@ -138,7 +138,6 @@ const OrderRequest = () => {
         }
 
         try {
-            // Dispatch the API call
             await dispatch(assignWorkerToOrderRequest({
                 Id: orderId,
                 workerId
@@ -172,37 +171,6 @@ const OrderRequest = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    // const getOrderItemCount = (housekeeping) => {
-    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
-    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
-    // };
-
-    // const getOrderTotalAmount = (housekeeping) => {
-    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
-    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => {
-    //         const price = item?.product?.price || 0;
-    //         const qty = item?.qty || 1;
-    //         return sum + price * qty;
-    //     }, 0);
-    // };
-
-    // const getItemPreview = (housekeeping) => {
-    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
-    //     const names = housekeeping.rawData.orderId.items
-    //         .map((item) => item?.product?.name)
-    //         .filter(Boolean);
-    //     if (!names.length) return 'No items';
-    //     if (names.length <= 2) return names.join(', ');
-    //     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-    // };
-
-    // const getItemsList = (housekeeping) => {
-    //     if (!housekeeping?.rawData?.orderId?.items?.length) return [];
-    //     return housekeeping.rawData.orderId.items
-    //         .map((item) => item?.product?.name)
-    //         .filter(Boolean);
-    // };
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -241,15 +209,6 @@ const OrderRequest = () => {
         setPage(1);
         setCurrentPage(1);
         dispatch(fetchAllOrderRequesr({ page: 1, limit }));
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
     };
 
     const handleDownloadExcel = () => {
@@ -293,7 +252,6 @@ const OrderRequest = () => {
                 return row;
             });
 
-
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
@@ -325,7 +283,6 @@ const OrderRequest = () => {
         setSelectedItem(null);
     };
 
-
     const filteredBookings = orderRequestRooms.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
@@ -342,12 +299,10 @@ const OrderRequest = () => {
         );
     });
 
-    // Correct pagination on filtered data
     const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-
 
     const handleApprove = (id) => {
         alert('sds');
@@ -675,7 +630,6 @@ const OrderRequest = () => {
                     </div>
                 </div>
 
-                {/* View Booking Modal */}
                 {/* View Booking Modal */}
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
