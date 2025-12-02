@@ -235,7 +235,9 @@ const getRoomsWithPagination = async (req, res) => {
   
       const checkInDate = parseDate(checkInFrom);
       const checkOutDate = parseDate(checkOutTo);
-      const hasDateFilter = checkInDate && checkOutDate;
+      const hasDateFilter = !!(checkInDate && checkOutDate);
+      const hasCheckInOnly = !!(checkInDate && !checkOutDate);
+      const hasCheckOutOnly = !!(!checkInDate && checkOutDate);
   
       // Build query
       const query = {};
@@ -256,6 +258,9 @@ const getRoomsWithPagination = async (req, res) => {
       // Status filter
       if (status && status !== 'All Status') {
         query.status = status;
+      } else if (hasDateFilter) {
+        // When a range date filter is applied and status not provided, show only Available rooms
+        query.status = 'Available';
       }
   
       // Housekeeping filter (maps to cleanStatus field)
@@ -290,31 +295,72 @@ const getRoomsWithPagination = async (req, res) => {
         query.$or = searchConditions;
       }
   
-      // Date filter: Find rooms available during the specified date range
-      if (hasDateFilter) {
-        // Find all rooms that have active bookings overlapping with the date range
+      // Date filter behavior per requirements
+      if (hasDateFilter || hasCheckInOnly || hasCheckOutOnly) {
         const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
-        const overlappingBookings = await Booking.find({
-          status: { $in: ACTIVE_BOOKING_STATUSES },
-          'reservation.checkInDate': { $lt: checkOutDate },
-          'reservation.checkOutDate': { $gt: checkInDate }
-        }).select('room').lean();
-        
-        // Get unique room IDs that are booked during this period
-        const bookedRoomIds = [...new Set(overlappingBookings.map(b => b.room?.toString()).filter(Boolean))];
-        
-        // Filter to show only rooms that are NOT booked (available) during the date range
-        if (bookedRoomIds.length > 0) {
-          // Convert string IDs to ObjectId for query
-          const bookedObjectIds = bookedRoomIds
-            .filter(id => Types.ObjectId.isValid(id))
-            .map(id => new Types.ObjectId(id));
-          
-          if (bookedObjectIds.length > 0) {
-            query._id = { $nin: bookedObjectIds };
+
+        const dayRange = (d) => ({
+          start: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0),
+          end: new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999)
+        });
+
+        if (hasDateFilter) {
+          // Show rooms available in the range: exclude rooms with overlapping bookings
+          const overlappingBookings = await Booking.find({
+            status: { $in: ACTIVE_BOOKING_STATUSES },
+            'reservation.checkInDate': { $lt: checkOutDate },
+            'reservation.checkOutDate': { $gt: checkInDate }
+          }).select('room').lean();
+
+          const bookedRoomIds = [...new Set(overlappingBookings.map(b => b.room?.toString()).filter(Boolean))];
+          if (bookedRoomIds.length > 0) {
+            const bookedObjectIds = bookedRoomIds
+              .filter(id => Types.ObjectId.isValid(id))
+              .map(id => new Types.ObjectId(id));
+            if (bookedObjectIds.length > 0) {
+              query._id = { $nin: bookedObjectIds };
+            }
+          }
+        } else if (hasCheckInOnly) {
+          // Show rooms that have bookings starting on the given check-in date
+          const { start, end } = dayRange(checkInDate);
+          const bookings = await Booking.find({
+            status: { $in: ACTIVE_BOOKING_STATUSES },
+            'reservation.checkInDate': { $gte: start, $lte: end }
+          }).select('room').lean();
+
+          const matchRoomIds = [...new Set(bookings.map(b => b.room?.toString()).filter(Boolean))];
+          if (matchRoomIds.length > 0) {
+            const matchObjectIds = matchRoomIds
+              .filter(id => Types.ObjectId.isValid(id))
+              .map(id => new Types.ObjectId(id));
+            if (matchObjectIds.length > 0) {
+              query._id = { $in: matchObjectIds };
+            }
+          } else {
+            // No rooms match: force empty result
+            query._id = { $in: [] };
+          }
+        } else if (hasCheckOutOnly) {
+          // Show rooms that have bookings ending on the given check-out date
+          const { start, end } = dayRange(checkOutDate);
+          const bookings = await Booking.find({
+            status: { $in: ACTIVE_BOOKING_STATUSES },
+            'reservation.checkOutDate': { $gte: start, $lte: end }
+          }).select('room').lean();
+
+          const matchRoomIds = [...new Set(bookings.map(b => b.room?.toString()).filter(Boolean))];
+          if (matchRoomIds.length > 0) {
+            const matchObjectIds = matchRoomIds
+              .filter(id => Types.ObjectId.isValid(id))
+              .map(id => new Types.ObjectId(id));
+            if (matchObjectIds.length > 0) {
+              query._id = { $in: matchObjectIds };
+            }
+          } else {
+            query._id = { $in: [] };
           }
         }
-        // If no rooms are booked, all rooms pass the filter (query remains unchanged)
       }
   
       // Count total documents for pagination
