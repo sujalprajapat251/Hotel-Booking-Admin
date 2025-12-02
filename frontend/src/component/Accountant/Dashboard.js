@@ -156,7 +156,7 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">Qty: {m.qty}</div>
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
-                        <div className="text-sm font-medium">₹{m.product.price}.00</div>
+                        <div className="text-sm font-medium">${m.product.price}.00</div>
                       </div>
                     </div>
                   ))}
@@ -169,7 +169,7 @@ export default function Dashboard() {
 
               <div className="flex items-center justify-between mt-4 py-3">
                 <div className="font-semibold">Total</div>
-                <div className="font-semibold">₹ {total}</div>
+                <div className="font-semibold">${total}</div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
@@ -208,7 +208,7 @@ export default function Dashboard() {
             <h2 id="payment-modal-title" className="text-lg font-semibold mb-2">
               Select Payment Method
             </h2>
-            <div className="text-sm text-gray-800 mb-5">Choose how the guest will pay. Total: <span className="font-semibold">₹{total}</span></div>
+            <div className="text-sm text-gray-800 mb-5">Choose how the guest will pay. Total: <span className="font-semibold">${total}</span></div>
 
             <div className="space-y-4">
               {[

@@ -263,7 +263,7 @@ const HODTable = () => {
                       setIsAddModalOpen(true);
                     }}
                     className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#ecffed] rounded-lg transition-colors"
-                    title="Show/Hide Columns"
+                    title="Add Table"
                   >
                     <FiPlusCircle size={20} />
                   </button>

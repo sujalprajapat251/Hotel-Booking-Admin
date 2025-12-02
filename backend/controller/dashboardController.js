@@ -706,7 +706,7 @@ exports.serviceRequests = async (req, res) => {
 
         // ----- 2. LAST 3 CLEANING REQUESTS -----
         const latestRequests = await Room.find({
-            cleanStatus: { $in: ["Pending", "In-Progress", "Completed"] }
+            cleanStatus: { $in: ["Pending", "In-Progress", "Completed","Dirty"] }
         })
             .sort({ updatedAt: -1 })  // latest first
             .limit(3)
