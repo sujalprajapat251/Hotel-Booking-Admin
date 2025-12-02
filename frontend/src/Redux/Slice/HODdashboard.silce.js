@@ -32,13 +32,13 @@ export const getAllHodDashboard = createAsyncThunk(
     }
 );
 
-export const getAllRoomAvailability = createAsyncThunk(
-    'revenue/getAllRoomAvailability',
+export const getAllPaymentMethod = createAsyncThunk(
+    'revenue/getAllPaymentMethod',
     async (_, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/roomavailability`,
+            const response = await axios.get(`${BASE_URL}/getdepartmentpaymentsummary`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -46,20 +46,20 @@ export const getAllRoomAvailability = createAsyncThunk(
                 }
             );
 
-            return response.data.data;
+            return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
     }
 );
 
-export const getAllReservation = createAsyncThunk(
-    'revenue/getreservation',
-    async (getCurrentYearMonth, { dispatch, rejectWithValue }) => {
+export const getAllMonthlyRevenue = createAsyncThunk(
+    'revenue/getMonthlyRevenue',
+    async (getCurrentYear, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getreservation?month=${getCurrentYearMonth}`,
+            const response = await axios.get(`${BASE_URL}/getdepartmentrevenuebymonth?year=${getCurrentYear}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ export const getAllReservation = createAsyncThunk(
                 }
             );
 
-            return response.data.data;
+            return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
@@ -78,14 +78,9 @@ export const getAllReservation = createAsyncThunk(
 const dashboardSlice = createSlice({
     name: 'HodDashboardData',
     initialState: {
-        getRevenue: [],
         getHodDashboard: [],
-        getRoomAvailability: [],
-        getReservation: [],
-        getOrdersummery: [],
-        getBookingtrends: [],
-        getOccupancyrate: [],
-        getServicerequests: [],
+        getPaymentMethod: [],
+        getMonthlyRevenue: [],
         message: '',
         loading: false,
         isError: false,
@@ -94,13 +89,13 @@ const dashboardSlice = createSlice({
         builder
             .addCase(getAllHodDashboard.pending, (state) => {
                 state.loading = true;
-                state.message = 'Fetching Dashboard Data...';
+                state.message = 'Fetching HOD Dashboard Data...';
                 state.isError = false;
             })
             .addCase(getAllHodDashboard.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'Dashboard Data fetched successfully';
+                state.message = 'HOD Dashboard Data fetched successfully';
                 state.getHodDashboard = action.payload;
                 state.isError = false;
             })
@@ -108,45 +103,45 @@ const dashboardSlice = createSlice({
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to fetch Dashboard Data';
+                state.message = action.payload?.message || 'Failed to fetch HOD Dashboard Data';
             })
 
-            .addCase(getAllRoomAvailability.pending, (state) => {
+            .addCase(getAllPaymentMethod.pending, (state) => {
                 state.loading = true;
-                state.message = 'Fetching Room Availability...';
+                state.message = 'Fetching Payment Method...';
                 state.isError = false;
             })
-            .addCase(getAllRoomAvailability.fulfilled, (state, action) => {
+            .addCase(getAllPaymentMethod.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'Room Availability fetched successfully';
-                state.getRoomAvailability = action.payload;
+                state.message = 'Payment Method fetched successfully';
+                state.getPaymentMethod = action.payload;
                 state.isError = false;
             })
-            .addCase(getAllRoomAvailability.rejected, (state, action) => {
+            .addCase(getAllPaymentMethod.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to fetch Room Availability';
+                state.message = action.payload?.message || 'Failed to fetch Payment Method';
             })
 
-            .addCase(getAllReservation.pending, (state) => {
+            .addCase(getAllMonthlyRevenue.pending, (state) => {
                 state.loading = true;
-                state.message = 'Fetching Reservation...';
+                state.message = 'Fetching Monthly Revenue...';
                 state.isError = false;
             })
-            .addCase(getAllReservation.fulfilled, (state, action) => {
+            .addCase(getAllMonthlyRevenue.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = true;
-                state.message = 'Reservation fetched successfully';
-                state.getReservation = action.payload;
+                state.message = 'Monthly Revenue fetched successfully';
+                state.getMonthlyRevenue = action.payload;
                 state.isError = false;
             })
-            .addCase(getAllReservation.rejected, (state, action) => {
+            .addCase(getAllMonthlyRevenue.rejected, (state, action) => {
                 state.loading = false;
                 state.success = false;
                 state.isError = true;
-                state.message = action.payload?.message || 'Failed to fetch Reservation';
+                state.message = action.payload?.message || 'Failed to fetch Monthly Revenue';
             })            
     },
 });

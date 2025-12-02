@@ -3,62 +3,35 @@ import HODbookingchart from '../HOD/HODbookingchart';
 import HODtotalRevenue from '../HOD/HODtotalRevenuechart';
 import TotalOrderchart from '../HOD/HODTotalOrderchart';
 import HODtotalStaffchart from '../HOD/HODtotalStaffchart';
-import Reservationchart from '../Reservationchart';
-import { getAllHodDashboard } from '../../Redux/Slice/HODdashboard.silce';
+import HOdMonthlyRevenue from '../HOD/HODMonthlyRevenuechart';
+import { getAllHodDashboard, getAllMonthlyRevenue, getAllPaymentMethod } from '../../Redux/Slice/HODdashboard.silce';
 import { useDispatch, useSelector } from 'react-redux';
 
 const HODDashboard = () => {
 
   const dispatch = useDispatch();
   const getHodDashboard = useSelector((state) => state.HODDashboard.getHodDashboard);
+  const getPaymentMethod = useSelector((state) => state.HODDashboard.getPaymentMethod);
 
-  const roomData = {
-    occupied: 125,
-    reserved: 87,
-    available: 57,
-    notReady: 25
-  };
+  const paymentMethods = getPaymentMethod?.paymentMethodSummary || {};
+  const fixedOrder = ["card", "cash", "upi"];
 
-  const total = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+  const paymentStats = Object.entries(paymentMethods)
+  .sort((a, b) => fixedOrder.indexOf(a[0]) - fixedOrder.indexOf(b[0]))
+  .map(([key, value]) => ({
+    label: key.charAt(0).toUpperCase() + key.slice(1),
+    value: value.revenue,
+  }));
 
-  const percentages = {
-    occupied: (roomData.occupied / total) * 100,
-    reserved: (roomData.reserved / total) * 100,
-    available: (roomData.available / total) * 100,
-    notReady: (roomData.notReady / total) * 100
-  };
+  const totalRevenue = paymentStats.reduce((sum, item) => sum + item.value, 0);
 
-  const colors = {
-    primary: '#F7DF9C',
-    secondary: '#E3C78A',
-    tertiary: '#B79982',
-    quaternary: '#A3876A',
-    quinary: '#876B56',
-    senary: '#755647',
-  };
+  const colors = [ '#F7DF9C', '#B79982', '#876B56', '#755647', '#E3C78A', '#A3876A' ];
 
-  const stats = [
-    {
-      label: 'Occupied',
-      value: roomData.occupied,
-      color: colors.primary
-    },
-    {
-      label: 'Reserved',
-      value: roomData.reserved,
-      color: colors.tertiary
-    },
-    {
-      label: 'Available',
-      value: roomData.available,
-      color: colors.quinary
-    },
-    {
-      label: 'Not Ready',
-      value: roomData.notReady,
-      color: colors.senary
-    }
-  ];
+  const stats = paymentStats.map((item, index) => ({
+    ...item,
+    percentage: totalRevenue ? (item.value / totalRevenue) * 100 : 0,
+    color: colors[index % colors.length],
+  }));
 
   const getCurrentYearMonth = () => {
     const now = new Date();
@@ -67,15 +40,19 @@ const HODDashboard = () => {
     return `${year}-${month}`;
   };
 
-  const formatNumber = (num) => {
-    if (!num) return "0";
-    return num.toLocaleString("en-IN");
+  const getCurrentYear = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    return year;
   };
 
   useEffect(() => {
     const yearMonth = getCurrentYearMonth();
+    const currentYear = getCurrentYear();
 
     dispatch(getAllHodDashboard(yearMonth));
+    dispatch(getAllPaymentMethod());
+    dispatch(getAllMonthlyRevenue(currentYear));
   }, [dispatch]);
 
   return (
@@ -118,7 +95,7 @@ const HODDashboard = () => {
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
           <div className='sm:flex justify-between items-end'>
-            <div className='mb-5'>
+            <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Order</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalOrder}</p>
             </div>
@@ -132,7 +109,7 @@ const HODDashboard = () => {
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
           <div className='sm:flex justify-between items-end'>
-            <div className='mb-5'>
+            <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Staff</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalStaff}</p>
             </div>
@@ -145,47 +122,37 @@ const HODDashboard = () => {
 
       <div className='mt-5 rounded-lg shadow-sm w-full'>
         <div className='lg:flex gap-5 justify-between'>
-          <div className='bg-white p-3 lg:p-5 rounded-xl lg:w-[32.33%] border-2' style={{
-            borderColor: '#E3C78A',
-            boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
-          }}>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: '#755647' }}>Room Availability</h2>
+          <div className='bg-white p-3 lg:p-5 rounded-xl lg:w-[32.33%] border-2'
+            style={{
+              borderColor: '#E3C78A',
+              boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
+            }}>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: '#755647' }}>
+              Payment Method
+            </h2>
+
+            {/* Progress Bar */}
             <div className="flex h-8 xl:h-10 2xl:h-12 rounded-lg overflow-hidden mb-8">
-              <div
-                style={{
-                  width: `${percentages.occupied}%`,
-                  backgroundColor: colors.primary
-                }}
-              ></div>
-              <div
-                style={{
-                  width: `${percentages.reserved}%`,
-                  backgroundColor: colors.tertiary
-                }}
-              ></div>
-              <div
-                style={{
-                  width: `${percentages.available}%`,
-                  backgroundColor: colors.quinary
-                }}
-              ></div>
-              <div
-                style={{
-                  width: `${percentages.notReady}%`,
-                  backgroundColor: colors.senary
-                }}
-              ></div>
+              {stats.map((item, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: `${item.percentage}%`,
+                    backgroundColor: item.color
+                  }}
+                ></div>
+              ))}
             </div>
 
             <div className="grid grid-cols-2 md:gap-3 lg:gap-5">
-              {stats.map((stat, index) => (
+              {stats.map((item, index) => (
                 <div
                   key={index}
                   className="flex flex-col border-l-4 pl-3"
-                  style={{ borderColor: stat.color }}
+                  style={{ borderColor: item.color }}
                 >
-                  <span className="text-sm mb-1" style={{ color: '#A3876A' }}>{stat.label}</span>
-                  <p className="text-3xl font-semibold" style={{ color: '#755647' }}>{stat.value}</p>
+                  <span className="text-sm mb-1" style={{ color: '#A3876A' }}>{item.label}</span>
+                  <p className="text-3xl font-semibold" style={{ color: '#755647' }}>{item.value}</p>
                 </div>
               ))}
             </div>
@@ -194,8 +161,8 @@ const HODDashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <h2 className="text-lg font-semibold" style={{ color: '#755647' }}>Reservation</h2>
-            <Reservationchart />
+            <h2 className="text-lg font-semibold" style={{ color: '#755647' }}>Monthly Revenue</h2>
+            <HOdMonthlyRevenue />
           </div>
         </div>
       </div>
