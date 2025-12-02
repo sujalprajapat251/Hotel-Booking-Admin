@@ -37,8 +37,8 @@ export default function SingleRoomModal({ id, onClose }) {
       }, []);
     return (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white/95 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide">
-                <div className="flex items-center justify-between px-6 py-4   rounded-t-2xl shadow-inner sticky top-0 left-0 bg-white z-10">
+            <div className="bg-white/95 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-md shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide">
+                <div className="flex items-center justify-between px-6 py-4   rounded-t-md shadow-inner sticky top-0 left-0 bg-white z-10">
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
                         <span className="text-xl font-semibold">
                             Room Detail

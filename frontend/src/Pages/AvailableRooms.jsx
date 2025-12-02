@@ -11,6 +11,7 @@ import { FiEdit } from 'react-icons/fi';
 import { IoEyeSharp } from 'react-icons/io5';
 import SingleRoomModal from '../component/SingleRoomModal';
 import { useNavigate } from 'react-router-dom';
+import { RiDeleteBinLine } from 'react-icons/ri';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
@@ -959,12 +960,12 @@ const AvailableRooms = () => {
 
                         </div>
                         <div className='absolute bottom-4 right-4 flex  gap-3 '>
-
-                        <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
+                          <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
                             navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
                           }} />
-                        <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => {setViewId(room._id || room.id);}} />
-                          </div>
+                          <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
+                          <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-[#876B56]  text-[18px]" />
+                        </div>
                         {/* Image Counter */}
                         {roomImages.length > 0 && (
                           <div className="absolute bottom-3 left-3 bg-black/60 text-white px-2 py-1 rounded-md text-xs font-medium">
@@ -1159,8 +1160,7 @@ const AvailableRooms = () => {
                             </div>
                           )}
                         </button>
-                        <button
-                          onClick={() => onDelete(room)}
+                        {/* <button
                           className="w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 border border-red-200 text-red-600 hover:bg-red-50 transition-all duration-200"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1170,7 +1170,7 @@ const AvailableRooms = () => {
                             <line x1="14" y1="11" x2="14" y2="17"></line>
                           </svg>
                           Delete Room
-                        </button>
+                        </button> */}
                       </div>
                     </div>
                   </div>
@@ -1224,12 +1224,12 @@ const AvailableRooms = () => {
         />
       )}
       {/* view single room detail  */}
-      { viewId && (
-          <SingleRoomModal
-            id={viewId}
-            onClose={() => setViewId(null)}
-          />
-        )
+      {viewId && (
+        <SingleRoomModal
+          id={viewId}
+          onClose={() => setViewId(null)}
+        />
+      )
       }
       {deleteModalOpen && roomToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
