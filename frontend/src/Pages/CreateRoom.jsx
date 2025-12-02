@@ -1,83 +1,81 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { createRoom, clearRoomError } from '../Redux/Slice/createRoomSlice';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { ChevronDown } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { createRoom, clearRoomError, updateRoom } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchFeatures } from '../Redux/Slice/featuresSlice';
-import { ChevronDown } from 'lucide-react';
+import { setAlert } from '../Redux/Slice/alert.slice';
+import { IMAGE_URL } from '../Utils/baseUrl';
+
+const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
+const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+const defaultMainBedType = 'Queen';
+const defaultChildBedType = 'Single';
+
+const normalizeRoomTypeId = (roomType) => {
+  if (!roomType) return '';
+  if (typeof roomType === 'string') return roomType;
+  return roomType.id || roomType._id || '';
+};
+
+const normalizeFeaturesToIds = (features = []) =>
+  (features || [])
+    .map((feature) => {
+      if (!feature) return null;
+      if (typeof feature === 'string') return feature;
+      return feature.id || feature._id || null;
+    })
+    .filter(Boolean);
+
+const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${IMAGE_URL}${path.startsWith('/') ? path.slice(1) : path}`;
+};
 
 const CreateRoom = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const { loading, error } = useSelector((state) => state.rooms);
   const { items: roomTypes } = useSelector((state) => state.roomtypes);
-  const { items: features } = useSelector((state) => state.features);
 
-  const [formData, setFormData] = useState({
-    roomNumber: '',
-    roomType: '',
-    floor: '',
-    price: {
-      base: '',
-      weekend: ''
-    },
-    capacity: {
-      adults: '',
-      children: ''
-    },
-    features: [],
-    bed: {
-      mainBed: {
-        type: 'Queen',
-        count: ''
-      },
-      childBed: {
-        type: 'Single',
-        count: ''
-      }
-    },
-    viewType: '',
-    images: [],
-    status: 'Available',
-    isSmokingAllowed: false,
-    isPetFriendly: false,
-    maintenanceNotes: ''
-  });
+  const roomData = location?.state?.roomData || location?.state?.room || null;
 
+  const [isEditMode, setIsEditMode] = useState(location?.state?.mode === 'edit');
+  const [editingItem, setEditingItem] = useState(null);
   const [imagePreviews, setImagePreviews] = useState([]);
-  console.log('imagePreviews', imagePreviews);
-  const [selectedFeatures, setSelectedFeatures] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
   const [filteredFeatures, setFilteredFeatures] = useState([]);
   const [showRoomTypeDropdown, setShowRoomTypeDropdown] = useState(false);
-  const roomTypeRef = useRef(null);
   const [showMainBedTypeDropdown, setShowMainBedTypeDropdown] = useState(false);
-  const mainBedTypeRef = useRef(null);
   const [showChildBedTypeDropdown, setShowChildBedTypeDropdown] = useState(false);
-  const childBedTypeRef = useRef(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+
+  const roomTypeRef = useRef(null);
+  const mainBedTypeRef = useRef(null);
+  const childBedTypeRef = useRef(null);
   const statusRef = useRef(null);
+  const roomTypeWatchRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchRoomTypes());
-    dispatch(fetchFeatures());
   }, [dispatch]);
 
-  // Filter features when room type changes
   useEffect(() => {
-    if (formData.roomType) {
-      // Fetch features for the selected room type
-      dispatch(fetchFeatures(formData.roomType)).then((result) => {
-        if (result.payload) {
-          setFilteredFeatures(result.payload);
-        }
-      });
-      // Clear selected features when room type changes
-      setSelectedFeatures([]);
-    } else {
-      setFilteredFeatures([]);
-      setSelectedFeatures([]);
+    if (isEditMode && roomData) {
+      setEditingItem(roomData);
+      setExistingImages(roomData.images || []);
+    } else if (!isEditMode) {
+      setEditingItem(null);
+      setExistingImages([]);
     }
-  }, [formData.roomType, dispatch]);
+  }, [isEditMode, roomData]);
 
-  // Close room type dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (roomTypeRef.current && !roomTypeRef.current.contains(event.target)) {
@@ -95,176 +93,277 @@ const CreateRoom = () => {
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-
-  // Close status dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (statusRef.current && !statusRef.current.contains(event.target)) {
-        setShowStatusDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
-  const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
-  const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
+  const initialValues = useMemo(() => {
+    const roomTypeId = normalizeRoomTypeId(editingItem?.roomType);
+    return {
+      roomNumber: editingItem?.roomNumber || '',
+      roomType: roomTypeId,
+      floor: editingItem?.floor !== undefined && editingItem?.floor !== null ? String(editingItem.floor) : '',
+      price: {
+        base: editingItem?.price?.base !== undefined && editingItem?.price?.base !== null ? String(editingItem.price.base) : '',
+        weekend:
+          editingItem?.price?.weekend !== undefined && editingItem?.price?.weekend !== null
+            ? String(editingItem.price.weekend)
+            : ''
+      },
+      capacity: {
+        adults:
+          editingItem?.capacity?.adults !== undefined && editingItem?.capacity?.adults !== null
+            ? String(editingItem.capacity.adults)
+            : '',
+        children:
+          editingItem?.capacity?.children !== undefined && editingItem?.capacity?.children !== null
+            ? String(editingItem.capacity.children)
+            : ''
+      },
+      features: normalizeFeaturesToIds(editingItem?.features),
+      bed: {
+        mainBed: {
+          type: editingItem?.bed?.mainBed?.type || defaultMainBedType,
+          count:
+            editingItem?.bed?.mainBed?.count !== undefined && editingItem?.bed?.mainBed?.count !== null
+              ? String(editingItem.bed.mainBed.count)
+              : ''
+        },
+        childBed: {
+          type: editingItem?.bed?.childBed?.type || defaultChildBedType,
+          count:
+            editingItem?.bed?.childBed?.count !== undefined && editingItem?.bed?.childBed?.count !== null
+              ? String(editingItem.bed.childBed.count)
+              : ''
+        }
+      },
+      viewType: editingItem?.viewType || '',
+      status: editingItem?.status || 'Available',
+      isSmokingAllowed: Boolean(editingItem?.isSmokingAllowed),
+      isPetFriendly: Boolean(editingItem?.isPetFriendly),
+      maintenanceNotes: editingItem?.maintenanceNotes || '',
+      images: []
+    };
+  }, [editingItem]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const validationSchema = useMemo(
+    () =>
+      Yup.object({
+        roomNumber: Yup.string().required('Room number is required'),
+        roomType: Yup.string().required('Room type is required'),
+        floor: Yup.number()
+          .typeError('Floor must be a number')
+          .integer('Floor must be a whole number')
+          .min(0, 'Floor cannot be negative')
+          .required('Floor is required'),
+        price: Yup.object({
+          base: Yup.number()
+            .typeError('Base price must be a number')
+            .min(0, 'Base price cannot be negative')
+            .required('Base price is required'),
+          weekend: Yup.number()
+            .typeError('Weekend price must be a number')
+            .min(0, 'Weekend price cannot be negative')
+            .required('Weekend price is required')
+        }),
+        capacity: Yup.object({
+          adults: Yup.number()
+            .typeError('Adults capacity must be a number')
+            .min(1, 'At least one adult is required')
+            .required('Adults capacity is required'),
+          children: Yup.number()
+            .typeError('Children capacity must be a number')
+            .min(0, 'Children cannot be negative')
+            .notRequired()
+            .nullable()
+            .transform((value, originalValue) => (originalValue === '' ? null : value))
+        }),
+        bed: Yup.object({
+          mainBed: Yup.object({
+            type: Yup.string().required('Main bed type is required'),
+            count: Yup.number()
+              .typeError('Main bed count must be a number')
+              .min(1, 'Main bed count must be at least 1')
+              .required('Main bed count is required')
+          }),
+          childBed: Yup.object({
+            type: Yup.string().required('Child bed type is required'),
+            count: Yup.number()
+              .typeError('Child bed count must be a number')
+              .min(1, 'Child bed count must be at least 1')
+              .required('Child bed count is required')
+          })
+        }),
+        viewType: Yup.string().required('View type is required'),
+        status: Yup.string().required('Status is required'),
+        images: Yup.array().test('required', 'At least one image is required', function (value) {
+          if (isEditMode) return true;
+          return Boolean(value && value.length);
+        })
+      }),
+    [isEditMode]
+  );
 
-    if (name.includes('.')) {
-      const parts = name.split('.');
-      if (parts.length === 2) {
-        // Handle one level nesting (e.g., price.base)
-        const [parent, child] = parts;
-        setFormData(prev => ({
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [child]: type === 'checkbox' ? checked : value
+  const formik = useFormik({
+    enableReinitialize: true,
+    initialValues,
+    validationSchema,
+    onSubmit: async (values, { resetForm }) => {
+      dispatch(clearRoomError());
+      const payload = {
+        roomNumber: values.roomNumber,
+        roomType: values.roomType,
+        floor: Number(values.floor),
+        price: {
+          base: Number(values.price.base),
+          weekend: Number(values.price.weekend)
+        },
+        capacity: {
+          adults: Number(values.capacity.adults),
+          children: values.capacity.children === '' || values.capacity.children === null ? 0 : Number(values.capacity.children)
+        },
+        features: values.features || [],
+        bed: {
+          mainBed: {
+            type: values.bed.mainBed.type,
+            count: Number(values.bed.mainBed.count)
+          },
+          childBed: {
+            type: values.bed.childBed.type,
+            count: Number(values.bed.childBed.count)
           }
-        }));
-      } else if (parts.length === 3) {
-        // Handle two level nesting (e.g., bed.mainBed.type)
-        const [parent, middle, child] = parts;
-        setFormData(prev => ({
-          ...prev,
-          [parent]: {
-            ...prev[parent],
-            [middle]: {
-              ...prev[parent][middle],
-              [child]: type === 'checkbox' ? checked : value
-            }
-          }
-        }));
-      }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: type === 'checkbox' ? checked : value
-      }));
-    }
-  };
-
-  const handleFeatureChange = (featureId) => {
-    setSelectedFeatures(prev => {
-      const isSelected = prev.includes(featureId);
-      if (isSelected) {
-        return prev.filter(id => id !== featureId);
-      } else {
-        return [...prev, featureId];
-      }
-    });
-  };
-
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...files]
-    }));
-
-    // Create previews
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreviews(prev => [...prev, reader.result]);
+        },
+        viewType: values.viewType,
+        status: values.status,
+        isSmokingAllowed: values.isSmokingAllowed,
+        isPetFriendly: values.isPetFriendly,
+        maintenanceNotes: values.maintenanceNotes,
+        images: values.images || []
       };
-      reader.readAsDataURL(file);
-    });
-  };
 
-  const removeImage = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-  };
+      try {
+        if (isEditMode && editingItem) {
+          const id = editingItem._id || editingItem.id;
+          if (!payload.images.length) {
+            delete payload.images;
+          }
+          const result = await dispatch(updateRoom({ id, roomData: payload }));
+          if (updateRoom.fulfilled.match(result)) {
+            dispatch(setAlert({ text: 'Room updated successfully..!', color: 'success' }));
+            setIsEditMode(false);
+            setEditingItem(null);
+            setExistingImages([]);
+            setImagePreviews([]);
+            resetForm();
+            navigate('/rooms/available');
+          }
+        } else {
+          const result = await dispatch(createRoom(payload));
+          if (createRoom.fulfilled.match(result)) {
+            dispatch(setAlert({ text: 'Room created successfully..!', color: 'success' }));
+            setImagePreviews([]);
+            resetForm();
+            navigate('/rooms/available');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to submit room form', err);
+      }
+    }
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    dispatch(clearRoomError());
+  const selectedRoomType = formik.values.roomType;
 
-    // Validate required fields
-    if (!formData.roomNumber || !formData.roomType || !formData.floor ||
-      !formData.price.base || !formData.price.weekend ||
-      !formData.capacity.adults || !formData.bed.mainBed.count || !formData.bed.childBed.count || !formData.viewType) {
-      alert('Please fill in all required fields');
+  const { setFieldValue } = formik;
+
+  useEffect(() => {
+    if (!selectedRoomType) {
+      setFilteredFeatures([]);
+      if (roomTypeWatchRef.current) {
+        setFieldValue('features', []);
+      }
+      roomTypeWatchRef.current = selectedRoomType;
       return;
     }
 
-    const roomData = {
-      ...formData,
-      floor: parseInt(formData.floor),
-      price: {
-        base: parseFloat(formData.price.base),
-        weekend: parseFloat(formData.price.weekend)
-      },
-      capacity: {
-        adults: parseInt(formData.capacity.adults),
-        children: parseInt(formData.capacity.children || 0)
-      },
-      features: selectedFeatures,
-      bed: {
-        mainBed: {
-          type: formData.bed.mainBed.type,
-          count: parseInt(formData.bed.mainBed.count)
-        },
-        childBed: {
-          type: formData.bed.childBed.type,
-          count: parseInt(formData.bed.childBed.count)
-        }
-      }
-    };
+    if (roomTypeWatchRef.current && roomTypeWatchRef.current !== selectedRoomType) {
+      setFieldValue('features', []);
+    }
 
-    try {
-      await dispatch(createRoom(roomData)).unwrap();
-      alert('Room created successfully!');
-      // Reset form
-      setFormData({
-        roomNumber: '',
-        roomType: '',
-        floor: '',
-        price: { base: '', weekend: '' },
-        capacity: { adults: '', children: '' },
-        features: [],
-        bed: {
-          mainBed: { type: 'Queen', count: '' },
-          childBed: { type: 'Single', count: '' }
-        },
-        viewType: '',
-        images: [],
-        status: 'Available',
-        isSmokingAllowed: false,
-        isPetFriendly: false,
-        maintenanceNotes: ''
-      });
-      setSelectedFeatures([]);
-      setImagePreviews([]);
-    } catch (err) {
-      console.error('Error creating room:', err);
+    roomTypeWatchRef.current = selectedRoomType;
+
+    let isSubscribed = true;
+    dispatch(fetchFeatures(selectedRoomType)).then((result) => {
+      if (isSubscribed && fetchFeatures.fulfilled.match(result)) {
+        setFilteredFeatures(result.payload);
+      }
+    });
+
+    return () => {
+      isSubscribed = false;
+    };
+  }, [dispatch, selectedRoomType, setFieldValue]);
+
+  const handleImageChange = async (event) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+
+    const updatedFiles = [...(formik.values.images || []), ...files];
+    formik.setFieldValue('images', updatedFiles);
+
+    const previews = await Promise.all(
+      files.map(
+        (file) =>
+          new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+    setImagePreviews((prev) => [...prev, ...previews]);
+  };
+
+  const removeNewImage = (index) => {
+    const updatedImages = (formik.values.images || []).filter((_, i) => i !== index);
+    formik.setFieldValue('images', updatedImages);
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const toggleFeatureSelection = (featureId) => {
+    const selected = formik.values.features || [];
+    if (selected.includes(featureId)) {
+      formik.setFieldValue(
+        'features',
+        selected.filter((id) => id !== featureId)
+      );
+    } else {
+      formik.setFieldValue('features', [...selected, featureId]);
     }
   };
 
+  const getRoomTypeLabel = () => {
+    if (!formik.values.roomType) return 'Select Room Type';
+    const match = roomTypes.find((type) => {
+      const id = type.id || type._id;
+      return id === formik.values.roomType;
+    });
+    return match?.roomType || 'Select Room Type';
+  };
+
+  const pageTitle = isEditMode ? 'Edit Room' : 'Create Room';
+
   return (
-    <div className=" bg-[#F0F3FB] h-full p-3 md:p-5 lg:p-8">
+    <div className="bg-[#F0F3FB] h-full p-3 md:p-5 lg:p-8">
       <div className="w-full">
         <div className="w-full mx-auto bg-white rounded-lg shadow-md overflow-hidden">
           <div className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">
-            <h2 className="text-xl md:text-2xl font-bold text-black">Create Room</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-black">{pageTitle}</h2>
           </div>
 
           <div className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Room Number */}
+            <form onSubmit={formik.handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="roomNumber" className="block text-sm font-semibold text-gray-700 mb-2">
                   Room Number <span className="text-red-500">*</span>
@@ -273,71 +372,59 @@ const CreateRoom = () => {
                   type="text"
                   id="roomNumber"
                   name="roomNumber"
-                  value={formData.roomNumber}
-                  onChange={handleInputChange}
+                  value={formik.values.roomNumber}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="e.g., 203"
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                  required
+                  className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                    formik.touched.roomNumber && formik.errors.roomNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {formik.touched.roomNumber && formik.errors.roomNumber && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.roomNumber}</p>
+                )}
               </div>
 
-              {/* Room Type Dropdown
-              <div>
-                <label htmlFor="roomType" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Room Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="roomType"
-                  name="roomType"
-                  value={formData.roomType}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                  required
-                >
-                  <option value="">Select Room Type</option>
-                  {roomTypes.map((type) => (
-                    <option key={type.id} value={type.id}>
-                      {type.roomType}
-                    </option>
-                  ))}
-                </select>
-              </div> */}
-              {/* Room Type Dropdown */}
               <div className="relative" ref={roomTypeRef}>
                 <label htmlFor="roomType" className="block text-sm font-semibold text-gray-700 mb-2">
                   Room Type <span className="text-red-500">*</span>
                 </label>
                 <button
                   type="button"
-                  onClick={() => setShowRoomTypeDropdown(!showRoomTypeDropdown)}
-                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  onClick={() => setShowRoomTypeDropdown((prev) => !prev)}
+                  onBlur={() => formik.setFieldTouched('roomType', true)}
+                  className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                    formik.touched.roomType && formik.errors.roomType ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 >
-                  <span className={formData.roomType ? 'text-gray-800' : 'text-gray-400'}>
-                    {formData.roomType
-                      ? roomTypes.find(type => type.id === formData.roomType)?.roomType
-                      : 'Select Room Type'}
-                  </span>
+                  <span className={formik.values.roomType ? 'text-gray-800' : 'text-gray-400'}>{getRoomTypeLabel()}</span>
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showRoomTypeDropdown && (
                   <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
-                    {roomTypes.map((type) => (
-                      <div
-                        key={type.id}
-                        onClick={() => {
-                          handleInputChange({ target: { name: 'roomType', value: type.id } });
-                          setShowRoomTypeDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        {type.roomType}
-                      </div>
-                    ))}
+                    {roomTypes.map((type) => {
+                      const optionId = type.id || type._id;
+                      return (
+                        <div
+                          key={optionId}
+                          onClick={() => {
+                            formik.setFieldValue('roomType', optionId);
+                            formik.setFieldTouched('roomType', true, false);
+                            setShowRoomTypeDropdown(false);
+                          }}
+                          className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                        >
+                          {type.roomType}
+                        </div>
+                      );
+                    })}
                   </div>
+                )}
+                {formik.touched.roomType && formik.errors.roomType && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.roomType}</p>
                 )}
               </div>
 
-              {/* Floor */}
               <div>
                 <label htmlFor="floor" className="block text-sm font-semibold text-gray-700 mb-2">
                   Floor <span className="text-red-500">*</span>
@@ -346,16 +433,20 @@ const CreateRoom = () => {
                   type="number"
                   id="floor"
                   name="floor"
-                  value={formData.floor}
-                  onChange={handleInputChange}
+                  value={formik.values.floor}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="e.g., 2"
                   min="0"
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                  required
+                  className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                    formik.touched.floor && formik.errors.floor ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {formik.touched.floor && formik.errors.floor && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.floor}</p>
+                )}
               </div>
 
-              {/* Price Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="price.base" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -365,14 +456,19 @@ const CreateRoom = () => {
                     type="number"
                     id="price.base"
                     name="price.base"
-                    value={formData.price.base}
-                    onChange={handleInputChange}
+                    value={formik.values.price.base}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="e.g., 2000"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                    required
+                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                      formik.touched.price?.base && formik.errors.price?.base ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {formik.touched.price?.base && formik.errors.price?.base && (
+                    <p className="text-red-500 text-sm mt-1">{formik.errors.price.base}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="price.weekend" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -382,18 +478,22 @@ const CreateRoom = () => {
                     type="number"
                     id="price.weekend"
                     name="price.weekend"
-                    value={formData.price.weekend}
-                    onChange={handleInputChange}
+                    value={formik.values.price.weekend}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="e.g., 2500"
                     min="0"
                     step="0.01"
-                    className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                    required
+                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                      formik.touched.price?.weekend && formik.errors.price?.weekend ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {formik.touched.price?.weekend && formik.errors.price?.weekend && (
+                    <p className="text-red-500 text-sm mt-1">{formik.errors.price.weekend}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Capacity Section */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="capacity.adults" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -403,13 +503,18 @@ const CreateRoom = () => {
                     type="number"
                     id="capacity.adults"
                     name="capacity.adults"
-                    value={formData.capacity.adults}
-                    onChange={handleInputChange}
+                    value={formik.values.capacity.adults}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="e.g., 2"
                     min="1"
-                    className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                    required
+                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                      formik.touched.capacity?.adults && formik.errors.capacity?.adults ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   />
+                  {formik.touched.capacity?.adults && formik.errors.capacity?.adults && (
+                    <p className="text-red-500 text-sm mt-1">{formik.errors.capacity.adults}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="capacity.children" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -419,47 +524,56 @@ const CreateRoom = () => {
                     type="number"
                     id="capacity.children"
                     name="capacity.children"
-                    value={formData.capacity.children}
-                    onChange={handleInputChange}
+                    value={formik.values.capacity.children}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                     placeholder="e.g., 1"
                     min="0"
-                    className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
+                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                      formik.touched.capacity?.children && formik.errors.capacity?.children
+                        ? 'border-red-500'
+                        : 'border-gray-300'
+                    }`}
                   />
+                  {formik.touched.capacity?.children && formik.errors.capacity?.children && (
+                    <p className="text-red-500 text-sm mt-1">{formik.errors.capacity.children}</p>
+                  )}
                 </div>
               </div>
 
-              {/* Features Multi-Select */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Features (Select Multiple)
-                  {!formData.roomType && (
+                  {!formik.values.roomType && (
                     <span className="text-gray-500 text-sm ml-2">(Please select a room type first)</span>
                   )}
                 </label>
                 <div className="border border-gray-300 rounded-[4px] p-4 max-h-48 overflow-y-auto bg-gray-50">
-                  {!formData.roomType ? (
+                  {!formik.values.roomType ? (
                     <p className="text-gray-500 text-sm">Please select a room type to view available features.</p>
                   ) : filteredFeatures.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No features available for this room type. Please add features first.</p>
+                    <p className="text-gray-500 text-sm">No features available for this room type.</p>
                   ) : (
                     <div className="space-y-2">
-                      {filteredFeatures.map((feature) => (
-                        <label key={feature.id} className="flex items-center space-x-2 cursor-pointer hover:bg-[#F7DF9C]/20 p-2 rounded">
-                          <input
-                            type="checkbox"
-                            checked={selectedFeatures.includes(feature.id)}
-                            onChange={() => handleFeatureChange(feature.id)}
-                            className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
-                          />
-                          <span className="text-gray-700">{feature.feature}</span>
-                        </label>
-                      ))}
+                      {filteredFeatures.map((feature) => {
+                        const featureId = feature.id || feature._id;
+                        return (
+                          <label key={featureId} className="flex items-center space-x-2 cursor-pointer hover:bg-[#F7DF9C]/20 p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={(formik.values.features || []).includes(featureId)}
+                              onChange={() => toggleFeatureSelection(featureId)}
+                              className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
+                            />
+                            <span className="text-gray-700">{feature.feature}</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Bed Section */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-800">Main Bed</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -469,12 +583,10 @@ const CreateRoom = () => {
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowMainBedTypeDropdown(!showMainBedTypeDropdown)}
+                      onClick={() => setShowMainBedTypeDropdown((prev) => !prev)}
                       className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                     >
-                      <span className="text-gray-800">
-                        {formData.bed.mainBed.type}
-                      </span>
+                      <span className="text-gray-800">{formik.values.bed.mainBed.type}</span>
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showMainBedTypeDropdown && (
@@ -483,7 +595,7 @@ const CreateRoom = () => {
                           <div
                             key={type}
                             onClick={() => {
-                              handleInputChange({ target: { name: 'bed.mainBed.type', value: type } });
+                              formik.setFieldValue('bed.mainBed.type', type);
                               setShowMainBedTypeDropdown(false);
                             }}
                             className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -502,13 +614,20 @@ const CreateRoom = () => {
                       type="number"
                       id="bed.mainBed.count"
                       name="bed.mainBed.count"
-                      value={formData.bed.mainBed.count}
-                      onChange={handleInputChange}
+                      value={formik.values.bed.mainBed.count}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
                       placeholder="e.g., 1"
                       min="1"
-                      className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                      required
+                      className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                        formik.touched.bed?.mainBed?.count && formik.errors.bed?.mainBed?.count
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      }`}
                     />
+                    {formik.touched.bed?.mainBed?.count && formik.errors.bed?.mainBed?.count && (
+                      <p className="text-red-500 text-sm mt-1">{formik.errors.bed.mainBed.count}</p>
+                    )}
                   </div>
                 </div>
 
@@ -520,12 +639,10 @@ const CreateRoom = () => {
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowChildBedTypeDropdown(!showChildBedTypeDropdown)}
+                      onClick={() => setShowChildBedTypeDropdown((prev) => !prev)}
                       className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                     >
-                      <span className="text-gray-800">
-                        {formData.bed.childBed.type}
-                      </span>
+                      <span className="text-gray-800">{formik.values.bed.childBed.type}</span>
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showChildBedTypeDropdown && (
@@ -534,7 +651,7 @@ const CreateRoom = () => {
                           <div
                             key={type}
                             onClick={() => {
-                              handleInputChange({ target: { name: 'bed.childBed.type', value: type } });
+                              formik.setFieldValue('bed.childBed.type', type);
                               setShowChildBedTypeDropdown(false);
                             }}
                             className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -553,18 +670,24 @@ const CreateRoom = () => {
                       type="number"
                       id="bed.childBed.count"
                       name="bed.childBed.count"
-                      value={formData.bed.childBed.count}
-                      onChange={handleInputChange}
+                      value={formik.values.bed.childBed.count}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
                       placeholder="e.g., 1"
                       min="1"
-                      className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                      required
+                      className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                        formik.touched.bed?.childBed?.count && formik.errors.bed?.childBed?.count
+                          ? 'border-red-500'
+                          : 'border-gray-300'
+                      }`}
                     />
+                    {formik.touched.bed?.childBed?.count && formik.errors.bed?.childBed?.count && (
+                      <p className="text-red-500 text-sm mt-1">{formik.errors.bed.childBed.count}</p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* View Type */}
               <div>
                 <label htmlFor="viewType" className="block text-sm font-semibold text-gray-700 mb-2">
                   View Type <span className="text-red-500">*</span>
@@ -573,27 +696,32 @@ const CreateRoom = () => {
                   type="text"
                   id="viewType"
                   name="viewType"
-                  value={formData.viewType}
-                  onChange={handleInputChange}
+                  value={formik.values.viewType}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="e.g., City View, Ocean View"
-                  className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                  required
+                  className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                    formik.touched.viewType && formik.errors.viewType ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {formik.touched.viewType && formik.errors.viewType && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.viewType}</p>
+                )}
               </div>
 
-              {/* Status */}
               <div className="relative" ref={statusRef}>
                 <label htmlFor="status" className="block text-sm font-semibold text-gray-700 mb-2">
                   Status <span className="text-red-500">*</span>
                 </label>
                 <button
                   type="button"
-                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  onClick={() => setShowStatusDropdown((prev) => !prev)}
+                  className={`w-full px-4 py-2 bg-gray-100 border rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
+                    formik.touched.status && formik.errors.status ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  onBlur={() => formik.setFieldTouched('status', true)}
                 >
-                  <span className="text-gray-800">
-                    {formData.status}
-                  </span>
+                  <span className="text-gray-800">{formik.values.status}</span>
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showStatusDropdown && (
@@ -602,7 +730,8 @@ const CreateRoom = () => {
                       <div
                         key={status}
                         onClick={() => {
-                          handleInputChange({ target: { name: 'status', value: status } });
+                          formik.setFieldValue('status', status);
+                          formik.setFieldTouched('status', true, false);
                           setShowStatusDropdown(false);
                         }}
                         className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -612,12 +741,14 @@ const CreateRoom = () => {
                     ))}
                   </div>
                 )}
+                {formik.touched.status && formik.errors.status && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.status}</p>
+                )}
               </div>
 
-              {/* Images Upload */}
               <div>
                 <label htmlFor="images" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Room Images
+                  Room Images {isEditMode ? '(optional)' : <span className="text-red-500">*</span>}
                 </label>
                 <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-300 px-3 py-2 text-gray-500 bg-gray-100">
                   <span className="truncate text-sm">
@@ -635,21 +766,40 @@ const CreateRoom = () => {
                     multiple
                     accept="image/*"
                     onChange={handleImageChange}
+                    onBlur={() => formik.setFieldTouched('images', true)}
                     className="hidden"
                   />
                 </label>
+                {formik.touched.images && formik.errors.images && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.images}</p>
+                )}
+
+                {existingImages.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Existing Images</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {existingImages.map((imagePath, index) => (
+                        <div key={`${imagePath}-${index}`} className="relative">
+                          <img
+                            src={getImageUrl(imagePath)}
+                            alt={`Room existing ${index + 1}`}
+                            className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Existing images stay unchanged unless you upload new ones.</p>
+                  </div>
+                )}
+
                 {imagePreviews.length > 0 && (
                   <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative">
-                        <img
-                          src={preview}
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-lg border-2 border-gray-300"
-                        />
+                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-lg border-2 border-gray-300" />
                         <button
                           type="button"
-                          onClick={() => removeImage(index)}
+                          onClick={() => removeNewImage(index)}
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                         >
                           ×
@@ -666,8 +816,8 @@ const CreateRoom = () => {
                   <input
                     type="checkbox"
                     name="isSmokingAllowed"
-                    checked={formData.isSmokingAllowed}
-                    onChange={handleInputChange}
+                    checked={formik.values.isSmokingAllowed}
+                    onChange={formik.handleChange}
                     className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
                   />
                   <span className="text-gray-700">Smoking Allowed</span>
@@ -676,8 +826,8 @@ const CreateRoom = () => {
                   <input
                     type="checkbox"
                     name="isPetFriendly"
-                    checked={formData.isPetFriendly}
-                    onChange={handleInputChange}
+                    checked={formik.values.isPetFriendly}
+                    onChange={formik.handleChange}
                     className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
                   />
                   <span className="text-gray-700">Pet Friendly</span>
@@ -692,29 +842,25 @@ const CreateRoom = () => {
                 <textarea
                   id="maintenanceNotes"
                   name="maintenanceNotes"
-                  value={formData.maintenanceNotes}
-                  onChange={handleInputChange}
+                  value={formik.values.maintenanceNotes}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
                   placeholder="Any maintenance notes or special instructions..."
                   rows="3"
                   className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] resize-none border-gray-300"
                 />
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
                   {error}
                 </div>
               )}
 
-              {/* Submit Buttons */}
               <div className="flex items-center justify-center gap-3 mt-6 pt-6 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => {
-                    // Add your cancel/back navigation logic here
-                    window.history.back();
-                  }}
+                  onClick={() => navigate('/rooms/available')}
                   className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gradient-to-r hover:from-[#F7DF9C] hover:to-[#E3C78A] hover:border-transparent transition-all font-semibold"
                 >
                   Cancel
@@ -724,14 +870,14 @@ const CreateRoom = () => {
                   disabled={loading}
                   className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-white hover:to-white hover:border-2 hover:border-[#E3C78A] transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Creating...' : 'Submit'}
+                  {loading ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Room' : 'Submit'}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 };
 
