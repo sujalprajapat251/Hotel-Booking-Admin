@@ -16,7 +16,6 @@ const AllBookings = () => {
     const [booking, setBooking] = useState([]);
     console.log('booking', booking);
 
-    // Get data from Redux store including pagination
     const {
         items,
         totalCount,
@@ -25,7 +24,6 @@ const AllBookings = () => {
         loading
     } = useSelector((state) => state.booking);
 
-    // Pagination state for API calls
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -102,24 +100,21 @@ const AllBookings = () => {
         { value: 'NoShow', label: 'No Show' },
     ];
 
-    // Debounce search term
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page on search
+            setPage(1); 
         }, 500);
 
         return () => clearTimeout(timer);
     }, [searchTerm]);
 
-    // Fetch bookings with pagination parameters
     useEffect(() => {
         const params = {
             page,
             limit,
         };
 
-        // Add search parameter if exists
         if (debouncedSearch) {
             params.search = debouncedSearch;
         }
@@ -127,7 +122,6 @@ const AllBookings = () => {
         dispatch(fetchBookings(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
-    // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
         if (items && items.length > 0) {
             const formattedBookings = items.map((item, index) => ({
@@ -224,7 +218,6 @@ const AllBookings = () => {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            // Prepare data for Excel
             const excelData = booking.map((bookingItem, index) => {
                 const row = {};
 
@@ -294,16 +287,13 @@ const AllBookings = () => {
         setItemToDelete(null);
     };
 
-    // Prevent background page from scrolling when modal is open
+
     useEffect(() => {
         if (typeof document === 'undefined') return;
-
         if (isModalOpen || isDeleteModalOpen || isEditModalOpen) {
-            // save current overflow so we can restore it
             bodyOverflowRef.current = document.body.style.overflow;
             document.body.style.overflow = 'hidden';
         } else {
-            // restore previous overflow
             document.body.style.overflow = bodyOverflowRef.current || '';
         }
 
@@ -412,7 +402,6 @@ const AllBookings = () => {
         if (!itemToEdit) return;
 
         try {
-            // Get booking ID from rawData or formatted data
             const bookingId = itemToEdit.rawData?._id || itemToEdit.rawData?.id || itemToEdit.id;
             alert(bookingId)
             if (!bookingId) {
@@ -440,7 +429,6 @@ const AllBookings = () => {
         }
     };
 
-    // Pagination handlers
     const handlePageChange = (newPage) => {
         if (newPage < 1 || newPage > totalPages) return;
         setPage(newPage);
@@ -451,14 +439,13 @@ const AllBookings = () => {
         setPage(1);
     };
 
-
     return (
         <>
             <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
                 <section className="py-5">
                     <h1 className="text-2xl font-semibold text-black">All Bookings</h1>
                 </section>
-
+                
                 <div className="w-full">
                     <div className="bg-white rounded-lg shadow-md">
                         {/* Header */}
@@ -466,17 +453,6 @@ const AllBookings = () => {
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
                                 <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p>
 
-                                {/* Search Bar */}
-                                {/* <div className="relative max-w-md">
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-                                    />
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                                </div> */}
                                 <div className="relative max-w-md">
                                     <input
                                         type="text"
@@ -579,9 +555,6 @@ const AllBookings = () => {
                                         {visibleColumns.roomType && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Room Type</th>
                                         )}
-                                        {visibleColumns.documents && (
-                                            <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Documents</th>
-                                        )}
                                         {visibleColumns.actions && (
                                             <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Actions</th>
                                         )}
@@ -654,13 +627,6 @@ const AllBookings = () => {
                                                             }}>
                                                                 {bookingItem.roomType?.split(' ')[0] || 'N/A'}
                                                             </span>
-                                                        </div>
-                                                    </td>
-                                                )}
-                                                {visibleColumns.documents && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                            <HiOutlineDocumentChartBar size={22} className='text-[#EC5C09] hover:text-[#EC0927] transition-colors cursor-pointer' />
                                                         </div>
                                                     </td>
                                                 )}
@@ -743,21 +709,6 @@ const AllBookings = () => {
                                     >
                                         <ChevronRight size={20} />
                                     </button>
-
-                                    {/* <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1 || loading}
-                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ChevronLeft size={20} />
-                                    </button>
-                                    <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages || loading}
-                                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ChevronRight size={20} />
-                                    </button> */}
                                 </div>
                             </div>
                         </div>
@@ -1272,7 +1223,6 @@ const AllBookings = () => {
                                 </button>
                                 <button
                                     type="button"
-                                    // onClick={handleDeleteConfirm}
                                     className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                                 >
                                     Delete
