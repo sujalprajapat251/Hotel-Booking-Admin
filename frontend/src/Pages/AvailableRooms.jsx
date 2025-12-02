@@ -9,9 +9,11 @@ import { ChevronDown } from 'lucide-react';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import { FiEdit } from 'react-icons/fi';
 import { IoEyeSharp } from 'react-icons/io5';
+import { useNavigate } from 'react-router-dom';
 
 const AvailableRooms = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [statusTypeDropdown, setStatusTypeDropdown] = useState(false);
   const statusTypeRef = useRef(null);
@@ -22,6 +24,9 @@ const AvailableRooms = () => {
   const [bedSizeDropdown, setBedSizeDropdown] = useState(false);
   const bedSizeRef = useRef(null);
   const [housekeepingDropdown, setHousekeepingDropdown] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const housekeepingRef = useRef(null);
 
   const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
@@ -951,7 +956,9 @@ const AvailableRooms = () => {
                         </div>
                         <div className='absolute bottom-4 right-4 flex  gap-3 '>
 
-                        <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" />
+                        <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
+                            navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
+                          }} />
                         <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' />
                           </div>
                         {/* Image Counter */}
@@ -1213,42 +1220,30 @@ const AvailableRooms = () => {
         />
       )}
       {deleteModalOpen && roomToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-md w-full p-6">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="8" x2="12" y2="12"></line>
-                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={closeDeleteModal}></div>
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+            <div className="flex items- justify-between mb-6">
+              <h2 className="text-2xl font-semibold text-black">Delete Room {roomToDelete.roomNumber}?</h2>
+              <button onClick={closeDeleteModal} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-senary mb-1">
-                  Delete Room {roomToDelete.roomNumber}?
-                </h3>
-                <p className="text-sm text-quinary">
-                  This action cannot be undone. The room and its related data will be permanently removed.
-                </p>
-              </div>
+              </button>
             </div>
-            {deleteError && (
-              <div className="mt-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-md px-3 py-2">
-                {typeof deleteError === 'string' ? deleteError : 'Failed to delete room.'}
-              </div>
-            )}
-            <div className="mt-6 flex justify-end gap-3">
+            <p className="text-gray-700 mb-8 text-center">This action cannot be undone. The room and its related data will be permanently removed.</p>
+            <div className="flex items-center justify-center gap-3">
               <button
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
-                className="px-4 py-2 rounded-lg border border-gray-200 text-senary hover:bg-gray-50 disabled:opacity-60"
+                className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleteLoading}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 disabled:opacity-60"
+                className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
               >
                 {deleteLoading ? 'Deleting...' : 'Delete Room'}
               </button>
