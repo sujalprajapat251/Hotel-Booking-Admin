@@ -110,11 +110,11 @@ const Tasks = () => {
 
     const handleDownloadExcel = () => {
         try {
-            if (assigndTask.length === 0) {
+            if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            const excelData = assigndTask?.map((bookingItem, index) => {
+            const excelData = filteredBookings?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
@@ -144,7 +144,7 @@ const Tasks = () => {
 
             // Generate file name with current date
             const date = new Date();
-            const fileName = `Bookings_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+            const fileName = `Tasks_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
 
             // Download the file
             XLSX.writeFile(workbook, fileName);
