@@ -13,12 +13,14 @@ import {
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
-import * as XLSX from 'xlsx';
-import { setAlert } from '../Redux/Slice/alert.slice';
+import * as XLSX from "xlsx";
+import { setAlert } from "../Redux/Slice/alert.slice";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllDrivers, createDriver, updateDriver, deleteDriver } from "../Redux/Slice/driverSlice";
 import { getAllCabs } from "../Redux/Slice/cab.slice";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const statusColors = (status) => {
   switch (status) {
@@ -74,6 +76,8 @@ const DriverDetails = () => {
     email: "",
     password: "",
     mobileno: "",
+    countrycode: "+91",
+    fullMobile: "",
     address: "",
     gender: "",
     joiningdate: "",
@@ -166,6 +170,8 @@ const DriverDetails = () => {
       email: driver.email || "",
       password: "", // Don't pre-fill password
       mobileno: driver.mobileno || "",
+      countrycode: "+91",
+      fullMobile: driver.mobileno || "",
       address: driver.address || "",
       gender: driver.gender || "",
       joiningdate: joiningDate,
@@ -295,7 +301,7 @@ const DriverDetails = () => {
         Name: d.name || "",
         Gender: d.gender || "",
         Email: d.email || "",
-        Mobile: d.mobileno || "",
+        "Mobile No.": `${d.countrycode ? d.countrycode : ''}${d.countrycode && d.mobileno ? ' ' : ''}${d.mobileno ? d.mobileno : ''}`,
         "Assigned Cab": d.AssignedCab?.vehicleId || "Not Assigned",
         Status: d.status || "",
         Address: d.address || "",
@@ -459,7 +465,7 @@ const DriverDetails = () => {
                     <div className="flex flex-col text-sm">
                       <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
                         <Phone size={16} className='text-green-600' />
-                        {driver.mobileno || "—"}
+                        {driver.countrycode ? driver.countrycode : ""} {driver.mobileno || "—"}
                       </span>
                     </div>
                   </td>
@@ -639,15 +645,49 @@ const DriverDetails = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-black mb-1">Mobile Number </label>
-                  <input
-                    type="tel"
-                    name="mobileno"
-                    value={driverForm.mobileno}
-                    onChange={handleDriverInputChange}
-                    placeholder="1234567890"
-                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                    required
+                  <label className="text-sm font-medium text-black mb-1">
+                    Mobile Number
+                  </label>
+                  <PhoneInput
+                    country={"in"}
+                    enableSearch={true}
+                    value={driverForm.fullMobile || ""}
+                    onChange={(value, country) => {
+                      const nextValue = value || "";
+                      const dialCode = country?.dialCode || "";
+                      const mobileOnly = nextValue.slice(dialCode.length);
+                      setDriverForm((prev) => ({
+                        ...prev,
+                        countrycode: dialCode ? `+${dialCode}` : "",
+                        mobileno: mobileOnly,
+                        fullMobile: nextValue,
+                      }));
+                    }}
+                    placeholder="Enter mobile number"
+                    inputProps={{
+                      name: "mobileno",
+                      required: true,
+                    }}
+                    containerStyle={{
+                      width: "100%",
+                    }}
+                    buttonStyle={{
+                      backgroundColor: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "4px",
+                      width: "50px",
+                    }}
+                    inputStyle={{
+                      width: "100%",
+                      backgroundColor: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "4px",
+                      paddingLeft: "55px",
+                      height: "42px",
+                    }}
+                    dropdownStyle={{
+                      width: "260px",
+                    }}
                   />
                 </div>
                 <div>
@@ -883,7 +923,7 @@ const DriverDetails = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Mobile:</span>
-                <span>{viewDriver.mobileno || '—'}</span>
+                <span>{viewDriver.countrycode ? viewDriver.countrycode : ""} {viewDriver.mobileno || '—'}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Assigned Cab:</span>

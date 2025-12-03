@@ -17,6 +17,15 @@ const userSchema = mongoose.Schema({
     photo: {
         type: String,
     },
+    mobileno: {
+        type: String,
+    },
+    gender: {
+        type: String,
+    },
+    dob:{
+        type:Date
+    },
     role: {
         type: String,
         enum: ['user', 'admin','receptionist'],

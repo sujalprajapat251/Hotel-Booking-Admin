@@ -12,6 +12,10 @@ const GuestSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    countrycode: {
+      type: String,
+      required: true
+  },
     phone: {
       type: String,
       required: true,

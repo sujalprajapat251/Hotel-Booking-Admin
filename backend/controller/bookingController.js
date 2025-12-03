@@ -26,6 +26,7 @@ const parseDate = (value) => {
 const normalizeGuestPayload = (payload = {}) => ({
     fullName: payload.fullName?.trim(),
     email: payload.email?.trim(),
+    countrycode: payload.countrycode?.trim(),
     phone: payload.phone?.trim(),
     idNumber: payload.idNumber?.trim(),
     nationality: payload.nationality?.trim(),
@@ -122,6 +123,9 @@ const createBooking = async (req, res) => {
         }
         if (!guestPayload.fullName) {
             return res.status(400).json({ success: false, message: 'Guest full name is required' });
+        }
+        if (!guestPayload.countrycode) {
+            return res.status(400).json({ success: false, message: 'Guest countrycode number is required' });
         }
         if (!guestPayload.phone) {
             return res.status(400).json({ success: false, message: 'Guest phone number is required' });
@@ -281,6 +285,7 @@ const getBookings = async (req, res) => {
                 { 'guest.fullName': regex },
                 { 'guest.email': regex },
                 { 'guest.phone': regex },
+                { 'guest.countrycode': regex },
                 { roomNumber: regex }
             ];
         }
@@ -363,6 +368,7 @@ const updateBooking = async (req, res) => {
         if (guestPayload.fullName) booking.guest.fullName = guestPayload.fullName;
         if (guestPayload.email !== undefined) booking.guest.email = guestPayload.email;
         if (guestPayload.phone) booking.guest.phone = guestPayload.phone;
+        if (guestPayload.countrycode) booking.guest.countrycode = guestPayload.countrycode;
         if (guestPayload.idNumber !== undefined) booking.guest.idNumber = guestPayload.idNumber;
         if (guestPayload.nationality !== undefined) booking.guest.nationality = guestPayload.nationality;
         if (guestPayload.address !== undefined) booking.guest.address = guestPayload.address;

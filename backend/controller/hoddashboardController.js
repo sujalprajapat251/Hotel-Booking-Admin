@@ -89,14 +89,6 @@ async function getDepartmentConfigFromUser(req) {
     return { config: DEPARTMENT_CONFIG[deptKey], deptKey, departmentName: dept.name };
 }
 
-// --------------------------------------------
-// CAFE PRICE CALCULATION (BACKWARD COMPATIBILITY)
-// --------------------------------------------
-function calculateCafeRevenue(start, end, fromType = null) {
-    const config = DEPARTMENT_CONFIG.cafe;
-    return calculateRevenue(config.orderModel, config.itemCollection, start, end, fromType);
-}
-
 // ------------------------------------------------------------
 // DYNAMIC DEPARTMENT DASHBOARD API (CAFE, BAR, RESTAURANT)
 // Automatically detects department from logged-in user
@@ -246,7 +238,6 @@ exports.DepartmentDashboard = async (req, res) => {
 // Automatically detects department from logged-in user
 exports.getDepartmentPaymentSummary = async (req, res) => {
     try {
-        // Get department config from user
         const deptResult = await getDepartmentConfigFromUser(req);
         if (deptResult.error) {
             return res.status(deptResult.error.status).json({
@@ -259,14 +250,9 @@ exports.getDepartmentPaymentSummary = async (req, res) => {
         const { orderModel, itemCollection } = config;
 
         const paymentSummary = await orderModel.aggregate([
-            { 
-                $match: { payment: "Paid" } 
-            },
-
-            // Break items array
+            { $match: { payment: "Paid" } },
             { $unwind: "$items" },
 
-            // Join item prices
             {
                 $lookup: {
                     from: itemCollection,
@@ -277,28 +263,63 @@ exports.getDepartmentPaymentSummary = async (req, res) => {
             },
             { $unwind: "$productData" },
 
-            // Group by payment method
+            // Fix payment method:
+            // 1) if from = room → card
+            // 2) if paymentMethod missing/null/empty → card
+            {
+                $addFields: {
+                    fixedPaymentMethod: {
+                        $cond: [
+                            { $eq: ["$from", "room"] },
+                            "card",
+                            {
+                                $cond: [
+                                    {
+                                        $or: [
+                                            { $eq: ["$paymentMethod", null] },
+                                            { $eq: ["$paymentMethod", ""] },
+                                            { $not: ["$paymentMethod"] }
+                                        ]
+                                    },
+                                    "card",
+                                    "$paymentMethod"
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+
             {
                 $group: {
-                    _id: "$paymentMethod",     // UPI, Cash, Card...
+                    _id: "$fixedPaymentMethod",
                     totalOrders: { $sum: 1 },
-                    totalRevenue: { 
-                        $sum: {
-                            $multiply: ["$items.qty", "$productData.price"]
-                        }
+                    totalRevenue: {
+                        $sum: { $multiply: ["$items.qty", "$productData.price"] }
                     }
                 }
             }
         ]);
 
-        // Convert into nice object
-        const formatted = paymentSummary.reduce((acc, item) => {
-            acc[item._id || "Unknown"] = {
+        // Format result
+        const formatted = {};
+
+        paymentSummary.forEach(item => {
+            const key = (item._id || "unknown").toLowerCase();
+            formatted[key] = {
                 orders: item.totalOrders,
                 revenue: item.totalRevenue
             };
-            return acc;
-        }, {});
+        });
+
+        // Mandatory payment methods
+        const defaultKeys = ["upi", "cash", "card"];
+
+        defaultKeys.forEach(key => {
+            if (!formatted[key]) {
+                formatted[key] = { orders: 0, revenue: 0 };
+            }
+        });
 
         res.json({
             success: true,
@@ -403,3 +424,4 @@ exports.getDepartmentRevenueByMonth = async (req, res) => {
     }
 };
 
+ 

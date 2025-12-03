@@ -9,6 +9,8 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
 import { GoDotFill } from "react-icons/go";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const AllBookings = () => {
 
@@ -43,7 +45,10 @@ const AllBookings = () => {
         guest: {
             fullName: '',
             email: '',
+            // phone fields (similar to GuestModal / StaffForm)
+            countrycode: '+91',
             phone: '',
+            fullMobile: '',
             idNumber: '',
             nationality: '',
             address: ''
@@ -132,6 +137,7 @@ const AllBookings = () => {
                 checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
                 status: item.payment?.status || 'Pending',
                 phone: item.guest?.phone || 'N/A',
+                countrycode: item.guest?.countrycode || 'N/A',
                 roomType: item.room?.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item,
@@ -250,7 +256,8 @@ const AllBookings = () => {
                     row['Status'] = bookingItem.status || '';
                 }
                 if (visibleColumns.phone) {
-                    row['Phone'] = bookingItem.phone || '';
+                    const code = bookingItem.countrycode || "+91";
+                    row['Phone'] = `${code} ${bookingItem.phone}` || '';
                 }
                 if (visibleColumns.roomType) {
                     row['Room Type'] = bookingItem.roomType || '';
@@ -317,12 +324,20 @@ const AllBookings = () => {
 
     const handleEditClick = (bookingItem) => {
         const rawData = bookingItem.rawData || {};
+        const existingCountryCode = rawData.guest?.countrycode || '+91';
+        const existingPhone = rawData.guest?.phone || bookingItem.phone || '';
+        const numericPhone = existingPhone ? String(existingPhone).replace(/\D/g, '') : '';
+        const dialDigits = existingCountryCode.replace('+', '');
+        const fullMobile = numericPhone ? `${dialDigits}${numericPhone}` : '';
+
         setItemToEdit(bookingItem);
         setEditFormData({
             guest: {
                 fullName: rawData.guest?.fullName || bookingItem.name || '',
                 email: rawData.guest?.email || '',
-                phone: rawData.guest?.phone || bookingItem.phone || '',
+                countrycode: existingCountryCode,
+                phone: numericPhone,
+                fullMobile,
                 idNumber: rawData.guest?.idNumber || '',
                 nationality: rawData.guest?.nationality || '',
                 address: rawData.guest?.address || ''
@@ -356,7 +371,9 @@ const AllBookings = () => {
             guest: {
                 fullName: '',
                 email: '',
+                countrycode: '+91',
                 phone: '',
+                fullMobile: '',
                 idNumber: '',
                 nationality: '',
                 address: ''
@@ -416,7 +433,6 @@ const AllBookings = () => {
 
         try {
             const bookingId = itemToEdit.rawData?._id || itemToEdit.rawData?.id || itemToEdit.id;
-            alert(bookingId)
             if (!bookingId) {
                 dispatch(setAlert({ text: 'Booking ID not found', color: 'error' }));
                 return;
@@ -584,6 +600,7 @@ const AllBookings = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
+                                        console.log("____________", currentData),
                                         currentData.map((bookingItem, index) => (
                                             <tr
                                                 key={bookingItem.id}
@@ -626,7 +643,8 @@ const AllBookings = () => {
                                                 {visibleColumns.phone && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                            <Phone size={16} className='text-green-600' />{bookingItem.phone}
+                                                            <Phone size={16} className='text-green-600' />
+                                                            {bookingItem?.countrycode ? bookingItem?.countrycode : ""} {bookingItem.phone}
                                                         </div>
                                                     </td>
                                                 )}
@@ -780,7 +798,7 @@ const AllBookings = () => {
                                                     <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     >
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Phone:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.phone}</span>
+                                                        <span className="text-sm sm:text-base">{selectedItem.countrycode ? selectedItem.countrycode : ""} {selectedItem.phone}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
@@ -969,17 +987,50 @@ const AllBookings = () => {
                                                 </div>
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Phone *</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={editFormData.guest.phone}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            if (/^\d{0,10}$/.test(value)) {
-                                                                handleEditFormChange('guest', 'phone', value);
-                                                            }
+                                                    <PhoneInput
+                                                        country={"in"}
+                                                        enableSearch={true}
+                                                        value={editFormData.guest.fullMobile || ''}
+                                                        onChange={(value, country) => {
+                                                            const nextValue = value || '';
+                                                            const dialCode = country?.dialCode || '';
+                                                            const mobileOnly = nextValue.slice(dialCode.length);
+
+                                                            setEditFormData((prev) => ({
+                                                                ...prev,
+                                                                guest: {
+                                                                    ...prev.guest,
+                                                                    countrycode: dialCode ? `+${dialCode}` : '',
+                                                                    phone: mobileOnly,
+                                                                    fullMobile: nextValue,
+                                                                },
+                                                            }));
                                                         }}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                        placeholder="Enter mobile number"
+                                                        inputProps={{
+                                                            name: "mobile",
+                                                            required: true,
+                                                        }}
+                                                        containerStyle={{
+                                                            width: "100%",
+                                                        }}
+                                                        buttonStyle={{
+                                                            backgroundColor: "#f3f4f6",
+                                                            border: "1px solid #d1d5db",
+                                                            borderRadius: "4px",
+                                                            width: "50px",
+                                                        }}
+                                                        inputStyle={{
+                                                            width: "100%",
+                                                            backgroundColor: "#f3f4f6",
+                                                            border: "1px solid #d1d5db",
+                                                            borderRadius: "4px",
+                                                            paddingLeft: "55px",
+                                                            height: "42px",
+                                                        }}
+                                                        dropdownStyle={{
+                                                            width: "260px",
+                                                        }}
                                                     />
                                                 </div>
                                                 <div>

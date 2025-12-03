@@ -4,7 +4,7 @@ const { uploadToS3, deleteFromS3 } = require("../utils/s3Service");
 
 exports.createStaff = async (req, res) => {
     try {
-        const { name, email, password, mobileno, address, department, joiningdate, gender, designation } = req.body;
+        const { name, email, password,countrycode, mobileno, address, department, joiningdate, gender, designation } = req.body;
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -17,6 +17,7 @@ exports.createStaff = async (req, res) => {
             name,
             email,
             password: hashedPassword,
+            countrycode,
             mobileno,
             address,
             department,
@@ -103,11 +104,12 @@ exports.getStaffById = async (req, res) => {
 
 exports.updateStaff = async (req, res) => {
     try {
-        const { name, email, mobileno, address, department, joiningdate, password, gender, designation } = req.body;
+        const { name, email, countrycode,mobileno, address, department, joiningdate, password, gender, designation } = req.body;
 
         const updatedData = {
             name,
             email,
+            countrycode,
             mobileno,
             address,
             department,

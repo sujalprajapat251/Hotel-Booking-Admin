@@ -55,6 +55,7 @@ export const Dashboard = () => {
           checkOut: item.reservation?.checkOutDate?.slice(0, 10) || 'N/A',
           status: item.payment?.status || 'Pending',
           phone: item.guest?.phone || 'N/A',
+          countrycode: item.guest?.countrycode || 'N/A',
           roomType: item.room?.roomType?.roomType || 'N/A',
           createdAt: item.createdAt || item.reservation?.checkInDate
         }))
@@ -831,7 +832,8 @@ export const Dashboard = () => {
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>
                         <div className="flex items-center gap-2 text-sm text-gray-700">
                           <Phone
-                            size={16} className='text-green-600' />{booking.phone}
+                            size={16} className='text-green-600' />
+                            {booking.countrycode ? booking.countrycode : ""} {booking.phone}
                         </div>
                       </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">

@@ -127,7 +127,8 @@ const StaffTable = () => {
           row['Designation'] = staff.designation || '';
         }
         if (visibleColumns.mobileno) {
-          row['Mobile No.'] = staff.mobileno || '';
+          const code = staff.countrycode || "+91";  
+          row['Mobile No.'] = `${code} ${staff.mobileno}` || '';
         }
         if (visibleColumns.email) {
           row['Email'] = staff.email || '';
@@ -365,7 +366,7 @@ const StaffTable = () => {
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <Phone size={16} className='text-green-600' />
-                              {staff.mobileno}
+                              {staff.countrycode ? staff.countrycode : ""} {staff.mobileno}
                             </div>
                           </td>
                         )}
@@ -560,7 +561,7 @@ const StaffTable = () => {
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
-                      <span>{selectedItem.mobileno}</span>
+                      <span>{selectedItem.countrycode ? selectedItem.countrycode : ""} {selectedItem.mobileno}</span>
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Email:</span>
