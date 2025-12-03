@@ -13,16 +13,13 @@ import { approveCleaningRoom, assignWorkerToRoom, fetchAllhousekeepingrooms, fet
 import { getAllStaff } from '../Redux/Slice/staff.slice.js';
 import axios from 'axios';
 
-
 const AllHouseKeeping = () => {
 
     const dispatch = useDispatch();
     const { creating } = useSelector((state) => state.housekeeping);
 
     const [housekeepingRooms, setHousekeepingRooms] = useState([]);
-    // console.log('housekeepingRooms', housekeepingRooms);
 
-    // Get data from Redux store including pagination
     const {
         items,
         totalCount,
@@ -30,16 +27,13 @@ const AllHouseKeeping = () => {
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.housekeeping);
-    // console.log('items', items);
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
-    // const [housekeepingStaffName, setHousekeepingStaffName] = useState([]);
-    // console.log('housekeepingStaffName', housekeepingStaff);
+
     useEffect(() => {
         dispatch(fetchFreeWorker());
     }, [dispatch]);
     const { freeWorkers } = useSelector((state) => state.housekeeping);
-    // console.log('freeWorkers', freeWorkers);
 
     useEffect(() => {
         if (freeWorkers && freeWorkers.length > 0) {
@@ -49,18 +43,11 @@ const AllHouseKeeping = () => {
 
             const names = filteredStaff?.map((member) => member?.name);
 
-            // console.log('filteredStaff', filteredStaff);
-            // console.log('names', names);
-
             setHousekeepingStaff(filteredStaff);
-            // setHousekeepingStaffName(names)
         } else {
             setHousekeepingStaff([]);
-            // setHousekeepingStaffName([]);
         }
     }, [freeWorkers]);
-
-    // console.log('housekeepingStaff', housekeepingStaff);
 
     const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
@@ -131,8 +118,7 @@ const AllHouseKeeping = () => {
     const dropdownRef = useRef(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    // const [itemToDelete, setItemToDelete] = useState(null);
+
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         workerName: true,
@@ -147,7 +133,7 @@ const AllHouseKeeping = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page on search
+            setPage(1); 
             setCurrentPage(1);
         }, 500);
 
@@ -161,7 +147,6 @@ const AllHouseKeeping = () => {
             limit,
         };
 
-        // Add search parameter if exists
         if (debouncedSearch) {
             params.search = debouncedSearch;
         }
@@ -169,7 +154,6 @@ const AllHouseKeeping = () => {
         dispatch(fetchAllhousekeepingrooms(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
-    // Transform Redux data to local state (without sorting/slicing - backend handles this)
     useEffect(() => {
         if (items && items.length > 0) {
             const formattedData = items?.map((item, index) => ({
@@ -179,9 +163,9 @@ const AllHouseKeeping = () => {
                 roomNo: item.roomNumber || 'N/A',
                 roomType: item.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item // Keep raw data for other operations
+                rawData: item 
             }));
-            // console.log('formattedData', formattedData);
+            // console
             setHousekeepingRooms(formattedData);
         } else {
             setHousekeepingRooms([]);

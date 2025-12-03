@@ -172,6 +172,37 @@ const OrderRequest = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // const getOrderItemCount = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
+    // };
+
+    // const getOrderTotalAmount = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+    //     return housekeeping.rawData.orderId.items.reduce((sum, item) => {
+    //         const price = item?.product?.price || 0;
+    //         const qty = item?.qty || 1;
+    //         return sum + price * qty;
+    //     }, 0);
+    // };
+
+    // const getItemPreview = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
+    //     const names = housekeeping.rawData.orderId.items
+    //         .map((item) => item?.product?.name)
+    //         .filter(Boolean);
+    //     if (!names.length) return 'No items';
+    //     if (names.length <= 2) return names.join(', ');
+    //     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+    // };
+
+    // const getItemsList = (housekeeping) => {
+    //     if (!housekeeping?.rawData?.orderId?.items?.length) return [];
+    //     return housekeeping.rawData.orderId.items
+    //         .map((item) => item?.product?.name)
+    //         .filter(Boolean);
+    // };
+
     const getStatusStyle = (status) => {
         switch (status) {
             case 'Paid':
@@ -305,7 +336,7 @@ const OrderRequest = () => {
     const currentData = filteredBookings.slice(startIndex, endIndex);
 
     const handleApprove = (id) => {
-        alert('sds');
+        // alert('sds');
         dispatch(approveCleaningRoom(id));
 
         setTimeout(() => {

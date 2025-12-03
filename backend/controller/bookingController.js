@@ -489,10 +489,112 @@ const deleteBooking = async (req, res) => {
     }
 };
 
+/**
+ * Book a room by roomType and dates, auto-assigning available room.
+ * Input: {
+ *   roomType: RoomType Id or name (string),
+ *   reservation: { checkInDate, checkOutDate, ... },
+ *   guest: { ... },
+ *   payment: { ... },
+ *   ...etc
+ * }
+ */
+const bookRoomByType = async (req, res) => {
+    try {
+        const { roomType } = req.body;
+        const guestPayload = normalizeGuestPayload(req.body.guest || req.body);
+        const reservationPayload = normalizeReservationPayload(req.body.reservation || req.body);
+        const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
+        const status = req.body.status || 'Pending';
+        const notes = req.body.notes || req.body.additionalNotes;
+
+        // Validations
+        if (!roomType) {
+            return res.status(400).json({ success: false, message: 'roomType is required' });
+        }
+        if (!guestPayload.fullName) {
+            return res.status(400).json({ success: false, message: 'Guest full name is required' });
+        }
+        if (!guestPayload.phone) {
+            return res.status(400).json({ success: false, message: 'Guest phone number is required' });
+        }
+        if (!reservationPayload.checkInDate || !reservationPayload.checkOutDate) {
+            return res.status(400).json({ success: false, message: 'Check-in and check-out dates are required' });
+        }
+        if (reservationPayload.checkOutDate <= reservationPayload.checkInDate) {
+            return res.status(400).json({ success: false, message: 'Check-out date must be after check-in date' });
+        }
+        if (paymentPayload.totalAmount === undefined || Number.isNaN(paymentPayload.totalAmount)) {
+            return res.status(400).json({ success: false, message: 'Total amount is required' });
+        }
+
+        // Resolve room type to its ObjectId (if user gave readable string)
+        let typeId = roomType;
+        if (!/^[0-9a-fA-F]{24}$/.test(roomType)) {
+            // Not ObjectId, try to resolve name
+            const rtDoc = await require('../models/roomtypeModel').findOne({ roomType: roomType.trim() });
+            if (!rtDoc) {
+                return res.status(404).json({ success: false, message: 'Room type not found' });
+            }
+            typeId = rtDoc._id;
+        }
+
+        // Find available rooms of requested roomType not booked for the overlapping period
+        const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
+        // 1. Find all rooms of that type (and not in maintenance)
+        const rooms = await Room.find({
+            roomType: typeId,
+            status: { $nin: ['Maintenance'] },
+        }).select('_id roomNumber');
+        if (!rooms.length) {
+            return res.status(404).json({ success: false, message: 'No rooms of the requested type found' });
+        }
+        const roomIds = rooms.map(r => r._id);
+        // 2. Find which rooms are already booked for overlap
+        const overlappingBookings = await Booking.find({
+            room: { $in: roomIds },
+            status: { $in: ACTIVE_BOOKING_STATUSES },
+            'reservation.checkInDate': { $lt: reservationPayload.checkOutDate },
+            'reservation.checkOutDate': { $gt: reservationPayload.checkInDate },
+        }).select('room').lean();
+        const bookedRoomIds = new Set(overlappingBookings.map(b => String(b.room)));
+        // 3. Find a room not booked for overlap
+        const availableRoom = rooms.find(r => !bookedRoomIds.has(String(r._id)));
+        if (!availableRoom) {
+            return res.status(409).json({ success: false, message: 'No available room of the requested type for the selected dates' });
+        }
+        // 4. Create booking
+        const booking = await Booking.create({
+            room: availableRoom._id,
+            roomNumber: availableRoom.roomNumber,
+            status,
+            guest: guestPayload,
+            reservation: { ...reservationPayload },
+            payment: paymentPayload,
+            notes,
+            createdBy: req.user?._id
+        });
+        await refreshRoomStatus(availableRoom._id);
+        const populated = await booking.populate([
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus' },
+            { path: 'createdBy', select: 'fullName email role' }
+        ]);
+        return res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: formatBooking(populated)
+        });
+    } catch (error) {
+        console.error('bookRoomByType error:', error);
+        res.status(500).json({ success: false, message: 'Failed to book room', error: error.message });
+    }
+};
+
 module.exports = {
     createBooking,
     getBookings,
     getBookingById,
     updateBooking,
-    deleteBooking
+    deleteBooking,
+    bookRoomByType,
 };

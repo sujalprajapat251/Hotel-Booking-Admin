@@ -199,7 +199,7 @@ const HODStaff = () => {
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
-        <p className='text-[20px] font-semibold text-black'>All Staffs</p>
+        <p className='text-[20px] font-semibold text-black mt-4 md:mt-3'>All Staffs</p>
         <div className="w-full mt-3 md:mt-5">
           <div className="bg-white rounded-lg shadow-md">
             {/* Header */}

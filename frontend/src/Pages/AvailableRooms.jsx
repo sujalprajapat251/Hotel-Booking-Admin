@@ -800,7 +800,7 @@ const AvailableRooms = () => {
               placeholder="Search"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
             />
             <svg
               className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -989,7 +989,7 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkInFrom}
                   onChange={(e) => handleFilterChange('checkInFrom', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                 />
               </div>
             </div>
@@ -1002,7 +1002,7 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkOutTo}
                   onChange={(e) => handleFilterChange('checkOutTo', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                 />
               </div>
             </div>
@@ -1149,24 +1149,21 @@ const AvailableRooms = () => {
               // Get amenities from features
               const amenities = room.features || [];
               console.log(amenities, "amenities");
-              const roomBooking = getBookingForRoom(room);
-              const guestName = roomBooking?.guest?.fullName || '—';
-              const bookingReference =
-                roomBooking?.reservation?.bookingReference ||
-                roomBooking?.id?.slice(-10)?.toUpperCase() ||
-                '—';
-              const bookingStatusLabel = roomBooking?.status || '';
-              const checkInLabel = formatDateTimeLabel(roomBooking?.reservation?.checkInDate);
-              const checkOutLabel = formatDateTimeLabel(roomBooking?.reservation?.checkOutDate);
-
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {
                 if (!date) return null;
                 const d = new Date(date);
                 return d.toISOString().slice(0, 10);
               };
+
               const todayStr = getDateString(new Date());
-              const checkInStr = getDateString(roomBooking?.reservation?.checkInDate);
+              // Use backend-provided currentBooking instead of getBookingForRoom
+              const currentBooking = room.currentBooking;
+              const guestName = currentBooking?.guest?.fullName || '—';
+              const bookingStatusLabel = currentBooking?.status || '';
+              const checkInLabel = formatDateTimeLabel(currentBooking?.reservation?.checkInDate);
+              const checkOutLabel = formatDateTimeLabel(currentBooking?.reservation?.checkOutDate);
+              const checkInStr = getDateString(currentBooking?.reservation?.checkInDate);
 
               // Get full image URL
               const getImageUrl = (imagePath) => {
@@ -1191,7 +1188,7 @@ const AvailableRooms = () => {
                   isAddGuestDisabled={isAddGuestDisabled}
                   isDirty={isDirty}
                   amenities={amenities}
-                  roomBooking={roomBooking}
+                  roomBooking={currentBooking}
                   guestName={guestName}
                   bookingStatusLabel={bookingStatusLabel}
                   checkInLabel={checkInLabel}

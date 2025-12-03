@@ -291,7 +291,7 @@ const FAQPage = () => {
                 <input
                   type="text"
                   name="faqQuestion"
-                  className="w-full rounded-[4px] border px-2 py-2"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                   value={formik.values.faqQuestion}
                   onChange={formik.handleChange}
                 />
@@ -302,7 +302,7 @@ const FAQPage = () => {
                 <textarea
                   name="faqAnswer"
                   rows="4"
-                  className="w-full rounded-[4px] border px-2 py-2"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                   value={formik.values.faqAnswer}
                   onChange={formik.handleChange}
                 ></textarea>

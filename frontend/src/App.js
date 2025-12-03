@@ -97,14 +97,6 @@ function App() {
                   }
                 />
                 <Route
-                  path='/cleanings'
-                  element={
-                    <ProtectedRoute allowedRoles={['receptionist']}>
-                      <Cleaning />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
                   path='/maintenence'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
@@ -112,28 +104,20 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* <Route
+                <Route
                   path='/allbookings'
                   element={
-                    <ProtectedRoute allowedRoles={['receptionist']}>
+                    <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
                       <AllBookings />
                     </ProtectedRoute>
                   }
-                /> */}
+                />
                 {/* Admin only routes */}
                 <Route
                   path='/dashboard'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/allbookings'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AllBookings />
                     </ProtectedRoute>
                   }
                 />
@@ -163,7 +147,6 @@ function App() {
                   <Route path='cafecategory' element={<Cafecategory />} />
                   <Route path='cafeitems' element={<CafeItems />} />
                 </Route>
-
                 {/* Admin only routes */}
                 <Route
                   path='/dashboard'
@@ -200,7 +183,6 @@ function App() {
                   <Route path='cafeitems' element={<CafeItems />} />
                   <Route path='cafeorder' element={<CafeOrderList />} />
                 </Route>
-
                 <Route
                   path='/bar'
                   element={
@@ -214,7 +196,6 @@ function App() {
                   <Route path='baritems' element={<BarItems />} />
                   <Route path='barorder' element={<BarOrder />} />
                 </Route>
-
                 <Route
                   path='/restaurant'
                   element={
@@ -228,7 +209,6 @@ function App() {
                   <Route path='restaurantitems' element={<Restaurantitem />} />
                   <Route path='restaurantorder' element={<RestaurantOrder />} />
                 </Route>
-
                 <Route
                   path='/cabs'
                   element={
@@ -242,7 +222,6 @@ function App() {
                   <Route path='cabbooking' element={<CabBookingDetail />} />
                   <Route path='drivwerdetails' element={<DriverDetails />} />
                 </Route>
-
                 <Route
                   path='/staff'
                   element={
@@ -330,7 +309,7 @@ function App() {
                 <Route
                   path='/housekeeping'
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
+                    <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
                       <AllHouseKeeping />
                     </ProtectedRoute>
                   }
@@ -338,7 +317,7 @@ function App() {
                 <Route
                   path='/orderrequest'
                   element={
-                    <ProtectedRoute allowedRoles={['admin']}>
+                    <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
                       <OrderRequest />
                     </ProtectedRoute>
                   }
@@ -351,11 +330,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-
               </Route>
-
-
-
               {/* Catch-all route - redirect based on role */}
               <Route
                 path='*'
