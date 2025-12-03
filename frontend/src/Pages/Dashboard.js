@@ -56,10 +56,10 @@ export const Dashboard = () => {
           status: item.payment?.status || 'Pending',
           phone: item.guest?.phone || 'N/A',
           roomType: item.room?.roomType?.roomType || 'N/A',
-          createdAt: item.createdAt || item.reservation?.checkInDate 
+          createdAt: item.createdAt || item.reservation?.checkInDate
         }))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
-        .slice(0, 8); 
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 8);
       setBooking(formattedBookings);
     }
   }, [items]);
@@ -124,16 +124,88 @@ export const Dashboard = () => {
     }
   ];
 
+  // const quickAccessItems = [
+  //   { title: "Room Management", icon: <MdBusiness className="text-4xl" />, badge: 3, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/rooms/available" },
+  //   { title: "Staff Details", icon: <MdPeople className="text-4xl" />, bgColor: "bg-secondary/40", iconColor: "text-quinary", description: "Manage room availability and assignments", path: "/staff/staffdetails" },
+  //   { title: "Bookings", icon: <VscChecklist className="text-4xl" />, bgColor: "bg-primary/40", iconColor: "text-quaternary", description: "Manage room availability and assignments", path: "/allbookings" },
+  //   { title: "User List", icon: <MdPerson className="text-4xl" />, bgColor: "bg-secondary/30", iconColor: "text-quinary", description: "Manage room availability and assignments", path: "/user" },
+  //   { title: "Housekeeping", icon: <PiBroomLight className="text-4xl" />, badge: 12, bgColor: "bg-quaternary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/housekeeping" },
+  //   { title: "Cafe Order", icon: <CiCoffeeCup className="text-4xl" />, badge: 7, bgColor: "bg-tertiary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/cafe/cafeorder" },
+  //   { title: "Bar Order", icon: <GiMartini className="text-4xl" />, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/bar/barorder" },
+  //   { title: "Restaurant Order", icon: <IoIosRestaurant className="text-4xl" />, badge: 3, bgColor: "bg-tertiary/40", iconColor: "text-quaternary", description: "Manage room availability and assignments", path: "/restaurant/restaurantorder" },
+  // ];
+
   const quickAccessItems = [
-    { title: "Room Management", icon: <MdBusiness className="text-4xl" />, badge: 3, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/rooms/available" },
-    { title: "Staff Details", icon: <MdPeople className="text-4xl" />, bgColor: "bg-secondary/40", iconColor: "text-quinary", path: "/staff/staffdetails" },
-    { title: "Bookings", icon: <VscChecklist className="text-4xl" />, bgColor: "bg-primary/40", iconColor: "text-quaternary", path: "/allbookings" },
-    { title: "User List", icon: <MdPerson className="text-4xl" />, bgColor: "bg-secondary/30", iconColor: "text-quinary", path: "/user" },
-    { title: "Housekeeping", icon: <PiBroomLight className="text-4xl" />, badge: 12, bgColor: "bg-quaternary/30", iconColor: "text-senary", path: "/housekeeping" },
-    { title: "Cafe Order", icon: <CiCoffeeCup className="text-4xl" />, badge: 7, bgColor: "bg-tertiary/30", iconColor: "text-senary", path: "/cafe/cafeorder" },
-    { title: "Bar Order", icon: <GiMartini className="text-4xl" />, bgColor: "bg-primary/30", iconColor: "text-senary", path: "/bar/barorder" },
-    { title: "Restaurant Order", icon: <IoIosRestaurant className="text-4xl" />, badge: 3, bgColor: "bg-tertiary/40", iconColor: "text-quaternary", path: "/restaurant/restaurantorder" },
+    {
+      title: "Room Management",
+      icon: <MdBusiness className="text-4xl" />,
+      badge: 3,
+      bgColor: "bg-primary/30",
+      iconColor: "text-senary",
+      description: "Monitor room availability, status, and assignments in real-time",
+      path: "/rooms/available"
+    },
+    {
+      title: "Staff Details",
+      icon: <MdPeople className="text-4xl" />,
+      bgColor: "bg-secondary/40",
+      iconColor: "text-quinary",
+      description: "View and manage staff profiles, roles, and shift schedules",
+      path: "/staff/staffdetails"
+    },
+    {
+      title: "Bookings",
+      icon: <VscChecklist className="text-4xl" />,
+      bgColor: "bg-primary/40",
+      iconColor: "text-quaternary",
+      description: "Track all reservations, check-ins, and guest booking details",
+      path: "/allbookings"
+    },
+    {
+      title: "User List",
+      icon: <MdPerson className="text-4xl" />,
+      bgColor: "bg-secondary/30",
+      iconColor: "text-quinary",
+      description: "Manage registered users, access levels, and account status",
+      path: "/user"
+    },
+    {
+      title: "Housekeeping",
+      icon: <PiBroomLight className="text-4xl" />,
+      badge: 12,
+      bgColor: "bg-quaternary/30",
+      iconColor: "text-senary",
+      description: "Assign cleaning tasks and track housekeeping progress live",
+      path: "/housekeeping"
+    },
+    {
+      title: "Cafe Order",
+      icon: <CiCoffeeCup className="text-4xl" />,
+      badge: 7,
+      bgColor: "bg-tertiary/30",
+      iconColor: "text-senary",
+      description: "Manage cafe orders, preparation status, and billing updates",
+      path: "/cafe/cafeorder"
+    },
+    {
+      title: "Bar Order",
+      icon: <GiMartini className="text-4xl" />,
+      bgColor: "bg-primary/30",
+      iconColor: "text-senary",
+      description: "Track bar orders, beverage inventory, and serving status",
+      path: "/bar/barorder"
+    },
+    {
+      title: "Restaurant Order",
+      icon: <IoIosRestaurant className="text-4xl" />,
+      badge: 3,
+      bgColor: "bg-tertiary/40",
+      iconColor: "text-quaternary",
+      description: "Oversee restaurant orders, table requests, and kitchen workflow",
+      path: "/restaurant/restaurantorder"
+    },
   ];
+
 
   const serviceSummary = [
     { label: "PENDING", count: getServicerequests?.counts?.pending || 0, color: "text-yellow-600" },
@@ -235,7 +307,7 @@ export const Dashboard = () => {
       review: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam vel rutrum ex, at ornare mi. In quis scelerisque dui, eget rhoncus orci. Fusce et sodales ipsum. Nam id nunc euismod, aliquet arcu quis, mattis nisi.',
       likes: 0,
       dislikes: 0,
-      userLiked: null 
+      userLiked: null
     },
     {
       id: 2,
@@ -582,16 +654,16 @@ export const Dashboard = () => {
                   }}
                   onClick={() => handleNavigateQuickAccess(item.path)}
                 >
-                  {index === 0 && (
-                    <div className="absolute -top-16 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
+                  {/* {index === 0 && ( */}
+                  <div className="absolute -top-10 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
+                    backgroundColor: '#755647'
+                  }}>
+                    {item.description}
+                    <div className="absolute -bottom-1 left-4 w-2 h-2 transform rotate-45" style={{
                       backgroundColor: '#755647'
-                    }}>
-                      {item.description}
-                      <div className="absolute -bottom-1 left-4 w-2 h-2 transform rotate-45" style={{
-                        backgroundColor: '#755647'
-                      }}></div>
-                    </div>
-                  )}
+                    }}></div>
+                  </div>
+                  {/* )} */}
 
                   <div className={`relative ${item.bgColor} ${item.iconColor} p-2 md:p-3 lg:p-4 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
                     {item.icon}
