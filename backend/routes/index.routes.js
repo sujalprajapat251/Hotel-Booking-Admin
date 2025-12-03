@@ -14,7 +14,7 @@ const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../c
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
 const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff, getAllHODStaff } = require('../controller/staffController');
 const { createRoom, getRooms, getRoomById, updateRoom, deleteRoom, autoUpdateRoomBeds, getRoomsWithPagination, refreshAllRoomsStatus } = require('../controller/createRoomController');
-const { createBooking, getBookings, getBookingById, updateBooking, deleteBooking } = require('../controller/bookingController');
+const { createBooking, getBookings, getBookingById, updateBooking, deleteBooking, bookRoomByType } = require('../controller/bookingController');
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
 const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = require('../controller/aboutusController');
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
@@ -133,6 +133,8 @@ indexRoutes.get('/bookings', getBookings);
 indexRoutes.get('/bookings/:id', getBookingById);
 indexRoutes.put('/bookings/:id', auth, updateBooking);
 indexRoutes.delete('/bookings/:id', auth, deleteBooking);
+indexRoutes.post('/bookRoomByType', auth, bookRoomByType);
+
 
 // Housekeeping Route
 indexRoutes.get('/getallhousekeepingroom', auth, getDirtyRooms);

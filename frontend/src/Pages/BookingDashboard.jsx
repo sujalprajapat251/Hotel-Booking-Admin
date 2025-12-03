@@ -850,15 +850,6 @@ const BookingDashboard = () => {
               // Get amenities from features
               const amenities = room.features || [];
               console.log(amenities, "amenities");
-              const roomBooking = getBookingForRoom(room);
-              const guestName = roomBooking?.guest?.fullName || '—';
-              const bookingReference =
-                roomBooking?.reservation?.bookingReference ||
-                roomBooking?.id?.slice(-10)?.toUpperCase() ||
-                '—';
-              const bookingStatusLabel = roomBooking?.status || '';
-              const checkInLabel = formatDateTimeLabel(roomBooking?.reservation?.checkInDate);
-              const checkOutLabel = formatDateTimeLabel(roomBooking?.reservation?.checkOutDate);
 
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {
@@ -866,8 +857,14 @@ const BookingDashboard = () => {
                 const d = new Date(date);
                 return d.toISOString().slice(0, 10);
               };
+
+              const currentBooking = room.currentBooking;
+              const guestName = currentBooking?.guest?.fullName || '—';
+              const bookingStatusLabel = currentBooking?.status || '';
+              const checkInLabel = formatDateTimeLabel(currentBooking?.reservation?.checkInDate);
+              const checkOutLabel = formatDateTimeLabel(currentBooking?.reservation?.checkOutDate);
               const todayStr = getDateString(new Date());
-              const checkInStr = getDateString(roomBooking?.reservation?.checkInDate);
+              const checkInStr = getDateString(currentBooking?.reservation?.checkInDate);
 
               // Get full image URL
               const getImageUrl = (imagePath) => {
@@ -1128,7 +1125,7 @@ const BookingDashboard = () => {
                   isAddGuestDisabled={isAddGuestDisabled}
                   isDirty={isDirty}
                   amenities={amenities}
-                  roomBooking={roomBooking}
+                  roomBooking={currentBooking}
                   guestName={guestName}
                   bookingStatusLabel={bookingStatusLabel}
                   checkInLabel={checkInLabel}

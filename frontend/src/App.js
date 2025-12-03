@@ -137,14 +137,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* <Route
-                  path='/allbookings'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <AllBookings />
-                    </ProtectedRoute>
-                  }
-                /> */}
                 <Route
                   path='/rooms'
                   element={

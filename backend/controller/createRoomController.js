@@ -442,16 +442,46 @@ const getRoomsWithPagination = async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // For each room, attach its current active booking (Pending, Confirmed, CheckedIn, and overlaps today)
+    const today = new Date();
+    const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
+
+    // We want to do this efficiently so we fetch all bookings for these rooms in one go
+    const roomIds = rooms.map(r => r._id);
+
+    const roomBookings = await Booking.find({
+      room: { $in: roomIds },
+      status: { $in: ACTIVE_BOOKING_STATUSES },
+      'reservation.checkInDate': { $lte: today },
+      'reservation.checkOutDate': { $gte: today }
+    })
+      .lean();
+
+    // Build a roomId -> booking map (1 booking per room, even if multiple overlap)
+    const currentBookingMap = {};
+    for (const booking of roomBookings) {
+      const roomIdStr = String(booking.room);
+      // If multiple, prefer the first; only one booking per room
+      if (!currentBookingMap[roomIdStr]) {
+        currentBookingMap[roomIdStr] = booking;
+      }
+    }
+
     //  Fetch all floors (unique)
     const floors = await Room.distinct("floor");
 
     res.json({
       success: true,
-      data: rooms.map(formatRoom),
+      data: rooms.map(room => {
+        const formatted = formatRoom(room);
+        // Attach currentBooking if any
+        const booking = currentBookingMap[String(room._id)] || null;
+        return { ...formatted, currentBooking: booking };
+      }),
       total,
       page,
       totalPages: Math.ceil(total / (limit || 1)),
-      floors: floors.sort((a, b) => a - b), // sorted floors
+      floors: floors.sort((a, b) => a - b),
       stats: {
         total: totalFiltered,
         available: statusStats.Available,
@@ -589,27 +619,36 @@ const updateRoom = async (req, res) => {
       }
     }
 
-    let imagePaths = existingRoom.images || [];
-
-    if (req.files && req.files.length > 0) {
-      // Optional: delete old images from S3
-      if (existingRoom.images && existingRoom.images.length > 0) {
-        for (const oldImg of existingRoom.images) {
-          await deleteFromS3(oldImg); // make sure old images are deleted from S3
-        }
+    let imagesToKeep = [];
+    if (images && Array.isArray(images)) {
+      imagesToKeep = images;
+    } else if (typeof images === 'string') {
+      try {
+        imagesToKeep = JSON.parse(images);
+      } catch {
+        imagesToKeep = [];
       }
+    } else {
+      imagesToKeep = existingRoom.images || [];
+    }
 
-      // Upload new images
+    let imagePaths = imagesToKeep;
+
+    // Handle new uploads (req.files)
+    if (req.files && req.files.length > 0) {
+      // Upload new images, append to imagePaths
       const uploadedImages = [];
       for (const file of req.files) {
         const uploadedUrl = await uploadToS3(file, 'uploads/image');
         uploadedImages.push(uploadedUrl);
       }
+      imagePaths = [...imagesToKeep, ...uploadedImages];
+    }
 
-      imagePaths = uploadedImages;
-    } else if (images && Array.isArray(images)) {
-      // Keep existing images or replace with client-sent URLs
-      imagePaths = images;
+    // Delete from S3 only images that are in existingRoom.images and NOT in the new imagePaths
+    const toRemove = (existingRoom.images || []).filter(oldImg => !imagePaths.includes(oldImg));
+    for (const oldImg of toRemove) {
+      await deleteFromS3(oldImg);
     }
 
     const updateData = {};
@@ -642,7 +681,7 @@ const updateRoom = async (req, res) => {
       };
     }
     if (viewType) updateData.viewType = viewType.trim();
-    if (images || req.files) updateData.images = imagePaths;
+    updateData.images = imagePaths;
     if (status) updateData.status = status;
     if (isSmokingAllowed !== undefined) updateData.isSmokingAllowed = isSmokingAllowed;
     if (isPetFriendly !== undefined) updateData.isPetFriendly = isPetFriendly;
