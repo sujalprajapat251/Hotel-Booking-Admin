@@ -5,7 +5,6 @@ import { RiDeleteBinLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { getAllStaff, deleteStaff } from '../Redux/Slice/staff.slice';
-import { IMAGE_URL } from '../Utils/baseUrl';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
@@ -20,12 +19,8 @@ const StaffTable = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  console.log('selectedItem', selectedItem);
   
   const [currentPage, setCurrentPage] = useState(1);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);

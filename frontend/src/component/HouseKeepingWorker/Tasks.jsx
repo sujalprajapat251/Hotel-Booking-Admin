@@ -62,7 +62,6 @@ const Tasks = () => {
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 roomType: item?.roomId.roomType?.roomType || 'N/A',
             }));
-            console.log('formattedData', formattedData);
             setAssigndTask(formattedData);
 
         } else {
@@ -172,7 +171,6 @@ const Tasks = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    console.log('currentData', currentData);
 
     return (
         <>

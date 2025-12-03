@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../Style/Sujal.css';
 import { FaWrench } from 'react-icons/fa';
-import { HiOutlineDocumentChartBar } from "react-icons/hi2";
 import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import Newbookingchart from '../component/Newbookingchart';
@@ -101,7 +100,6 @@ export const Dashboard = () => {
     senary: '#755647',
   };
 
-
   const stats = [
     {
       label: 'Occupied',
@@ -124,17 +122,6 @@ export const Dashboard = () => {
       color: colors.senary
     }
   ];
-
-  // const quickAccessItems = [
-  //   { title: "Room Management", icon: <MdBusiness className="text-4xl" />, badge: 3, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/rooms/available" },
-  //   { title: "Staff Details", icon: <MdPeople className="text-4xl" />, bgColor: "bg-secondary/40", iconColor: "text-quinary", description: "Manage room availability and assignments", path: "/staff/staffdetails" },
-  //   { title: "Bookings", icon: <VscChecklist className="text-4xl" />, bgColor: "bg-primary/40", iconColor: "text-quaternary", description: "Manage room availability and assignments", path: "/allbookings" },
-  //   { title: "User List", icon: <MdPerson className="text-4xl" />, bgColor: "bg-secondary/30", iconColor: "text-quinary", description: "Manage room availability and assignments", path: "/user" },
-  //   { title: "Housekeeping", icon: <PiBroomLight className="text-4xl" />, badge: 12, bgColor: "bg-quaternary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/housekeeping" },
-  //   { title: "Cafe Order", icon: <CiCoffeeCup className="text-4xl" />, badge: 7, bgColor: "bg-tertiary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/cafe/cafeorder" },
-  //   { title: "Bar Order", icon: <GiMartini className="text-4xl" />, bgColor: "bg-primary/30", iconColor: "text-senary", description: "Manage room availability and assignments", path: "/bar/barorder" },
-  //   { title: "Restaurant Order", icon: <IoIosRestaurant className="text-4xl" />, badge: 3, bgColor: "bg-tertiary/40", iconColor: "text-quaternary", description: "Manage room availability and assignments", path: "/restaurant/restaurantorder" },
-  // ];
 
   const quickAccessItems = [
     {
@@ -206,7 +193,6 @@ export const Dashboard = () => {
       path: "/restaurant/restaurantorder"
     },
   ];
-
 
   const serviceSummary = [
     { label: "PENDING", count: getServicerequests?.counts?.pending || 0, color: "text-yellow-600" },
@@ -655,7 +641,6 @@ export const Dashboard = () => {
                   }}
                   onClick={() => handleNavigateQuickAccess(item.path)}
                 >
-                  {/* {index === 0 && ( */}
                   <div className="absolute -top-10 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
                     backgroundColor: '#755647'
                   }}>
@@ -664,7 +649,6 @@ export const Dashboard = () => {
                       backgroundColor: '#755647'
                     }}></div>
                   </div>
-                  {/* )} */}
 
                   <div className={`relative ${item.bgColor} ${item.iconColor} p-2 md:p-3 lg:p-4 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
                     {item.icon}
@@ -754,7 +738,6 @@ export const Dashboard = () => {
             <Purpose />
           </div>
         </div>
-
 
         <div className="w-full mt-5">
           <div className="bg-white rounded-xl shadow-lg overflow-hidden border-2" style={{
@@ -864,7 +847,6 @@ export const Dashboard = () => {
             </div>
           </div>
         </div>
-
 
         <div className='mt-5 rounded-lg shadow-sm w-full'>
           <div className='lg:flex gap-5 justify-between'>
@@ -1020,7 +1002,6 @@ export const Dashboard = () => {
           </div>
 
         </div>
-        {/* </div> */}
 
       </div>
     </>
