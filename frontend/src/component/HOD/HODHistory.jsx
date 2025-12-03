@@ -273,7 +273,7 @@ const HODHistory = () => {
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5  bg-[#F0F3FB] h-full' >
-        <p className='text-[20px] font-semibold text-black'>History</p>
+        <p className='text-[20px] font-semibold text-black mt-4 md:mt-3'>History</p>
         <div className="w-full mt-3 md:mt-5">
           <div className="bg-white rounded-lg shadow-md">
             {/* Header */}

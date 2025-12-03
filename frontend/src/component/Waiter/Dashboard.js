@@ -82,9 +82,9 @@ export default function Dashboard() {
   }, [dispatch]);
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
-      <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
+      <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 mt-6 sm:mt-3 md:mt-1">Dashboard</h1>
 
-      <div className="py-6">
+      <div className="py-4 sm:py-6">
         <div className="block gap-5 md:flex">
           {/* Left column */}
           <aside className="w-full md:w-[30%]">

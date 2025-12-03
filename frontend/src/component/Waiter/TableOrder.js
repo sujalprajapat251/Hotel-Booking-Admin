@@ -200,10 +200,10 @@ export default function TableOrder() {
         <div className="p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen">
             <div className="mb-3 sm:mb-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                    <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Order</h1>
+                    <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 mt-6 sm:mt-1">Order</h1>
                     {singleTable && (
                         <button
-                            className="px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm rounded bg-senary text-white whitespace-nowrap"
+                            className="px-2 py-1.5 sm:px-3 sm:py-2 sm:mt-2 text-xs sm:text-sm rounded bg-senary text-white whitespace-nowrap"
                             onClick={async () => {
                                 const nextStatus = !(singleTable.status ?? true);
                                 await dispatch(updateCafeTable({ id, status: nextStatus })).unwrap();
