@@ -426,15 +426,15 @@ export const Dashboard = () => {
         </div>
 
         <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5'>
-          <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
+          <div className='flex bg-white p-4 rounded-xl shadow-lg border-2' style={{
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex justify-between items-end'>
-              <div className='mb-5'>
+            <div className='sm:flex justify-between items-center'>
+              <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Booking</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.newBookings}</p>
-                <div className='flex gap-1 items-center mt-5'>
+                <div className='flex gap-1 items-center'>
                   <p className='text-green-500'></p>
                 </div>
               </div>
@@ -447,11 +447,11 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex justify-between items-end'>
-              <div className='mb-5'>
+            <div className='sm:flex justify-between items-center'>
+              <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Available Rooms</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.availableRooms}</p>
-                <div className='flex gap-1 items-center mt-5'>
+                <div className='flex gap-1 items-center'>
                   <p className='text-red-500'></p>
                 </div>
               </div>
@@ -464,15 +464,15 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex justify-between items-end'>
-              <div className='mb-5'>
+            <div className='sm:flex justify-between items-center'>
+              <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Revenue</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.totalRevenue}</p>
-                <div className='flex gap-1 items-center mt-5'>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>${getDashboardData?.totalRevenue}</p>
+                <div className='flex gap-1 items-center'>
                   <p className='text-green-500'></p>
                 </div>
               </div>
-              <div className='w-[220px] h-[80px] ms-auto'>
+              <div className='w-[220px] h-[110px] ms-auto'>
                 <Revenuechart />
               </div>
             </div>
@@ -481,11 +481,11 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex justify-between items-end'>
-              <div className='mb-5'>
+            <div className='sm:flex justify-between items-center'>
+              <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Checkout</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.checkoutCount}</p>
-                <div className='flex gap-1 items-center mt-5'>
+                <div className='flex gap-1 items-center'>
                   <p className='text-red-500'></p>
                 </div>
               </div>
@@ -870,7 +870,7 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className=" bg-white rounded-xl shadow-lg p-3 md:p-5 border-2" style={{
+          <div className="flex flex-col bg-white rounded-xl shadow-lg p-3 md:p-5 border-2" style={{
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
@@ -886,10 +886,10 @@ export const Dashboard = () => {
 
             <hr className="mb-6" style={{ borderColor: '#E3C78A' }} />
 
-            <div className="space-y-6">
-              {getReview.slice(0, 2).map((review, index) => (
-                <div key={index} className="pb-6">
-                  <div className="flex items-start gap-3 mb-3">
+            <div className="flex-1 space-y-2">
+              {getReview.slice(0, 3).map((review, index) => (
+                <div key={index} className="pb-2">
+                  <div className="flex items-center gap-3 mb-3">
                     {review.photo ? (
                       <img src={review.photo}
                         alt={review.userId.name}
@@ -928,7 +928,7 @@ export const Dashboard = () => {
                   <h4 className="text-sm font-semibold text-[#755647]">
                     {review.title}
                   </h4>
-                  <p className="text-sm leading-relaxed mb-3 ml-0" style={{ color: '#755647' }}>
+                  <p className="text-sm leading-relaxed ml-0 line-clamp-1" style={{ color: '#755647' }}>
                     {review.comment}
                   </p>
                 </div>

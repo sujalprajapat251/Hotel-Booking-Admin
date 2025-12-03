@@ -800,7 +800,7 @@ const AvailableRooms = () => {
               placeholder="Search"
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
             />
             <svg
               className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -989,7 +989,7 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkInFrom}
                   onChange={(e) => handleFilterChange('checkInFrom', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                 />
               </div>
             </div>
@@ -1002,7 +1002,7 @@ const AvailableRooms = () => {
                   type="date"
                   value={filters.checkOutTo}
                   onChange={(e) => handleFilterChange('checkOutTo', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                 />
               </div>
             </div>
