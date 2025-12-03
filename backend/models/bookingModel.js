@@ -25,10 +25,6 @@ const GuestSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    nationality: {
-      type: String,
-      trim: true,
-    },
     address: {
       type: String,
       trim: true,
@@ -46,11 +42,6 @@ const ReservationSchema = new mongoose.Schema(
     checkOutDate: {
       type: Date,
       required: true,
-    },
-    bookingSource: {
-      type: String,
-      trim: true,
-      default: "Direct",
     },
     occupancy: {
       adults: {
@@ -125,6 +116,10 @@ const PaymentSchema = new mongoose.Schema(
         },
       },
     ],
+    paymentIntentId: {
+      type: String,
+      trim: true,
+    },
   },
   { _id: false }
 );

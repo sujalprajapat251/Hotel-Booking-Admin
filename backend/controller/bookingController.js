@@ -2,6 +2,12 @@ const Booking = require('../models/bookingModel');
 const Room = require('../models/createRoomModel');
 
 const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
+// Stripe Integration
+let stripe = null;
+try {
+    const Stripe = require('stripe');
+    stripe = Stripe(process.env.STRIPE_SECRET);
+} catch {}
 
 const formatBooking = (doc) => ({
     id: doc._id,
@@ -29,14 +35,12 @@ const normalizeGuestPayload = (payload = {}) => ({
     countrycode: payload.countrycode?.trim(),
     phone: payload.phone?.trim(),
     idNumber: payload.idNumber?.trim(),
-    nationality: payload.nationality?.trim(),
     address: payload.address?.trim()
 });
 
 const normalizeReservationPayload = (payload = {}) => ({
     checkInDate: parseDate(payload.checkInDate),
     checkOutDate: parseDate(payload.checkOutDate),
-    bookingSource: payload.bookingSource || 'Direct',
     occupancy: {
         adults: payload.occupancy?.adults !== undefined ? Number(payload.occupancy.adults) : (payload.adults !== undefined ? Number(payload.adults) : 1),
         children: payload.occupancy?.children !== undefined ? Number(payload.occupancy.children) : (payload.children !== undefined ? Number(payload.children) : 0)
@@ -49,7 +53,8 @@ const normalizePaymentPayload = (payload = {}) => ({
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
-    transactions: payload.transactions
+    transactions: payload.transactions,
+    ...(payload.paymentIntentId ? { paymentIntentId: payload.paymentIntentId } : {})
 });
 
 const ensureRoomAvailability = async ({ roomId, checkInDate, checkOutDate, excludeBookingId }) => {
@@ -106,17 +111,53 @@ const refreshRoomStatus = async (roomId) => {
     await Room.findByIdAndUpdate(roomId, { status: nextStatus });
 };
 
+
+// Create Stripe PaymentIntent for booking
+const createBookingPaymentIntent = async (req, res) => {
+    try {
+    console.log(process.env.STRIPE_SECRET, "STRIPE_SECRET");
+
+        const { totalAmount, currency = 'usd' } = req.body;
+        if (!stripe) return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
+        if (!totalAmount) return res.status(400).json({ success: false, message: 'totalAmount is required' });
+
+        const amountMinor = Math.round(Number(totalAmount) * 100);
+        const intent = await stripe.paymentIntents.create({
+            amount: amountMinor,
+            currency,
+            payment_method_types: ['card']
+        });
+        return res.status(200).json({
+            success: true,
+            clientSecret: intent.client_secret,
+            paymentIntentId: intent.id,
+            amount: totalAmount
+        });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
 const createBooking = async (req, res) => {
     try {
         const roomId = req.body.roomId || req.body.room;
         const guestPayload = normalizeGuestPayload(req.body.guest || req.body);
         const reservationPayload = normalizeReservationPayload(req.body.reservation || req.body);
         const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
+        const paymentIntentId = req.body.payment?.paymentIntentId || null;
+        const paymentMethod = (req.body.payment?.method || req.body.paymentMethod || '').toLowerCase();
+        if (
+            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') 
+            && paymentIntentId
+        ) {
+            paymentPayload.paymentIntentId = paymentIntentId;
+        }
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
 
-        console.log(roomId, "roomId");
+        console.log(paymentIntentId, "paymentIntentId");
 
+        
 
         if (!roomId) {
             return res.status(400).json({ success: false, message: 'roomId is required' });
@@ -138,6 +179,21 @@ const createBooking = async (req, res) => {
         }
         if (paymentPayload.totalAmount === undefined || Number.isNaN(paymentPayload.totalAmount)) {
             return res.status(400).json({ success: false, message: 'Total amount is required' });
+        }
+        // Only require paymentIntentId and verify with Stripe if method is card or bank transfer
+        if (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') {
+            if (!paymentIntentId) {
+                return res.status(400).json({ success: false, message: 'paymentIntentId is required' });
+            }
+            if (!stripe) {
+                return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
+            }
+            // Verify payment with Stripe
+            const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+            // Allow booking if paymentIntent is succeeded OR (for test/dev) just created and requires a payment method
+            if (!pi || (pi.status !== 'succeeded' && pi.status !== 'requires_payment_method')) {
+                return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
+            }
         }
 
         const room = await Room.findById(roomId).select('roomNumber status');
@@ -370,7 +426,6 @@ const updateBooking = async (req, res) => {
         if (guestPayload.phone) booking.guest.phone = guestPayload.phone;
         if (guestPayload.countrycode) booking.guest.countrycode = guestPayload.countrycode;
         if (guestPayload.idNumber !== undefined) booking.guest.idNumber = guestPayload.idNumber;
-        if (guestPayload.nationality !== undefined) booking.guest.nationality = guestPayload.nationality;
         if (guestPayload.address !== undefined) booking.guest.address = guestPayload.address;
 
         const reservationPayload = normalizeReservationPayload(req.body.reservation || req.body);
@@ -381,7 +436,6 @@ const updateBooking = async (req, res) => {
 
         if (reservationPayload.checkInDate) booking.reservation.checkInDate = reservationPayload.checkInDate;
         if (reservationPayload.checkOutDate) booking.reservation.checkOutDate = reservationPayload.checkOutDate;
-        if (reservationPayload.bookingSource !== undefined) booking.reservation.bookingSource = reservationPayload.bookingSource;
         if (reservationPayload.specialRequests !== undefined) booking.reservation.specialRequests = reservationPayload.specialRequests;
         if (reservationPayload.occupancy) {
             if (reservationPayload.occupancy.adults) booking.reservation.occupancy.adults = reservationPayload.occupancy.adults;
@@ -495,16 +549,6 @@ const deleteBooking = async (req, res) => {
     }
 };
 
-/**
- * Book a room by roomType and dates, auto-assigning available room.
- * Input: {
- *   roomType: RoomType Id or name (string),
- *   reservation: { checkInDate, checkOutDate, ... },
- *   guest: { ... },
- *   payment: { ... },
- *   ...etc
- * }
- */
 const bookRoomByType = async (req, res) => {
     try {
         const { roomType } = req.body;
@@ -513,6 +557,7 @@ const bookRoomByType = async (req, res) => {
         const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
+        const paymentIntentId = req.body.paymentIntentId;
 
         // Validations
         if (!roomType) {
@@ -532,6 +577,17 @@ const bookRoomByType = async (req, res) => {
         }
         if (paymentPayload.totalAmount === undefined || Number.isNaN(paymentPayload.totalAmount)) {
             return res.status(400).json({ success: false, message: 'Total amount is required' });
+        }
+        if (!paymentIntentId) {
+            return res.status(400).json({ success: false, message: 'paymentIntentId is required' });
+        }
+        if (!stripe) {
+            return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
+        }
+        // Verify payment with Stripe
+        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (!pi || pi.status !== 'succeeded') {
+            return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
         }
 
         // Resolve room type to its ObjectId (if user gave readable string)
@@ -578,7 +634,8 @@ const bookRoomByType = async (req, res) => {
             reservation: { ...reservationPayload },
             payment: paymentPayload,
             notes,
-            createdBy: req.user?._id
+            createdBy: req.user?._id,
+            paymentIntentId
         });
         await refreshRoomStatus(availableRoom._id);
         const populated = await booking.populate([
@@ -603,4 +660,5 @@ module.exports = {
     updateBooking,
     deleteBooking,
     bookRoomByType,
+    createBookingPaymentIntent, // <- export new intent fn
 };

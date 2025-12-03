@@ -2,10 +2,19 @@ import React, { useMemo, useState, useEffect } from "react";
 import { ConfigProvider, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
-import { createBooking } from "../Redux/Slice/bookingSlice";
+import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookingSlice";
 import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+
+// Helper to calculate number of nights
+function getNights(checkIn, checkOut) {
+  if (!checkIn || !checkOut) return 0;
+  const inDate = new Date(checkIn);
+  const outDate = new Date(checkOut);
+  const diff = outDate - inDate;
+  return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
+}
 
 const GuestModal = ({ onClose, room, onBooked }) => {
   const { RangePicker } = DatePicker;
@@ -27,6 +36,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     checkOutDate: "",
     paymentStatus: "Pending",
     paymentMethod: "Cash",
+    paymentIntentId:"",
     totalAmount: room?.price?.base || "",
     notes: "",
     // Cab booking fields
@@ -61,7 +71,17 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     }
   }, [formState.estimatedDistance, cabServiceEnabled]);
 
-  console.log(room,"room");
+  // Recalculate totalAmount whenever stay dates or price changes
+  useEffect(() => {
+    const nights = getNights(formState.checkInDate, formState.checkOutDate);
+    const pricePerNight = room?.price?.base || 0;
+    const total = nights * pricePerNight;
+    setFormState((prev) => ({
+      ...prev,
+      totalAmount: total > 0 ? total : "",
+    }));
+  }, [formState.checkInDate, formState.checkOutDate, room]);
+
 
   const roomSummary = useMemo(() => {
     if (!room) return null;
@@ -189,56 +209,59 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       }
     }
 
-    const payload = {
-      roomId: room.id,
-      guest: {
-        fullName: formState.fullName,
-        email: formState.email,
-        countrycode: formState.countrycode || "+91",
-        phone: formState.mobile || "",
-        idNumber: formState.idNumber,
-        address: formState.address,
-      },
-      reservation: {
-        checkInDate: formState.checkInDate,
-        checkOutDate: formState.checkOutDate,
-        occupancy: {
-          adults: room?.capacity?.adults || 1,
-          children: room?.capacity?.children || 0,
-        },
-      },
-      payment: {
-        status: formState.paymentStatus,
-        totalAmount: Number(formState.totalAmount || room?.price?.base || 0),
-        method: formState.paymentMethod,
-      },
-      status: "Confirmed",
-      notes: formState.notes,
-    };
-
     try {
+      // Only create booking intent for Card or Bank Transfer
+      let paymentIntentId = "";
+      const paymentMethod = (formState.paymentMethod || '').toLowerCase();
+      if (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') {
+        const paymentIntent = await dispatch(createBookingPaymentIntent({ totalAmount: formState.totalAmount, currency: "usd" })).unwrap();
+        if (!paymentIntent) {
+          throw new Error("Failed to create payment intent.");
+        }
+        paymentIntentId = paymentIntent;
+      }
+
+      const payload = {
+        roomId: room.id,
+        guest: {
+          fullName: formState.fullName,
+          email: formState.email,
+          phone: formState.phone,
+          idNumber: formState.idNumber,
+          address: formState.address,
+        },
+        reservation: {
+          checkInDate: formState.checkInDate,
+          checkOutDate: formState.checkOutDate,
+          occupancy: {
+            adults: room?.capacity?.adults || 1,
+            children: room?.capacity?.children || 0,
+          },
+        },
+        payment: {
+          paymentIntentId: paymentIntentId,
+          status: formState.paymentStatus,
+          totalAmount: Number(formState.totalAmount || room?.price?.base || 0),
+          method: formState.paymentMethod,
+        },
+        status: "Confirmed",
+        notes: formState.notes,
+      };
+
+      console.log(payload, "payload");
+
       const bookingResult = await dispatch(createBooking(payload)).unwrap();
-      
-      // Create cab booking if cab service is enabled
+      console.log(bookingResult, "bookingResult");
+
+      // Cab booking logic unchanged
       if (cabServiceEnabled) {
-        // Use id or _id (backend returns id from formatBooking function)
         const bookingId = bookingResult?.id || bookingResult?._id;
-        
         if (!bookingId) {
           console.error("Booking ID not found in result:", bookingResult);
           throw new Error("Failed to get booking ID for cab booking");
         }
-
-        // Validate required cab booking fields
-        if (!formState.pickUpLocation) {
-          throw new Error("Pick-up location is required for cab booking");
-        }
-        if (!formState.pickUpTime) {
-          throw new Error("Pick-up time is required for cab booking");
-        }
-
         const cabBookingPayload = {
-          bookingId: bookingId,
+          bookingId,
           pickUpLocation: formState.pickUpLocation,
           pickUpTime: formState.pickUpTime,
           bookingDate: formState.bookingDate || formState.checkInDate || new Date().toISOString().split('T')[0],
@@ -248,11 +271,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           specialInstructions: formState.specialInstructions || "",
           notes: formState.cabNotes || "",
         };
-        
         console.log("Creating cab booking with payload:", cabBookingPayload);
         await dispatch(createCabBooking(cabBookingPayload)).unwrap();
       }
-      
       if (onBooked) {
         onBooked(room);
       }
@@ -484,7 +505,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   >
                     <option value="Pending">Pending</option>
                     <option value="Paid">Paid</option>
-                    <option value="Partial">Partial</option>
+                    {/* <option value="Partial">Partial</option> */}
                   </select>
                 </div>
               </div>
@@ -646,7 +667,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     required
                     min="0"
                     value={formState.totalAmount}
-                    onChange={handleChange("totalAmount")}
+                    readOnly
                   />
                 </div>
               </div>

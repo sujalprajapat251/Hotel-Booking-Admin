@@ -108,8 +108,23 @@ export const deleteBooking = createAsyncThunk(
   }
 );
 
+export const createBookingPaymentIntent = createAsyncThunk(
+  'booking/createPaymentIntent',
+  async (paymentIntentData, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/booking/paymentintent`, paymentIntentData, {
+        headers: getAuthHeaders()
+      });
+      return response.data?.paymentIntentId;
+    } catch (error) {
+      return handleErrors(error, dispatch, rejectWithValue);
+    }
+  }
+);
+
 const initialState = {
   items: [],
+  paymentIntent: null,
   selected: null,
   loading: false,
   error: null,
@@ -206,7 +221,19 @@ const bookingSlice = createSlice({
       .addCase(deleteBooking.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+      .addCase(createBookingPaymentIntent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createBookingPaymentIntent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.paymentIntent = action.payload;
+      })
+      .addCase(createBookingPaymentIntent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
   }
 });
 

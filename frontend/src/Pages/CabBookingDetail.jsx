@@ -210,9 +210,9 @@ const CabBookingDetail = () => {
           </div>
 
           <div className="flex items-center gap-1 justify-end mt-2">
-            <button className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" title="Add Booking">
+            {/* <button className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors" title="Add Booking">
               <FiPlusCircle size={20} />
-            </button>
+            </button> */}
             <div className="relative">
               <button
                 className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
@@ -349,9 +349,9 @@ const CabBookingDetail = () => {
                           <IoEyeSharp className="text-[18px] text-quaternary" />
                         </button>
                       </div>
-                      <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit">
+                      {/* <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit">
                         <FiEdit className="text-[18px]" />
-                      </div>
+                      </div> */}
                       <div title="Delete">
                         <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
                       </div>

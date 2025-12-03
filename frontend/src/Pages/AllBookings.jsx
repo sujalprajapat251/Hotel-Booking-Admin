@@ -25,6 +25,10 @@ const AllBookings = () => {
         loading
     } = useSelector((state) => state.booking);
 
+    const user = useSelector((state) => state.auth?.user);
+    console.log(user, "user");
+    const userRole = user?.designation || '';
+    console.log(userRole, "userRole");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -49,13 +53,12 @@ const AllBookings = () => {
             phone: '',
             fullMobile: '',
             idNumber: '',
-            nationality: '',
             address: ''
         },
         reservation: {
             checkInDate: '',
             checkOutDate: '',
-            bookingSource: 'Direct',
+            
             occupancy: {
                 adults: 1,
                 children: 0
@@ -330,13 +333,11 @@ const AllBookings = () => {
                 phone: numericPhone,
                 fullMobile,
                 idNumber: rawData.guest?.idNumber || '',
-                nationality: rawData.guest?.nationality || '',
                 address: rawData.guest?.address || ''
             },
             reservation: {
                 checkInDate: rawData.reservation?.checkInDate ? new Date(rawData.reservation.checkInDate).toISOString().split('T')[0] : bookingItem.checkIn || '',
                 checkOutDate: rawData.reservation?.checkOutDate ? new Date(rawData.reservation.checkOutDate).toISOString().split('T')[0] : bookingItem.checkOut || '',
-                bookingSource: rawData.reservation?.bookingSource || 'Direct',
                 occupancy: {
                     adults: rawData.reservation?.occupancy?.adults || 1,
                     children: rawData.reservation?.occupancy?.children || 0
@@ -366,13 +367,11 @@ const AllBookings = () => {
                 phone: '',
                 fullMobile: '',
                 idNumber: '',
-                nationality: '',
                 address: ''
             },
             reservation: {
                 checkInDate: '',
                 checkOutDate: '',
-                bookingSource: 'Direct',
                 occupancy: {
                     adults: 1,
                     children: 0
@@ -664,12 +663,14 @@ const AllBookings = () => {
                                                             >
                                                                 <FiEdit className="text-[#6777ef] text-[18px]" />
                                                             </div>
-                                                            <div
-                                                                onClick={() => handleDeleteClick(bookingItem)}
-                                                                title="Delete Booking"
-                                                            >
-                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                                                            </div>
+                                                            {userRole !== 'receptionist' && (
+                                                                <div
+                                                                    onClick={() => handleDeleteClick(bookingItem)}
+                                                                    title="Delete Booking"
+                                                                >
+                                                                    <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </td>
                                                 )}
@@ -1035,7 +1036,7 @@ const AllBookings = () => {
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
-                                                <div>
+                                                {/* <div>
                                                     <label className="text-sm font-medium text-black mb-1">Nationality</label>
                                                     <input
                                                         type="text"
@@ -1043,7 +1044,7 @@ const AllBookings = () => {
                                                         onChange={(e) => handleEditFormChange('guest', 'nationality', e.target.value)}
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
-                                                </div>
+                                                </div> */}
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Address</label>
                                                     <input
@@ -1080,7 +1081,7 @@ const AllBookings = () => {
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
-                                                <div>
+                                                {/* <div>
                                                     <label className="text-sm font-medium text-black mb-1">Booking Source</label>
                                                     <input
                                                         type="text"
@@ -1088,7 +1089,7 @@ const AllBookings = () => {
                                                         onChange={(e) => handleEditFormChange('reservation', 'bookingSource', e.target.value)}
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
-                                                </div>
+                                                </div> */}
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Adults</label>
                                                     <input

@@ -190,7 +190,6 @@ function GuestDetailsModal({
             <InfoItem label="Phone Number" value={guest.phone} />
             <InfoItem label="Email Address" value={guest.email} />
             <InfoItem label="ID Number" value={guest.idNumber} />
-            <InfoItem label="Nationality" value={guest.nationality} />
           </div>
 
           {/* RESERVATION DETAILS */}
@@ -206,7 +205,6 @@ function GuestDetailsModal({
               label="Check-Out Date"
               value={formatDateTime(reservation.checkOutDate)}
             />
-            <InfoItem label="Booking Source" value={reservation.bookingSource} />
             <InfoItem
               label="Payment Status"
               value={payment.status}
