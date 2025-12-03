@@ -18,6 +18,7 @@ import { setAlert } from '../Redux/Slice/alert.slice';
 import { useDispatch, useSelector } from "react-redux";
 import { getAllDrivers, createDriver, updateDriver, deleteDriver } from "../Redux/Slice/driverSlice";
 import { getAllCabs } from "../Redux/Slice/cab.slice";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 const statusColors = (status) => {
   switch (status) {
@@ -80,6 +81,12 @@ const DriverDetails = () => {
     status: "Available",
     image: null,
     existingImage: null,
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
   };
 
   const [driverForm, setDriverForm] = useState(defaultDriverFields);
@@ -616,17 +623,20 @@ const DriverDetails = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-black mb-1">
-                    Password {driverModalMode === "add" ? "" : ""}
+                      Password {driverModalMode === "add" ? "" : ""}
                   </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={driverForm.password}
-                    onChange={handleDriverInputChange}
-                    placeholder={driverModalMode === "add" ? "Password" : "Leave blank to keep current password"}
-                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                    required={driverModalMode === "add"}
-                  />
+                  <div className="input-field flex items-center w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982]">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={driverForm.password}
+                      onChange={handleDriverInputChange}
+                      placeholder={driverModalMode === "add" ? "Password" : "Leave blank to keep current password"}
+                      className="bg-transparent focus-visible:outline-none w-full"
+                      required={driverModalMode === "add"}
+                    />
+                    <span className="text-gray-400 ms-auto" onClick={togglePasswordVisibility}>{showPassword ? <IoMdEye /> : <IoMdEyeOff />}</span>
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-black mb-1">Mobile Number </label>

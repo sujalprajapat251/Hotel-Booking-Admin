@@ -33,6 +33,7 @@ import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoIosRestaurant } from "react-icons/io";
 import { PiBroomLight } from "react-icons/pi";
 import { HiInboxArrowDown } from 'react-icons/hi2';
+import { X } from 'lucide-react';
 
 // Admin menu items
 const adminSections = [
@@ -313,8 +314,17 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
             <HiOutlineLocationMarker className="text-2xl" />
           </div>
           {open ? (
-            <div>
-              <p className="text-xl font-semibold text-senary">Taj Hotel</p>  
+            <div className="flex items-center justify-between flex-1">
+              <p className="text-xl font-semibold text-senary">Taj Hotel</p>
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm500:hidden"
+                  aria-label="Close sidebar"
+                >
+                  <X className="text-xl" />
+                </button>
+              )}
             </div>
           ) : null}
         </div>

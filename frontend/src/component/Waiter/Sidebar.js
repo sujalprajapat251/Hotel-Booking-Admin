@@ -4,6 +4,7 @@ import { FiGrid, FiLayers, FiChevronDown, FiChevronRight } from 'react-icons/fi'
 import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { LuContact, LuUsers } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
+import { X } from 'lucide-react';
 
 // HOD menu items
 const hodSections = [
@@ -158,9 +159,20 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
           <HiOutlineLocationMarker className="text-2xl" />
         </div>
         {open ? (
-          <div>
-            <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-            <p className="text-xs text-gray-500">Waiter Panel</p>
+          <div className="flex items-center justify-between flex-1">
+            <div>
+              <p className="text-xl font-semibold text-senary">Taj Hotel</p>
+              <p className="text-xs text-gray-500">Waiter Panel</p>
+            </div>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm500:hidden"
+                aria-label="Close sidebar"
+              >
+                <X className="text-xl" />
+              </button>
+            )}
           </div>
         ) : null}
       </div>
