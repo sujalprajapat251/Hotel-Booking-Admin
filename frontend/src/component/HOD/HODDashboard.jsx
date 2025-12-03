@@ -58,7 +58,7 @@ const HODDashboard = () => {
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">HOD Dashboard</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mt-4 md:mt-3">HOD Dashboard</h1>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5'>

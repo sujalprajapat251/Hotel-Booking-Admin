@@ -186,7 +186,7 @@ const RoomType = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Room Types</p>
+            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Room Types</p> */}
 
             {/* Search Bar */}
             <div className="relative  max-w-md">
@@ -363,7 +363,7 @@ const RoomType = () => {
       
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
           <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">
@@ -415,7 +415,7 @@ const RoomType = () => {
       {/* Room Type Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Room Type</h2>

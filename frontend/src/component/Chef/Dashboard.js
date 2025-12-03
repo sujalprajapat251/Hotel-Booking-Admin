@@ -155,10 +155,10 @@ export default function Dashboard() {
     return (
         <>
             <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
-                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800">Dashboard</h1>
+                <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 mt-4 sm:mt-2">Dashboard</h1>
                 <div className='flex flex-col lg:flex-row gap-5'>
                     <div className="w-full xl:w-1/3 max-h-screen p-5">
-                        <div className='  overflow-hidden'>
+                        <div className='overflow-hidden'>
                             <div className="flex items-center justify-between">
                                 {/* <div className="py-3 px-4">
                                 <h2 className="text-lg font-semibold text-gray-800">Pending Orders</h2>

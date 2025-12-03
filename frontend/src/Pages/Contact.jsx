@@ -167,7 +167,7 @@ const Contact = () => {
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                   <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                    <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Contact</p>
+                    {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Contact</p> */}
 
                     {/* Search Bar */}
                     <div className="relative  max-w-md">
@@ -378,7 +378,7 @@ const Contact = () => {
             {isModalOpen && selectedItem && (
               <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 {/* Background Blur */}
-                <div className="absolute inset-0 backdrop-blur-sm bg-black/40" onClick={handleCloseModal}></div>
+                <div className="absolute inset-0 bg-black/50" onClick={handleCloseModal}></div>
 
                 <div className="relative bg-white rounded-[4px] shadow-2xl w-full sm:w-[450px] max-h-[90vh] overflow-y-auto animate-fadeIn px-4 pt-5 pb-4 sm:p-6">        
                   {/* Modal Header */}

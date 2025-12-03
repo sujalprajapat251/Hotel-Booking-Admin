@@ -196,7 +196,7 @@ const CabBookingDetail = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className="flex gap-2 md:gap-5 sm:justify-between">
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Cab Bookings</p>
+            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Cab Bookings</p> */}
             <div className="relative max-w-md">
               <input
                 type="text"
@@ -388,7 +388,7 @@ const CabBookingDetail = () => {
 
         {/* View Modal */}
         {showViewModal && selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 md:p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:p-6">
             <div className="w-full max-w-[90%] md:max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b">
                 <h3 className="text-xl font-semibold text-black mt-2 ml-3">Booking Details</h3>

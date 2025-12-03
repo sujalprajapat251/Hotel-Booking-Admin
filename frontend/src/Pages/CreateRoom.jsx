@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { createRoom, clearRoomError, updateRoom } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
@@ -70,9 +70,11 @@ const CreateRoom = () => {
     if (isEditMode && roomData) {
       setEditingItem(roomData);
       setExistingImages(roomData.images || []);
+      setImagePreviews([]);
     } else if (!isEditMode) {
       setEditingItem(null);
       setExistingImages([]);
+      setImagePreviews([]);
     }
   }, [isEditMode, roomData]);
 
@@ -198,11 +200,13 @@ const CreateRoom = () => {
         viewType: Yup.string().required('View type is required'),
         status: Yup.string().required('Status is required'),
         images: Yup.array().test('required', 'At least one image is required', function (value) {
-          if (isEditMode) return true;
+          if (isEditMode) {
+            return existingImages.length > 0 || Boolean(value && value.length);
+          }
           return Boolean(value && value.length);
         })
       }),
-    [isEditMode]
+    [isEditMode, existingImages.length]
   );
 
   const formik = useFormik({
@@ -239,7 +243,8 @@ const CreateRoom = () => {
         isSmokingAllowed: values.isSmokingAllowed,
         isPetFriendly: values.isPetFriendly,
         maintenanceNotes: values.maintenanceNotes,
-        images: values.images || []
+        images: values.images || [],
+        imagesToKeep: existingImages
       };
 
       try {
@@ -329,6 +334,10 @@ const CreateRoom = () => {
     const updatedImages = (formik.values.images || []).filter((_, i) => i !== index);
     formik.setFieldValue('images', updatedImages);
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const toggleFeatureSelection = (featureId) => {
@@ -779,16 +788,24 @@ const CreateRoom = () => {
                     <p className="text-sm font-semibold text-gray-700 mb-2">Existing Images</p>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {existingImages.map((imagePath, index) => (
-                        <div key={`${imagePath}-${index}`} className="relative">
+                        <div key={`${imagePath}-${index}`} className="relative group">
                           <img
                             src={getImageUrl(imagePath)}
                             alt={`Room existing ${index + 1}`}
                             className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
                           />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveExistingImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                            aria-label={`Remove existing image ${index + 1}`}
+                          >
+                            <X size={18} />
+                          </button>
                         </div>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Existing images stay unchanged unless you upload new ones.</p>
+                    <p className="text-xs text-gray-500 mt-1">Remove any image you no longer need, then upload replacements below.</p>
                   </div>
                 )}
 

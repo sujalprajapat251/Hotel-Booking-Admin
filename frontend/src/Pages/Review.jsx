@@ -244,7 +244,7 @@ const Review = () => {
 			<div className="w-full bg-white rounded-lg shadow-md flex flex-col mt-8">
 				<div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
 					<div className='flex gap-2 md:gap-5 sm:justify-between'>
-						<p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Reviews</p>
+						{/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Reviews</p> */}
 
 						{/* Search Bar */}
 						<div className="relative  max-w-md">

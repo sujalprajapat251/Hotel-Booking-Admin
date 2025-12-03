@@ -321,7 +321,7 @@ const OrderRequest = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Order Request</p>
+                                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Order Request</p> */}
 
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">
@@ -630,7 +630,7 @@ const OrderRequest = () => {
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity absolute bg-black/40"
+                            className="fixed inset-0 transition-opacity absolute bg-black/50"
                             onClick={handleCloseModal}
                         ></div>
 
@@ -709,7 +709,7 @@ const OrderRequest = () => {
                 {isAssignWorkerModalOpen && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity absolute bg-black/40"
+                            className="fixed inset-0 transition-opacity absolute bg-black/50"
                             onClick={handleAssignWorkerClose}
                         ></div>
 

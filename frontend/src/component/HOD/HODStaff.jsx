@@ -9,6 +9,7 @@ import { IMAGE_URL } from '../../Utils/baseUrl';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { getAllHODStaff } from '../../Redux/Slice/hod.slice';
+import { IoEyeSharp } from 'react-icons/io5';
 
 const HODStaff = () => {
 
@@ -27,6 +28,8 @@ const HODStaff = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [visibleColumns, setVisibleColumns] = useState({
     No: true,
@@ -41,6 +44,16 @@ const HODStaff = () => {
     address: true,
     actions: true
   });
+
+  const handleViewClick = (staff) => {
+    setSelectedItem(staff);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -186,13 +199,13 @@ const HODStaff = () => {
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
-        <p className='text-[20px] font-semibold text-black'>All Staffs</p>
+        <p className='text-[20px] font-semibold text-black mt-4 md:mt-3'>All Staffs</p>
         <div className="w-full mt-3 md:mt-5">
           <div className="bg-white rounded-lg shadow-md">
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p>
+                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p> */}
 
                 {/* Search Bar */}
                 <div className="relative max-w-md">
@@ -360,6 +373,7 @@ const HODStaff = () => {
                         {visibleColumns.actions && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                             <div className="mv_table_action flex">
+                            <div onClick={() => handleViewClick(staff)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
                               <div
                                 onClick={() => navigate('/hod/addstaff', { state: { mode: 'edit', staff } })}
                               >
@@ -471,6 +485,85 @@ const HODStaff = () => {
                 >
                   Delete
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Modal */}
+        {isModalOpen && selectedItem && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div
+              className="fixed inset-0 bg-black/50"
+              onClick={handleCloseModal}
+            ></div>
+
+            <div className="flex min-h-full items-center justify-center p-2 sm:p-4 text-center">
+              <div className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all w-full sm:my-8 sm:w-[95%] md:w-[80%] sm:max-w-xl border">
+                {/* Modal Header */}
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sticky top-0 z-10 max-h-[80vh] overflow-y-auto">
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-3 mb-4">
+                    <h3 className="text-lg font-semibold text-black">Staff Details</h3>
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="">
+
+                    {/* Image */}
+                    <div className="flex items-center mb-4">
+                      <img
+                        src={selectedItem.image}
+                        alt={selectedItem.name}
+                        className="min-w-32 h-32 m-auto rounded-lg border-2"
+                      />
+                    </div>
+
+                    {/* Details */}
+                    <div className="space-y-3 overflow-y-auto">
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Name:</span>
+                        <span>{selectedItem.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Designation:</span>
+                        <span>{selectedItem.designation}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Department:</span>
+                        <span>{selectedItem?.department?.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
+                        <span>{selectedItem.mobileno}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Email:</span>
+                        <span>{selectedItem.email}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Gender:</span>
+                        <span>{selectedItem.gender}</span>
+                      </div>
+                      <div className="flex items-center gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>
+                        <span>{selectedItem.joiningdate?.split('T')[0]}</span>
+                      </div>
+                      <div className="flex items-start gap-3 rounded-lg transition-colors">
+                        <span className="font-semibold text-black min-w-[120px]">Address:</span>
+                        <div
+                          dangerouslySetInnerHTML={{ __html: selectedItem.address || '' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

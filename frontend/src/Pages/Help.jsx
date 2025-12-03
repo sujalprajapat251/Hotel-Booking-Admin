@@ -106,7 +106,7 @@ const FAQPage = () => {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px]">
           <div className='flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
-            <p className="text-[16px] font-semibold text-gray-800">Faqs</p>
+            {/* <p className="text-[16px] font-semibold text-gray-800">Faqs</p> */}
 
             {/* Search Bar */}
             <div className="relative w-full sm:max-w-xs">
@@ -207,7 +207,7 @@ const FAQPage = () => {
 
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
           <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Add Faqs</h2>
@@ -274,7 +274,7 @@ const FAQPage = () => {
 
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setIsEditModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={() => setIsEditModalOpen(false)}></div>
           <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Edit Faqs</h2>
@@ -319,7 +319,7 @@ const FAQPage = () => {
 
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Faqs</h2>
