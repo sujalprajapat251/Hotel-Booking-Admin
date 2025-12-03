@@ -1,11 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import { FiCheckCircle, FiEdit } from 'react-icons/fi';
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice.js';
-import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
+import { IoEyeSharp } from 'react-icons/io5';
+import { approveCleaningRoom, fetchFreeWorker } from '../../Redux/Slice/housekeepingSlice.js';
+import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../../Redux/Slice/orderRequestSlice.js';
+import { fetchOrderTasks, handleAcceptorder } from '../../Redux/Slice/WorkerSlice.js';
 
 const Order = () => {
+
 
     const dispatch = useDispatch();
     const workerId = localStorage.getItem("userId");
@@ -21,8 +26,11 @@ const Order = () => {
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.worker);
+    console.log('orders', orders);
 
-    const [assigndOrder, setAssigndOrder] = useState([]);
+
+    const [assigndTask, setAssigndTask] = useState([]);
+    // console.log('assigndTask', assigndTask?.map((ele, id) => ele?.id));
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -36,6 +44,7 @@ const Order = () => {
 
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
+        // workerName: true,
         itemName: true,
         floor: true,
         status: true,
@@ -47,7 +56,7 @@ const Order = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); 
+            setPage(1); // Reset to first page on search
             setCurrentPage(1);
         }, 500);
 
@@ -58,7 +67,8 @@ const Order = () => {
         if (orders && orders.length > 0) {
             const formattedData = orders?.map((item, index) => ({
                 id: item._id || item.id || index,
-                status: item.status || 'Pending',
+                // name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
+                status: item.cleanStatus || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 to: item?.to || 'N/A',
                 floor: item?.roomId?.floor || 'N/A',
@@ -72,10 +82,11 @@ const Order = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item
             }));
-            setAssigndOrder(formattedData);
+            console.log('formattedData', formattedData);
+            setAssigndTask(formattedData);
 
         } else {
-            setAssigndOrder([]);
+            setAssigndTask([]);
         }
     }, [orders]);
 
@@ -92,17 +103,36 @@ const Order = () => {
         }
     };
 
-    const handleAcceptorder = (orderId) => {
-        dispatch(acceptWorkeorders({ id: orderId }))
-            .unwrap()
-            .then(() => {
-                // Refresh the order list after accepting
-                dispatch(fetchOrderTasks({ workerId }));
-            })
-            .catch((error) => {
-                console.error('Failed to accept order:', error);
-            });
-    }
+    const getOrderItemCount = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+        return housekeeping.rawData.orderId.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
+    };
+
+    const getOrderTotalAmount = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 0;
+        return housekeeping.rawData.orderId.items.reduce((sum, item) => {
+            const price = item?.product?.price || 0;
+            const qty = item?.qty || 1;
+            return sum + price * qty;
+        }, 0);
+    };
+
+    const getItemPreview = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return 'No items';
+        const names = housekeeping.rawData.orderId.items
+            .map((item) => item?.product?.name)
+            .filter(Boolean);
+        if (!names.length) return 'No items';
+        if (names.length <= 2) return names.join(', ');
+        return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+    };
+
+    const getItemsList = (housekeeping) => {
+        if (!housekeeping?.rawData?.orderId?.items?.length) return [];
+        return housekeeping.rawData.orderId.items
+            .map((item) => item?.product?.name)
+            .filter(Boolean);
+    };
 
     const toggleColumn = (column) => {
         setVisibleColumns(prev => ({
@@ -128,19 +158,32 @@ const Order = () => {
         setPage(1);
         setCurrentPage(1);
         dispatch(fetchOrderTasks({ workerId }));
+        // dispatch(fetchBookings({ page: 1, limit }));
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
     };
 
     const handleDownloadExcel = () => {
         try {
-            if (assigndOrder.length === 0) {
+            if (assigndTask.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            const excelData = assigndOrder?.map((bookingItem, index) => {
+            const excelData = assigndTask?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
                     row['No.'] = ((page - 1) * limit) + index + 1;
+                }
+                if (visibleColumns.workerName) {
+                    row['Worker Name'] = bookingItem.name || '';
                 }
                 if (visibleColumns.itemName) {
                     const items = bookingItem.itemName;
@@ -189,11 +232,33 @@ const Order = () => {
         }
     };
 
-    const filteredBookings = assigndOrder.filter((item) => {
+    // Pagination handlers
+    const handlePageChange = (newPage) => {
+        setPage(newPage);
+        setCurrentPage(newPage);
+    };
+
+    const handleItemsPerPageChange = (newLimit) => {
+        setLimit(newLimit);
+        setItemsPerPage(newLimit);
+        setPage(1);
+        setCurrentPage(1);
+    };
+
+    const toIsoDate = (dateInput) => {
+        if (!dateInput) return '';
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+    };
+
+    // Filter bookings based on search term
+    const filteredBookings = assigndTask.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
         return (
+            item.name?.toLowerCase().includes(searchLower) ||
             item.to?.toLowerCase().includes(searchLower) ||
             item.roomType?.toLowerCase().includes(searchLower) ||
             item.status?.toLowerCase().includes(searchLower) ||
@@ -204,10 +269,12 @@ const Order = () => {
         );
     });
 
+    // Use backend pagination data
     const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
+    console.log('currentData', currentData);
 
     return (
         <>

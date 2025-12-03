@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchBookings } from '../../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { completeTask, fetchWorkerTasks, startWork } from '../../Redux/Slice/WorkerSlice';
@@ -164,6 +164,7 @@ const Tasks = () => {
             item.roomNo?.toString().includes(searchLower) ||
             item.roomType?.toLowerCase().includes(searchLower) ||
             item.status?.toLowerCase().includes(searchLower)
+            // formatDate(item.createdAt).toLowerCase().includes(searchLower)
         );
     });
 
