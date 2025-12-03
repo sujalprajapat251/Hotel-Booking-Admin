@@ -97,10 +97,10 @@ function App() {
                   }
                 />
                 <Route
-                  path='/cleanings'
+                  path='/housekeeping'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
-                      <Cleaning />
+                      <AllHouseKeeping />
                     </ProtectedRoute>
                   }
                 />
@@ -112,14 +112,22 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                {/* <Route
-                  path='/allbookings'
+                  <Route
+                  path='/orderrequest'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
+                      <OrderRequest />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path='/allbookings'
+                  element={
+                    <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
                       <AllBookings />
                     </ProtectedRoute>
                   }
-                /> */}
+                />
                 {/* Admin only routes */}
                 <Route
                   path='/dashboard'
@@ -129,14 +137,14 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
+                {/* <Route
                   path='/allbookings'
                   element={
                     <ProtectedRoute allowedRoles={['admin']}>
                       <AllBookings />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 <Route
                   path='/rooms'
                   element={

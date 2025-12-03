@@ -2,23 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
-  FiCalendar,
-  FiGrid,
-  FiLayers,
-  FiMail,
   FiBookOpen,
   FiChevronDown,
-  FiChevronRight,
 } from 'react-icons/fi';
 import {
   HiOutlineLocationMarker,
 } from 'react-icons/hi';
 import {
-  LuAppWindow,
   LuBed,
   LuBuilding2,
-  LuContact,
-  LuNotebookPen,
   LuUsers,
   LuInfo,
 } from 'react-icons/lu';
@@ -143,8 +135,9 @@ const receptionistSections = [
     items: [
       { icon: RxDashboard, label: 'Booking Dashboard', path: '/booking-dashboard' },
       { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
-      { icon: MdCleaningServices, label: 'Cleanings', path: '/cleanings' },
+      { icon: MdCleaningServices, label: 'Cleanings', path: '/housekeeping' },
       { icon: GiAutoRepair, label: 'Maintenence', path: '/maintenence' },
+      { icon: HiInboxArrowDown , label: 'Order Request', path: '/orderrequest' },
     ],
   },
 ];

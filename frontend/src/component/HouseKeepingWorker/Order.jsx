@@ -7,7 +7,7 @@ import { setAlert } from '../../Redux/Slice/alert.slice.js';
 import { IoEyeSharp } from 'react-icons/io5';
 import { approveCleaningRoom, fetchFreeWorker } from '../../Redux/Slice/housekeepingSlice.js';
 import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../../Redux/Slice/orderRequestSlice.js';
-import { fetchOrderTasks, handleAcceptorder } from '../../Redux/Slice/WorkerSlice.js';
+import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
 
 const Order = () => {
 
@@ -243,6 +243,25 @@ const Order = () => {
         setItemsPerPage(newLimit);
         setPage(1);
         setCurrentPage(1);
+    };
+
+    const handleAcceptorder = async (orderId) => {
+        try {
+            // Dispatch the accept order action
+            const result = await dispatch(acceptWorkeorders({ id: orderId }));
+            
+            // Check if the action was successful
+            if (result.meta.requestStatus === 'fulfilled') {
+                // Refresh the order list after successful acceptance
+                dispatch(fetchOrderTasks({ workerId }));
+            }
+        } catch (error) {
+            console.error('Error accepting order:', error);
+            dispatch(setAlert({ 
+                text: 'Failed to accept order. Please try again.', 
+                color: 'error' 
+            }));
+        }
     };
 
     const toIsoDate = (dateInput) => {

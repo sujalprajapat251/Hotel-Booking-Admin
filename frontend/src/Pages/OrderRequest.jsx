@@ -336,7 +336,7 @@ const OrderRequest = () => {
     const currentData = filteredBookings.slice(startIndex, endIndex);
 
     const handleApprove = (id) => {
-        alert('sds');
+        // alert('sds');
         dispatch(approveCleaningRoom(id));
 
         setTimeout(() => {
