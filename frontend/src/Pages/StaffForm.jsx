@@ -256,6 +256,27 @@ const StaffForm = () => {
   }, [isEditMode, staffData]);
 
   useEffect(() => {
+    const val = formik.values.image;
+    if (!val) {
+      return setImagePreview(null);
+    }
+
+    if (typeof val === 'string') {
+      const url = val.startsWith('http') ? val : `${IMAGE_URL}${val}`;
+      setImagePreview(url);
+      return;
+    }
+
+    if (val instanceof File) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(val);
+    }
+  }, [formik.values.image]);
+
+  useEffect(() => {
     const handleClickOutside = (event) => {
       if (departmentRef.current && !departmentRef.current.contains(event.target)) {
         setShowDepartmentDropdown(false);
@@ -292,13 +313,25 @@ const StaffForm = () => {
                     <label className="text-sm font-semibold text-gray-700 mb-2">
                       Profile Image {isEditMode ? '(Click to change)' : '*'}
                     </label>
-                    <div className="relative w-48 h-48 border-2 border-dashed border-[#B79982] rounded-lg overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div
+                      className="relative w-48 h-48 border-2 border-dashed border-[#B79982] rounded-lg overflow-hidden bg-gray-50 hover:bg-gray-100 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       {imagePreview ? (
                         <>
-                          <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              fileInputRef.current?.click();
+                            }}
+                            className="w-full h-full object-cover cursor-pointer"
+                          />
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setImagePreview(null);
                               formik.setFieldValue('image', null);
                               if (fileInputRef.current) fileInputRef.current.value = '';
@@ -309,7 +342,7 @@ const StaffForm = () => {
                           </button>
                         </>
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-full cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <div className="flex flex-col items-center justify-center h-full">
                           <Upload className="text-[#B79982] mb-2" size={32} />
                           <span className="text-sm text-gray-600">Click to upload</span>
                           <span className="text-xs text-gray-500 mt-1">JPG, PNG (Max 5MB)</span>
