@@ -129,11 +129,11 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
 
   if (isMobile) {
     containerClasses.push(
-      'fixed inset-y-0 left-0 z-10 w-72 transform',
+      'fixed inset-y-0 left-0 z-40 w-72 transform',
       open ? 'translate-x-0' : '-translate-x-full'
     );
   } else {
-    containerClasses.push('fixed inset-y-0 left-0 z-10', open ? 'w-72' : 'w-20');
+    containerClasses.push('fixed inset-y-0 left-0 z-[15]', open ? 'w-72' : 'w-20');
   }
 
   const handleItemClick = () => {
