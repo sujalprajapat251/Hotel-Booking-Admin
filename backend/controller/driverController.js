@@ -9,9 +9,9 @@ exports.createDriver = async (req, res) => {
         if(req.file){
             uploadedUrl = await uploadToS3(req.file, "uploads/image");
         }
-        const { name, email, password, mobileno, address, gender, joiningdate , status , AssignedCab } = req.body;
+        const { name, email, password, countrycode,mobileno, address, gender, joiningdate , status , AssignedCab } = req.body;
 
-        const newDriver = await Driver.create({ name, email, password, mobileno, address, gender, joiningdate,status,AssignedCab, image: uploadedUrl ? uploadedUrl : null });
+        const newDriver = await Driver.create({ name, email, password, countrycode,mobileno, address, gender, joiningdate,status,AssignedCab, image: uploadedUrl ? uploadedUrl : null });
 
         res.status(201).json({
             success: true,

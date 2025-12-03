@@ -10,6 +10,10 @@ const driverSchema = new mongoose.Schema({
     password: {
         type: String,
     },
+    countrycode: {
+        type: String,
+        required: true
+    },
     mobileno: {
         type: String,
     },

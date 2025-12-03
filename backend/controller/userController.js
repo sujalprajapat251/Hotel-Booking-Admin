@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 
 exports.createUser = async (req, res) => {
     try {
-        let { name, email, password, role } = req.body;
+        let { name, email, password, role,mobileno,gender,dob } = req.body;
 
         role = role || "user";
 
@@ -26,7 +26,10 @@ exports.createUser = async (req, res) => {
             name,
             email,
             password: hashPassword,
-            role
+            role,
+            mobileno,
+            gender,
+            dob
         });
 
         let token = null;
@@ -118,7 +121,7 @@ exports.updateUser = async (req, res) => {
         if (req.file) {
             if (existingUser.photo) await deleteFromS3(existingUser.photo);
             const uploadedUrl = await uploadToS3(req.file, "uploads/photo");
-            req.body.photo = uploadedUrl;
+            updateData.photo = uploadedUrl;
         }
         const updatedUser = await User.findByIdAndUpdate(
             userId,

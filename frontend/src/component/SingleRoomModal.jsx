@@ -168,7 +168,7 @@ export default function SingleRoomModal({ id, onClose }) {
                         <div className='p-3 capitalize flex justify-between border-b-2'>
                             <div>
                                 <h2 className='text-lg font-medium'>{room?.currentBooking?.guest?.fullName}</h2>
-                                <span className='text-xs'>{room?.currentBooking?.guest?.email}  / {room?.currentBooking?.guest?.phone}</span>
+                                <span className='text-xs'>{room?.currentBooking?.guest?.email}  / {room?.currentBooking?.guest?.countrycode ? room?.currentBooking?.guest?.countrycode : ""} {room?.currentBooking?.guest?.phone}</span>
                             </div>
                             <div>
                                 {room?.currentBooking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}
@@ -185,7 +185,7 @@ export default function SingleRoomModal({ id, onClose }) {
                                 <div className='p-3 capitalize flex justify-between border-b-2'>
                                 <div>
                                     <h2 className='text-lg font-medium'>{booking?.guest?.fullName}</h2>
-                                    <span className='text-xs'>{booking?.guest?.email}  / {booking?.guest?.phone}</span>
+                                    <span className='text-xs'>{booking?.guest?.email}  / {booking?.guest?.countrycode ? booking?.guest?.countrycode : ""} {booking?.guest?.phone}</span>
                                 </div>
                                 <div>
                                     {booking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}

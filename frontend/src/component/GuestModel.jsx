@@ -4,6 +4,8 @@ import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking } from "../Redux/Slice/bookingSlice";
 import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const GuestModal = ({ onClose, room, onBooked }) => {
   const { RangePicker } = DatePicker;
@@ -15,7 +17,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
-    phone: "",
+    // phone fields (similar to StaffForm)
+    countrycode: "+91",
+    mobile: "",
+    fullMobile: "",
     idNumber: "",
     address: "",
     checkInDate: "",
@@ -159,6 +164,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     event.preventDefault();
     if (!room?.id) return;
 
+    if (!formState.countrycode || !formState.mobile) {
+      alert("Please enter a valid mobile number with country code");
+      setActiveTab("personal");
+      return;
+    }
+
     // Validate cab booking fields if cab service is enabled
     if (cabServiceEnabled) {
       if (!formState.pickUpLocation) {
@@ -183,7 +194,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       guest: {
         fullName: formState.fullName,
         email: formState.email,
-        phone: formState.phone,
+        countrycode: formState.countrycode || "+91",
+        phone: formState.mobile || "",
         idNumber: formState.idNumber,
         address: formState.address,
       },
@@ -348,13 +360,47 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number*</label>
-                  <input
-                    type="text"
-                    className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
-                    placeholder="Enter phone number"
-                    required
-                    value={formState.phone}
-                    onChange={handleChange("phone")}
+                  <PhoneInput
+                    country={"in"}
+                    enableSearch={true}
+                    value={formState.fullMobile || ""}
+                    onChange={(value, country) => {
+                      const nextValue = value || "";
+                      const dialCode = country?.dialCode || "";
+                      const mobileOnly = nextValue.slice(dialCode.length);
+
+                      setFormState((prev) => ({
+                        ...prev,
+                        countrycode: dialCode ? `+${dialCode}` : "",
+                        mobile: mobileOnly,
+                        fullMobile: nextValue,
+                      }));
+                    }}
+                    placeholder="Enter mobile number"
+                    inputProps={{
+                      name: "mobile",
+                      required: true,
+                    }}
+                    containerStyle={{
+                      width: "100%",
+                    }}
+                    buttonStyle={{
+                      backgroundColor: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "4px",
+                      width: "50px",
+                    }}
+                    inputStyle={{
+                      width: "100%",
+                      backgroundColor: "#f3f4f6",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "4px",
+                      paddingLeft: "55px",
+                      height: "42px",
+                    }}
+                    dropdownStyle={{
+                      width: "260px",
+                    }}
                   />
                 </div>
 

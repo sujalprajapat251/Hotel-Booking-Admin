@@ -6,6 +6,8 @@ import { changePassword } from '../Redux/Slice/auth.slice';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import userImg from "../Images/user.png";
 import { FaCamera } from "react-icons/fa";
+import PhoneInput from "react-phone-input-2";
+import 'react-phone-input-2/lib/style.css';
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -32,22 +34,59 @@ const Profile = () => {
     confirmPassword: ''
   });
 
+  // Helper to keep phone data consistent with StaffForm
+  const extractMobileAndCode = (mobileno, storedCountryCode) => {
+    const mobilenoStr = mobileno ? String(mobileno).replace(/\D/g, '') : '';
+
+    // If mobileno already contains a country code (e.g. +911234567890)
+    if (typeof mobileno === 'string' && mobileno.startsWith('+')) {
+      const codeMatch = mobileno.match(/^(\+\d{1,3})/);
+      if (codeMatch) {
+        const localNumber = mobileno.replace(codeMatch[1], '').trim();
+        const numericLocal = localNumber.replace(/\D/g, '');
+        const dialDigits = codeMatch[1].replace('+', '');
+        return {
+          countrycode: codeMatch[1],
+          mobile: numericLocal,
+          fullMobile: `${dialDigits}${numericLocal}`
+        };
+      }
+    }
+
+    const resolvedCountryCode = storedCountryCode || '+91';
+    const dialDigits = resolvedCountryCode.replace('+', '');
+
+    return {
+      countrycode: resolvedCountryCode,
+      mobile: mobilenoStr,
+      fullMobile: mobilenoStr ? `${dialDigits}${mobilenoStr}` : ''
+    };
+  };
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     gender: "",
     mobileno: "",
+    countrycode: "",
+    fullMobile: "",
     address: "",
     joiningdate: ""
   });
 
   useEffect(() => {
     if (currentUser) {
+      const phoneValues = extractMobileAndCode(
+        currentUser.mobileno,
+        currentUser.countrycode
+      );
       setForm({
         name: currentUser.name || "",
         email: currentUser.email || "",
         gender: currentUser.gender || "",
-        mobileno: currentUser.mobileno || "",
+        mobileno: phoneValues.mobile || "",
+        countrycode: phoneValues.countrycode || "",
+        fullMobile: phoneValues.fullMobile || "",
         address: currentUser.address || "",
         joiningdate: currentUser.joiningdate || ""
       });
@@ -134,9 +173,19 @@ const Profile = () => {
     setIsEditMode(false);
     // Reset form to current user data
     if (currentUser) {
+      const phoneValues = extractMobileAndCode(
+        currentUser.mobileno,
+        currentUser.countrycode
+      );
       setForm({
         name: currentUser.name || "",
-        email: currentUser.email || ""
+        email: currentUser.email || "",
+        gender: currentUser.gender || "",
+        mobileno: phoneValues.mobile || "",
+        countrycode: phoneValues.countrycode || "",
+        fullMobile: phoneValues.fullMobile || "",
+        address: currentUser.address || "",
+        joiningdate: currentUser.joiningdate || ""
       });
     }
     // Reset avatar
@@ -164,6 +213,7 @@ const Profile = () => {
       email: form.email,
       gender: form.gender,
       mobileno: form.mobileno,
+      countrycode: form.countrycode,
       address: form.address,
       joiningdate: form.joiningdate
     };
@@ -341,16 +391,54 @@ const Profile = () => {
             <div>
               <label className="block text-sm text-gray-500 mb-2">Mobile No.</label>
               {isEditMode ? (
-                <input
-                  type="number"
-                  name="mobileno"
-                  value={form.mobileno}
-                  onChange={handleInputChange}
-                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                  placeholder="Enter your Mobile No."
+                <PhoneInput
+                  country={"in"}
+                  enableSearch={true}
+                  value={form.fullMobile || ""}
+                  onChange={(value, country) => {
+                    const nextValue = value || "";
+                    const dialCode = country?.dialCode || "";
+                    const mobileOnly = nextValue.slice(dialCode.length);
+
+                    setForm(prev => ({
+                      ...prev,
+                      countrycode: dialCode ? `+${dialCode}` : "",
+                      mobileno: mobileOnly,
+                      fullMobile: nextValue
+                    }));
+                  }}
+                  placeholder="Enter mobile number"
+                  inputProps={{
+                    name: "mobileno",
+                    required: true,
+                  }}
+                  containerStyle={{
+                    width: "100%",
+                  }}
+                  buttonStyle={{
+                    backgroundColor: "#f3f4f6",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "4px",
+                    width: "50px",
+                  }}
+                  inputStyle={{
+                    width: "100%",
+                    backgroundColor: "#f3f4f6",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "4px",
+                    paddingLeft: "55px",
+                    height: "42px",
+                  }}
+                  dropdownStyle={{
+                    width: "260px",
+                  }}
                 />
               ) : (
-                <p className="text-base text-gray-900 capitalize">{currentUser?.mobileno || 'No Mobile'}</p>
+                <p className="text-base text-gray-900 capitalize">
+                  {currentUser?.mobileno
+                    ? `${currentUser?.countrycode || ''} ${currentUser.mobileno}`.trim()
+                    : '-'}
+                </p>
               )}
             </div>
             <div>

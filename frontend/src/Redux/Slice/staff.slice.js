@@ -19,6 +19,7 @@ export const createStaff = createAsyncThunk(
             formData.append('name', staffData.name);
             formData.append('email', staffData.email);
             formData.append('password', staffData.password);
+            formData.append('countrycode', staffData.countrycode);
             formData.append('mobileno', staffData.mobileno);
             formData.append('address', staffData.address);
             formData.append('department', staffData.department);
@@ -76,6 +77,7 @@ export const updateStaff = createAsyncThunk(
             if (staffData.password) {
                 formData.append('password', staffData.password);
             }
+            formData.append('countrycode', staffData.countrycode);
             formData.append('mobileno', staffData.mobileno);
             formData.append('address', staffData.address);
             formData.append('department', staffData.department);

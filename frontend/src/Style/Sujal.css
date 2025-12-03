@@ -1,3 +1,23 @@
+.selected-flag {
+  width: 100% !important;
+}
+.react-tel-input .flag-dropdown.open .selected-flag{
+  background-color: #f3f4f6 !important;
+}
+.react-tel-input .country-list .country:hover{
+  background-color: #F7DF9C !important;
+}
+.search-emoji{
+  display: none !important;
+}
+.react-tel-input .country-list .search-box{
+  width: 95% !important;
+  margin-left: 0 !important;
+  padding: 5px 5px !important;
+}
+.react-tel-input .country-list .search-box:focus{
+  border-color: rgb(183 153 130) !important;
+}
 .sp_login .left {
   display: flex;
   animation-name: left;

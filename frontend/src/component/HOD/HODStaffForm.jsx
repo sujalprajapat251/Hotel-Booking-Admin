@@ -1,12 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Upload, Calendar, ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { createStaff, getAllStaff, updateStaff } from '../../Redux/Slice/staff.slice';
+import { createStaff, updateStaff } from '../../Redux/Slice/staff.slice';
 import { getAllDepartment } from '../../Redux/Slice/department.slice';
 import { IMAGE_URL } from '../../Utils/baseUrl';
+import PhoneInput from "react-phone-input-2";
+import 'react-phone-input-2/lib/style.css';
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 
 const StaffForm = () => {
   const location = useLocation();
@@ -86,10 +89,16 @@ const StaffForm = () => {
       .min(10, 'Address must be at least 10 characters')
       .max(200, 'Address must be less than 200 characters')
       .required('Address is required'),
-    countryCode: Yup.string().required('Country code is required'),
+    countrycode: Yup.string().required('Country code is required'),
     mobile: Yup.string()
-      .matches(/^[0-9]{10}$/, 'Mobile number must be exactly 10 digits')
-      .required('Mobile number is required'),
+      .test("is-valid-number", "Enter a valid mobile number", function () {
+        const { fullMobile } = this.parent;
+        if (!fullMobile) return false;
+
+        const phone = parsePhoneNumberFromString(`+${fullMobile}`);
+        return phone ? phone.isValid() : false;
+      })
+      .required("Mobile number is required"),
     email: Yup.string()
       .email('Invalid email address')
       .required('Email is required'),
@@ -112,25 +121,40 @@ const StaffForm = () => {
       .required('Joining date is required')
   });
 
-  // Helper function to extract country code and mobile from mobileno
-  const extractMobileAndCode = (mobileno) => {
-    if (!mobileno) return { countryCode: '+91', mobile: '' };
-    const mobilenoStr = String(mobileno);
-    // If mobileno starts with country code, extract it
-    if (mobilenoStr.startsWith('+')) {
-      const codeMatch = mobilenoStr.match(/^(\+\d{1,3})/);
+  // Helper function to extract country code, mobile and fullMobile from mobileno
+  const extractMobileAndCode = (mobileno, storedCountryCode) => {
+    const mobilenoStr = mobileno ? String(mobileno).replace(/\D/g, '') : '';
+    // If mobileno already contains a country code (e.g. +911234567890)
+    if (typeof mobileno === 'string' && mobileno.startsWith('+')) {
+      const codeMatch = mobileno.match(/^(\+\d{1,3})/);
       if (codeMatch) {
+        const localNumber = mobileno.replace(codeMatch[1], '').trim();
+        const numericLocal = localNumber.replace(/\D/g, '');
+        const dialDigits = codeMatch[1].replace('+', '');
         return {
-          countryCode: codeMatch[1],
-          mobile: mobilenoStr.replace(codeMatch[1], '').trim()
+          countrycode: codeMatch[1],
+          mobile: numericLocal,
+          fullMobile: `${dialDigits}${numericLocal}`
         };
       }
     }
-    // Otherwise, assume it's just the mobile number
-    return { countryCode: '+91', mobile: mobilenoStr.slice(-10) };
+
+    const resolvedCountryCode = storedCountryCode || '+91';
+    const dialDigits = resolvedCountryCode.replace('+', '');
+
+    return {
+      countrycode: resolvedCountryCode,
+      mobile: mobilenoStr,
+      fullMobile: mobilenoStr ? `${dialDigits}${mobilenoStr}` : ''
+    };
   };
 
-  // Formik initialization
+  // Formik initialization - phone values
+  const initialPhoneValues = useMemo(
+    () => extractMobileAndCode(staffData?.mobileno, staffData?.countrycode),
+    [staffData?.mobileno, staffData?.countrycode]
+  );
+
   const formik = useFormik({
     initialValues: {
       name: staffData?.name || '',
@@ -139,8 +163,9 @@ const StaffForm = () => {
       designation: staffData?.designation || '',
       gender: staffData?.gender || '',
       address: staffData?.address || '',
-      countryCode: extractMobileAndCode(staffData?.mobileno).countryCode,
-      mobile: extractMobileAndCode(staffData?.mobileno).mobile,
+      countrycode: initialPhoneValues.countrycode,
+      mobile: initialPhoneValues.mobile,
+      fullMobile: initialPhoneValues.fullMobile,
       email: staffData?.email || '',
       password: '',
       joiningDate: staffData?.joiningdate ? new Date(staffData.joiningdate).toISOString().split('T')[0] : ''
@@ -156,6 +181,7 @@ const StaffForm = () => {
           name: values.name,
           email: values.email,
           mobileno: values.mobile,
+          countrycode: values.countrycode,
           address: values.address,
           department: currentUser?.department?._id,
           designation: values.designation,
@@ -179,7 +205,6 @@ const StaffForm = () => {
           await dispatch(createStaff(submitData)).unwrap();
         }
         
-        await dispatch(getAllStaff());
         navigate('/hod/staff');
       } catch (error) {
         console.error(`Error ${isEditMode ? 'updating' : 'creating'} staff:`, error);
@@ -453,49 +478,48 @@ const StaffForm = () => {
                     </div>
 
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Mobile Number *</label>
-                      <div className="flex gap-2">
-                        <div className="relative w-16" ref={countryCodeRef}>
-                          <button
-                            type="button"
-                            onClick={() => setShowCountryCodeDropdown(!showCountryCodeDropdown)}
-                            className="w-16 px-2 py-2.5 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                          >
-                            <span className="text-gray-800 text-sm">{formik.values.countryCode}</span>
-                            <ChevronDown size={16} className="text-gray-600" />
-                          </button>
-                          {showCountryCodeDropdown && (
-                            <div className="absolute z-50 w-28 mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                              {countryCodes.map((item) => (
-                                <div
-                                  key={item.code}
-                                  onClick={() => {
-                                    formik.setFieldValue('countryCode', item.code);
-                                    setShowCountryCodeDropdown(false);
-                                  }}
-                                  className="px-3 py-2 hover:bg-[#F7DF9C]/20 cursor-pointer text-sm"
-                                >
-                                  <span className="font-medium">{item.code}</span>
-                                  <span className="text-gray-600 ml-2">{item.country}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            name="mobile"
-                            value={formik.values.mobile}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            placeholder="Enter 10 digit mobile number"
-                            maxLength="10"
-                            className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.mobile && formik.errors.mobile ? 'border-red-500' : 'border-gray-300'
-                              }`}
-                          />
-                        </div>
-                      </div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Mobile Number *
+                      </label>
+
+                      <PhoneInput
+                        country={"in"}
+                        enableSearch={true}
+                        value={formik.values.fullMobile || ''}
+                        onChange={(value, country) => {
+                          const nextValue = value || '';
+                          const dialCode = country?.dialCode || '';
+                          const mobileOnly = nextValue.slice(dialCode.length);
+                          formik.setFieldValue("countrycode", dialCode ? `+${dialCode}` : '');
+                          formik.setFieldValue("mobile", mobileOnly);
+                          formik.setFieldValue("fullMobile", nextValue);
+                        }}
+                        placeholder="Enter 10 digit mobile number"
+                        inputProps={{
+                          name: "mobile",
+                          required: true,
+                        }}
+                        containerStyle={{
+                          width: "100%",
+                        }}
+                        buttonStyle={{
+                          backgroundColor: "#f3f4f6",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "4px",
+                          width: "50px",
+                        }}
+                        inputStyle={{
+                          width: "100%",
+                          backgroundColor: "#f3f4f6",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "4px",
+                          paddingLeft: "55px",
+                          height: "42px",
+                        }}
+                        dropdownStyle={{
+                          width: "260px",
+                        }}
+                      />
                       {formik.touched.mobile && formik.errors.mobile && (
                         <div className="text-red-500 text-xs mt-1">{formik.errors.mobile}</div>
                       )}

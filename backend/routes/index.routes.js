@@ -47,7 +47,7 @@ indexRoutes.post('/resetpassword', resetPassword)
 
 // user Routes
 indexRoutes.post('/register', createUser);
-indexRoutes.put('/userUpdate/:id', auth, upload.single("photo"), updateUser);
+indexRoutes.put('/userUpdate', auth, upload.single("photo"), updateUser);
 indexRoutes.put('/changepassword', auth, changePassword);
 indexRoutes.get('/getalluser', auth, adminOnly, getAllUsers);
 indexRoutes.get('/getUserById', auth, getUserById);
@@ -74,7 +74,7 @@ indexRoutes.delete('/deleteAbout/:id', auth, adminOnly, deleteAbout);
 
 // department Routes
 indexRoutes.post('/createdepartment', auth, adminOnly, createDepartment);
-indexRoutes.get('/getalldepartment', auth, adminOnly, getAllDepartments);
+indexRoutes.get('/getalldepartment', auth, getAllDepartments);
 indexRoutes.get('/getdepartment/:id', auth, adminOnly, getDepartmentById);
 indexRoutes.put('/updatedepartment/:id', auth, adminOnly, updateDepartment);
 indexRoutes.delete('/deletetdepartment/:id', auth, adminOnly, deleteDepartment);

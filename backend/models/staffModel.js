@@ -14,6 +14,10 @@ const staffSchema = mongoose.Schema({
         type: String,
         require: true
     },
+    countrycode: {
+        type: String,
+        required: true
+    },
     mobileno: {
         type: Number,
         require: true
@@ -26,11 +30,11 @@ const staffSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "department"
     },
-    designation:{
+    designation: {
         type: String,
         require: true
     },
-    gender:{
+    gender: {
         type: String,
         require: true
     },
