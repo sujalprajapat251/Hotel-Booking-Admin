@@ -960,7 +960,12 @@ const AllBookings = () => {
                                                         type="text"
                                                         required
                                                         value={editFormData.guest.phone}
-                                                        onChange={(e) => handleEditFormChange('guest', 'phone', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value;
+                                                            if (/^\d{0,10}$/.test(value)) {
+                                                                handleEditFormChange('guest', 'phone', value);
+                                                            }
+                                                        }}
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>

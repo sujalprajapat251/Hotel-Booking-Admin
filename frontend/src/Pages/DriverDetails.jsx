@@ -458,7 +458,7 @@ const DriverDetails = () => {
                   <td className="px-5 py-4 text-black">
                     <div className="flex flex-col text-sm">
                       <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
-                        <Phone size={14} />
+                        <Phone size={16} className='text-green-600' />
                         {driver.mobileno || "—"}
                       </span>
                     </div>
