@@ -6,8 +6,8 @@ import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
 import notification from "../Images/notification.png"
 import io from 'socket.io-client';
-import axios from 'axios';
-import { BASE_URL, SOCKET_URL } from '../Utils/baseUrl';
+import { SOCKET_URL } from '../Utils/baseUrl';
+import { fetchNotifications, receiveNotification, markNotificationSeen, clearAllNotifications } from '../Redux/Slice/notifications.slice';
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -78,9 +78,51 @@ const Header = ({ onMenuClick }) => {
   }
 
   const [notifi, setNotifi] = useState(false);
-  const [notifications, setNotifications] = useState([]);
-  const [unread, setUnread] = useState(0);
   const socketRef = useRef(null);
+  const notifiRef = useRef(null);
+  const bellRef = useRef(null);
+  const { items: notifications = [], unread = 0 } = useSelector((state) => state.notifications || {});
+
+  const formatMessage = (n) => {
+    const t = n?.type || n?.payload?.type || '';
+    const p = n?.payload || {};
+    console.log(n);
+    if (n?.message) return n.message;
+    if (p?.message) return p.message;
+    if (t === 'table_status_changed') {
+      const title = p.tableTitle || p.tableId || '';
+      const status = p.status || '';
+      return `Table ${title} status changed to ${status}`.trim();
+    }
+    if (t === 'new_order') {
+      const title = p.tableTitle || p.tableId || '';
+      const items = Array.isArray(p.items) ? p.items.filter(Boolean) : [];
+      const list = items
+        .map((it) => {
+          const nm = it?.name || it?.product?.name || '';
+          const q = it?.qty ?? it?.quantity ?? 1;
+          return nm ? `${nm} x${q}` : '';
+        })
+        .filter(Boolean)
+        .join(', ');
+      const suffix = list ? `: ${list}` : '';
+      return `New order arise on ${title}${suffix}`.trim();
+    }
+    if (t === 'item_ready') {
+      const title = p.tableTitle || p.tableId || '';
+      const itemName = p.itemName || '';
+      return `${itemName} is ready on ${title}`.trim();
+    }
+    if (t === 'order_paid') {
+      const title = p.tableTitle || p.tableId || '';
+      return `Order paid for ${title}`.trim();
+    }
+    return 'Notification';
+  };
+
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -89,15 +131,7 @@ const Header = ({ onMenuClick }) => {
       socketRef.current = io(SOCKET_URL, { auth: { token, userId } });
       socketRef.current.emit('joinRoom', { userId });
       socketRef.current.on('notify', (data) => {
-        setNotifications((prev) => [{
-          _id: Math.random().toString(36).slice(2),
-          message: data?.message || '',
-          type: data?.type || 'notify',
-          payload: data || {},
-          createdAt: new Date().toISOString(),
-          seen: false
-        }, ...prev]);
-        setUnread((u) => u + 1);
+        dispatch(receiveNotification(data));
       });
     }
     return () => {
@@ -109,23 +143,20 @@ const Header = ({ onMenuClick }) => {
   }, []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
-    axios.get(`${BASE_URL}/notifications`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => {
-        setNotifications(res.data?.data || []);
-        setUnread(res.data?.unread || 0);
-      })
-      .catch(() => {});
+    const handleClickOutside = (event) => {
+      const target = event.target;
+      const insideDropdown = notifiRef.current && notifiRef.current.contains(target);
+      const onBell = bellRef.current && bellRef.current.contains(target);
+      if (!insideDropdown && !onBell) {
+        setNotifi(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const markSeen = async (id) => {
-    const token = localStorage.getItem('token');
-    try {
-      await axios.put(`${BASE_URL}/notifications/${id}/seen`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      setNotifications((prev) => prev.map(n => n._id === id ? { ...n, seen: true } : n));
-      setUnread((u) => (u > 0 ? u - 1 : 0));
-    } catch {}
+    dispatch(markNotificationSeen(id));
   };
 
   const toggleNotifi = () => {
@@ -145,7 +176,7 @@ const Header = ({ onMenuClick }) => {
               <FiMenu />
             </button>
           </div>
-          <div className="flex items-center gap-5 ">
+          <div className="flex items-center md:gap-5 ">
             <div className="relative" ref={profileRef}>
               <button
                 type="button"
@@ -168,7 +199,7 @@ const Header = ({ onMenuClick }) => {
                     onError={(e) => (e.target.src = userImg)}
                   />
                 </div>
-                <FiChevronDown className="text-lg text-quaternary transition-transform" />
+                {/* <FiChevronDown className="text-lg text-quaternary transition-transform" /> */}
               </button>
 
               {isProfileOpen ? (
@@ -197,23 +228,33 @@ const Header = ({ onMenuClick }) => {
                 </div>
               ) : null}
             </div>
-            <div className="relative">
-              <img src={notification} className='h-8 aspect-square cursor-pointer' onClick={toggleNotifi} />
+            <div className="relative" ref={bellRef}>
+              <img src={notification} className='md:h-8 h-6  aspect-square cursor-pointer' onClick={toggleNotifi} />
               {unread > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded">
                   {unread}
                 </span>
               )}
             </div>
-            <div className={`h-[400px] max-h-[400px] bg-white w-[300px] absolute top-full right-4 p-4 border rounded -z-[1] transform-all duration-700 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
-              <h1 className='text-xl text-senary border-b-2 font-semibold pb-2 text-center'>Notification</h1>
+            <div ref={notifiRef} className={`h-auto max-h-[400px] bg-white w-[300px] absolute top-full md:right-4 right-2 p-4 border rounded -z-[1] transform-all duration-700 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
+              <div className='flex items-center justify-between border-b-2 pb-2'>
+                <h1 className='text-xl text-senary font-semibold'>Notification</h1>
+                <button
+                  className='text-xs text-red-600 hover:underline'
+                  onClick={async () => {
+                    dispatch(clearAllNotifications());
+                  }}
+                >
+                  Clear all
+                </button>
+              </div>
               <div className="mt-3 space-y-2 overflow-auto h-[320px]">
                 {notifications.length === 0 ? (
                   <div className="text-center text-sm text-quaternary">No notifications</div>
                 ) : (
                   notifications.map((n) => (
                     <div key={n._id} className={`p-2 rounded border ${n.seen ? 'border-secondary/20' : 'border-primary/40 bg-primary/10'}`}>
-                      <div className="text-sm font-medium text-senary">{n.message || n.payload?.message || ''}</div>
+                      <div className="text-sm font-medium text-senary">{n.message}</div>
                       <div className="text-xs text-quaternary">{new Date(n.createdAt).toLocaleString()}</div>
                       {!n.seen && (
                         <button className="mt-1 text-xs text-blue-600" onClick={() => markSeen(n._id)}>Mark as read</button>

@@ -32,7 +32,7 @@ function initializeSocket(io) {
       }
 
       // Attach user to socket
-      socket.userId = userId;
+      socket.userId = decoded._id?.toString() || userId;
       next();
     } catch (error) {
       console.error('Socket Authentication Error:', error);
@@ -52,6 +52,11 @@ function initializeSocket(io) {
         // console.log(`User ${userId} joined their personal room`);
       }
     });
+
+    if (socket.userId) {
+      userSocketMap.set(String(socket.userId), socket.id);
+      socketUserMap.set(socket.id, String(socket.userId));
+    }
 
     // Join music-specific room by ID
     socket.on("joinMusicRoom", ({ musicId }) => {

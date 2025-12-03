@@ -255,6 +255,14 @@ exports.addItemToTableOrder = async (req, res) => {
                 tables.save();
                 emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
                 emitCafeOrderChanged(populated.table?._id || tableId, populated);
+                const itemsText = (populated.items || [])
+                  .map((it) => {
+                    const nm = it?.product?.name || '';
+                    const q = typeof it?.qty === 'number' ? it.qty : 1;
+                    return nm ? `${nm} x${q}` : '';
+                  })
+                  .filter(Boolean)
+                  .join(', ');
                 await emitRoleNotification({
                     departmentId: req.user.department,
                     designations: ['chef','accountant'],
@@ -265,7 +273,8 @@ exports.addItemToTableOrder = async (req, res) => {
                         orderId: populated._id,
                         tableId: tables._id,
                         tableTitle: tables.title,
-                        message: 'New order arise'
+                        message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                        items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
             } else if (nameDept === 'bar') {
@@ -274,6 +283,14 @@ exports.addItemToTableOrder = async (req, res) => {
                 tables.save();
                 emitBarTableStatusChanged(tables?._id || req.params.id, tables);
                 emitBarOrderChanged(populated.table?._id || tableId, populated);
+                const itemsText = (populated.items || [])
+                  .map((it) => {
+                    const nm = it?.product?.name || '';
+                    const q = typeof it?.qty === 'number' ? it.qty : 1;
+                    return nm ? `${nm} x${q}` : '';
+                  })
+                  .filter(Boolean)
+                  .join(', ');
                 await emitRoleNotification({
                     departmentId: req.user.department,
                     designations: ['chef','accountant'],
@@ -284,7 +301,8 @@ exports.addItemToTableOrder = async (req, res) => {
                         orderId: populated._id,
                         tableId: tables._id,
                         tableTitle: tables.title,
-                        message: 'New order arise'
+                        message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                        items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
             } else if (nameDept === 'restaurant' || nameDept === 'restro') {
@@ -293,6 +311,14 @@ exports.addItemToTableOrder = async (req, res) => {
                 tables.save();
                 emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
                 emitRestaurantOrderChanged(populated.table?._id || tableId, populated);
+                const itemsText = (populated.items || [])
+                  .map((it) => {
+                    const nm = it?.product?.name || '';
+                    const q = typeof it?.qty === 'number' ? it.qty : 1;
+                    return nm ? `${nm} x${q}` : '';
+                  })
+                  .filter(Boolean)
+                  .join(', ');
                 await emitRoleNotification({
                     departmentId: req.user.department,
                     designations: ['chef','accountant'],
@@ -303,7 +329,8 @@ exports.addItemToTableOrder = async (req, res) => {
                         orderId: populated._id,
                         tableId: tables._id,
                         tableTitle: tables.title,
-                        message: 'New order arise'
+                        message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                        items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
             }
@@ -328,6 +355,14 @@ exports.addItemToTableOrder = async (req, res) => {
             tables.save();
             emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
             emitCafeOrderChanged(populated.table?._id || tableId, populated);
+            const itemsText = (populated.items || [])
+              .map((it) => {
+                const nm = it?.product?.name || '';
+                const q = typeof it?.qty === 'number' ? it.qty : 1;
+                return nm ? `${nm} x${q}` : '';
+              })
+              .filter(Boolean)
+              .join(', ');
             await emitRoleNotification({
                 departmentId: req.user.department,
                 designations: ['chef','accountant'],
@@ -338,7 +373,8 @@ exports.addItemToTableOrder = async (req, res) => {
                     orderId: populated._id,
                     tableId: tables._id,
                     tableTitle: tables.title,
-                    message: 'New order arise'
+                    message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                    items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
         } else if (nameDept === 'bar') {
@@ -348,6 +384,14 @@ exports.addItemToTableOrder = async (req, res) => {
             tables.save();
             emitBarTableStatusChanged(tables?._id || req.params.id, tables);
             emitBarOrderChanged(populated.table?._id || tableId, populated);
+            const itemsText = (populated.items || [])
+              .map((it) => {
+                const nm = it?.product?.name || '';
+                const q = typeof it?.qty === 'number' ? it.qty : 1;
+                return nm ? `${nm} x${q}` : '';
+              })
+              .filter(Boolean)
+              .join(', ');
             await emitRoleNotification({
                 departmentId: req.user.department,
                 designations: ['chef','accountant'],
@@ -358,7 +402,8 @@ exports.addItemToTableOrder = async (req, res) => {
                     orderId: populated._id,
                     tableId: tables._id,
                     tableTitle: tables.title,
-                    message: 'New order arise'
+                    message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                    items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
         } else if (nameDept === 'restaurant' || nameDept === 'restro') {
@@ -367,6 +412,14 @@ exports.addItemToTableOrder = async (req, res) => {
             tables.save();
             emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
             emitRestaurantOrderChanged(populated.table?._id || tableId, populated);
+            const itemsText = (populated.items || [])
+              .map((it) => {
+                const nm = it?.product?.name || '';
+                const q = typeof it?.qty === 'number' ? it.qty : 1;
+                return nm ? `${nm} x${q}` : '';
+              })
+              .filter(Boolean)
+              .join(', ');
             await emitRoleNotification({
                 departmentId: req.user.department,
                 designations: ['chef','accountant'],
@@ -377,7 +430,8 @@ exports.addItemToTableOrder = async (req, res) => {
                     orderId: populated._id,
                     tableId: tables._id,
                     tableTitle: tables.title,
-                    message: 'New order arise'
+                    message: itemsText ? `New order arise on ${tables.title}: ${itemsText}` : `New order arise on ${tables.title}`,
+                    items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
         }
@@ -654,7 +708,8 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             .populate("room")
             .populate("items.product");
         if (newStatus === 'Done' && populatedOrder?.table) {
-            const itemName = item?.product?.name || '';
+            const populatedItem = (populatedOrder.items || []).find((it) => String(it._id) === String(itemId));
+            const itemName = populatedItem?.product?.name || item?.product?.name || '';
             const tableTitle = populatedOrder.table?.title || '';
             await emitRoleNotification({
                 departmentId: req.user.department,
@@ -667,7 +722,7 @@ exports.UpdateOrderItemStatus = async (req, res) => {
                     tableId: populatedOrder.table._id,
                     tableTitle,
                     itemName,
-                    message: `${itemName} is ready on ${tableTitle}`
+                    message: itemName ? `${itemName} is ready on ${tableTitle}` : `Item is ready on ${tableTitle}`
                 }
             });
         }
@@ -783,7 +838,7 @@ exports.cafePayment = async (req, res) => {
                     orderId: updatedOrder._id,
                     tableId: updatedOrder.table._id,
                     tableTitle: updatedOrder.table.title,
-                    message: 'Order paid'
+                    message: `Order paid for ${updatedOrder.table.title}`
                 }
             });
         }

@@ -5,6 +5,8 @@ import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { SOCKET_URL } from '../../Utils/baseUrl';
 import { updateCafeItemStatus } from '../../Redux/Slice/Chef.slice';
 import { io } from 'socket.io-client';
+import { receiveNotification } from '../../Redux/Slice/notifications.slice';
+import { setAlert } from '../../Redux/Slice/alert.slice';
 export default function Dashboard() {
 
   const dispatch = useDispatch();
@@ -76,6 +78,19 @@ export default function Dashboard() {
     s.on('cafe_table_status_changed', refresh);
     s.on('bar_table_status_changed', refresh);
     s.on('restaurant_table_status_changed', refresh);
+    s.on('notify', (data) => {
+      dispatch(receiveNotification(data));
+      if (data?.type === 'item_ready') {
+        const tbl = data?.tableId || data?.payload?.tableId;
+        if (!activeTableId || !tbl || String(activeTableId) === String(tbl)) {
+          const title = data?.tableTitle || data?.payload?.tableTitle || '';
+          const itemName = data?.itemName || data?.payload?.itemName || '';
+          const msg = itemName && title ? `${itemName} is ready on ${title}` : 'Item is ready to serve';
+          dispatch(setAlert({ text: msg, color: 'success' }));
+          dispatch(getAllCafeTable());
+        }
+      }
+    });
     return () => {
       s.disconnect();
     };
