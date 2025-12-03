@@ -231,7 +231,7 @@ const StaffTable = () => {
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p>
+                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p> */}
 
                 {/* Search Bar */}
                 <div className="relative max-w-md">
@@ -478,7 +478,7 @@ const StaffTable = () => {
         {/* Delete Modal */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+            <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
             <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
@@ -516,7 +516,7 @@ const StaffTable = () => {
       {isModalOpen && selectedItem && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div
-            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+            className="fixed inset-0 bg-black/50"
             onClick={handleCloseModal}
           ></div>
 

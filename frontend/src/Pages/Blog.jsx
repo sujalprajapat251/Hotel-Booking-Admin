@@ -328,7 +328,7 @@ const Blog = () => {
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                   <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                    <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Blog</p>
+                    {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Blog</p> */}
 
                     {/* Search Bar */}
                     <div className="relative  max-w-md">
@@ -597,7 +597,7 @@ const Blog = () => {
             {/* View Modal */}
             {isModalOpen && selectedItem && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+                    <div className="fixed inset-0 bg-black/50" onClick={handleCloseModal}></div>
 
                     <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                         <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl">
@@ -662,7 +662,7 @@ const Blog = () => {
             {/* Delete Modal */}
             {isDeleteModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+                    <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
                     <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-2xl font-semibold text-black">Delete Blog</h2>

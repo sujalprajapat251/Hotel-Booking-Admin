@@ -451,7 +451,7 @@ const AllBookings = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p>
+                                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p> */}
 
                                 <div className="relative max-w-md">
                                     <input
@@ -726,7 +726,7 @@ const AllBookings = () => {
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                            className="fixed inset-0 bg-black/50"
                             onClick={handleCloseModal}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center">
@@ -915,7 +915,7 @@ const AllBookings = () => {
                 {isEditModalOpen && itemToEdit && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="absolute inset-0 bg-black/40"
+                            className="absolute inset-0 bg-black/50"
                             onClick={handleEditModalClose}
                         ></div>
                         <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center sm:p-0">
@@ -1206,7 +1206,7 @@ const AllBookings = () => {
                 {/* Delete Modal */}
                 {isDeleteModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+                        <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
                         <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-semibold text-black">Delete Booking</h2>

@@ -252,7 +252,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <form
         className="bg-white w-[70%] max-h-[90vh] rounded-lg overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
         onSubmit={handleSubmit}

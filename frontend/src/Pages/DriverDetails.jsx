@@ -331,9 +331,9 @@ const DriverDetails = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className="flex gap-2 md:gap-5 sm:justify-between">
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
+            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
               Driver Items
-            </p>
+            </p> */}
             <div className="relative max-w-md">
               <input
                 type="text"
@@ -583,7 +583,7 @@ const DriverDetails = () => {
       {/* Unified Add/Edit Driver Modal */}
       {isDriverModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleDriverModalCancel}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleDriverModalCancel}></div>
           <div className="relative w-full md:max-w-2xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-semibold text-black">
@@ -851,9 +851,9 @@ const DriverDetails = () => {
       {/* View Driver Modal */}
       {isViewModalOpen && viewDriver && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleCloseViewModal}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleCloseViewModal}></div>
           <div className="relative w-full md:max-w-2xl max-w-[90%] rounded-md bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-2">
               <h2 className="text-2xl font-semibold text-black">Driver Details</h2>
               <button onClick={handleCloseViewModal} className="text-gray-500 hover:text-gray-800">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -919,7 +919,7 @@ const DriverDetails = () => {
       {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={handleDeleteCancel}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={handleDeleteCancel}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Driver</h2>
