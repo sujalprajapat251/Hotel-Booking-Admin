@@ -1,16 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { FiCheckCircle, FiEdit } from 'react-icons/fi';
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice.js';
-import { IoEyeSharp } from 'react-icons/io5';
-import { approveCleaningRoom, fetchFreeWorker } from '../../Redux/Slice/housekeepingSlice.js';
-import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../../Redux/Slice/orderRequestSlice.js';
 import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
 
 const Order = () => {
-
 
     const dispatch = useDispatch();
     const workerId = localStorage.getItem("userId");
@@ -26,11 +21,8 @@ const Order = () => {
         totalPages: reduxTotalPages,
         loading
     } = useSelector((state) => state.worker);
-    console.log('orders', orders);
-
 
     const [assigndTask, setAssigndTask] = useState([]);
-    console.log('assigndTask', assigndTask);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +36,6 @@ const Order = () => {
 
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
-        // workerName: true,
         itemName: true,
         floor: true,
         status: true,
@@ -67,7 +58,6 @@ const Order = () => {
         if (orders && orders.length > 0) {
             const formattedData = orders?.map((item, index) => ({
                 id: item._id || item.id || index,
-                // name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
                 status: item.status || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 to: item?.to || 'N/A',
@@ -82,9 +72,7 @@ const Order = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item
             }));
-            console.log('formattedData', formattedData);
             setAssigndTask(formattedData);
-
         } else {
             setAssigndTask([]);
         }
@@ -158,7 +146,6 @@ const Order = () => {
         setPage(1);
         setCurrentPage(1);
         dispatch(fetchOrderTasks({ workerId }));
-        // dispatch(fetchBookings({ page: 1, limit }));
     };
 
     const formatDate = (dateString) => {
@@ -194,7 +181,6 @@ const Order = () => {
                             : `${items.slice(0, 2).join(", ")} +${items.length - 2} more`
                         : "No items";
                 }
-
                 if (visibleColumns.floor) {
                     row['Floor'] = bookingItem.floor || '';
                 }
@@ -232,7 +218,6 @@ const Order = () => {
         }
     };
 
-    // Pagination handlers
     const handlePageChange = (newPage) => {
         setPage(newPage);
         setCurrentPage(newPage);
@@ -245,12 +230,10 @@ const Order = () => {
         setCurrentPage(1);
     };
 
-
     const handleAcceptorder = (orderId) => {
         dispatch(acceptWorkeorders({ id: orderId }))
             .unwrap()
             .then(() => {
-                // Refresh the order list after accepting
                 dispatch(fetchOrderTasks({ workerId }));
             })
             .catch((error) => {
@@ -265,7 +248,6 @@ const Order = () => {
         return date.toISOString().split('T')[0];
     };
 
-    // Filter bookings based on search term
     const filteredBookings = assigndTask.filter((item) => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
@@ -282,12 +264,10 @@ const Order = () => {
         );
     });
 
-    // Use backend pagination data
     const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    console.log('currentData', currentData);
 
     return (
         <>
@@ -327,7 +307,6 @@ const Order = () => {
                                         >
                                             <Filter size={20} />
                                         </button>
-
                                         {showColumnDropdown && (
                                             <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
                                                 <div className="px-3 py-2 border-b border-gray-200">
@@ -425,7 +404,6 @@ const Order = () => {
                                                                 {orders.itemCount || 0} item
                                                                 {orders.itemCount === 1 ? "" : "s"}
                                                             </span>
-
                                                             <span className="text-xs text-gray-500 truncate max-w-[200px]">
                                                                 {Array.isArray(orders.itemName) &&
                                                                     orders.itemName.length > 0
@@ -440,7 +418,6 @@ const Order = () => {
                                                         </div>
                                                     </td>
                                                 )}
-
                                                 {visibleColumns.status && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <span
@@ -452,19 +429,16 @@ const Order = () => {
                                                         </span>
                                                     </td>
                                                 )}
-
                                                 {visibleColumns.roomNo && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         {orders.roomNo}
                                                     </td>
                                                 )}
-
                                                 {visibleColumns.floor && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         {orders.floor}
                                                     </td>
                                                 )}
-
                                                 {visibleColumns.to && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
@@ -474,7 +448,6 @@ const Order = () => {
                                                         </div>
                                                     </td>
                                                 )}
-
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                         {
@@ -535,7 +508,6 @@ const Order = () => {
                                         </tr>
                                     )}
                                 </tbody>
-
                             </table>
                         </div>
 
@@ -564,7 +536,6 @@ const Order = () => {
                                 <span className="text-sm text-gray-600">
                                     {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
                                 </span>
-
                                 <div className="flex items-center gap-1">
                                     <button
                                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}

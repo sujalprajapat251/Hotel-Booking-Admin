@@ -14,7 +14,6 @@ const AllBookings = () => {
 
     const dispatch = useDispatch();
     const [booking, setBooking] = useState([]);
-    console.log('booking', booking);
 
     const {
         items,
@@ -136,7 +135,6 @@ const AllBookings = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item,
             }));
-            console.log('formattedBookings', formattedBookings);
             setBooking(formattedBookings);
         } else {
             setBooking([]);
@@ -156,9 +154,7 @@ const AllBookings = () => {
         ...item,
         roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || "",
     }));
-    console.log('normalizedBookings', normalizedBookings);
 
-    // Add this filter function (similar to your staff filter)
     const filteredBookings = normalizedBookings.filter(booking =>
         booking?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         booking?.roomNumber?.toString().includes(searchTerm.toLowerCase()) ||
@@ -169,7 +165,6 @@ const AllBookings = () => {
         (booking?.checkOut && formatDate(booking.checkOut).toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-
     const totalBookings = totalCount || 0;
     const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
     const currentPageValue = reduxCurrentPage || page || 1;
@@ -177,7 +172,6 @@ const AllBookings = () => {
     const currentData = filteredBookings;
     const displayStart = totalBookings === 0 ? 0 : serialOffset + 1;
     const displayEnd = totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings);
-
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -222,8 +216,6 @@ const AllBookings = () => {
         setPage(1);
         dispatch(fetchBookings({ page: 1, limit }));
     };
-
-
 
     const handleDownloadExcel = () => {
         try {
@@ -299,7 +291,6 @@ const AllBookings = () => {
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
     };
-
 
     useEffect(() => {
         if (typeof document === 'undefined') return;
@@ -643,13 +634,6 @@ const AllBookings = () => {
                                                         </div>
                                                     </td>
                                                 )}
-                                                {/* {visibleColumns.documents && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                        <div className="flex items-center gap-2 text-sm text-gray-700">
-                                                            <HiOutlineDocumentChartBar size={22} className='text-[#EC5C09] hover:text-[#EC0927] transition-colors cursor-pointer' />
-                                                        </div>
-                                                    </td>
-                                                )} */}
                                                 {visibleColumns.actions && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="mv_table_action flex">

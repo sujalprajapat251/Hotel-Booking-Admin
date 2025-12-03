@@ -16,7 +16,6 @@ const buildError = (error) => {
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
-    console.log('token', token);
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -37,7 +36,6 @@ export const fetchWorkerTasks = createAsyncThunk(
 export const startWork = createAsyncThunk(
     'worker/startWork',
     async ({ id }, { dispatch, rejectWithValue }) => {
-        console.log('taskId', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/start/${id}`,
@@ -60,14 +58,12 @@ export const startWork = createAsyncThunk(
 export const completeTask = createAsyncThunk(
     'worker/completeTask',
     async ({ id }, { dispatch, rejectWithValue }) => {
-        console.log('taskId', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/complete/${id}`,
                 {},
                 { headers: getAuthHeaders() }
             );
-            console.log('response', response.data);
 
             dispatch(setAlert({
                 text: response.data.message || 'Task started successfully!',
@@ -88,7 +84,6 @@ export const fetchOrderTasks = createAsyncThunk(
             const response = await axios.get(`${BASE_URL}/getorderRequest/${workerId}`,
                 { headers: getAuthHeaders() }
             );
-            console.log('response', response);
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -176,7 +171,6 @@ const WorkerSlice = createSlice({
             .addCase(completeTask.fulfilled, (state, action) => {
                 state.loadingStart = false;
                 state.start = action.payload?.data || [];
-                console.log('Free workers:', action.payload.data);
             })
             .addCase(completeTask.rejected, (state, action) => {
                 state.loadingStart = false;
@@ -201,7 +195,6 @@ const WorkerSlice = createSlice({
             .addCase(acceptWorkeorders.fulfilled, (state, action) => {
                 state.loadingStart = false;
                 state.start = action.payload?.data || [];
-                console.log('Free workers:', action.payload.data);
             })
             .addCase(acceptWorkeorders.rejected, (state, action) => {
                 state.loadingStart = false;
