@@ -30,7 +30,7 @@ const Order = () => {
 
 
     const [assigndTask, setAssigndTask] = useState([]);
-    // console.log('assigndTask', assigndTask?.map((ele, id) => ele?.id));
+    console.log('assigndTask', assigndTask);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -68,7 +68,7 @@ const Order = () => {
             const formattedData = orders?.map((item, index) => ({
                 id: item._id || item.id || index,
                 // name: item?.workerId?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
-                status: item.cleanStatus || 'Pending',
+                status: item.status || 'Pending',
                 roomNo: item.roomId?.roomNumber || 'N/A',
                 to: item?.to || 'N/A',
                 floor: item?.roomId?.floor || 'N/A',
@@ -245,24 +245,18 @@ const Order = () => {
         setCurrentPage(1);
     };
 
-    const handleAcceptorder = async (orderId) => {
-        try {
-            // Dispatch the accept order action
-            const result = await dispatch(acceptWorkeorders({ id: orderId }));
-            
-            // Check if the action was successful
-            if (result.meta.requestStatus === 'fulfilled') {
-                // Refresh the order list after successful acceptance
+
+    const handleAcceptorder = (orderId) => {
+        dispatch(acceptWorkeorders({ id: orderId }))
+            .unwrap()
+            .then(() => {
+                // Refresh the order list after accepting
                 dispatch(fetchOrderTasks({ workerId }));
-            }
-        } catch (error) {
-            console.error('Error accepting order:', error);
-            dispatch(setAlert({ 
-                text: 'Failed to accept order. Please try again.', 
-                color: 'error' 
-            }));
-        }
-    };
+            })
+            .catch((error) => {
+                console.error('Failed to accept order:', error);
+            });
+    }
 
     const toIsoDate = (dateInput) => {
         if (!dateInput) return '';

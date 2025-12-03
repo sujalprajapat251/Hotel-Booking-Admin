@@ -165,6 +165,7 @@ const AllHouseKeeping = () => {
                 createdAt: item.createdAt || item.reservation?.checkInDate,
                 rawData: item 
             }));
+            // console
             setHousekeepingRooms(formattedData);
         } else {
             setHousekeepingRooms([]);

@@ -103,7 +103,7 @@ const AllBookings = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); 
+            setPage(1);
         }, 500);
 
         return () => clearTimeout(timer);
@@ -134,7 +134,7 @@ const AllBookings = () => {
                 phone: item.guest?.phone || 'N/A',
                 roomType: item.room?.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item
+                rawData: item,
             }));
             console.log('formattedBookings', formattedBookings);
             setBooking(formattedBookings);
@@ -154,14 +154,27 @@ const AllBookings = () => {
 
     const normalizedBookings = booking.map(item => ({
         ...item,
-        roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || ""
+        roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || "",
     }));
+    console.log('normalizedBookings', normalizedBookings);
+
+    // Add this filter function (similar to your staff filter)
+    const filteredBookings = normalizedBookings.filter(booking =>
+        booking?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking?.roomNumber?.toString().includes(searchTerm.toLowerCase()) ||
+        booking?.phone?.toString().includes(searchTerm) ||
+        booking?.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking?.roomType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (booking?.checkIn && formatDate(booking.checkIn).toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (booking?.checkOut && formatDate(booking.checkOut).toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
 
     const totalBookings = totalCount || 0;
     const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
     const currentPageValue = reduxCurrentPage || page || 1;
     const serialOffset = (currentPageValue - 1) * limit;
-    const currentData = normalizedBookings;
+    const currentData = filteredBookings;
     const displayStart = totalBookings === 0 ? 0 : serialOffset + 1;
     const displayEnd = totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings);
 
@@ -445,7 +458,7 @@ const AllBookings = () => {
                 <section className="py-5">
                     <h1 className="text-2xl font-semibold text-black">All Bookings</h1>
                 </section>
-                
+
                 <div className="w-full">
                     <div className="bg-white rounded-lg shadow-md">
                         {/* Header */}
