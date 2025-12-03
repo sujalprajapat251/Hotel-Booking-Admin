@@ -345,7 +345,7 @@ const CabBookingDetail = () => {
                   <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                     <div className="mv_table_action flex items-center gap-2">
                       <div title="View">
-                        <button onClick={() => openView(booking)} className="p-1 rounded hover:bg-gray-100">
+                        <button onClick={() => openView(booking)} className="p-1 rounded">
                           <IoEyeSharp className="text-[18px] text-quaternary" />
                         </button>
                       </div>
@@ -388,91 +388,91 @@ const CabBookingDetail = () => {
 
         {/* View Modal */}
         {showViewModal && selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 md:p-6">
             <div className="w-full max-w-[90%] md:max-w-2xl bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b">
                 <h3 className="text-xl font-semibold text-black mt-2 ml-3">Booking Details</h3>
-                <button onClick={closeView} className="p-1 rounded hover:bg-gray-100">
+                <button onClick={closeView} className="p-1 rounded text-gray-800 hover:text-gray-950">
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-4 md:p-6 overflow-y-auto">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 space-y-2 text-[15px]">
+              <div className="p-3 md:p-6 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 space-y-2 md:space-y-3 text-[15px]">
                   <div>
-                    <div className="flex items-center justify-start gap-10 mt-2">
-                      <div className="font-semibold text-black">Guest Name:</div>
+                    <div className="flex items-start mt-3">
+                      <div className="w-32 md:w-36 font-semibold text-black">Guest Name:</div>
                       <div className="font-medium text-black">{selectedBooking.guestName}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-2">
-                      <div className="font-semibold text-black">Room/Guest ID:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Room/Guest ID:</div>
                       <div className="font-medium text-black">{selectedBooking.roomNumber}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-3">
-                      <div className="font-semibold text-black">Pickup Location:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 md:w-36 font-semibold text-black">Pickup Location:</div>
                       <div className="font-medium text-black">{selectedBooking.pickupLocation}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-4">
-                      <div className="font-semibold text-black">Drop Location:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Drop Location:</div>
                       <div className="font-medium text-black">{selectedBooking.dropLocation}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-16">
-                      <div className="font-semibold text-black">Date:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 md:w-36 font-semibold text-black">Date:</div>
                       <div className="font-medium text-black">{selectedBooking.bookingDate ? new Date(selectedBooking.bookingDate).toLocaleDateString('en-GB') : '—'}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-10">
-                      <div className="font-semibold text-black">Time:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Time:</div>
                       <div className="font-medium text-black">{selectedBooking.pickupTime ? new Date(selectedBooking.pickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-12">
-                      <div className="font-semibold text-black">Driver:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 md:w-36 font-semibold text-black">Driver:</div>
                       <div className="font-medium text-black">{selectedBooking.driver}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-6">
-                      <div className="font-semibold text-black">Vehicle:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Vehicle:</div>
                       <div className="font-medium text-black">{selectedBooking.vehicle}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-3">
-                      <div className="font-semibold text-black">Distance(KM):</div>
+                    <div className="flex items-start">
+                      <div className="w-32 md:w-36 font-semibold text-black">Distance(KM):</div>
                       <div className="font-medium text-black">{selectedBooking.distance ?? '—'}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-2">
-                      <div className="font-semibold text-black">Total Fare:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Total Fare:</div>
                       <div className="font-medium text-black">{selectedBooking.fare === '--' ? '—' : `₹${selectedBooking.fare}`}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-2">
-                      <div className="font-semibold text-black">Payment Status:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 md:w-36 font-semibold text-black">Payment Status:</div>
                       <div className="font-medium text-black">{selectedBooking.paymentStatus}</div>
                     </div>
                   </div>
                   <div>
-                    <div className="flex items-center justify-start gap-6">
-                      <div className="font-semibold text-black">Method:</div>
+                    <div className="flex items-start">
+                      <div className="w-32 font-semibold text-black">Method:</div>
                       <div className="font-medium text-black">{selectedBooking.paymentMethod}</div>
                     </div>
                   </div>
                   <div className="md:col-span-2">
-                    <div className="flex items-start justify-start gap-1 md:gap-2">
-                      <div className="font-semibold text-black">Notes:</div>
+                    <div className="flex items-start">
+                      <div className="w-28 md:w-32 font-semibold text-black">Notes:</div>
                       <div className="ml-4 font-medium text-black text-right">{selectedBooking.notes}</div>
                     </div>
                   </div>
