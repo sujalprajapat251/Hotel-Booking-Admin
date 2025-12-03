@@ -11,7 +11,7 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
-import { createBaritem, deleteBaritem, getAllBaritem, updateBaritem,toggleBaritemStatus } from '../Redux/Slice/baritemSlice';
+import { createBaritem, deleteBaritem, getAllBaritem, updateBaritem, toggleBaritemStatus } from '../Redux/Slice/baritemSlice';
 
 const BarItems = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -472,12 +472,12 @@ const BarItems = () => {
                                         {visibleColumns.name && (
                                             <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                 <div className="flex items-center gap-3">
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                                                />
-                                                <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                                                    />
+                                                    <span className="text-sm font-medium text-gray-800">{item.name}</span>
                                                 </div>
                                             </td>
                                         )}
@@ -618,7 +618,7 @@ const BarItems = () => {
             {/* View Modal */}
             {isModalOpen && selectedItem && (
                 <div className="fixed inset-0 z-50 overflow-y-auto">
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={handleCloseModal}></div>
+                    <div className="fixed inset-0 bg-black/50  transition-opacity duration-300" onClick={handleCloseModal}></div>
 
                     <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                         <div className="relative transform overflow-hidden rounded-[4px] bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[80%] sm:max-w-xl">
@@ -715,8 +715,8 @@ const BarItems = () => {
                                         onBlur={formik.handleBlur}
                                         name="category"
                                         className={`w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between ${formik.touched.category && formik.errors.category
-                                                ? 'border-red-500'
-                                                : 'border-gray-200'
+                                            ? 'border-red-500'
+                                            : 'border-gray-200'
                                             }`}
                                     >
                                         <span className={formik.values.category ? 'text-black' : 'text-gray-400'}>
@@ -742,8 +742,8 @@ const BarItems = () => {
                                                             setShowCategoryDropdown(false);
                                                         }}
                                                         className={`px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors ${formik.values.category === cat._id
-                                                                ? 'bg-[#F7DF9C] text-black/100 font-medium'
-                                                                : 'text-black/100'
+                                                            ? 'bg-[#F7DF9C] text-black/100 font-medium'
+                                                            : 'text-black/100'
                                                             }`}
                                                     >
                                                         {cat.name}
