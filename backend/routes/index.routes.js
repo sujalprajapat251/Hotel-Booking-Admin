@@ -35,6 +35,7 @@ const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, ge
 const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 const {  DepartmentDashboard, getDepartmentPaymentSummary, getDepartmentRevenueByMonth } = require('../controller/hoddashboardController');
+const { getMyNotifications, markSeen, clearAll } = require('../controller/notificationController');
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
@@ -285,6 +286,11 @@ indexRoutes.get('/servicerequests', auth, adminOnly, serviceRequests);
 indexRoutes.get('/gethoddashboard', auth, DepartmentDashboard);
 indexRoutes.get('/getdepartmentpaymentsummary', auth, getDepartmentPaymentSummary);
 indexRoutes.get('/getdepartmentrevenuebymonth', auth, getDepartmentRevenueByMonth);
+
+// Notifications
+indexRoutes.get('/notifications', auth, getMyNotifications);
+indexRoutes.put('/notifications/:id/seen', auth, markSeen);
+indexRoutes.delete('/notifications', auth, clearAll);
 
 
 module.exports = indexRoutes;

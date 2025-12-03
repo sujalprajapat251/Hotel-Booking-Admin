@@ -5,7 +5,7 @@ const cafeTable = require('../models/cafeTableModel.js');
 const barTable = require("../models/barTableModel.js");
 const restroTable = require("../models/restaurantTableModel.js");
 const OrderRequest = require('../models/orderRequest.js');
-const { emitCafeOrderChanged, emitBarOrderChanged, emitRestaurantOrderChanged, emitCafeTableStatusChanged, emitBarTableStatusChanged, emitRestaurantTableStatusChanged } = require('../socketManager/socketManager.js');
+const { emitCafeOrderChanged, emitBarOrderChanged, emitRestaurantOrderChanged, emitCafeTableStatusChanged, emitBarTableStatusChanged, emitRestaurantTableStatusChanged, emitRoleNotification } = require('../socketManager/socketManager.js');
 
 // exports.createCafeOrder = async (req, res) => {
 //     try {
@@ -255,18 +255,57 @@ exports.addItemToTableOrder = async (req, res) => {
                 tables.save();
                 emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
                 emitCafeOrderChanged(populated.table?._id || tableId, populated);
+                await emitRoleNotification({
+                    departmentId: req.user.department,
+                    designations: ['chef','accountant'],
+                    excludeUserId: req.user._id,
+                    event: 'notify',
+                    data: {
+                        type: 'new_order',
+                        orderId: populated._id,
+                        tableId: tables._id,
+                        tableTitle: tables.title,
+                        message: 'New order arise'
+                    }
+                });
             } else if (nameDept === 'bar') {
                 const tables = await barTable.findById(tableId);
                 console.log(tables)
                 tables.save();
                 emitBarTableStatusChanged(tables?._id || req.params.id, tables);
                 emitBarOrderChanged(populated.table?._id || tableId, populated);
+                await emitRoleNotification({
+                    departmentId: req.user.department,
+                    designations: ['chef','accountant'],
+                    excludeUserId: req.user._id,
+                    event: 'notify',
+                    data: {
+                        type: 'new_order',
+                        orderId: populated._id,
+                        tableId: tables._id,
+                        tableTitle: tables.title,
+                        message: 'New order arise'
+                    }
+                });
             } else if (nameDept === 'restaurant' || nameDept === 'restro') {
                 const tables = await restroTable.findById(tableId);
                 tables.status = false;
                 tables.save();
                 emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
                 emitRestaurantOrderChanged(populated.table?._id || tableId, populated);
+                await emitRoleNotification({
+                    departmentId: req.user.department,
+                    designations: ['chef','accountant'],
+                    excludeUserId: req.user._id,
+                    event: 'notify',
+                    data: {
+                        type: 'new_order',
+                        orderId: populated._id,
+                        tableId: tables._id,
+                        tableTitle: tables.title,
+                        message: 'New order arise'
+                    }
+                });
             }
             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
         }
@@ -289,6 +328,19 @@ exports.addItemToTableOrder = async (req, res) => {
             tables.save();
             emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
             emitCafeOrderChanged(populated.table?._id || tableId, populated);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['chef','accountant'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    orderId: populated._id,
+                    tableId: tables._id,
+                    tableTitle: tables.title,
+                    message: 'New order arise'
+                }
+            });
         } else if (nameDept === 'bar') {
             const tables = await barTable.findById(tableId);
             console.log(tables)
@@ -296,12 +348,38 @@ exports.addItemToTableOrder = async (req, res) => {
             tables.save();
             emitBarTableStatusChanged(tables?._id || req.params.id, tables);
             emitBarOrderChanged(populated.table?._id || tableId, populated);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['chef','accountant'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    orderId: populated._id,
+                    tableId: tables._id,
+                    tableTitle: tables.title,
+                    message: 'New order arise'
+                }
+            });
         } else if (nameDept === 'restaurant' || nameDept === 'restro') {
             const tables = await restroTable.findById(tableId);
             tables.status = false;
             tables.save();
             emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
             emitRestaurantOrderChanged(populated.table?._id || tableId, populated);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['chef','accountant'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'new_order',
+                    orderId: populated._id,
+                    tableId: tables._id,
+                    tableTitle: tables.title,
+                    message: 'New order arise'
+                }
+            });
         }
         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
     } catch (error) {
@@ -575,6 +653,24 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             .populate("table")
             .populate("room")
             .populate("items.product");
+        if (newStatus === 'Done' && populatedOrder?.table) {
+            const itemName = item?.product?.name || '';
+            const tableTitle = populatedOrder.table?.title || '';
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['waiter'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'item_ready',
+                    orderId: populatedOrder._id,
+                    tableId: populatedOrder.table._id,
+                    tableTitle,
+                    itemName,
+                    message: `${itemName} is ready on ${tableTitle}`
+                }
+            });
+        }
         if (name === 'cafe') {
             const tables = await cafeTable.findById(populatedOrder.table?._id);
             emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
@@ -675,6 +771,21 @@ exports.cafePayment = async (req, res) => {
         } else if (name === 'restaurant' || name === 'restro') {
             emitRestaurantOrderChanged(updatedOrder.table?._id || updatedOrder.table, updatedOrder);
             if (updatedOrder.table?._id) emitRestaurantTableStatusChanged(updatedOrder.table?._id, { status: true });
+        }
+        if (updatedOrder.table?._id) {
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['hod'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'order_paid',
+                    orderId: updatedOrder._id,
+                    tableId: updatedOrder.table._id,
+                    tableTitle: updatedOrder.table.title,
+                    message: 'Order paid'
+                }
+            });
         }
         res.status(200).json({
             status: 200,

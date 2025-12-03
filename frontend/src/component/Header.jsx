@@ -5,6 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
 import notification from "../Images/notification.png"
+import io from 'socket.io-client';
+import axios from 'axios';
+import { BASE_URL, SOCKET_URL } from '../Utils/baseUrl';
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -75,6 +78,59 @@ const Header = ({ onMenuClick }) => {
   }
 
   const [notifi, setNotifi] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unread, setUnread] = useState(0);
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    if (token && userId && !socketRef.current) {
+      socketRef.current = io(SOCKET_URL, { auth: { token, userId } });
+      socketRef.current.emit('joinRoom', { userId });
+      socketRef.current.on('notify', (data) => {
+        setNotifications((prev) => [{
+          _id: Math.random().toString(36).slice(2),
+          message: data?.message || '',
+          type: data?.type || 'notify',
+          payload: data || {},
+          createdAt: new Date().toISOString(),
+          seen: false
+        }, ...prev]);
+        setUnread((u) => u + 1);
+      });
+    }
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    axios.get(`${BASE_URL}/notifications`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => {
+        setNotifications(res.data?.data || []);
+        setUnread(res.data?.unread || 0);
+      })
+      .catch(() => {});
+  }, []);
+
+  const markSeen = async (id) => {
+    const token = localStorage.getItem('token');
+    try {
+      await axios.put(`${BASE_URL}/notifications/${id}/seen`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setNotifications((prev) => prev.map(n => n._id === id ? { ...n, seen: true } : n));
+      setUnread((u) => (u > 0 ? u - 1 : 0));
+    } catch {}
+  };
+
+  const toggleNotifi = () => {
+    setNotifi((prev) => !prev);
+  };
   return (
     <>
       <header className="flex flex-col">
@@ -141,10 +197,31 @@ const Header = ({ onMenuClick }) => {
                 </div>
               ) : null}
             </div>
-            <img src={notification} className='h-8 aspect-square' onClick={() => { setNotifi((prev) => !prev) }}>
-            </img>
-            <div className={`h-[400px] max-h-[400px] bg-white w-[300px] absolute top-full right-4 p-4   border rounded -z-[1] transform-all duration-700  ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
+            <div className="relative">
+              <img src={notification} className='h-8 aspect-square cursor-pointer' onClick={toggleNotifi} />
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded">
+                  {unread}
+                </span>
+              )}
+            </div>
+            <div className={`h-[400px] max-h-[400px] bg-white w-[300px] absolute top-full right-4 p-4 border rounded -z-[1] transform-all duration-700 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
               <h1 className='text-xl text-senary border-b-2 font-semibold pb-2 text-center'>Notification</h1>
+              <div className="mt-3 space-y-2 overflow-auto h-[320px]">
+                {notifications.length === 0 ? (
+                  <div className="text-center text-sm text-quaternary">No notifications</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div key={n._id} className={`p-2 rounded border ${n.seen ? 'border-secondary/20' : 'border-primary/40 bg-primary/10'}`}>
+                      <div className="text-sm font-medium text-senary">{n.message || n.payload?.message || ''}</div>
+                      <div className="text-xs text-quaternary">{new Date(n.createdAt).toLocaleString()}</div>
+                      {!n.seen && (
+                        <button className="mt-1 text-xs text-blue-600" onClick={() => markSeen(n._id)}>Mark as read</button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

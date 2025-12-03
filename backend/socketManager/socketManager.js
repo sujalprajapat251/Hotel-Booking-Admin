@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Staff = require('../models/staffModel')
+const Notification = require('../models/notificationModel')
 
 // Store user-to-socket mappings
 const userSocketMap = new Map();
@@ -118,17 +119,52 @@ function initializeSocket(io) {
   }, 30000); // Check every 30 seconds
 }
 
-// Emit helper: notify clients in a music room that the music has updated
-function notifyMusicUpdated(music) {
-  try {
-    if (!ioInstance || !music || !music._id) return;
-    const room = `music:${music._id}`;
-    ioInstance.to(room).emit('musicUpdated', { musicId: music._id, music });
-    // console.log(`Emitted musicUpdated to room ${room}`);
-  } catch (err) {
-    console.error('Failed emitting musicUpdated:', err?.message || err);
-  }
+function buildDesignationRegex(designations = []) {
+  const map = {
+    hod: /^(hod|head\s*of\s*department)$/i,
+    waiter: /^waiter$/i,
+    chef: /^chef$/i,
+    accountant: /^accountant$/i
+  };
+  return designations.map(d => {
+    const key = String(d || '').toLowerCase();
+    const regex = map[key] || new RegExp(`^${key}$`, 'i');
+    return { designation: { $regex: regex } };
+  });
 }
+
+async function emitRoleNotification({ departmentId, designations = [], excludeUserId = null, event = 'notify', data = {} } = {}) {
+  try {
+    if (!ioInstance || !departmentId || !designations.length) return;
+    const or = buildDesignationRegex(designations);
+    const targets = await Staff.find({ department: departmentId, $or: or }).select('_id');
+    const excludeId = excludeUserId ? String(excludeUserId) : null;
+    const docs = [];
+    targets.forEach(t => {
+      const uid = String(t._id);
+      if (excludeId && uid === excludeId) return;
+      const socketId = userSocketMap.get(uid);
+      if (socketId) {
+        ioInstance.to(socketId).emit(event, data);
+      }
+      docs.push({ user: uid, department: departmentId, type: data?.type || event, message: data?.message || '', payload: data, seen: false });
+    });
+    if (docs.length) {
+      await Notification.insertMany(docs.map(d => ({ ...d })), { ordered: false });
+    }
+  } catch {}
+}
+// Emit helper: notify clients in a music room that the music has updated
+// function notifyMusicUpdated(music) {
+//   try {
+//     if (!ioInstance || !music || !music._id) return;
+//     const room = `music:${music._id}`;
+//     ioInstance.to(room).emit('musicUpdated', { musicId: music._id, music });
+//     // console.log(`Emitted musicUpdated to room ${room}`);
+//   } catch (err) {
+//     console.error('Failed emitting musicUpdated:', err?.message || err);
+//   }
+// }
 
 // Method to emit task events to project team members
 // async function emitTaskEventAdd(task, projectId) {
@@ -203,7 +239,7 @@ function notifyMusicUpdated(music) {
     initializeSocket,
     getUserSocketMap: () => userSocketMap,
     getSocketUserMap: () => socketUserMap,
-    notifyMusicUpdated,
+    // notifyMusicUpdated,
     emitCafeOrderChanged: (tableId, order) => {
       try {
         if (!ioInstance) return;
@@ -240,4 +276,5 @@ function notifyMusicUpdated(music) {
         ioInstance.emit('restaurant_table_status_changed', { tableId, table });
       } catch {}
     },
+    emitRoleNotification,
   };
