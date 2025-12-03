@@ -43,16 +43,35 @@ const adminSections = [
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/dashboard' },
       { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
-      { icon: HiOutlineUserGroup, label: 'UserList', path: '/user' },
       {
         icon: LuBed,
         label: 'Rooms',
         path: '/rooms',
         subMenus: [
-          { label: 'Create Room', path: '/rooms/create' },
           { label: 'New Room type', path: '/rooms/room-type' },
-          { label: 'Available Rooms', path: '/rooms/available' },
           { label: 'Room Features', path: '/rooms/features' },
+          { label: 'Create Room', path: '/rooms/create' },  
+          { label: 'Available Rooms', path: '/rooms/available' }, 
+        ]
+      },
+      { icon: LuBuilding2, label: 'Departments', path: '/departments' },
+      {
+        icon: LuUsers,
+        label: 'Staff',
+        path: '/staff',
+        subMenus: [
+          { label: 'Add Staff', path: '/staff/addstaff' },
+          { label: 'Staff Details', path: '/staff/staffdetails' },
+        ]
+      },
+      {
+        icon: IoIosRestaurant,
+        label: 'Restaurant',
+        path: '/restaurant',
+        subMenus: [
+          { label: 'Restaurant Category', path: '/restaurant/restaurantcategory' },
+          { label: 'Restaurant Items', path: '/restaurant/restaurantitems' },
+          { label: 'Restaurant Order', path: '/restaurant/restaurantorder' },
         ]
       },
       {
@@ -75,16 +94,7 @@ const adminSections = [
           { label: 'Bar Order', path: '/bar/barorder' },
         ]
       },
-      {
-        icon: IoIosRestaurant,
-        label: 'Restaurant',
-        path: '/restaurant',
-        subMenus: [
-          { label: 'Restaurant Category', path: '/restaurant/restaurantcategory' },
-          { label: 'Restaurant Items', path: '/restaurant/restaurantitems' },
-          { label: 'Restaurant Order', path: '/restaurant/restaurantorder' },
-        ]
-      },
+      
       {
         icon: IoCarSportOutline,
         label: 'Cabs',
@@ -95,37 +105,29 @@ const adminSections = [
           { label: 'Cab Bookings', path: '/cabs/cabbooking' },
         ]
       },
-      {
-        icon: LuUsers,
-        label: 'Staff',
-        path: '/staff',
-        subMenus: [
-          { label: 'Staff Details', path: '/staff/staffdetails' },
-          { label: 'Add Staff', path: '/staff/addstaff' },
-        ]
-      },
+      
       { icon: PiBroomLight , label: 'House Keepings', path: '/housekeeping' },
       { icon: HiInboxArrowDown , label: 'Order Request', path: '/orderrequest' },
-      { icon: LuBuilding2, label: 'Departments', path: '/departments' },
-      {
-        icon: LuInfo,
-        label: 'About',
-        path: '/about',
-        subMenus: [
-          { label: 'About', path: '/about/about' },
-          { label: 'Add About', path: '/about/addabout' },
-        ]
-      },
+      { icon: HiOutlineUserGroup, label: 'UserList', path: '/user' },
+      { icon: VscCodeReview, label: 'Review', path: '/review' },
       {
         icon: RiBloggerLine,
         label: 'Blog',
         path: '/blog',
         subMenus: [
-          { label: 'Blog', path: '/blog/blog' },
           { label: 'Add Blog', path: '/blog/addblog' },
+          { label: 'Blog', path: '/blog/blog' },
         ]
       },
-      { icon: VscCodeReview, label: 'Review', path: '/review' },
+      {
+        icon: LuInfo,
+        label: 'About',
+        path: '/about',
+        subMenus: [
+          { label: 'Add About', path: '/about/addabout' },
+          { label: 'About', path: '/about/about' },
+        ]
+      },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
       { icon: IoHelpCircleOutline, label: 'Help', path: '/help' },
       { icon: FiBookOpen, label: 'Terms & Conditions', path: '/terms' },

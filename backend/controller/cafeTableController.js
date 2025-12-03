@@ -9,6 +9,7 @@ const restaurantOrder = require('../models/restaurantOrderModal');
 const { emitCafeTableStatusChanged } = require('../socketManager/socketManager');
 const { emitBarTableStatusChanged } = require('../socketManager/socketManager');
 const { emitRestaurantTableStatusChanged } = require('../socketManager/socketManager');
+const { emitRoleNotification } = require('../socketManager/socketManager');
 
 // exports.createCafeTable = async (req, res) => {
 //     try {
@@ -259,12 +260,48 @@ exports.updateTable = async (req, res) => {
         }
         if (name === 'cafe') {
             emitCafeTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['waiter','hod'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'table_status_changed',
+                    tableId: updatedTable._id,
+                    tableTitle: updatedTable.title,
+                    status: updatedTable.status === true ? 'Available' : 'Occupied'
+                }
+            });
         }
         if (name === 'bar') {
             emitBarTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['waiter','hod'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'table_status_changed',
+                    tableId: updatedTable._id,
+                    tableTitle: updatedTable.title,
+                    status: updatedTable.status === true ? 'Available' : 'Occupied'
+                }
+            });
         }
         if( name === 'restaurant'){
             emitRestaurantTableStatusChanged(updatedTable?._id || req.params.id, updatedTable);
+            await emitRoleNotification({
+                departmentId: req.user.department,
+                designations: ['waiter','hod'],
+                excludeUserId: req.user._id,
+                event: 'notify',
+                data: {
+                    type: 'table_status_changed',
+                    tableId: updatedTable._id,
+                    tableTitle: updatedTable.title,
+                    status: updatedTable.status === true ? 'Available' : 'Occupied'
+                }
+            });
         }
         return res.status(200).json({ status: 200, message: 'Table updated successfully..!', data: updatedTable });
     } catch (error) {
