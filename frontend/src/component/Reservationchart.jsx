@@ -119,8 +119,10 @@ const StackedBarChart = () => {
               verticalAlign="top"
               align="right"
               content={(props) => (
+                <div style={{ marginBottom: 14 }}>
 
-                <CustomLegend payload={props.payload} hiddenBars={hiddenBars} onClick={handleLegendClick} />
+                  <CustomLegend payload={props.payload} hiddenBars={hiddenBars} onClick={handleLegendClick} />
+                </div>
               )}
             />
         

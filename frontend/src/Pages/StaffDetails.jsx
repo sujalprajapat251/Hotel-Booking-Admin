@@ -227,11 +227,11 @@ const StaffTable = () => {
           <div className="bg-white rounded-lg shadow-md">
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
-              <div className='flex gap-2 md:gap-5 sm:justify-between'>
+              <div className='flex gap-2 md:gap-5 sm:justify-between items-center min-w-0'>
                 {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p> */}
 
                 {/* Search Bar */}
-                <div className="relative max-w-md">
+                <div className="relative flex-1 min-w-0">
                   <input
                     type="text"
                     placeholder="Search..."
@@ -245,25 +245,25 @@ const StaffTable = () => {
 
               <div>
                 {/* Action Buttons */}
-                <div className="flex items-center gap-1 justify-end mt-2">
-                  <div className="relative" ref={dropdownRef}>
+                <div className="flex items-center gap-1 justify-end mt-2 whitespace-nowrap">
+                  <div className="relative inline-flex items-center" ref={dropdownRef}>
                     <button
                       onClick={() => navigate('/staff/addstaff', { state: { mode: 'add' } })}
-                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+                      className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors flex-shrink-0"
                       title="Add New Staff"
                     >
                       <FiPlusCircle size={20} />
                     </button>
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                      className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                      className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors flex-shrink-0"
                       title="Show/Hide Columns"
                     >
                       <Filter size={20} />
                     </button>
 
                     {showColumnDropdown && (
-                      <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
+                      <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999] sm:right-0 [@media(max-width:375px)]:left-1/4 [@media(max-width:375px)]:-translate-x-1/2">
                         <div className="px-3 py-2 border-b border-gray-200">
                           <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                         </div>
@@ -288,10 +288,10 @@ const StaffTable = () => {
                       </div>
                     )}
                   </div>
-                  <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+                  <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0" title="Refresh" onClick={handleRefresh}>
                     <RefreshCw size={20} />
                   </button>
-                  <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
+                  <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex-shrink-0" title="Download" onClick={handleDownloadExcel}>
                     <Download size={20} />
                   </button>
                 </div>
@@ -299,12 +299,15 @@ const StaffTable = () => {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full whitespace-nowrap">
+            <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
+              <table className="w-full min-w-[1000px]">
                 <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10">
                   <tr>
                     {visibleColumns.No && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">No.</th>
+                    )}
+                    {visibleColumns.image && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Image</th>
                     )}
                     {visibleColumns.name && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Name</th>
@@ -332,7 +335,7 @@ const StaffTable = () => {
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 bg-white">
                   {currentData.length > 0 ? (
                     currentData.map((staff, index) => (
                       <tr
@@ -342,16 +345,25 @@ const StaffTable = () => {
                         {visibleColumns.No && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                         )}
+                        {visibleColumns.image && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                <img
+                                  src={staff.image}
+                                  alt={staff.name}
+                                  className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
+                                />
+                                <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full">
+                                  {staff.status}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        )}
                         {visibleColumns.name && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={staff.image}
-                                alt={staff.name}
-                                className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                              />
-                              <span className="text-sm font-medium text-gray-800">{staff.name}</span>
-                            </div>
+                            <span className="text-sm font-medium text-gray-800">{staff.name}</span>
                           </td>
                         )}
                         {visibleColumns.designation && (
@@ -426,7 +438,7 @@ const StaffTable = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex items-center justify-between px-1 sm:px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
                 <span className="text-sm text-gray-600">Items per page:</span>
                 <div className="relative">
