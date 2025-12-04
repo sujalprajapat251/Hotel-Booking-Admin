@@ -771,15 +771,15 @@ const AvailableRooms = () => {
       {/* Room Filters Card */}
       <div className="bg-white rounded-lg shadow-md p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="sm:flex sm:gap-2 sm:flex-wrap items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#B79982" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M21 21L15 15" stroke="#755647" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <h2 className="text-xl font-bold text-senary">Room Filters</h2>
+            <h2 className="text-xl font-bold text-senary whitespace-nowrap">Room Filters</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 whitespace-nowrap mt-3 sm:mt-0 justify-between sm500:w-fit w-full">
             <div className="px-4 py-1 rounded-full bg-secondary text-senary text-sm font-medium">
               {filteredRooms.length} of {total || rooms.length} rooms
             </div>
@@ -1299,7 +1299,7 @@ const AvailableRooms = () => {
             >
               Prev
             </button>
-            <span className="text-xs">
+            <span className="text-xs whitespace-nowrap">
               Page {page} / {totalPages}
             </span>
             <button
