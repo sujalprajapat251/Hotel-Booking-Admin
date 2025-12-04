@@ -397,7 +397,7 @@ const Barcategory = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-semibold text-black">
                 {isEditMode ? 'Edit Bar Category' : 'Add Bar Category'}

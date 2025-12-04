@@ -13,7 +13,7 @@ import { addRestaurantcategory, deleteRestaurantcategory, getAllRestaurantcatego
 const Restaurantcategory = () => {
 
   const dispatch = useDispatch();
-  const {restaurantcategory,loading} = useSelector((state) => state.restaurantcategory);
+  const { restaurantcategory, loading } = useSelector((state) => state.restaurantcategory);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -259,7 +259,7 @@ const Restaurantcategory = () => {
               )}
             </div>
             <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
-              <RefreshCw size={20} />
+              <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
             </button>
             <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
               <Download size={20} />
@@ -291,7 +291,7 @@ const Restaurantcategory = () => {
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
-                      <p className="text-lg font-medium">Loading...</p>
+                      <p className="text-lg font-medium">Loading Restaurant Category...</p>
                     </div>
                   </td>
                 </tr>
@@ -332,11 +332,11 @@ const Restaurantcategory = () => {
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                      <p className="text-lg font-medium">No data available</p>
-                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                        </svg>
+                        <p className="text-lg font-medium">No Restaurant Category available</p>
+                        <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
