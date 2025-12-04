@@ -226,7 +226,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         guest: {
           fullName: formState.fullName,
           email: formState.email,
-          phone: formState.phone,
+          countrycode: formState.countrycode,
+          phone: formState.mobile,
           idNumber: formState.idNumber,
           address: formState.address,
         },
