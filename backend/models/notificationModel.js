@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const notificationSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'staff', required: true },
-    department: { type: mongoose.Schema.Types.ObjectId, ref: 'department', required: true },
+    department: { type: mongoose.Schema.Types.ObjectId, ref: 'department', required: false },
     type: { type: String, required: true },
     message: { type: String, required: true },
     payload: { type: Object, default: {} },

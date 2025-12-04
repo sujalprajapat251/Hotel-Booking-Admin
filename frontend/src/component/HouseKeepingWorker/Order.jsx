@@ -4,6 +4,8 @@ import { ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from '
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice.js';
 import { acceptWorkeorders, fetchOrderTasks } from '../../Redux/Slice/WorkerSlice.js';
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../../Utils/baseUrl.js';
 
 const Order = () => {
 
@@ -12,6 +14,21 @@ const Order = () => {
 
     useEffect(() => {
         dispatch(fetchOrderTasks({ workerId }));
+        const token = localStorage.getItem('token');
+        const s = io(SOCKET_URL, { auth: { token, userId: workerId }, transports: ['websocket','polling'], withCredentials: true });
+        const refreshIfMine = (payload) => {
+            if (!payload || !payload.workerId) return;
+            if (String(payload.workerId) === String(workerId)) {
+                dispatch(fetchOrderTasks({ workerId }));
+            }
+        };
+        s.on('worker_asignee_changed', refreshIfMine);
+        s.on('notify', (data) => {
+            const msg = data?.message || (data?.type === 'order_request_assigned' ? 'New order request assigned' : 'New notification');
+            dispatch(setAlert({ text: msg, color: 'success' }));
+            dispatch(fetchOrderTasks({ workerId }));
+        });
+        return () => { s.disconnect(); };
     }, [dispatch]);
 
     const {

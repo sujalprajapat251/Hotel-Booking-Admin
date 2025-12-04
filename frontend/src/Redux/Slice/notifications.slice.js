@@ -3,7 +3,14 @@ import axios from 'axios';
 import { BASE_URL } from '../../Utils/baseUrl';
 import { setAlert } from './alert.slice';
 
-const STORAGE_KEY = 'staff_notifications';
+const getStorageKey = () => {
+  try {
+    const uid = localStorage.getItem('userId');
+    return uid ? `staff_notifications_${uid}` : 'staff_notifications';
+  } catch {
+    return 'staff_notifications';
+  }
+};
 
 const formatMessage = (n) => {
   const t = n?.type || n?.payload?.type || '';
@@ -43,7 +50,7 @@ const formatMessage = (n) => {
 
 const saveCache = (list) => {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 100)));
+    localStorage.setItem(getStorageKey(), JSON.stringify(list.slice(0, 100)));
   } catch {}
 };
 
@@ -57,7 +64,7 @@ export const fetchNotifications = createAsyncThunk(
       const server = Array.isArray(res.data?.data) ? res.data.data : [];
       let cache = [];
       try {
-        cache = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        cache = JSON.parse(localStorage.getItem(getStorageKey()) || '[]');
       } catch {}
       const map = new Map();
       [...server, ...cache].forEach((n) => {
@@ -101,11 +108,11 @@ export const clearAllNotifications = createAsyncThunk(
     try {
       const token = await localStorage.getItem('token');
       if (!token) {
-        try { localStorage.removeItem(STORAGE_KEY); } catch {}
+        try { localStorage.removeItem(getStorageKey()); } catch {}
         return true;
       }
       await axios.delete(`${BASE_URL}/notifications`, { headers: { Authorization: `Bearer ${token}` } });
-      try { localStorage.removeItem(STORAGE_KEY); } catch {}
+      try { localStorage.removeItem(getStorageKey()); } catch {}
       return true;
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to clear notifications';
@@ -140,6 +147,13 @@ const notificationsSlice = createSlice({
       state.unread = state.unread + 1;
       saveCache(state.items);
     },
+    resetNotifications: (state) => {
+      state.items = [];
+      state.unread = 0;
+      try {
+        localStorage.removeItem(getStorageKey());
+      } catch {}
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -171,6 +185,6 @@ const notificationsSlice = createSlice({
   },
 });
 
-export const { receiveNotification } = notificationsSlice.actions;
+export const { receiveNotification, resetNotifications } = notificationsSlice.actions;
 export default notificationsSlice.reducer;
 
