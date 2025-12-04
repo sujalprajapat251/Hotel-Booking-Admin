@@ -908,7 +908,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {floorDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-60 overflow-y-auto">
                   <div
                     onClick={() => {
                       handleFilterChange('floor', 'All Floors');
