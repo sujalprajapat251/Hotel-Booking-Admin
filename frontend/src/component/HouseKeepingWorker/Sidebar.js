@@ -12,7 +12,6 @@ const hodSections = [
     title: null,
     key: 'main',
     items: [
-      { icon: RxDashboard, label: 'Dashboard', path: '/worker/dashboard' },
       { icon: RxDashboard, label: 'Tasks', path: '/worker/task' },
       { icon: RxDashboard, label: 'Orders', path: '/worker/order' } 
     ],

@@ -13,7 +13,7 @@ import { addBarcategory, deleteBarcategory, getAllBarcategory, updateBarcategory
 const Barcategory = () => {
 
   const dispatch = useDispatch();
-  const barcategory = useSelector((state) => state.barcategory.barcategory);
+  const { barcategory, loading } = useSelector((state) => state.barcategory);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -142,40 +142,40 @@ const Barcategory = () => {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
         return;
       }
-        // Prepare data for Excel
-        const excelData = filtereBarcategory.map((user, index) => {
-            const row = {};
-            
-            if (visibleColumns.no) {
-                row['No.'] = index + 1;
-            }
-            if (visibleColumns.barcategoryname) {
-                row['Name'] = user.name || '';
-            }
-            return row;
-        });
+      // Prepare data for Excel
+      const excelData = filtereBarcategory.map((user, index) => {
+        const row = {};
 
-        // Create a new workbook
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+        if (visibleColumns.no) {
+          row['No.'] = index + 1;
+        }
+        if (visibleColumns.barcategoryname) {
+          row['Name'] = user.name || '';
+        }
+        return row;
+      });
 
-        // Auto-size columns
-        const maxWidth = 20;
-        const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
-        worksheet['!cols'] = wscols;
+      // Create a new workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
 
-        // Generate file name with current date
-        const date = new Date();
-        const fileName = `Bar_Category_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+      // Auto-size columns
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
 
-        // Download the file
-        XLSX.writeFile(workbook, fileName);
-        dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+      // Generate file name with current date
+      const date = new Date();
+      const fileName = `Bar_Category_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      // Download the file
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
     } catch (error) {
-        dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-};
+  };
 
   useEffect(() => {
     dispatch(getAllBarcategory());
@@ -286,19 +286,16 @@ const Barcategory = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentData.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                      <p className="text-lg font-medium">No data available</p>
-                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
                     </div>
                   </td>
                 </tr>
-              ) : (
+              ) : currentData.length > 0 ? (
                 currentData.map((item, index) => (
                   <tr
                     key={item._id || index}
@@ -332,6 +329,18 @@ const Barcategory = () => {
 
                   </tr>
                 ))
+              ) : (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                    </div>
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>

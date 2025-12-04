@@ -18,6 +18,10 @@
 .react-tel-input .country-list .search-box:focus{
   border-color: rgb(183 153 130) !important;
 }
+
+input[type="checkbox"]{
+  accent-color: #755647;
+}
 .sp_login .left {
   display: flex;
   animation-name: left;

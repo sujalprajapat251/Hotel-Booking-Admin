@@ -20,7 +20,7 @@ const RoomType = () => {
 
   const dispatch = useDispatch();
 
-  const { items: roomTypes } = useSelector((state) => state.roomtypes);
+  const { items: roomTypes, loading } = useSelector((state) => state.roomtypes);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -272,33 +272,43 @@ const RoomType = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {currentRoomTypes.map((item, index) => (
-                <tr
-                  key={item._id}
-                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                >
-                  {visibleColumns.no && (
-                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
-                  )}
-                  {visibleColumns.roomType && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
-                        {item.roomType}
-                      </div>
-                    </td>
-                  )}
-                  {/* Actions */}
-                  {visibleColumns.actions && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="mv_table_action flex">
-                        <div onClick={() => handleEdit(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                        <div onClick={() => handleDelete(item._id || item.id)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                      </div>
-                    </td>
-                  )}
+              {loading ? (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
+                    </div>
+                  </td>
                 </tr>
-              ))}
-              {currentRoomTypes.length === 0 ? (
+              ) : currentRoomTypes?.length > 0 ? (
+                currentRoomTypes.map((item, index) => (
+                  <tr
+                    key={item._id}
+                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                  >
+                    {visibleColumns.no && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                    )}
+                    {visibleColumns.roomType && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                          {item.roomType}
+                        </div>
+                      </td>
+                    )}
+                    {/* Actions */}
+                    {visibleColumns.actions && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="mv_table_action flex">
+                          <div onClick={() => handleEdit(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleDelete(item._id || item.id)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                        </div>
+                      </td>
+                    )}
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
@@ -310,7 +320,7 @@ const RoomType = () => {
                     </div>
                   </td>
                 </tr>
-              ) : null}
+              )}
             </tbody>
           </table>
         </div>
@@ -360,7 +370,7 @@ const RoomType = () => {
           </div>
         </div>
       </div>
-      
+
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>

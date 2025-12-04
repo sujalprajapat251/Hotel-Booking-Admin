@@ -136,7 +136,6 @@ const receptionistSections = [
       { icon: RxDashboard, label: 'Booking Dashboard', path: '/booking-dashboard' },
       { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
       { icon: MdCleaningServices, label: 'Cleanings', path: '/housekeeping' },
-      { icon: GiAutoRepair, label: 'Maintenence', path: '/maintenence' },
       { icon: HiInboxArrowDown , label: 'Order Request', path: '/orderrequest' },
     ],
   },
@@ -197,7 +196,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
 
         <div className={`relative flex min-w-0 flex-1 items-center ${open ? 'gap-3' : 'justify-center'}`}>
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg transition-all duration-300 ${(isActive)
+          <span className={`flex h-10 w-10 items-center justify-center rounded-xl text-xl transition-all duration-300 ${(isActive)
               ? 'bg-primary text-senary scale-110'
               : 'bg-primary/25 text-senary group-hover:bg-primary group-hover:scale-105'
             }`}>

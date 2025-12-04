@@ -6,8 +6,6 @@ import { SnackbarProvider } from 'notistack';
 import { Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
-import EditorDemo from './Pages/EditorDemo';
-import DataTable from './Pages/DataTable';
 import Rooms from './Pages/Rooms';
 import CreateRoom from './Pages/CreateRoom';
 import AvailableRooms from './Pages/AvailableRooms';
@@ -65,10 +63,7 @@ import RestaurantOrder from './Pages/RestaurantOrder.jsx';
 import BarOrder from './Pages/BarOrder.jsx';
 import CafeOrderList from './Pages/CafeOrderList.jsx';
 import HouseKeepingLayout from './component/HouseKeepingWorker/Layout';
-import HouseKeepingDashboard from './component/HouseKeepingWorker/Dashboard';
 import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
-import Cleaning from './Pages/Cleaning.jsx';
-import Maintenence from './Pages/Maintenence.jsx';
 import OrderRequest from './Pages/OrderRequest.jsx';
 import Order from './component/HouseKeepingWorker/Order.jsx';
 
@@ -84,7 +79,6 @@ function App() {
           >
             <Alert />
             <Routes>
-              <Route path='/editor' element={<EditorDemo />}></Route>
               <Route path='/' element={<LoginPage />} />
               <Route element={<Layout />}>
                 {/* Receptionist/User only route - Booking Dashboard */}
@@ -93,14 +87,6 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
                       <BookingDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path='/maintenence'
-                  element={
-                    <ProtectedRoute allowedRoles={['receptionist']}>
-                      <Maintenence />
                     </ProtectedRoute>
                   }
                 />
@@ -449,12 +435,6 @@ function App() {
               </Route>
 
               <Route path='/worker' element={<HouseKeepingLayout />} >
-                <Route path='dashboard' element={
-                  <ProtectedRoute allowedRoles={['Worker']}>
-                    <HouseKeepingDashboard />
-                  </ProtectedRoute>
-                }>
-                </Route>
                 <Route path='task' element={
                   <ProtectedRoute allowedRoles={['Worker']}>
                     <Tasks />

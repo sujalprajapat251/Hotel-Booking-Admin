@@ -5,7 +5,7 @@ import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
 import GuestDetailsModal from '../component/GuestDetailsModal';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown,RefreshCw } from 'lucide-react';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import { FiEdit } from 'react-icons/fi';
 import { IoEyeSharp } from 'react-icons/io5';
@@ -1077,7 +1077,10 @@ const AvailableRooms = () => {
       {/* Room Cards Grid */}
       {loading && (
         <div className="mt-6 bg-white rounded-lg shadow-md p-8 text-center text-quinary text-sm">
-          Loading rooms...
+          <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
+                    </div>
         </div>
       )}
 

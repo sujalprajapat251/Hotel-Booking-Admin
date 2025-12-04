@@ -23,8 +23,7 @@ const User = () => {
         date: true,
     });
 
-    const users = useSelector((state) => state.user.users);
-    const loading = useSelector((state) => state.user.loading);
+    const { users, loading } = useSelector((state) => state.user);
 
     const formatDate = (dateString) => {
         if (!dateString) return '';

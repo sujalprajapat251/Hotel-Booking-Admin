@@ -29,8 +29,7 @@ const Blog = () => {
     const [itemToDelete, setItemToDelete] = useState(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const blog = useSelector((state) => state.blog.blog)
-    const loading = useSelector((state) => state.blog.loading)
+    const {blog,loading} = useSelector((state) => state.blog);
 
     const [visibleColumns, setVisibleColumns] = useState({
         no: true,
