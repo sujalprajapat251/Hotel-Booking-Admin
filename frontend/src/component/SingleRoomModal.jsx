@@ -165,14 +165,14 @@ export default function SingleRoomModal({ id, onClose }) {
                 {room?.currentBooking && (
                     <div className='p-5 pb-0 '>
                         <h2 className='text-lg font-semibold capitalize text-senary'>current booking</h2>
-                        <div className='p-3 capitalize flex justify-between border-b-2'>
+                        <div className='md:p-3 capitalize flex justify-between border-b-2'>
                             <div>
                                 <h2 className='text-lg font-medium'>{room?.currentBooking?.guest?.fullName}</h2>
-                                <span className='text-xs'>{room?.currentBooking?.guest?.email}  / {room?.currentBooking?.guest?.countrycode ? room?.currentBooking?.guest?.countrycode : ""} {room?.currentBooking?.guest?.phone}</span>
+                                <span className='md:text-xs text-[10px] text-gray-500'>{room?.currentBooking?.guest?.email}  / {room?.currentBooking?.guest?.countrycode ? room?.currentBooking?.guest?.countrycode : ""} {room?.currentBooking?.guest?.phone}</span>
                             </div>
                             <div>
                                 {room?.currentBooking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}
-                                <p className='text-xs'>{room?.currentBooking?.reservation?.checkInDate.split('T')[0]}  - {room?.currentBooking?.reservation?.checkOutDate.split('T')[0]}</p>
+                                <p className='md:text-xs text-[10px] text-gray-500'>{room?.currentBooking?.reservation?.checkInDate.split('T')[0]}  To {room?.currentBooking?.reservation?.checkOutDate.split('T')[0]}</p>
                             </div>
                         </div>
                     </div>
@@ -182,14 +182,14 @@ export default function SingleRoomModal({ id, onClose }) {
                         <h2 className='text-lg font-semibold capitalize text-senary'>Upcoming booking</h2>
                         {room?.futureBookings?.map((booking,ind)=>{
                             return (
-                                <div className='p-3 capitalize flex justify-between border-b-2'>
+                                <div className='md:p-3 capitalize flex justify-between border-b-2'>
                                 <div>
                                     <h2 className='text-lg font-medium'>{booking?.guest?.fullName}</h2>
-                                    <span className='text-xs'>{booking?.guest?.email}  / {booking?.guest?.countrycode ? booking?.guest?.countrycode : ""} {booking?.guest?.phone}</span>
+                                    <span className='md:text-xs text-[10px] text-gray-500'>{booking?.guest?.email}  / {booking?.guest?.countrycode ? booking?.guest?.countrycode : ""} {booking?.guest?.phone}</span>
                                 </div>
                                 <div>
                                     {booking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}
-                                    <p className='text-xs'>{booking?.reservation?.checkInDate.split('T')[0]}  - {booking?.reservation?.checkOutDate.split('T')[0]}</p>
+                                    <p className='md:text-xs text-[10px] text-gray-500'>{booking?.reservation?.checkInDate.split('T')[0]}  To {booking?.reservation?.checkOutDate.split('T')[0]}</p>
                                 </div>
                             </div>
                             )

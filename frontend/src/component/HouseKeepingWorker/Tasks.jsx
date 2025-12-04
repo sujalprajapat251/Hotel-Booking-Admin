@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { fetchBookings } from '../../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import {  ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../../Utils/baseUrl.js';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { completeTask, fetchWorkerTasks, startWork } from '../../Redux/Slice/WorkerSlice';
@@ -13,6 +15,24 @@ const Tasks = () => {
 
     useEffect(() => {
         dispatch(fetchWorkerTasks({ workerId }));
+        const token = localStorage.getItem('token');
+        const s = io(SOCKET_URL, { auth: { token, userId: workerId }, transports: ['websocket','polling'], withCredentials: true });
+        const refreshIfMine = (payload) => {
+            if (!payload || !payload.workerId) return;
+            if (String(payload.workerId) === String(workerId)) {
+                dispatch(fetchWorkerTasks({ workerId }));
+            }
+        };
+        s.on('worker_asignee_changed', refreshIfMine);
+        s.on('notify', (data) => {
+            const myDeptId = null; // workers are housekeeping, allow all worker-targeted notify
+            if (!data?.departmentId || !myDeptId || true) {
+                const msg = data?.message || (data?.type === 'hk_task_assigned' ? 'New housekeeping task assigned' : 'New notification');
+                dispatch(setAlert({ text: msg, color: 'success' }));
+                dispatch(fetchWorkerTasks({ workerId }));
+            }
+        });
+        return () => { s.disconnect(); };
     }, [dispatch]);
 
     const {

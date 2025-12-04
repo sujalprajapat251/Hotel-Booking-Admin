@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import { getUserById } from '../Redux/Slice/staff.slice';
 import userImg from "../Images/user.png";
 import notification from "../Images/notification.png"
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../Utils/baseUrl';
-import { fetchNotifications, receiveNotification, markNotificationSeen, clearAllNotifications } from '../Redux/Slice/notifications.slice';
+import { fetchNotifications, receiveNotification, markNotificationSeen, clearAllNotifications, resetNotifications } from '../Redux/Slice/notifications.slice';
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -72,8 +72,17 @@ const Header = ({ onMenuClick }) => {
   }
 
   const handleLogout = () => {
+    dispatch(resetNotifications());
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach((k) => {
+        if (k && k.startsWith('staff_notifications')) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch {}
     navigate('/');
   }
 
@@ -83,42 +92,42 @@ const Header = ({ onMenuClick }) => {
   const bellRef = useRef(null);
   const { items: notifications = [], unread = 0 } = useSelector((state) => state.notifications || {});
 
-  const formatMessage = (n) => {
-    const t = n?.type || n?.payload?.type || '';
-    const p = n?.payload || {};
-    console.log(n);
-    if (n?.message) return n.message;
-    if (p?.message) return p.message;
-    if (t === 'table_status_changed') {
-      const title = p.tableTitle || p.tableId || '';
-      const status = p.status || '';
-      return `Table ${title} status changed to ${status}`.trim();
-    }
-    if (t === 'new_order') {
-      const title = p.tableTitle || p.tableId || '';
-      const items = Array.isArray(p.items) ? p.items.filter(Boolean) : [];
-      const list = items
-        .map((it) => {
-          const nm = it?.name || it?.product?.name || '';
-          const q = it?.qty ?? it?.quantity ?? 1;
-          return nm ? `${nm} x${q}` : '';
-        })
-        .filter(Boolean)
-        .join(', ');
-      const suffix = list ? `: ${list}` : '';
-      return `New order arise on ${title}${suffix}`.trim();
-    }
-    if (t === 'item_ready') {
-      const title = p.tableTitle || p.tableId || '';
-      const itemName = p.itemName || '';
-      return `${itemName} is ready on ${title}`.trim();
-    }
-    if (t === 'order_paid') {
-      const title = p.tableTitle || p.tableId || '';
-      return `Order paid for ${title}`.trim();
-    }
-    return 'Notification';
-  };
+  // const formatMessage = (n) => {
+  //   const t = n?.type || n?.payload?.type || '';
+  //   const p = n?.payload || {};
+  //   console.log(n);
+  //   if (n?.message) return n.message;
+  //   if (p?.message) return p.message;
+  //   if (t === 'table_status_changed') {
+  //     const title = p.tableTitle || p.tableId || '';
+  //     const status = p.status || '';
+  //     return `Table ${title} status changed to ${status}`.trim();
+  //   }
+  //   if (t === 'new_order') {
+  //     const title = p.tableTitle || p.tableId || '';
+  //     const items = Array.isArray(p.items) ? p.items.filter(Boolean) : [];
+  //     const list = items
+  //       .map((it) => {
+  //         const nm = it?.name || it?.product?.name || '';
+  //         const q = it?.qty ?? it?.quantity ?? 1;
+  //         return nm ? `${nm} x${q}` : '';
+  //       })
+  //       .filter(Boolean)
+  //       .join(', ');
+  //     const suffix = list ? `: ${list}` : '';
+  //     return `New order arise on ${title}${suffix}`.trim();
+  //   }
+  //   if (t === 'item_ready') {
+  //     const title = p.tableTitle || p.tableId || '';
+  //     const itemName = p.itemName || '';
+  //     return `${itemName} is ready on ${title}`.trim();
+  //   }
+  //   if (t === 'order_paid') {
+  //     const title = p.tableTitle || p.tableId || '';
+  //     return `Order paid for ${title}`.trim();
+  //   }
+  //   return 'Notification';
+  // };
 
   useEffect(() => {
     dispatch(fetchNotifications());
@@ -128,10 +137,18 @@ const Header = ({ onMenuClick }) => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
     if (token && userId && !socketRef.current) {
-      socketRef.current = io(SOCKET_URL, { auth: { token, userId } });
+      socketRef.current = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket','polling'], withCredentials: true });
       socketRef.current.emit('joinRoom', { userId });
+      socketRef.current.on('connect', () => {});
+      socketRef.current.on('connect_error', () => {});
+      socketRef.current.on('error', () => {});
       socketRef.current.on('notify', (data) => {
-        dispatch(receiveNotification(data));
+        const role = (currentUser?.designation || '').toLowerCase();
+        const myDeptId = currentUser?.department?._id || currentUser?.departmentId || null;
+        const allowAll = role === 'admin';
+        if (allowAll || !myDeptId || !data?.departmentId || String(myDeptId) === String(data.departmentId)) {
+          dispatch(receiveNotification(data));
+        }
       });
     }
     return () => {
@@ -140,7 +157,7 @@ const Header = ({ onMenuClick }) => {
         socketRef.current = null;
       }
     };
-  }, []);
+  }, [currentUser?.department?._id]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -236,7 +253,7 @@ const Header = ({ onMenuClick }) => {
                 </span>
               )}
             </div>
-            <div ref={notifiRef} className={`h-auto max-h-[400px] bg-white w-[300px] absolute top-full md:right-4 right-2 p-4 border rounded -z-[1] transform-all duration-700 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
+            <div ref={notifiRef} className={`h-auto max-h-[400px] bg-white w-[300px] absolute top-full md:right-4 right-2 p-4 border rounded -z-[1] transform-all duration-500 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
               <div className='flex items-center justify-between border-b-2 pb-2'>
                 <h1 className='text-xl text-senary font-semibold'>Notification</h1>
                 <button

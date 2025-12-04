@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const Staff = require('../models/staffModel')
 const Notification = require('../models/notificationModel')
 
-// Store user-to-socket mappings
 const userSocketMap = new Map();
 const socketUserMap = new Map();
 
@@ -46,16 +45,21 @@ function initializeSocket(io) {
     // Handle user room joining
     socket.on("joinRoom", ({ userId }) => {
       if (userId) {
-        // Store socket-user mapping
-        userSocketMap.set(userId, socket.id);
-        socketUserMap.set(socket.id, userId);
+        const uid = String(userId);
+        const set = userSocketMap.get(uid) || new Set();
+        set.add(socket.id);
+        userSocketMap.set(uid, set);
+        socketUserMap.set(socket.id, uid);
         // console.log(`User ${userId} joined their personal room`);
       }
     });
 
     if (socket.userId) {
-      userSocketMap.set(String(socket.userId), socket.id);
-      socketUserMap.set(socket.id, String(socket.userId));
+      const uid = String(socket.userId);
+      const set = userSocketMap.get(uid) || new Set();
+      set.add(socket.id);
+      userSocketMap.set(uid, set);
+      socketUserMap.set(socket.id, uid);
     }
 
     // Join music-specific room by ID
@@ -93,7 +97,12 @@ function initializeSocket(io) {
       // Remove mappings on disconnect
       const userId = socketUserMap.get(socket.id);
       if (userId) {
-        userSocketMap.delete(userId);
+        const set = userSocketMap.get(userId);
+        if (set) {
+          set.delete(socket.id);
+          if (set.size === 0) userSocketMap.delete(userId);
+          else userSocketMap.set(userId, set);
+        }
         socketUserMap.delete(socket.id);
       }
     });
@@ -106,21 +115,18 @@ function initializeSocket(io) {
 
   // Cleanup disconnected sockets periodically
   setInterval(() => {
-    const disconnectedSockets = [];
-    
     for (const [socketId, userId] of socketUserMap.entries()) {
       const socket = io.sockets.sockets.get(socketId);
       if (!socket || !socket.connected) {
-        disconnectedSockets.push({ socketId, userId });
+        socketUserMap.delete(socketId);
+        const set = userSocketMap.get(userId);
+        if (set) {
+          set.delete(socketId);
+          if (set.size === 0) userSocketMap.delete(userId);
+          else userSocketMap.set(userId, set);
+        }
       }
     }
-    
-    disconnectedSockets.forEach(({ socketId, userId }) => {
-      userSocketMap.delete(userId);
-      socketUserMap.delete(socketId);
-      // console.log(`Cleaned up disconnected socket ${socketId} for user ${userId}`);
-    });
-  
   }, 30000); // Check every 30 seconds
 }
 
@@ -129,7 +135,9 @@ function buildDesignationRegex(designations = []) {
     hod: /^(hod|head\s*of\s*department)$/i,
     waiter: /^waiter$/i,
     chef: /^chef$/i,
-    accountant: /^accountant$/i
+    accountant: /^accountant$/i,
+    admin: /^(admin|administrator)$/i,
+    receptionist: /^receptionist$/i
   };
   return designations.map(d => {
     const key = String(d || '').toLowerCase();
@@ -140,111 +148,72 @@ function buildDesignationRegex(designations = []) {
 
 async function emitRoleNotification({ departmentId, designations = [], excludeUserId = null, event = 'notify', data = {} } = {}) {
   try {
-    if (!ioInstance || !departmentId || !designations.length) return;
+    if (!ioInstance || !designations.length) return;
     const or = buildDesignationRegex(designations);
-    const targets = await Staff.find({ department: departmentId, $or: or }).select('_id');
+    const baseQuery = departmentId ? { department: departmentId, $or: or } : { $or: or };
+    const targets = await Staff.find(baseQuery).select('_id department');
     const excludeId = excludeUserId ? String(excludeUserId) : null;
     const docs = [];
+    console.log('or',or ,'baseQuery',baseQuery,'targets',targets,'excludeId',excludeId,'docs',docs )
     targets.forEach(t => {
       const uid = String(t._id);
       if (excludeId && uid === excludeId) return;
-      const socketId = userSocketMap.get(uid);
-      if (socketId) {
-        ioInstance.to(socketId).emit(event, data);
+      const socketIds = userSocketMap.get(uid);
+      const dpt = departmentId || (t?.department ? String(t.department) : null);
+      const payload = dpt ? { ...data, departmentId: dpt } : { ...data };
+      if (socketIds && socketIds.size > 0) {
+        for (const sid of socketIds) {
+          const s = ioInstance.sockets.sockets.get(sid);
+          if (s && s.connected) {
+            ioInstance.to(sid).emit(event, payload);
+          }
+        }
       }
-      docs.push({ user: uid, department: departmentId, type: data?.type || event, message: data?.message || '', payload: data, seen: false });
+      docs.push({ user: uid, department: dpt, type: data?.type || event, message: data?.message || '', payload: data, seen: false });
     });
     if (docs.length) {
       await Notification.insertMany(docs.map(d => ({ ...d })), { ordered: false });
     }
   } catch {}
 }
-// Emit helper: notify clients in a music room that the music has updated
-// function notifyMusicUpdated(music) {
-//   try {
-//     if (!ioInstance || !music || !music._id) return;
-//     const room = `music:${music._id}`;
-//     ioInstance.to(room).emit('musicUpdated', { musicId: music._id, music });
-//     // console.log(`Emitted musicUpdated to room ${room}`);
-//   } catch (err) {
-//     console.error('Failed emitting musicUpdated:', err?.message || err);
-//   }
-// }
 
-// Method to emit task events to project team members
-// async function emitTaskEventAdd(task, projectId) {
-//   try {
-//     // Get the project to find team members and owner
-//     const projectDetails = await Project.findById(projectId)
-//       .populate('teamMembers')
-//       .populate('owner');
-
-//     // Create a set to track unique user IDs to avoid duplicate emissions
-//     const uniqueUserIds = new Set();
-
-//     // Add team members to the set
-//     projectDetails.teamMembers.forEach(member => {
-//       uniqueUserIds.add(member._id.toString());
-//     });     
-
-//     // Add project owners to the set
-//     projectDetails.owner.forEach(owner => {
-//       uniqueUserIds.add(owner._id.toString());
-//     });
-
-//     // Emit socket event to all unique users
-//     uniqueUserIds.forEach(userId => {
-//       const socketId = userSocketMap.get(userId);
-//       if (socketId && ioInstance) {
-//         ioInstance.to(socketId).emit('newTask', { 
-//           task: task, 
-//           projectId: projectId 
-//         });
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error emitting task event:', error);
-//   }
-// }
-// async function emitTaskEventEdit(task, projectId) {
-//   try {
-//     // Get the project to find team members and owner
-//     const projectDetails = await Project.findById(projectId)
-//       .populate('teamMembers')
-//       .populate('owner');
-
-//     // Create a set to track unique user IDs to avoid duplicate emissions
-//     const uniqueUserIds = new Set();
-
-//     // Add team members to the set
-//     projectDetails.teamMembers.forEach(member => {
-//       uniqueUserIds.add(member._id.toString());
-//     });     
-
-//     // Add project owners to the set
-//     projectDetails.owner.forEach(owner => {
-//       uniqueUserIds.add(owner._id.toString());
-//     });
-
-//     // Emit socket event to all unique users
-//     uniqueUserIds.forEach(userId => {
-//       const socketId = userSocketMap.get(userId);
-//       if (socketId && ioInstance) {
-//         ioInstance.to(socketId).emit('editTask', { 
-//           task: task, 
-//           projectId: projectId 
-//         });
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error emitting task event:', error);
-//   }
-// }
+async function emitUserNotification({ userId, event = 'notify', data = {}, departmentId = null } = {}) {
+  try {
+    if (!ioInstance || !userId) return;
+    const uid = String(userId);
+    if (!departmentId) {
+      try {
+        const u = await Staff.findById(uid).populate('department');
+        departmentId = u?.department?._id || null;
+      } catch {}
+    }
+    const socketIds = userSocketMap.get(uid);
+    const payload = departmentId ? { ...data, departmentId } : { ...data };
+    if (socketIds && socketIds.size > 0) {
+      for (const sid of socketIds) {
+        const s = ioInstance.sockets.sockets.get(sid);
+        if (s && s.connected) {
+          ioInstance.to(sid).emit(event, payload);
+        }
+      }
+    }
+    try {
+      const Notification = require('../models/notificationModel');
+      await Notification.create({ user: uid, department: departmentId || null, type: payload?.type || event, message: payload?.message || '', payload, seen: false });
+    } catch {}
+  } catch {}
+}
   module.exports = { 
     initializeSocket,
     getUserSocketMap: () => userSocketMap,
     getSocketUserMap: () => socketUserMap,
     // notifyMusicUpdated,
+    emitWorkerAssigneChnaged:(workerId)=>{
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('worker_asignee_changed', { workerId });
+      } catch {}
+    },
     emitCafeOrderChanged: (tableId, order) => {
       try {
         if (!ioInstance) return;
@@ -282,4 +251,5 @@ async function emitRoleNotification({ departmentId, designations = [], excludeUs
       } catch {}
     },
     emitRoleNotification,
+    emitUserNotification,
   };

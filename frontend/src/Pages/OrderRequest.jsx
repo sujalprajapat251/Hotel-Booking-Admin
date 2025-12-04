@@ -7,7 +7,8 @@ import { setAlert } from '../Redux/Slice/alert.slice';
 import { IoEyeSharp } from 'react-icons/io5';
 import { approveCleaningRoom, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
 import { assignWorkerToOrderRequest, fetchAllOrderRequesr } from '../Redux/Slice/orderRequestSlice.js';
-
+import { SOCKET_URL } from '../Utils/baseUrl.js';
+import { io } from 'socket.io-client';
 const OrderRequest = () => {
 
     const dispatch = useDispatch();
@@ -27,6 +28,21 @@ const OrderRequest = () => {
 
     useEffect(() => {
         dispatch(fetchFreeWorker());
+    }, [dispatch]);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
+        s.on('connect', () => { console.log('socket connected', s.id); });
+        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+        s.on('error', (err) => { console.error('socket error', err?.message || err); });
+        const refresh = () => {
+            dispatch(fetchFreeWorker());
+        };
+        s.on('worker_asignee_changed', refresh);
+        return () => {
+            s.disconnect();
+        };
     }, [dispatch]);
     const { freeWorkers } = useSelector((state) => state.housekeeping);
 
@@ -689,7 +705,7 @@ const OrderRequest = () => {
                                                             <span className="text-gray-600 font-medium">
                                                                 ${((item?.product?.price || 0) * (item?.qty || 1)).toFixed(2)}
                                                             </span>
-                                                        </div>  
+                                                        </div>
                                                     ))}
                                                     <div className="pt-2 border-t border-gray-300 flex justify-between items-center font-semibold">
                                                         <span className="text-gray-800">Total Amount:</span>
