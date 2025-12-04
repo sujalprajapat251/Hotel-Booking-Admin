@@ -542,7 +542,7 @@ const HODStaff = () => {
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
-                        <span>{selectedItem.mobileno}</span>
+                        <span>{selectedItem.countrycode ? selectedItem.countrycode : ""} {selectedItem.mobileno}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Email:</span>
@@ -554,7 +554,17 @@ const HODStaff = () => {
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>
-                        <span>{selectedItem.joiningdate?.split('T')[0]}</span>
+                        <span>
+                          {selectedItem.joiningdate
+                            ? (() => {
+                                const dateObj = new Date(selectedItem.joiningdate);
+                                const day = dateObj.getDate().toString().padStart(2, '0');
+                                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                                const year = dateObj.getFullYear();
+                                return `${day}/${month}/${year}`;
+                              })()
+                            : ''}
+                        </span>
                       </div>
                       <div className="flex items-start gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Address:</span>

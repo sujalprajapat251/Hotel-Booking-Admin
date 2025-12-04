@@ -29,7 +29,8 @@ const DEPARTMENT_DESIGNATION_MAP = {
   Transport: ['Driver'],
   Restaurant: ['Chef', 'Waiter', 'Accountant'],
   Bar: ['Chef', 'Waiter', 'Accountant'],
-  Housekeeping: ['Worker']
+  Housekeeping: ['Worker'],
+  Reception: ['receptionist']
 };
 
 const StaffForm = () => {
@@ -244,7 +245,9 @@ const extractMobileAndCode = (mobileno, storedCountryCode) => {
 
   const designationOptions = useMemo(() => {
     const specific = DEPARTMENT_DESIGNATION_MAP[resolvedDepartmentName] || [];
-    const combined = [...specific, 'Head of Department'];
+    const combined = resolvedDepartmentName === 'Reception' 
+      ? specific 
+      : [...specific, 'Head of Department'];
     return [...new Set(combined)];
   }, [resolvedDepartmentName]);
 
