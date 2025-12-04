@@ -1,5 +1,24 @@
 import { useSelector } from 'react-redux';
-import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
+import { AreaChart, Area, Tooltip, ResponsiveContainer } from 'recharts';
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        color: 'white',
+        padding: '8px 12px',
+        borderRadius: '4px',
+        fontSize: '12px'
+      }}>
+        <p style={{ margin: 0 }}>
+          {payload[0].payload.name}: {payload[0].value}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function Example() {
 
@@ -10,7 +29,7 @@ export default function Example() {
   const chartData = getDashboardData?.orderSources
     ? Object.entries(getDashboardData.orderSources).map(([key, value]) => ({
       name: key.charAt(0).toUpperCase() + key.slice(1),
-      profit: value,
+      value: value,
     }))
     : [];
 
@@ -21,9 +40,9 @@ export default function Example() {
   return (
     <div style={{ width: '100%', maxWidth: '200px', height: '100px' }}>
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={chartData}>
+        <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="warmGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient id="warmGradient" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#F7DF9C" />
               <stop offset="20%" stopColor="#E3C78A" />
               <stop offset="40%" stopColor="#B79982" />
@@ -33,15 +52,15 @@ export default function Example() {
             </linearGradient>
           </defs>
 
-          <Tooltip />
-          <Line
+          <Tooltip content={<CustomTooltip />} />
+          <Area
             type="monotone"
-            dataKey="profit"
+            dataKey="value"
             stroke="url(#warmGradient)"
-            strokeWidth={8}
-            dot={false}
+            fill="url(#warmGradient)"
+            strokeWidth={3}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );

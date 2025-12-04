@@ -519,11 +519,11 @@ export const Dashboard = () => {
               </div>
             </div>
           </div>
-          <div className='bg-white p-4 rounded-xl shadow-lg border-2' style={{
+          <div className='bg-white p-4 rounded-xl shadow-lg border-2 w-full' style={{
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex justify-between items-center'>
+            <div className='sm:flex justify-between items-center h-full'>
               <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Revenue</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>${getDashboardData?.totalRevenue}</p>
@@ -531,7 +531,7 @@ export const Dashboard = () => {
                   <p className='text-green-500'></p>
                 </div>
               </div>
-              <div className='w-[220px] h-[110px] ms-auto'>
+              <div className='w-fit ms-auto mt-auto'>
                 <Revenuechart />
               </div>
             </div>
@@ -749,6 +749,9 @@ export const Dashboard = () => {
               background: 'linear-gradient(135deg, rgba(247, 223, 156, 0.1) 0%, rgba(227, 199, 138, 0.1) 100%)'
             }}>
               <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Current Booking Details</h2>
+              <Link to="/allbookings" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}>
+                View All
+              </Link>
             </div>
 
             <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-200px)]" style={{
@@ -783,7 +786,6 @@ export const Dashboard = () => {
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Status</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Phone</th>
                     <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Room Type</th>
-                    <th className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-left text-sm font-bold" style={{ color: '#755647' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: '#E3C78A' }}>
@@ -828,16 +830,6 @@ export const Dashboard = () => {
                           }}>
                             {booking.roomType?.split(' ')[0] || 'N/A'}
                           </span>
-                        </div>
-                      </td>
-                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
-                        <div className="flex items-center gap-3">
-                          <button className=" transition-colors p-2 hover:bg-purple-50 rounded-md">
-                            <FiEdit className="text-[#6777ef] text-[18px]" />
-                          </button>
-                          <button className="transition-colors p-2 hover:bg-orange-50 rounded-md">
-                            <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                          </button>
                         </div>
                       </td>
                     </tr>

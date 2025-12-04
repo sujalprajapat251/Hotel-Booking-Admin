@@ -19,7 +19,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
     room.status === 'Occupied' ||
     (room.status === 'Reserved' && todayStr && checkInStr && todayStr >= checkInStr);
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
       {/* Image Gallery Section */}
       <div className="relative">
         {/* Main Image */}
@@ -99,7 +99,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
       </div>
 
       {/* Content Section */}
-      <div className="p-5">
+      <div className="p-5 flex-1">
         {/* Header with Room Number */}
         <div className="mb-4">
           <div className="flex items-start justify-between mb-2">
@@ -214,9 +214,10 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
             {room.maintenanceNotes}
           </div>
         )}
+      </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
+      {/* Action Buttons */}
+      <div className="px-2 pb-2 space-y-3">
           <button
             onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
             disabled={isAddGuestDisabled}
@@ -264,7 +265,6 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
             </svg>
             Delete Room
           </button> */}
-        </div>
       </div>
     </div>
   );
