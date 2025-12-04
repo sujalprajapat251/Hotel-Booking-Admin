@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
-import { HiOutlineDocumentChartBar } from 'react-icons/hi2';
-import { FiCheckCircle, FiEdit, FiPlusCircle } from 'react-icons/fi';
+import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Phone, RefreshCw, Search } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -23,7 +22,7 @@ const AllBookings = () => {
         currentPage: reduxCurrentPage,
         totalPages: reduxTotalPages,
         loading
-    } = useSelector((state) => state.booking);
+    } = useSelector((state) => state.booking);    
 
     const user = useSelector((state) => state.auth?.user);
     console.log(user, "user");
@@ -31,8 +30,6 @@ const AllBookings = () => {
     console.log(userRole, "userRole");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
 
     // UI state
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
@@ -74,6 +71,60 @@ const AllBookings = () => {
         status: 'Pending',
         notes: ''
     });
+    // -------- SEARCH FUNCTIONALITY --------
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    };
+    
+    const [searchQuery, setSearchQuery] = useState("");
+    const filteredBookings = booking.filter(b => {
+        const normalized = str => (str ?? '').toString().toLowerCase().trim();
+
+// Helper to include both raw and formatted date string
+const searchableDates = b => [
+    b.checkIn,
+    formatDate(b.checkIn),     // user-facing format
+    b.checkOut,
+    formatDate(b.checkOut),
+    b.createdAt,
+    formatDate(b.createdAt),
+    b.rawData?.reservation?.checkInDate,
+    formatDate(b.rawData?.reservation?.checkInDate),
+    b.rawData?.reservation?.checkOutDate,
+    formatDate(b.rawData?.reservation?.checkOutDate),
+    b.rawData?.createdAt,
+    formatDate(b.rawData?.createdAt),
+    b.rawData?.updatedAt,
+    formatDate(b.rawData?.updatedAt)
+];
+        const valuesToSearch = [
+            b.name,
+            b.roomNumber,
+            b.status,
+            b.phone,
+            b.countrycode,
+            b.roomType,
+            b.rawData?.guest?.email,
+            b.rawData?.guest?.idNumber,
+            b.rawData?.guest?.address,
+            b.rawData?.notes,
+            b.rawData?.reservation?.occupancy?.adults?.toString(),
+            b.rawData?.reservation?.occupancy?.children?.toString(),
+            b.rawData?.room?.floor?.toString(),
+            b.rawData?.payment?.totalAmount?.toString(),
+            b.rawData?.payment?.currency,
+            b.rawData?.payment?.method,
+            ...searchableDates(b)  // <-- Add all date strings here!
+        ];
+        return valuesToSearch.some(field =>
+            normalized(field).includes(normalized(searchQuery))
+        );
+    });
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         name: true,
@@ -107,27 +158,14 @@ const AllBookings = () => {
         { value: 'NoShow', label: 'No Show' },
     ];
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-            setPage(1);
-        }, 500);
-
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
 
     useEffect(() => {
         const params = {
             page,
             limit,
         };
-
-        if (debouncedSearch) {
-            params.search = debouncedSearch;
-        }
-
         dispatch(fetchBookings(params));
-    }, [dispatch, page, limit, debouncedSearch]);
+    }, [dispatch, page, limit]);
 
     useEffect(() => {
         if (items && items.length > 0) {
@@ -150,34 +188,13 @@ const AllBookings = () => {
         }
     }, [items]);
 
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-    const normalizedBookings = booking.map(item => ({
-        ...item,
-        roomNo: item.roomNo || item.roomNumber || item.rawData?.room?.roomNumber || "",
-    }));
-
-    const filteredBookings = normalizedBookings.filter(booking =>
-        booking?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking?.roomNumber?.toString().includes(searchTerm.toLowerCase()) ||
-        booking?.phone?.toString().includes(searchTerm) ||
-        booking?.status?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        booking?.roomType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (booking?.checkIn && formatDate(booking.checkIn).toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (booking?.checkOut && formatDate(booking.checkOut).toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+   
 
     const totalBookings = totalCount || 0;
     const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
     const currentPageValue = reduxCurrentPage || page || 1;
     const serialOffset = (currentPageValue - 1) * limit;
+    // Replace currentData with filteredBookings
     const currentData = filteredBookings;
     const displayStart = totalBookings === 0 ? 0 : serialOffset + 1;
     const displayEnd = totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings);
@@ -220,8 +237,6 @@ const AllBookings = () => {
     }, []);
 
     const handleRefresh = () => {
-        setSearchTerm("");
-        setDebouncedSearch("");
         setPage(1);
         dispatch(fetchBookings({ page: 1, limit }));
     };
@@ -441,7 +456,7 @@ const AllBookings = () => {
             };
 
             await dispatch(updateBooking({ id: bookingId, updates })).unwrap();
-            await dispatch(fetchBookings({ page, limit, search: debouncedSearch || undefined }));
+            await dispatch(fetchBookings({ page, limit }));
             handleEditModalClose();
         } catch (error) {
             console.error('Failed to update booking:', error);
@@ -470,31 +485,14 @@ const AllBookings = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Bookings</p> */}
-
-                                <div className="relative max-w-md">
-                                    <input
-                                        type="text"
-                                        placeholder="Search..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-                                    />
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-
-                                    {/* Clear button */}
-                                    {searchTerm && (
-                                        <button
-                                            onClick={() => setSearchTerm('')}
-                                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                                            title="Clear search"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    )}
-                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search bookings..."
+                                    className="px-3 py-1 border rounded-lg text-sm focus:outline-none bg-gray-100"
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    style={{ minWidth: 200 }}
+                                />
                             </div>
 
                             <div>
@@ -590,7 +588,6 @@ const AllBookings = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
-                                        console.log("____________", currentData),
                                         currentData.map((bookingItem, index) => (
                                             <tr
                                                 key={bookingItem.id}

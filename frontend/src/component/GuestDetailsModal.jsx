@@ -323,7 +323,7 @@ function InfoItem({ label, value, textColor = "text-senary", badgeColor }) {
           {displayValue}
         </span>
       ) : (
-        <p className={`text-sm font-semibold mt-1 ${textColor}`}>{displayValue}</p>
+        <p className={`text-sm font-semibold mt-1 break-words ${textColor}`}>{displayValue}</p>
       )}
     </div>
   );
