@@ -449,7 +449,7 @@ const RoomFeatures = () => {
         {/* Pagination */}
         <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
-            <span className="text-sm text-gray-600">Items per page:</span>
+            <span className="text-sm text-gray-600 whitespace-nowrap">Items per page:</span>
             <div className="relative">
               <select
                 value={itemsPerPage}
@@ -457,7 +457,7 @@ const RoomFeatures = () => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -468,7 +468,7 @@ const RoomFeatures = () => {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 whitespace-nowrap">
               {startIndex + 1} - {Math.min(endIndex, filteredFeatures.length)} of {filteredFeatures.length}
             </span>
 
@@ -600,7 +600,7 @@ const RoomFeatures = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items- justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Feature</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
