@@ -12,6 +12,7 @@ const FAQPage = () => {
 
   const dispatch = useDispatch();
   const faqs = useSelector((state) => state.faq.faqs) || [];
+  const loading = useSelector((state) => state.faq.loading);
 
   const [openIndex, setOpenIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -126,7 +127,7 @@ const FAQPage = () => {
               className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
               title="Add Faq"
             >
-              <FiPlusCircle size={20}/>
+              <FiPlusCircle size={20} />
             </button>
 
             <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
@@ -136,72 +137,81 @@ const FAQPage = () => {
         </div>
 
         <div className="flex flex-col mt-4 gap-4">
-          {filteredFaqs && filteredFaqs.length > 0 ? (
-            filteredFaqs.map((faq, index) => (
-              <div
-                key={faq.id || index}
-                className="bg-white border border-gray-200 rounded-lg p-4 transition-all"
-              >
+          {loading ? (
+            <tr>
+              <td className="px-6 py-12 text-center">
+                <div className="flex flex-col items-center justify-center text-gray-500">
+                  <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                  <p className="text-lg font-medium">Loading...</p>
+                </div>
+              </td>
+            </tr>
+          ) : filteredFaqs.length > 0 ? (
+              filteredFaqs.map((faq, index) => (
                 <div
-                  className="flex items-center justify-between cursor-pointer text-[16px]"
-                  onClick={() => toggleAccordion(index)}
+                  key={faq.id || index}
+                  className="bg-white border border-gray-200 rounded-lg p-4 transition-all"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="bg-gray-200 border border-gray-300 w-10 h-10 flex items-center justify-center rounded-md text-sm font-semibold">
-                      {String(index + 1).padStart(2, "0")}
+                  <div
+                    className="flex items-center justify-between cursor-pointer text-[16px]"
+                    onClick={() => toggleAccordion(index)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="bg-gray-200 border border-gray-300 w-10 h-10 flex items-center justify-center rounded-md text-sm font-semibold">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <p className="text-sm md:text-base max-w-[200px] sm:max-w-full font-medium">
+                        {faq.faqQuestion}
+                      </p>
+                    </div>
+
+                    <span className="transition-transform duration-200">
+                      {openIndex === index ? <Minus size={20} /> : <Plus size={20} />}
                     </span>
-                    <p className="text-sm md:text-base max-w-[200px] sm:max-w-full font-medium">
-                      {faq.faqQuestion}
-                    </p>
                   </div>
 
-                  <span className="transition-transform duration-200">
-                    {openIndex === index ? <Minus size={20} /> : <Plus size={20} />}
-                  </span>
-                </div>
-
-                {openIndex === index && faq.faqAnswer && (
-                  <div className="mt-3 ml-1 md:ml-14 text-gray-600 text-sm md:text-base flex justify-between items-start animate-fadeIn">
-                    <p className="max-w-[90%]">{faq.faqAnswer}</p>
-                    <div className="mv_table_action flex">
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditData(faq);
-                          formik.setValues({
-                            faqQuestion: faq.faqQuestion,
-                            faqAnswer: faq.faqAnswer,
-                          });
-                          setIsEditModalOpen(true);
-                        }}
-                      >
-                        <FiEdit className="text-[#6777ef] text-[18px] cursor-pointer" />
-                      </div>
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedFaqId(faq._id);
-                          setIsDeleteModalOpen(true);
-                        }}
-                      >
-                        <RiDeleteBinLine className="text-[#ff5200] text-[18px] cursor-pointer" />
+                  {openIndex === index && faq.faqAnswer && (
+                    <div className="mt-3 ml-1 md:ml-14 text-gray-600 text-sm md:text-base flex justify-between items-start animate-fadeIn">
+                      <p className="max-w-[90%]">{faq.faqAnswer}</p>
+                      <div className="mv_table_action flex">
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditData(faq);
+                            formik.setValues({
+                              faqQuestion: faq.faqQuestion,
+                              faqAnswer: faq.faqAnswer,
+                            });
+                            setIsEditModalOpen(true);
+                          }}
+                        >
+                          <FiEdit className="text-[#6777ef] text-[18px] cursor-pointer" />
+                        </div>
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFaqId(faq._id);
+                            setIsDeleteModalOpen(true);
+                          }}
+                        >
+                          <RiDeleteBinLine className="text-[#ff5200] text-[18px] cursor-pointer" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="bg-white px-6 py-10 text-center">
+                <div className="flex flex-col items-center justify-center text-gray-500">
+                  <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                  </svg>
+                  <p className="text-lg font-medium">No data available</p>
+                  <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                </div>
               </div>
-            ))
-          ) : (
-            <div className="bg-white px-6 py-10 text-center">
-              <div className="flex flex-col items-center justify-center text-gray-500">
-                <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <p className="text-lg font-medium">No data available</p>
-                <p className="text-sm mt-1">Try adjusting your search or filters</p>
-              </div>
-            </div>
-          )}
+            )}
         </div>
       </div>
 

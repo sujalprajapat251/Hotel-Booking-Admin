@@ -38,13 +38,24 @@ const Review = () => {
 
 	const getReview = useSelector((state) => state.review.reviews);
 
+	
+	const formatDate = (dateString) => {
+		if (!dateString) return '';
+		const date = new Date(dateString);
+		const day = date.getDate().toString().padStart(2, '0');
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const year = date.getFullYear();
+		return `${day}/${month}/${year}`;
+	  };
+
 
 	// Add filtering logic search functionallty
 	const filteredBookings = getReview.filter(staff =>
 		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.comment.toLowerCase().includes(searchQuery.toLowerCase())
+		staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		(staff?.createdAt && ( formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase()))) 
 	);
 
 	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
@@ -112,15 +123,6 @@ const Review = () => {
 				))}
 			</div>
 		);
-	};
-
-	const formatDate = (isoDate) => {
-		const date = new Date(isoDate);
-		const day = String(date.getDate()).padStart(2, "0");
-		const month = String(date.getMonth() + 1).padStart(2, "0");
-		const year = date.getFullYear();
-
-		return `${day}-${month}-${year}`;
 	};
 
 	const handleDownloadExcel = () => {

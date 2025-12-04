@@ -125,7 +125,15 @@ const BarOrder = () => {
     const itemNames = order?.items
       ?.map((item) => (item?.product?.name || '').toLowerCase())
       .join(' ') || '';
-    const formattedDate = order?.createdAt ? formatDate(order.createdAt).toLowerCase() : '';
+    let formattedDate = '';
+    if (order?.createdAt) {
+      const formatted = formatDate(order.createdAt);
+      formattedDate = (formatted ? formatted.toLowerCase() : '');
+      if (formattedDate && !formattedDate.includes(query)) {
+        const dashed = formatted.replace(/\//g, "-").toLowerCase();
+        formattedDate += ` ${dashed}`;
+      }
+    }
     const amountValue = getOrderTotalAmount(order);
     const amount = amountValue.toString().toLowerCase();
     const amountWithCurrency = `$${amountValue}`.toLowerCase();

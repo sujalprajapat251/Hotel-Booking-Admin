@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { RiDeleteBinLine } from 'react-icons/ri';
-import { FiEdit, FiPlusCircle} from 'react-icons/fi';
+import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Search, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
@@ -10,7 +10,7 @@ import { getAllTerms, createTerms, updateTerms, deleteTerms } from '../Redux/Sli
 const TermsTable = () => {
 
   const dispatch = useDispatch();
-  const { terms } = useSelector((state) => state.terms);
+  const { terms, loading } = useSelector((state) => state.terms);
 
   const [search, setSearch] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
@@ -147,7 +147,7 @@ const TermsTable = () => {
                 className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
                 title="Add Terms"
               >
-                  <FiPlusCircle size={20}/>
+                <FiPlusCircle size={20} />
               </button>
               <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
                 <RefreshCw size={20} />
@@ -169,37 +169,47 @@ const TermsTable = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentData.map((item, index) => (
-                <tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10">
-                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
-                  <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.title}</td>
-                  <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                    <div className="line-clamp-3">
-                      {item.description || ''}
-                    </div>
-                  </td>
-                  <td className="px-2 py-6 align-top">
-                    <div className="mv_table_action flex">
-                      <div onClick={() => handleEditClick(item)}>
-                        <FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                      <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+              {loading ? (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
                     </div>
                   </td>
                 </tr>
-              ))}
-              {filteredTerms.length === 0 ? (
+              ) : currentData.length > 0 ? (
+                currentData.map((item, index) => (
+                  <tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10">
+                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{item.title}</td>
+                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <div className="line-clamp-3">
+                        {item.description || ''}
+                      </div>
+                    </td>
+                    <td className="px-2 py-6 align-top">
+                      <div className="mv_table_action flex">
+                        <div onClick={() => handleEditClick(item)}>
+                          <FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                        <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
                       <p className="text-lg font-medium">No data available</p>
                       <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
-                ) : null}
+              )}
             </tbody>
           </table>
         </div>
@@ -255,64 +265,64 @@ const TermsTable = () => {
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsAddModalOpen(false)}></div>
           <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-start justify-between mb-6">
-                <h2 className="text-2xl font-semibold text-black">
-                    {isEditMode ? 'Edit Terms & Conditions' : 'Add Terms & Conditions'}
-                </h2>
-                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+              <h2 className="text-2xl font-semibold text-black">
+                {isEditMode ? 'Edit Terms & Conditions' : 'Add Terms & Conditions'}
+              </h2>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-gray-500 hover:text-gray-800">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             <form className="" onSubmit={formik.handleSubmit}>
               <div className="flex flex-col mb-4">
-                  <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
-                  <input
-                      id="title"
-                      name="title"
-                      type="text"
-                      placeholder="Enter Title"
-                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                      value={formik.values.title}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                  />
-                  {formik.touched.title && formik.errors.title ? (
-                      <p className="text-sm text-red-500">{formik.errors.title}</p>
-                  ) : null}
+                <label htmlFor="title" className="text-sm font-medium text-black mb-1">Title</label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  placeholder="Enter Title"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                  value={formik.values.title}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                />
+                {formik.touched.title && formik.errors.title ? (
+                  <p className="text-sm text-red-500">{formik.errors.title}</p>
+                ) : null}
               </div>
 
               <div className="flex flex-col mb-4">
-                  <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
-                  <textarea
-                      id="description"
-                      name="description"
-                      rows="4"
-                      placeholder="Enter Description"
-                      className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                      value={formik.values.description}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                  ></textarea>
-                  {formik.touched.description && formik.errors.description ? (
-                      <p className="text-sm text-red-500">{formik.errors.description}</p>
-                  ) : null}
+                <label htmlFor="description" className="text-sm font-medium text-black mb-1">Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="4"
+                  placeholder="Enter Description"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                  value={formik.values.description}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                ></textarea>
+                {formik.touched.description && formik.errors.description ? (
+                  <p className="text-sm text-red-500">{formik.errors.description}</p>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-center pt-4">
-                  <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(false)}
-                      className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                  >
-                      Cancel
-                  </button>
-                  <button
-                      type="submit"
-                      className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                  >
-                      {isEditMode ? 'Edit' : 'Add'}
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                >
+                  {isEditMode ? 'Edit' : 'Add'}
+                </button>
               </div>
             </form>
           </div>

@@ -24,6 +24,7 @@ const User = () => {
     });
 
     const users = useSelector((state) => state.user.users);
+    const loading = useSelector((state) => state.user.loading);
 
     const formatDate = (dateString) => {
         if (!dateString) return '';
@@ -40,8 +41,15 @@ const User = () => {
         const query = searchQuery.toLowerCase().trim();
         const name = (user.name || '').toLowerCase();
         const email = (user.email || '').toLowerCase();
-        const formattedDate = user.createdAt ? formatDate(user.createdAt).toLowerCase() : '';
-
+        let formattedDate = '';
+        if (user?.createdAt) {
+            const formatted = formatDate(user.createdAt);
+            formattedDate = (formatted ? formatted.toLowerCase() : '');
+            if (formattedDate && !formattedDate.includes(query)) {
+                const dashed = formatted.replace(/\//g, "-").toLowerCase();
+                formattedDate += ` ${dashed}`;
+            }
+        }
         return name.includes(query) ||
             email.includes(query) ||
             formattedDate.includes(query);
@@ -84,7 +92,7 @@ const User = () => {
             // Prepare data for Excel
             const excelData = filteredUsers.map((user, index) => {
                 const row = {};
-                
+
                 if (visibleColumns.No) {
                     row['No.'] = index + 1;
                 }
@@ -97,7 +105,7 @@ const User = () => {
                 if (visibleColumns.date) {
                     row['Date'] = user.createdAt ? formatDate(user.createdAt) : '';
                 }
-                
+
                 return row;
             });
 
@@ -117,9 +125,9 @@ const User = () => {
 
             // Download the file
             XLSX.writeFile(workbook, fileName);
-            dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+            dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
         } catch (error) {
-            dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+            dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
     };
 
@@ -224,67 +232,77 @@ const User = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
-                                    {currentData.map((user, index) => (
-                                        <tr
-                                            key={index}
-                                            className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                                        >
-                                            {visibleColumns.No && (
-                                                <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
-                                            )}
-                                            {visibleColumns.name && (
-                                                <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                    <div className="flex items-center gap-3">
-                                                        {user.photo ? (
-                                                            <img src={user.photo}
-                                                                alt={user.name}
-                                                                className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                                                            />
-                                                        ) : (
-                                                            <div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
-                                                                {(() => {
-                                                                    if (user.name) {
-                                                                        const words = user.name.trim().split(/\s+/);
-                                                                        if (words.length >= 2) {
-                                                                            return words[0][0] + words[1][0];
-                                                                        } else {
-                                                                            return words[0][0];
-                                                                        }
-                                                                    }
-                                                                    return "";
-                                                                })()}
-                                                            </div>
-                                                        )}
-                                                        <span className="text-sm font-medium text-gray-800">{user.name}</span>
-                                                    </div>
-                                                </td>
-                                            )}
-                                            {visibleColumns.email && (
-                                                <td className="px-5 py-2 md600:py-3 lg:px-6">
-                                                    <div className="flex items-center gap-2 text-sm">
-                                                        <Mail size={16} className='text-red-600' />
-                                                        {user.email}
-                                                    </div>
-                                                </td>
-                                            )}
-                                            {visibleColumns.date && (
-                                                <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{user.createdAt ? formatDate(user.createdAt) : ''}</td>
-                                            )}
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                                <div className="flex flex-col items-center justify-center text-gray-500">
+                                                    <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                                                    <p className="text-lg font-medium">Loading...</p>
+                                                </div>
+                                            </td>
                                         </tr>
-                                    ))}
-                                    {currentData.length === 0 ? (
+                                    ) : currentData.length > 0 ? (
+                                        currentData.map((user, index) => (
+                                            <tr
+                                                key={index}
+                                                className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                                            >
+                                                {visibleColumns.No && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{index + 1}</td>
+                                                )}
+                                                {visibleColumns.name && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <div className="flex items-center gap-3">
+                                                            {user.photo ? (
+                                                                <img src={user.photo}
+                                                                    alt={user.name}
+                                                                    className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
+                                                                    {(() => {
+                                                                        if (user.name) {
+                                                                            const words = user.name.trim().split(/\s+/);
+                                                                            if (words.length >= 2) {
+                                                                                return words[0][0] + words[1][0];
+                                                                            } else {
+                                                                                return words[0][0];
+                                                                            }
+                                                                        }
+                                                                        return "";
+                                                                    })()}
+                                                                </div>
+                                                            )}
+                                                            <span className="text-sm font-medium text-gray-800">{user.name}</span>
+                                                        </div>
+                                                    </td>
+                                                )}
+                                                {visibleColumns.email && (
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                        <div className="flex items-center gap-2 text-sm">
+                                                            <Mail size={16} className='text-red-600' />
+                                                            {user.email}
+                                                        </div>
+                                                    </td>
+                                                )}
+                                                {visibleColumns.date && (
+                                                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{user.createdAt ? formatDate(user.createdAt) : ''}</td>
+                                                )}
+                                            </tr>
+                                        ))
+                                    ) : (
                                         <tr>
                                             <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                                     <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                                                     </svg>
                                                     <p className="text-lg font-medium">No data available</p>
                                                     <p className="text-sm mt-1">Try adjusting your search or filters</p>
                                                 </div>
                                             </td>
                                         </tr>
-                                    ) : null}
+                                    )}
                                 </tbody>
                             </table>
                         </div>

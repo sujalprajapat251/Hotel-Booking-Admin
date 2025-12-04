@@ -207,7 +207,12 @@ exports.roomAvailability = async (req, res) => {
         const occupied = await Room.countDocuments({ status: "Occupied" });
         const reserved = await Room.countDocuments({ status: "Reserved" });
         const available = await Room.countDocuments({ status: "Available" });
-        const notReady = await Room.countDocuments({ status: "Maintenance" });
+        const notReady = await Room.countDocuments({ 
+            $or: [
+                { status: "Maintenance" },
+                { cleanStatus: "Dirty" }
+            ]
+        });
 
         return res.status(200).json({
             success: true,

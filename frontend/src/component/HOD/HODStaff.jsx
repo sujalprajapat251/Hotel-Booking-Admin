@@ -69,7 +69,7 @@ const HODStaff = () => {
     staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     staff?.mobileno?.toString().includes(searchTerm) ||
     staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (staff?.joiningdate && formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (staff?.joiningdate && ( formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(staff.joiningdate).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
     staff?.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
