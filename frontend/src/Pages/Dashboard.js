@@ -126,7 +126,7 @@ export const Dashboard = () => {
   const quickAccessItems = [
     {
       title: "Room Management",
-      icon: <MdBusiness className="text-4xl" />,
+      icon: <MdBusiness className="text-3xl" />,
       badge: 3,
       bgColor: "bg-primary/30",
       iconColor: "text-senary",
@@ -135,7 +135,7 @@ export const Dashboard = () => {
     },
     {
       title: "Staff Details",
-      icon: <MdPeople className="text-4xl" />,
+      icon: <MdPeople className="text-3xl" />,
       bgColor: "bg-secondary/40",
       iconColor: "text-quinary",
       description: "View and manage staff profiles, roles, and shift schedules",
@@ -143,7 +143,7 @@ export const Dashboard = () => {
     },
     {
       title: "Bookings",
-      icon: <VscChecklist className="text-4xl" />,
+      icon: <VscChecklist className="text-3xl" />,
       bgColor: "bg-primary/40",
       iconColor: "text-quaternary",
       description: "Track all reservations, check-ins, and guest booking details",
@@ -151,7 +151,7 @@ export const Dashboard = () => {
     },
     {
       title: "User List",
-      icon: <MdPerson className="text-4xl" />,
+      icon: <MdPerson className="text-3xl" />,
       bgColor: "bg-secondary/30",
       iconColor: "text-quinary",
       description: "Manage registered users, access levels, and account status",
@@ -159,7 +159,7 @@ export const Dashboard = () => {
     },
     {
       title: "Housekeeping",
-      icon: <PiBroomLight className="text-4xl" />,
+      icon: <PiBroomLight className="text-3xl" />,
       badge: 12,
       bgColor: "bg-quaternary/30",
       iconColor: "text-senary",
@@ -168,7 +168,7 @@ export const Dashboard = () => {
     },
     {
       title: "Cafe Order",
-      icon: <CiCoffeeCup className="text-4xl" />,
+      icon: <CiCoffeeCup className="text-3xl" />,
       badge: 7,
       bgColor: "bg-tertiary/30",
       iconColor: "text-senary",
@@ -177,7 +177,7 @@ export const Dashboard = () => {
     },
     {
       title: "Bar Order",
-      icon: <GiMartini className="text-4xl" />,
+      icon: <GiMartini className="text-3xl" />,
       bgColor: "bg-primary/30",
       iconColor: "text-senary",
       description: "Track bar orders, beverage inventory, and serving status",
@@ -185,7 +185,7 @@ export const Dashboard = () => {
     },
     {
       title: "Restaurant Order",
-      icon: <IoIosRestaurant className="text-4xl" />,
+      icon: <IoIosRestaurant className="text-3xl" />,
       badge: 3,
       bgColor: "bg-tertiary/40",
       iconColor: "text-quaternary",
@@ -557,7 +557,7 @@ export const Dashboard = () => {
 
         <div className='mt-5 rounded-lg shadow-sm w-full'>
           <div className='lg:flex gap-5 justify-between'>
-            <div className='bg-white p-3 lg:p-5 rounded-xl lg:w-[32.33%] border-2' style={{
+            <div className='bg-white p-4 lg:p-5 rounded-xl lg:w-[32.33%] border-2' style={{
               borderColor: '#E3C78A',
               boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
             }}>
@@ -589,7 +589,7 @@ export const Dashboard = () => {
                 ></div>
               </div>
 
-              <div className="grid grid-cols-2 md:gap-3 lg:gap-5">
+              <div className="grid grid-cols-2 gap-5">
                 {stats.map((stat, index) => (
                   <div
                     key={index}
@@ -650,16 +650,16 @@ export const Dashboard = () => {
                     }}></div>
                   </div>
 
-                  <div className={`relative ${item.bgColor} ${item.iconColor} p-2 md:p-3 lg:p-4 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
+                  <div className={`relative ${item.bgColor} ${item.iconColor} p-2 md:p-1 lg:p-4 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
                     {item.icon}
-                    {item.badge && (
+                    {/* {item.badge && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] md:text-[12px] font-bold rounded-full w-4 h-4 md:w-6 md:h-6 flex items-center justify-center shadow-lg">
                         {item.badge}
                       </span>
-                    )}
+                    )} */}
                   </div>
 
-                  <p className="text-sm md:text-base font-medium" style={{ color: '#755647' }}>
+                  <p className="text-sm md:text-md lg:text-[15px] font-medium" style={{ color: '#755647' }}>
                     {item.title}
                   </p>
                 </div>
@@ -680,13 +680,13 @@ export const Dashboard = () => {
             <p className="text-sm mb-6" style={{ color: '#A3876A' }}>Active requests requiring attention</p>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-3 2xl:grid-cols-1 3xl:grid-cols-3 gap-3 md:gap-4 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 2xl:grid-cols-1 3xl:grid-cols-3 gap-3 md:gap-4 mb-3">
               {serviceSummary.map((item, index) => (
                 <div key={index} className="text-center p-3 rounded-lg" style={{
                   backgroundColor: 'rgba(247, 223, 156, 0.2)'
                 }}>
-                  <p className={`text-[24px] font-bold ${item.color}`}>{item.count}</p>
-                  <p className="text-[14px] font-medium" style={{ color: "#755647" }}>
+                  <p className={`text-[22px] sm:text-[24px] font-bold ${item.color}`}>{item.count}</p>
+                  <p className="text-[12px] sm:text-[14px] font-medium" style={{ color: "#755647" }}>
                     {item.label}
                   </p>
                 </div>
@@ -734,7 +734,7 @@ export const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl border-2 p-3 md:p-5 border-[#E3C78A] shadow-lg shadow-[#7556471f]">
+          <div className="bg-white rounded-xl border-2 p-2 md:p-5 border-[#E3C78A] shadow-lg shadow-[#7556471f]">
             <Purpose />
           </div>
         </div>

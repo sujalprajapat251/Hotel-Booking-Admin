@@ -226,12 +226,12 @@ const OrderRequest = () => {
 
     const handleDownloadExcel = () => {
         try {
-            if (setOrderRequestRooms.length === 0) {
+            if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
 
-            const excelData = orderRequestRooms?.map((bookingItem, index) => {
+            const excelData = filteredBookings?.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {
@@ -276,7 +276,7 @@ const OrderRequest = () => {
 
             // Generate file name with current date
             const date = new Date();
-            const fileName = `Bookings_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+            const fileName = `OrderRequest_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
 
             // Download the file
             XLSX.writeFile(workbook, fileName);
@@ -365,7 +365,7 @@ const OrderRequest = () => {
                                         </button>
 
                                         {showColumnDropdown && (
-                                            <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
+                                            <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999] sm:right-0 [@media(max-width:375px)]:left-1/4 [@media(max-width:375px)]:-translate-x-1/2">
                                                 <div className="px-3 py-2 border-b border-gray-200">
                                                     <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                                                 </div>

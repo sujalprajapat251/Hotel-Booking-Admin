@@ -188,6 +188,22 @@ const RestaurantOrder = () => {
     }
   }, [currentPage, totalPages]);
 
+  // Prevent background page from scrolling when modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      // cleanup: ensure overflow is reset when component unmounts
+      if (typeof window !== 'undefined') document.body.style.overflow = '';
+    };
+  }, [isModalOpen]);
+
   const handleDownloadExcel = () => {
     try {
       if (filteredOrderHistory?.length === 0) {

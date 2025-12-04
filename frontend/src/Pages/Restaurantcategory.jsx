@@ -192,11 +192,11 @@ const Restaurantcategory = () => {
 
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
-          <div className='flex gap-2 md:gap-5 sm:justify-between'>
+          <div className='flex gap-2 md:gap-5 sm:justify-between items-center min-w-0'>
             {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Restaurant Category</p> */}
 
             {/* Search Bar */}
-            <div className="relative  max-w-md">
+            <div className="relative flex-1 min-w-0">
               <input
                 type="text"
                 placeholder="Search..."
@@ -209,8 +209,8 @@ const Restaurantcategory = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1 justify-end mt-2">
-            <div className="relative" ref={dropdownRef}>
+          <div className="flex items-center gap-1 justify-end mt-2 whitespace-nowrap">
+            <div className="relative inline-flex items-center" ref={dropdownRef}>
               <button
                 onClick={() => {
                   setIsEditMode(false);
@@ -218,7 +218,7 @@ const Restaurantcategory = () => {
                   formik.resetForm();
                   setIsAddModalOpen(true);
                 }}
-                className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+                className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors flex-shrink-0"
                 title="Add Restaurant Category"
               >
                 <FiPlusCircle size={20} />
@@ -226,7 +226,7 @@ const Restaurantcategory = () => {
 
               <button
                 onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors flex-shrink-0"
                 title="Show/Hide Columns"
               >
                 <Filter size={20} />
@@ -258,10 +258,10 @@ const Restaurantcategory = () => {
                 </div>
               )}
             </div>
-            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
+            <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0" title="Refresh" onClick={handleRefresh}>
               <RefreshCw size={20} />
             </button>
-            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
+            <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors flex-shrink-0" title="Download" onClick={handleDownloadExcel}>
               <Download size={20} />
             </button>
           </div>
