@@ -11,8 +11,7 @@ import { getAllFaqs, addFaq, deleteFaq, updateFaq } from '../Redux/Slice/faq.sli
 const FAQPage = () => {
 
   const dispatch = useDispatch();
-  const faqs = useSelector((state) => state.faq.faqs) || [];
-  const loading = useSelector((state) => state.faq.loading);
+  const {faqs,loading} = useSelector((state) => state.faq);
 
   const [openIndex, setOpenIndex] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -139,7 +138,7 @@ const FAQPage = () => {
         <div className="flex flex-col mt-4 gap-4">
           {loading ? (
             <tr>
-              <td className="px-6 py-12 text-center">
+              <td colSpan={12} className="px-6 py-12 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500">
                   <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                   <p className="text-lg font-medium">Loading...</p>
@@ -157,7 +156,7 @@ const FAQPage = () => {
                     onClick={() => toggleAccordion(index)}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="bg-gray-200 border border-gray-300 w-10 h-10 flex items-center justify-center rounded-md text-sm font-semibold">
+                      <span className="bg-primary text-senary border border-gray-300 w-10 h-10 flex items-center justify-center rounded-md text-sm font-semibold">
                         {String(index + 1).padStart(2, "0")}
                       </span>
                       <p className="text-sm md:text-base max-w-[200px] sm:max-w-full font-medium">

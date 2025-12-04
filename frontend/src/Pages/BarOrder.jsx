@@ -44,7 +44,7 @@ const BarOrder = () => {
     actions: 'Actions'
   };
 
-  const orderHistory = useSelector((state) => state.vieworder.barOrder) || [];
+  const { barOrder, loading } = useSelector((state) => state.vieworder);
 
   const getOrderItemCount = (order) => {
     if (!order?.items?.length) return 0;
@@ -113,7 +113,7 @@ const BarOrder = () => {
     setSelectedOrder(null);
   };
 
-  const filteredOrderHistory = orderHistory.filter((order) => {
+  const filteredOrderHistory = barOrder.filter((order) => {
     if (!searchQuery.trim()) return true;
 
     const query = searchQuery.toLowerCase().trim();
@@ -363,78 +363,88 @@ const BarOrder = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {currentData.map((order, index) => {
-                    const rowNumber = startIndex + index + 1;
-                    const itemCount = getOrderItemCount(order);
-                    const orderAmount = getOrderTotalAmount(order);
-                    const itemPreview = getItemPreview(order);
+                  {loading ? (
+                    <tr>
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                          <p className="text-lg font-medium">Loading...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : currentData?.length > 0 ? (
+                    currentData.map((order, index) => {
+                      const rowNumber = startIndex + index + 1;
+                      const itemCount = getOrderItemCount(order);
+                      const orderAmount = getOrderTotalAmount(order);
+                      const itemPreview = getItemPreview(order);
 
-                    return (
-                      <tr
-                        key={order?._id || `${order?.name || 'order'}-${index}`}
-                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                      >
-                        {visibleColumns.No && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{rowNumber}</td>
-                        )}
-                        {visibleColumns.name && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            {order?.name || '—'}
-                          </td>
-                        )}
-                        {visibleColumns.contact && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                              <Phone size={16} className='text-green-600' />
-                              {order?.contact || '—'}
-                            </div>
-                          </td>
-                        )}
-                        {visibleColumns.items && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-800">{itemCount} item{itemCount === 1 ? '' : 's'}</span>
-                              <span className="text-xs text-gray-500 truncate max-w-[200px]">{itemPreview}</span>
-                            </div>
-                          </td>
-                        )}
-                        {visibleColumns.amount && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">${orderAmount}</td>
-                        )}
-                        {visibleColumns.payment && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
-                            <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(order?.payment)}`}>
-                              {order?.payment || 'Pending'}
-                            </span></td>
-                        )}
-                        {visibleColumns.paymentMethod && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{order?.paymentMethod || '—'}</td>
-                        )}
-                        {visibleColumns.from && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{order?.from || '—'}</td>
-                        )}
-                        {visibleColumns.date && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{order?.createdAt ? formatDate(order.createdAt) : ''}</td>
-                        )}
-
-                        {/* Actions */}
-                        {visibleColumns.actions && (
-                          <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                            <div className="mv_table_action flex">
-                              <div
-                                onClick={() => handleViewOrder(order)}
-                                className="cursor-pointer transition-opacity"
-                              >
-                                <IoEyeSharp className='text-[18px] text-quaternary' />
+                      return (
+                        <tr
+                          key={order?._id || `${order?.name || 'order'}-${index}`}
+                          className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                        >
+                          {visibleColumns.No && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{rowNumber}</td>
+                          )}
+                          {visibleColumns.name && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6">
+                              {order?.name || '—'}
+                            </td>
+                          )}
+                          {visibleColumns.contact && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6">
+                              <div className="flex items-center gap-2 text-sm text-gray-700">
+                                <Phone size={16} className='text-green-600' />
+                                {order?.contact || '—'}
                               </div>
-                            </div>
-                          </td>
-                        )}
+                            </td>
+                          )}
+                          {visibleColumns.items && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6">
+                              <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-800">{itemCount} item{itemCount === 1 ? '' : 's'}</span>
+                                <span className="text-xs text-gray-500 truncate max-w-[200px]">{itemPreview}</span>
+                              </div>
+                            </td>
+                          )}
+                          {visibleColumns.amount && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">${orderAmount}</td>
+                          )}
+                          {visibleColumns.payment && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
+                              <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(order?.payment)}`}>
+                                {order?.payment || 'Pending'}
+                              </span></td>
+                          )}
+                          {visibleColumns.paymentMethod && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{order?.paymentMethod || '—'}</td>
+                          )}
+                          {visibleColumns.from && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{order?.from || '—'}</td>
+                          )}
+                          {visibleColumns.date && (
+                            <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{order?.createdAt ? formatDate(order.createdAt) : ''}</td>
+                          )}
 
-                      </tr>
-                    );
-                  })}
-                  {currentData.length === 0 ? (
+                          {/* Actions */}
+                          {visibleColumns.actions && (
+                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                              <div className="mv_table_action flex">
+                                <div
+                                  onClick={() => handleViewOrder(order)}
+                                  className="cursor-pointer transition-opacity"
+                                >
+                                  <IoEyeSharp className='text-[18px] text-quaternary' />
+                                </div>
+                              </div>
+                            </td>
+                          )}
+
+                        </tr>
+                      );
+                    })
+                  ) : (
                     <tr>
                       <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
@@ -446,7 +456,7 @@ const BarOrder = () => {
                         </div>
                       </td>
                     </tr>
-                  ) : null}
+                  )}
                 </tbody>
               </table>
             </div>

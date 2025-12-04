@@ -15,7 +15,7 @@ const Departments = () => {
 
   const dispatch = useDispatch();
 
-  const departments = useSelector((state) => state.department.departments);
+  const { departments, loading } = useSelector((state) => state.department);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -131,50 +131,50 @@ const Departments = () => {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
         return;
       }
-        // Prepare data for Excel
-        const excelData = filtereDepartment.map((user, index) => {
-            const row = {};
-            
-            if (visibleColumns.No) {
-                row['No.'] = index + 1;
-            }
-            if (visibleColumns.name) {
-                row['Name'] = user.name || '';
-            }
-            return row;
-        });
+      // Prepare data for Excel
+      const excelData = filtereDepartment.map((user, index) => {
+        const row = {};
 
-        // Create a new workbook
-        const worksheet = XLSX.utils.json_to_sheet(excelData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
+        if (visibleColumns.No) {
+          row['No.'] = index + 1;
+        }
+        if (visibleColumns.name) {
+          row['Name'] = user.name || '';
+        }
+        return row;
+      });
 
-        // Auto-size columns
-        const maxWidth = 20;
-        const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
-        worksheet['!cols'] = wscols;
+      // Create a new workbook
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
 
-        // Generate file name with current date
-        const date = new Date();
-        const fileName = `Department_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+      // Auto-size columns
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
 
-        // Download the file
-        XLSX.writeFile(workbook, fileName);
-        dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+      // Generate file name with current date
+      const date = new Date();
+      const fileName = `Department_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      // Download the file
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
     } catch (error) {
-        dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-};
+  };
 
   useEffect(() => {
     dispatch(getAllDepartment());
   }, [dispatch])
 
   return (
-    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full" 
-      // style={{
-      //   background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
-      // }}
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full"
+    // style={{
+    //   background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
+    // }}
     >
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Departments</h1>
@@ -279,48 +279,58 @@ const Departments = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentData.map((item, index) => (
-                <tr
-                  key={item._id || index}
-                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                >
-                  {visibleColumns.no && (
-                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
-                  )}
-                  {/* title */}
-                  {visibleColumns.name && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="flex items-center gap-2">
-                        {item.name}
-                      </div>
-                    </td>
-                  )}
-                  {/* Actions */}
-                  {visibleColumns.actions && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="mv_table_action flex">
-                        <div onClick={() => {
-                          setIsEditMode(true);
-                          setEditingItem(item);
-                          formik.setValues({ name: item.name });
-                          setIsAddModalOpen(true);
-                        }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                        <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                      </div>
-                    </td>
-                  )}
-
-                </tr>
-              ))}
-              {currentData?.length === 0 && (
+              {loading ? (
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : currentData?.length > 0 ? (
+                currentData.map((item, index) => (
+                  <tr
+                    key={item._id || index}
+                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                  >
+                    {visibleColumns.no && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                    )}
+                    {/* title */}
+                    {visibleColumns.name && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="flex items-center gap-2">
+                          {item.name}
+                        </div>
+                      </td>
+                    )}
+                    {/* Actions */}
+                    {visibleColumns.actions && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="mv_table_action flex">
+                          <div onClick={() => {
+                            setIsEditMode(true);
+                            setEditingItem(item);
+                            formik.setValues({ name: item.name });
+                            setIsAddModalOpen(true);
+                          }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                        </div>
+                      </td>
+                    )}
+
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <p className="text-lg font-medium">No data available</p>
-                        <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                      </svg>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>

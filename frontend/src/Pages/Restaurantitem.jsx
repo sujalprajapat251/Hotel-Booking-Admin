@@ -30,7 +30,7 @@ const RestaurantItems = () => {
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const categoryDropdownRef = useRef(null);
     const dispatch = useDispatch();
-    const restaurant = useSelector((state) => state.restaurant.restaurant);
+    const {restaurant,loading} = useSelector((state) => state.restaurant);
 
     const [visibleColumns, setVisibleColumns] = useState({
         no: true,
@@ -446,19 +446,16 @@ const RestaurantItems = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {currentData.length === 0 ? (
+                            {loading ? (
                                 <tr>
                                     <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                                         <div className="flex flex-col items-center justify-center text-gray-500">
-                                            <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                            </svg>
-                                            <p className="text-lg font-medium">No data available</p>
-                                            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                            <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                                            <p className="text-lg font-medium">Loading...</p>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : (
+                            ) : currentData.length > 0 ? (
                                 currentData.map((item, index) => (
                                     <tr
                                         key={index}
@@ -472,12 +469,12 @@ const RestaurantItems = () => {
                                         {visibleColumns.name && (
                                             <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                 <div className="flex items-center gap-3">
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.name}
-                                                    className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
-                                                />
-                                                <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.name}
+                                                        className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
+                                                    />
+                                                    <span className="text-sm font-medium text-gray-800">{item.name}</span>
                                                 </div>
                                             </td>
                                         )}
@@ -509,8 +506,8 @@ const RestaurantItems = () => {
                                             </td>
                                         )}
 
-                                         {/* Status */}
-                                         {visibleColumns.status && (
+                                        {/* Status */}
+                                        {visibleColumns.status && (
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="flex flex-col items-start gap-1">
                                                     <div className="w-full"></div>
@@ -564,6 +561,18 @@ const RestaurantItems = () => {
 
                                     </tr>
                                 ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-gray-500">
+                                            <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                            </svg>
+                                            <p className="text-lg font-medium">No data available</p>
+                                            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>
@@ -716,8 +725,8 @@ const RestaurantItems = () => {
                                         onBlur={formik.handleBlur}
                                         name="category"
                                         className={`w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between ${formik.touched.category && formik.errors.category
-                                                ? 'border-red-500'
-                                                : 'border-gray-200'
+                                            ? 'border-red-500'
+                                            : 'border-gray-200'
                                             }`}
                                     >
                                         <span className={formik.values.category ? 'text-black' : 'text-gray-400'}>
@@ -743,8 +752,8 @@ const RestaurantItems = () => {
                                                             setShowCategoryDropdown(false);
                                                         }}
                                                         className={`px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors ${formik.values.category === cat._id
-                                                                ? 'bg-[#F7DF9C] text-black/100 font-medium'
-                                                                : 'text-black/100'
+                                                            ? 'bg-[#F7DF9C] text-black/100 font-medium'
+                                                            : 'text-black/100'
                                                             }`}
                                                     >
                                                         {cat.name}

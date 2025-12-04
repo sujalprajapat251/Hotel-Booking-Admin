@@ -274,14 +274,14 @@ const RoomType = () => {
             <tbody className="divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center text-gray-500">
-                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
-                          <p className="text-lg font-medium">Loading Room Types...</p>
-                        </div>
-                    </td>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
+                    </div>
+                  </td>
                 </tr>
-              ) : currentRoomTypes.length > 0 ? (
+              ) : currentRoomTypes?.length > 0 ? (
                 currentRoomTypes.map((item, index) => (
                   <tr
                     key={item._id}
@@ -370,7 +370,7 @@ const RoomType = () => {
           </div>
         </div>
       </div>
-      
+
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>

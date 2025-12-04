@@ -45,7 +45,7 @@ const CafeOrderList = () => {
     actions: 'Actions'
   };
 
-  const orderHistory = useSelector((state) => state.vieworder.cafeListOrder) || [];
+  const {cafeListOrder,loading} = useSelector((state) => state.vieworder);
 
   const getOrderItemCount = (order) => {
     if (!order?.items?.length) return 0;
@@ -114,7 +114,7 @@ const CafeOrderList = () => {
     setSelectedOrder(null);
   };
 
-  const filteredOrderHistory = orderHistory.filter((order) => {
+  const filteredOrderHistory = cafeListOrder.filter((order) => {
     if (!searchQuery.trim()) return true;
 
     const query = searchQuery.toLowerCase().trim();
@@ -389,7 +389,17 @@ const CafeOrderList = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {currentData.map((order, index) => {
+                {loading ? (
+                    <tr>
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                          <p className="text-lg font-medium">Loading...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : currentData?.length > 0 ? (
+                  currentData.map((order, index) => {
                     const rowNumber = startIndex + index + 1;
                     const itemCount = getOrderItemCount(order);
                     const orderAmount = getOrderTotalAmount(order);
@@ -459,9 +469,9 @@ const CafeOrderList = () => {
 
                       </tr>
                     );
-                  })}
-                  {currentData.length === 0 ? (
-                    <tr>
+                  })
+                ):(
+                  <tr>
                       <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
                           <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -472,7 +482,7 @@ const CafeOrderList = () => {
                         </div>
                       </td>
                     </tr>
-                  ) : null}
+                  )}
                 </tbody>
               </table>
             </div>

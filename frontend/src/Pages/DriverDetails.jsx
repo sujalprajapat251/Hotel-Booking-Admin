@@ -25,15 +25,15 @@ import "react-phone-input-2/lib/style.css";
 const statusColors = (status) => {
   switch (status) {
     case 'Available':
-        return 'border border-green-500 text-green-600 bg-green-50';
+      return 'border border-green-500 text-green-600 bg-green-50';
     case 'Leave':
-        return 'border border-red-500 text-red-600 bg-red-50';
+      return 'border border-red-500 text-red-600 bg-red-50';
     case 'OnTrip':
-        return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+      return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
     default:
-        return 'border border-gray-500 text-gray-600 bg-gray-50';
+      return 'border border-gray-500 text-gray-600 bg-gray-50';
   }
-};  
+};
 
 const DriverDetails = () => {
   const dispatch = useDispatch();
@@ -41,7 +41,7 @@ const DriverDetails = () => {
   const { cabs } = useSelector((state) => state.cab);
 
   console.log(drivers);
-  
+
 
   useEffect(() => {
     dispatch(getAllDrivers());
@@ -61,7 +61,7 @@ const DriverDetails = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const gender= ["Male","Female","Other"];
+  const gender = ["Male", "Female", "Other"];
   const genderDropdownRef = useRef(null);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const assignedDropdownRef = useRef(null);
@@ -69,7 +69,7 @@ const DriverDetails = () => {
   const statusOptions = ["Available", "Unavailable", "Leave", "OnTrip"];
   const statusDropdownRef = useRef(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
-  
+
   const defaultDriverFields = {
     _id: null,
     name: "",
@@ -161,10 +161,10 @@ const DriverDetails = () => {
 
   const handleOpenEditModal = (driver) => {
     // Format joining date for input field (YYYY-MM-DD)
-    const joiningDate = driver.joiningdate 
+    const joiningDate = driver.joiningdate
       ? new Date(driver.joiningdate).toISOString().split('T')[0]
       : "";
-    
+
     setDriverForm({
       _id: driver._id,
       name: driver.name || "",
@@ -214,7 +214,7 @@ const DriverDetails = () => {
           delete driverData.image;
         }
         delete driverData.existingImage; // Remove preview field
-        
+
         await dispatch(updateDriver(driverData));
       }
       setIsDriverModalOpen(false);
@@ -382,11 +382,10 @@ const DriverDetails = () => {
                           setStatusFilter(status);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${
-                          statusFilter === status
-                            ? "text-[#755647] font-semibold"
-                            : "text-gray-700"
-                        }`}
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${statusFilter === status
+                          ? "text-[#755647] font-semibold"
+                          : "text-gray-700"
+                          }`}
                       >
                         {status}
                       </button>
@@ -416,7 +415,7 @@ const DriverDetails = () => {
           <table className="w-full text-sm text-left">
             <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] z-10 shadow-sm">
               <tr>
-                {["No", "Driver", "Contact", "Assigned Cab", "Status", "Address" ,"Action"].map(
+                {["No", "Driver", "Contact", "Assigned Cab", "Status", "Address", "Action"].map(
                   (header) => (
                     <th
                       key={header}
@@ -429,67 +428,77 @@ const DriverDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedDrivers.map((driver, idx) => (
-                <tr
-                  key={driver._id || idx}
-                  className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                >
-                  <td className="px-5 py-4 text-gray-600 font-semibold">
-                    {(currentPage - 1) * itemsPerPage + idx + 1}
+              {loading ? (
+                <tr>
+                  <td colSpan={12} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
+                    </div>
                   </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
-                        {driver.image ? (
-                          <img
-                            src={driver.image}
-                            alt={driver.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
-                            No Image
-                          </div>
-                        )}
+                </tr>
+              ) : paginatedDrivers?.length > 0 ? (
+                paginatedDrivers.map((driver, idx) => (
+                  <tr
+                    key={driver._id || idx}
+                    className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                  >
+                    <td className="px-5 py-4 text-gray-600 font-semibold">
+                      {(currentPage - 1) * itemsPerPage + idx + 1}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
+                          {driver.image ? (
+                            <img
+                              src={driver.image}
+                              alt={driver.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-black">
+                            {driver.name || "—"}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {driver.email || "no-email"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-black">
-                          {driver.name || "—"}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {driver.email || "no-email"}
-                        </p>
+                    </td>
+                    <td className="px-5 py-4 text-black">
+                      <div className="flex flex-col text-sm">
+                        <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
+                          <Phone size={16} className='text-green-600' />
+                          {driver.countrycode ? driver.countrycode : ""} {driver.mobileno || "—"}
+                        </span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-black">
-                    <div className="flex flex-col text-sm">
-                      <span className="inline-flex items-center gap-1 text-gray-800 font-medium">
-                        <Phone size={16} className='text-green-600' />
-                        {driver.countrycode ? driver.countrycode : ""} {driver.mobileno || "—"}
+                    </td>
+                    <td className="px-5 py-4 text-gray-800">
+                      {driver.AssignedCab?.vehicleId || "Not Assigned"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${statusColors(driver.status)}`}
+                      >
+                        {driver.status}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-gray-800">
-                    {driver.AssignedCab?.vehicleId || "Not Assigned"}
-                  </td>
-                  <td className="px-5 py-4">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${statusColors(driver.status)}`}
-                    >
-                      {driver.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-gray-800 whitespace-normal break-words max-w-[160px]">
-                    <div className="flex flex-col text-sm">
-                      <span className="inline-flex items-center gap-1 text-gray-800 font-medium line-clamp-3">
-                        <MapPin size={14} className="text-orange-500" />
-                        {driver.address || "Address not set"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="mv_table_action flex">
+                    </td>
+                    <td className="px-5 py-4 text-gray-800 whitespace-normal break-words max-w-[160px]">
+                      <div className="flex flex-col text-sm">
+                        <span className="inline-flex items-center gap-1 text-gray-800 font-medium line-clamp-3">
+                          <MapPin size={14} className="text-orange-500" />
+                          {driver.address || "Address not set"}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="mv_table_action flex">
                         <div
                           title="View"
                           className="p-1 text-[#16a34a] hover:text-[#0f9b3a] rounded-lg transition-colors cursor-pointer"
@@ -497,44 +506,32 @@ const DriverDetails = () => {
                         >
                           <IoEyeSharp className='text-[18px] text-quaternary' />
                         </div>
-                      <div
-                        className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
-                        title="Edit"
-                        onClick={() => handleOpenEditModal(driver)}
-                      >
-                        <FiEdit className="text-[18px]" />
+                        <div
+                          className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
+                          title="Edit"
+                          onClick={() => handleOpenEditModal(driver)}
+                        >
+                          <FiEdit className="text-[18px]" />
+                        </div>
+                        <div
+                          title="Delete"
+                          onClick={() => handleDeleteClick(driver)}
+                        >
+                          <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                        </div>
                       </div>
-                      <div
-                        title="Delete"
-                        onClick={() => handleDeleteClick(driver)}
-                      >
-                        <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {paginatedDrivers.length === 0 && (
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td className="px-6 py-12 text-center" colSpan={6}>
+                  <td colSpan={12} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg
-                        className="w-16 h-16 mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                        />
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      <p className="text-lg font-medium">No drivers found</p>
-                      <p className="text-sm mt-1">
-                        Try adjusting your search or filters
-                      </p>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
@@ -630,7 +627,7 @@ const DriverDetails = () => {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-black mb-1">
-                      Password {driverModalMode === "add" ? "" : ""}
+                    Password {driverModalMode === "add" ? "" : ""}
                   </label>
                   <div className="input-field flex items-center w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982]">
                     <input
@@ -704,11 +701,11 @@ const DriverDetails = () => {
                       required
                     >
                       <span className="text-sm truncate">
-                          {driverForm.gender ? driverForm.gender : 'Select Gender'}
+                        {driverForm.gender ? driverForm.gender : 'Select Gender'}
                       </span>
                       <ChevronDown
-                          size={18}
-                          className={`text-gray-600 transition-transform duration-200 ${showGenderDropdown ? 'rotate-180' : ''}`}
+                        size={18}
+                        className={`text-gray-600 transition-transform duration-200 ${showGenderDropdown ? 'rotate-180' : ''}`}
                       />
                     </button>
                     {showGenderDropdown && (
@@ -752,9 +749,9 @@ const DriverDetails = () => {
                       <span className="text-sm truncate">
                         {driverForm.AssignedCab
                           ? (() => {
-                              const sel = (cabs || []).find((c) => c._id === driverForm.AssignedCab);
-                              return sel ? `${sel.vehicleId} - ${sel.modelName}` : 'Select Cab (Optional)';
-                            })()
+                            const sel = (cabs || []).find((c) => c._id === driverForm.AssignedCab);
+                            return sel ? `${sel.vehicleId} - ${sel.modelName}` : 'Select Cab (Optional)';
+                          })()
                           : 'Select Cab (Optional)'}
                       </span>
                       <ChevronDown size={18} className={`text-gray-600 transition-transform duration-200 ${showAssignedDropdown ? 'rotate-180' : ''}`} />
@@ -847,8 +844,8 @@ const DriverDetails = () => {
                     {driverForm.image
                       ? driverForm.image.name
                       : (driverModalMode === "edit" && driverForm.existingImage
-                          ? driverForm.existingImage.split('/').pop()
-                          : 'Choose file')}
+                        ? driverForm.existingImage.split('/').pop()
+                        : 'Choose file')}
                   </span>
                   <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
                   <input
@@ -878,8 +875,8 @@ const DriverDetails = () => {
                   className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                   disabled={driverLoading}
                 >
-                  {driverLoading 
-                    ? (driverModalMode === "add" ? "Adding..." : "Updating...") 
+                  {driverLoading
+                    ? (driverModalMode === "add" ? "Adding..." : "Updating...")
                     : (driverModalMode === "add" ? "Add Driver" : "Update Driver")
                   }
                 </button>
@@ -950,7 +947,7 @@ const DriverDetails = () => {
               </div>
               <div className="flex items-start gap-2 md:col-span-2">
                 <span className="font-semibold w-32 text-black">Address:</span>
-                <div className="text-black max-h-24 overflow-y-auto break-words" style={{whiteSpace: 'pre-wrap'}}>{viewDriver.address || '—'}</div>
+                <div className="text-black max-h-24 overflow-y-auto break-words" style={{ whiteSpace: 'pre-wrap' }}>{viewDriver.address || '—'}</div>
               </div>
             </div>
           </div>

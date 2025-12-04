@@ -13,8 +13,7 @@ import { SOCKET_URL } from '../../Utils/baseUrl'
 
 const HODTable = () => {
   const dispatch = useDispatch();
-  const getCafeTableData = useSelector((state) => state.cafeTable.cafeTable);
-  console.log("getCafeTableData",getCafeTableData);
+  const {cafeTable,loading} = useSelector((state) => state.cafeTable);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -34,7 +33,7 @@ const HODTable = () => {
     actions: true
   });
 
-  const filteredData = getCafeTableData.filter((item) => {
+  const filteredData = cafeTable.filter((item) => {
     const searchLower = searchTerm.trim().toLowerCase();
     if (!searchLower) return true;
 
@@ -346,7 +345,16 @@ const HODTable = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {currentData.length > 0 ? (
+              {loading ? (
+                    <tr>
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                          <p className="text-lg font-medium">Loading...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : currentData?.length > 0 ? (
                   currentData.map((about, index) => (
                     <tr
                       key={index}

@@ -17,8 +17,7 @@ const Contact = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const dropdownRef = useRef(null);
-  const contact = useSelector((state) => state.contact.contact)
-  const loading = useSelector((state) => state.contact.loading)
+  const {contact,loading} = useSelector((state) => state.contact)
 
   const [visibleColumns, setVisibleColumns] = useState({
     no: true,

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { FiEdit } from "react-icons/fi";
+import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
 import {
@@ -263,11 +263,10 @@ const CabBookingDetail = () => {
                           setPage(1);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${
-                          statusFilter === status
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${statusFilter === status
                             ? "text-[#755647] font-semibold"
                             : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         {status}
                       </button>
@@ -316,108 +315,99 @@ const CabBookingDetail = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedBookings.map((booking, idx) => (
-                <tr key={booking.id} className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
-                  <td className="px-4 py-3 text-gray-800">{(currentPage - 1) * limit + idx + 1}</td>
-                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.guestName}</td>
-                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.roomNumber}</td>
-                  <td className="px-4 py-3 text-gray-800">
-                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                      <MapPin size={14} className="text-blue-600" />
-                      {booking.pickupLocation}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-800">
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin size={14} className="text-red-600" />
-                      {booking.dropLocation}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-800">
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar size={14} />
-                      {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString("en-GB") : "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-800">
-                    <span className="inline-flex items-center gap-1 whitespace-nowrap">
-                      <Clock size={14} />
-                      {booking.pickupTime ? new Date(booking.pickupTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.driver}</td>
-                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.vehicle}</td>
-                  <td className="px-4 py-3 font-medium text-gray-800">{booking.distance}</td>
-                  <td className="px-4 py-3 text-[#15803D] font-semibold">
-                    {booking.fare === "--" ? "—" : `$${booking.fare}`}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
-                        statusColors[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"
-                      }`}
-                    >
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.notes}</td>
-                  <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                    <div className="mv_table_action flex items-center gap-2">
-                      <div title="View">
-                        <button onClick={() => openView(booking)} className="p-1 rounded">
-                          <IoEyeSharp className="text-[18px] text-quaternary" />
-                        </button>
-                      </div>
-                      <button
-                        className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
-                        title="Edit"
-                        onClick={() => {
-                          setEditBooking(booking);
-                          setEditForm({
-                            pickupLocation: booking.pickupLocation || "Airport",
-                            dropLocation: booking.dropLocation || "Hotel",
-                            bookingDate: booking.bookingDate
-                              ? new Date(booking.bookingDate).toISOString().split('T')[0]
-                              : "",
-                            pickupTime: booking.pickupTime
-                              ? new Date(booking.pickupTime).toISOString().slice(0, 16)
-                              : "",
-                            estimatedDistance: booking.distance && booking.distance !== "--" ? booking.distance : "",
-                            estimatedFare: booking.fare && booking.fare !== "--" ? booking.fare : "",
-                            notes: booking.notes || "",
-                          });
-                          setShowEditModal(true);
-                        }}
-                      >
-                        <FiEdit className="text-[18px]" />
-                      </button>
-                      <button
-                        className="p-1 text-[#ff5200] hover:text-[#e04500] rounded-lg transition-colors"
-                        title="Delete"
-                        onClick={() => {
-                          setDeleteBooking(booking);
-                          setShowDeleteModal(true);
-                        }}
-                      >
-                        <RiDeleteBinLine className="text-[18px]" />
-                      </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={12} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
                     </div>
                   </td>
                 </tr>
-              ))}
-              {!loading && filteredBookings.length === 0 && (
+              ) : filteredBookings?.length > 0 ? (
+                filteredBookings.map((booking, idx) => (
+                  <tr key={booking.id} className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
+                    <td className="px-4 py-3 text-gray-800">{(page - 1) * limit + idx + 1}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.guestName}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.roomNumber}</td>
+                    <td className="px-4 py-3 text-gray-800">
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                        <MapPin size={14} className="text-blue-600" />
+                        {booking.pickupLocation}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={14} className="text-red-600" />
+                        {booking.dropLocation}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar size={14} />
+                        {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString("en-GB") : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                        <Clock size={14} />
+                        {booking.pickupTime ? new Date(booking.pickupTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.driver}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.vehicle}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800">{booking.distance}</td>
+                    <td className="px-4 py-3 text-[#15803D] font-semibold">
+                      {booking.fare === "--" ? "—" : `$${booking.fare}`}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${payStatusColors[booking.paymentStatus] || "bg-gray-50 text-gray-600 border-gray-200"
+                          }`}
+                      >
+                        {booking.paymentStatus}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800">{booking.paymentMethod}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                          }`}
+                      >
+                        {booking.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.notes}</td>
+                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <div className="mv_table_action flex items-center gap-2">
+                        <div title="View">
+                          <button onClick={() => openView(booking)} className="p-1 rounded">
+                            <IoEyeSharp className="text-[18px] text-quaternary" />
+                          </button>
+                        </div>
+                        {/* <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit">
+                        <FiEdit className="text-[18px]" />
+                      </div> */}
+                        <div title="Delete">
+                          <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
                 <tr>
-                  <td colSpan={16} className="px-6 py-16 text-center">
+                  <td colSpan={12} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      <p className="text-lg font-medium">No bookings found</p>
-                      <p className="text-sm mt-1">Try adjusting your filters</p>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
-              )} 
+              )}
             </tbody>
           </table>
         </div>

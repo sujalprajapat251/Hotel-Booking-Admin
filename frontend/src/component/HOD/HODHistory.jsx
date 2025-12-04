@@ -46,7 +46,7 @@ const HODHistory = () => {
     actions: 'Actions'
   };
 
-  const orderHistory = useSelector((state) => state.hod.orderHistory) || [];
+  const {orderHistory,loading} = useSelector((state) => state.hod);
 
   const getOrderItemCount = (order) => {
     if (!order?.items?.length) return 0;
@@ -387,7 +387,17 @@ const HODHistory = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                  {currentData.map((order, index) => {
+                {loading ? (
+                    <tr>
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                          <p className="text-lg font-medium">Loading...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : currentData?.length > 0 ? (
+                  currentData.map((order, index) => {
                     const rowNumber = startIndex + index + 1;
                     const itemCount = getOrderItemCount(order);
                     const orderAmount = getOrderTotalAmount(order);
@@ -456,8 +466,8 @@ const HODHistory = () => {
                         )}
                       </tr>
                     );
-                  })}
-                  {currentData.length === 0 ? (
+                  })
+                 ) : (
                     <tr>
                       <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
@@ -469,7 +479,7 @@ const HODHistory = () => {
                         </div>
                       </td>
                     </tr>
-                  ) : null}
+                  )}
                 </tbody>
               </table>
             </div>

@@ -18,7 +18,7 @@ const CabsDetails = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
-  const vehicleInventory = useSelector((state) => state.cab.cabs) || [];
+  const { cabs, loading } = useSelector((state) => state.cab);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedCab, setSelectedCab] = useState(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -54,13 +54,13 @@ const CabsDetails = () => {
 
   const filteredVehicles = useMemo(() => {
     const search = searchTerm.toLowerCase();
-    return vehicleInventory.filter((vehicle) => {
+    return cabs.filter((vehicle) => {
       const matchesSearch =
         vehicle.modelName?.toLowerCase().includes(search) ||
-        vehicle.registrationNumber?.toLowerCase().includes(search) || 
-        vehicle.description?.toLowerCase().includes(search) || 
-        vehicle.vehicleId?.toLowerCase().includes(search) || 
-        vehicle.perKmCharge?.toString().toLowerCase().includes(search) || 
+        vehicle.registrationNumber?.toLowerCase().includes(search) ||
+        vehicle.description?.toLowerCase().includes(search) ||
+        vehicle.vehicleId?.toLowerCase().includes(search) ||
+        vehicle.perKmCharge?.toString().toLowerCase().includes(search) ||
         vehicle.fuelType?.toLowerCase().includes(search);
 
       const matchesStatus =
@@ -68,7 +68,7 @@ const CabsDetails = () => {
 
       return matchesSearch && matchesStatus;
     });
-  }, [vehicleInventory, searchTerm, statusFilter]);
+  }, [cabs, searchTerm, statusFilter]);
 
   const totalPages = Math.max(
     1,
@@ -187,15 +187,15 @@ const CabsDetails = () => {
   const getStatusStyle = (status) => {
     switch (status) {
       case 'Available':
-          return 'border border-green-500 text-green-600 bg-green-50';
+        return 'border border-green-500 text-green-600 bg-green-50';
       case 'On Trip':
-          return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
-      default:  
-          return 'border border-red-500 text-red-600 bg-red-50';
+        return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+      default:
+        return 'border border-red-500 text-red-600 bg-red-50';
     }
   };
 
-  return (  
+  return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Cab Inventory</h1>
@@ -246,11 +246,10 @@ const CabsDetails = () => {
                           setStatusFilter(status);
                           setShowFilterMenu(false);
                         }}
-                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${
-                          statusFilter === status
+                        className={`w-full text-left px-4 py-2 text-sm hover:bg-[#F7DF9C]/30 ${statusFilter === status
                             ? "text-[#755647] font-semibold"
                             : "text-gray-700"
-                        }`}
+                          }`}
                       >
                         {status}
                       </button>
@@ -282,8 +281,10 @@ const CabsDetails = () => {
                 {[
                   "No",
                   "Cab",
+                  "Vehicle ID",
                   "Fuel Type",
                   "Per km Charge",
+                  "Seat",
                   "Description",
                   "Status",
                   "Action",
@@ -298,120 +299,124 @@ const CabsDetails = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedVehicles.map((vehicle, index) => (
-                <tr
-                  key={vehicle._id || vehicle.vehicleId}
-                  className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200 transition-colors"
-                >
-                  <td className="px-5 py-4 text-gray-600 font-semibold">
-                    {(currentPage - 1) * itemsPerPage + index + 1}
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
-                        {vehicle.cabImage ? (
-                          <img
-                            src={vehicle.cabImage}
-                            alt={vehicle.modelName}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
-                            No Image
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-black">
-                          {vehicle.modelName}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {vehicle.registrationNumber}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-black">
-                    {vehicle.fuelType || "—"}
-                  </td>
-                  <td className="px-5 py-4 text-black">
-                    ${vehicle.perKmCharge || 0}
-                  </td>
-                  <td
-                    className="px-5 py-4 text-black"
-                    style={{ maxWidth: 280 }}
-                  >
-                    <span
-                      style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {vehicle.description || "—"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(vehicle.status)}`}>
-                        {vehicle.status}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="mv_table_action flex">
-                      <div
-                        title="View"
-                        onClick={() => {
-                          setSelectedCab(vehicle);
-                          setViewModalOpen(true);
-                        }}
-                        className="mr-2 cursor-pointer"
-                      >
-                        <IoEyeSharp className='text-[18px] text-quaternary' />
-                      </div>
-                      <div  
-                        className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
-                        title="Edit"
-                        onClick={() => {
-                          setSelectedCab(vehicle);
-                          setEditModalOpen(true);
-                        }}
-                      >
-                        <FiEdit className="text-[18px]" />
-                      </div>
-                      <div
-                        title="Delete"
-                        onClick={() => handleDeleteCab(vehicle)}
-                      >
-                        <RiDeleteBinLine className="text-[#ff5200] text-[18px]"/>
-                      </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={12} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading...</p>
                     </div>
                   </td>
                 </tr>
-              ))}
-              {paginatedVehicles.length === 0 && (
-                <tr>
-                  <td className="px-6 py-12 text-center" colSpan={7}>
-                    <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg
-                        className="w-16 h-16 mb-4 text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+              ) : paginatedVehicles?.length > 0 ? (
+                paginatedVehicles.map((vehicle, index) => (
+                  <tr
+                    key={vehicle._id || vehicle.vehicleId}
+                    className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200 transition-colors"
+                  >
+                    <td className="px-5 py-4 text-gray-600 font-semibold">
+                      {(currentPage - 1) * itemsPerPage + index + 1}
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
+                          {vehicle.cabImage ? (
+                            <img
+                              src={vehicle.cabImage}
+                              alt={vehicle.modelName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
+                              No Image
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-black">
+                            {vehicle.modelName}
+                          </p>
+                          <p className="text-xs text-gray-600">
+                            {vehicle.registrationNumber}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-black">
+                      {vehicle.vehicleId || "—"}
+                    </td>
+                    <td className="px-5 py-4 text-black">
+                      {vehicle.fuelType || "—"}
+                    </td>
+                    <td className="px-5 py-4 text-black">
+                      ${vehicle.perKmCharge || 0}
+                    </td>
+                    <td className="px-5 py-4 text-black">
+                      {vehicle.seatingCapacity || 0}
+                    </td>
+                    <td
+                      className="px-5 py-4 text-black"
+                      style={{ maxWidth: 280 }}
+                    >
+                      <span
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-                        />
+                        {vehicle.description || "—"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center justify-center w-24 h-8 rounded-xl text-xs font-semibold ${getStatusStyle(vehicle.status)}`}>
+                          {vehicle.status}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="mv_table_action flex">
+                        <div
+                          title="View"
+                          onClick={() => {
+                            setSelectedCab(vehicle);
+                            setViewModalOpen(true);
+                          }}
+                          className="mr-2 cursor-pointer"
+                        >
+                          <IoEyeSharp className='text-[18px] text-quaternary' />
+                        </div>
+                        <div
+                          className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors"
+                          title="Edit"
+                          onClick={() => {
+                            setSelectedCab(vehicle);
+                            setEditModalOpen(true);
+                          }}
+                        >
+                          <FiEdit className="text-[18px]" />
+                        </div>
+                        <div
+                          title="Delete"
+                          onClick={() => handleDeleteCab(vehicle)}
+                        >
+                          <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={12} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                       </svg>
-                      <p className="text-lg font-medium">No vehicles found</p>
-                      <p className="text-sm mt-1">
-                        Try adjusting your search or filters
-                      </p>
+                      <p className="text-lg font-medium">No data available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
@@ -590,143 +595,143 @@ const CabsDetails = () => {
                     required
                   />
                 </div>
-              <div>
-                <label
-                  className="text-sm font-medium text-black mb-1"
-                >
-                  Vehicle ID
+                <div>
+                  <label
+                    className="text-sm font-medium text-black mb-1"
+                  >
+                    Vehicle ID
+                  </label>
+                  <input
+                    type="text"
+                    name="vehicleId"
+                    value={newCab.vehicleId}
+                    onChange={handleAddInputChange}
+                    placeholder="Vehicle ID"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    className="text-sm font-medium text-black mb-1"
+                  >
+                    Seating Capacity
+                  </label>
+                  <input
+                    type="number"
+                    name="seatingCapacity"
+                    value={newCab.seatingCapacity}
+                    onChange={handleAddInputChange}
+                    placeholder="Seating Capacity"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-black mb-1">
+                    Status
+                  </label>
+                  <div className="relative" ref={statusDropdownRef}>
+                    <button
+                      name="status"
+                      type="button"
+                      onClick={() => setShowStatusDropdown((prev) => !prev)}
+                      value={newCab.status}
+                      onChange={handleAddInputChange}
+                      className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
+                      required
+                    >
+                      <span className="text-sm truncate">{newCab.status}</span>
+                      <ChevronDown size={18} className={`text-gray-600 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} />
+                    </button>
+                    {showStatusDropdown && (
+                      <ul className="absolute z-50 w-full rounded-md bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
+                        {statusOptions.map((opt) => (
+                          <li
+                            key={opt}
+                            onClick={() => {
+                              handleAddInputChange({ target: { name: 'status', value: opt } });
+                              setShowStatusDropdown(false);
+                            }}
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          >
+                            {opt}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-black mb-1">
+                    Fuel Type
+                  </label>
+                  <input
+                    type="text"
+                    name="fuelType"
+                    value={newCab.fuelType}
+                    onChange={handleAddInputChange}
+                    placeholder="Fuel Type"
+                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="driverAssigned"
+                    checked={newCab.driverAssigned}
+                    onChange={handleAddInputChange}
+                  />
+                  Driver Assigned
                 </label>
-                <input
-                  type="text"
-                  name="vehicleId"
-                  value={newCab.vehicleId}
-                  onChange={handleAddInputChange}
-                  placeholder="Vehicle ID"
-                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                  required
-                />
               </div>
               <div>
-                <label
-                  className="text-sm font-medium text-black mb-1"
-                >
-                  Seating Capacity
+                <label className="text-sm font-medium text-black mb-1">
+                  Per Km Charge
                 </label>
                 <input
                   type="number"
-                  name="seatingCapacity"
-                  value={newCab.seatingCapacity}
+                  name="perKmCharge"
+                  value={newCab.perKmCharge}
                   onChange={handleAddInputChange}
-                  placeholder="Seating Capacity"
+                  placeholder="Per km Charge"
                   className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                   required
                 />
               </div>
               <div>
                 <label className="text-sm font-medium text-black mb-1">
-                  Status
+                  Description
                 </label>
-                <div className="relative" ref={statusDropdownRef}>
-                  <button
-                    name="status"
-                    type="button"
-                    onClick={() => setShowStatusDropdown((prev) => !prev)}
-                    value={newCab.status}
+                <textarea
+                  name="description"
+                  value={newCab.description}
+                  onChange={handleAddInputChange}
+                  placeholder="Description"
+                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-black mb-1">
+                  Cab Image
+                </label>
+                <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
+                  <span className="truncate">
+                    {newCab.cabImage ? newCab.cabImage.name : 'Choose file'}
+                  </span>
+                  <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    name="cabImage"
+                    className="hidden"
                     onChange={handleAddInputChange}
-                    className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
-                    required
-                  >
-                    <span className="text-sm truncate">{newCab.status}</span>
-                    <ChevronDown size={18} className={`text-gray-600 transition-transform duration-200 ${showStatusDropdown ? 'rotate-180' : ''}`} />
-                  </button>
-                  {showStatusDropdown && (
-                    <ul className="absolute z-50 w-full rounded-md bg-white border border-gray-200 shadow-lg max-h-48 overflow-y-auto">
-                      {statusOptions.map((opt) => (
-                        <li
-                          key={opt}
-                          onClick={() => {
-                            handleAddInputChange({ target: { name: 'status', value: opt } });
-                            setShowStatusDropdown(false);
-                          }}
-                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
-                        >
-                          {opt}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-black mb-1">
-                  Fuel Type
+                  />
                 </label>
-                <input
-                  type="text"
-                  name="fuelType"
-                  value={newCab.fuelType}
-                  onChange={handleAddInputChange}
-                  placeholder="Fuel Type"
-                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                  required
-                />
               </div>
-            </div>
-            <div className="mt-4">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  name="driverAssigned"
-                  checked={newCab.driverAssigned}
-                  onChange={handleAddInputChange}
-                />
-                Driver Assigned
-              </label>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black mb-1">
-                Per Km Charge
-              </label>
-              <input
-                type="number"
-                name="perKmCharge"
-                value={newCab.perKmCharge}
-                onChange={handleAddInputChange}
-                placeholder="Per km Charge"
-                className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black mb-1">
-                Description
-              </label>
-              <textarea
-                name="description"
-                value={newCab.description}
-                onChange={handleAddInputChange}
-                placeholder="Description"
-                className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-black mb-1">
-                Cab Image
-              </label>
-              <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-[#1414140F]">
-                <span className="truncate">
-                  {newCab.cabImage ? newCab.cabImage.name : 'Choose file'}
-                </span>
-                <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  name="cabImage"
-                  className="hidden"
-                  onChange={handleAddInputChange}
-                />
-              </label>
-            </div>
               <div className="flex items-center justify-center gap-3 pt-4 border-t">
                 <button
                   type="button"
@@ -862,7 +867,7 @@ function EditCabModal({ cab, onClose }) {
               {/* Image Upload Section */}
               <div>
                 <label className="text-sm font-medium text-black mb-1">
-                  Cab Image 
+                  Cab Image
                 </label>
                 <div className="mb-4">
                   {imagePreview && (
@@ -899,7 +904,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Model Name 
+                    Model Name
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -915,7 +920,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Registration Number 
+                    Registration Number
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -931,7 +936,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Vehicle ID 
+                    Vehicle ID
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -945,7 +950,7 @@ function EditCabModal({ cab, onClose }) {
 
                 <div>
                   <label className="text-sm font-medium text-black mb-1">
-                    Seating Capacity 
+                    Seating Capacity
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -962,7 +967,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Fuel Type 
+                    Fuel Type
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -978,7 +983,7 @@ function EditCabModal({ cab, onClose }) {
                   <label
                     className="text-sm font-medium text-black mb-1"
                   >
-                    Per Km Charge 
+                    Per Km Charge
                   </label>
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
@@ -1071,11 +1076,11 @@ function ViewCabModal({ cab, onClose }) {
   const getStatusStyle = (status) => {
     switch (status) {
       case 'Available':
-          return 'border border-green-500 text-green-600 bg-green-50';
+        return 'border border-green-500 text-green-600 bg-green-50';
       case 'On Trip':
-            return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+        return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
       default:
-          return 'border border-red-500 text-red-600 bg-red-50';
+        return 'border border-red-500 text-red-600 bg-red-50';
     }
   };
 
@@ -1093,13 +1098,13 @@ function ViewCabModal({ cab, onClose }) {
         </div>
 
         <div className="flex flex-col items-center mb-6">
-          <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-100 mb-3" style={{width: 112, height: 112}}>
+          <div className="rounded-xl border border-gray-200 overflow-hidden bg-gray-100 mb-3" style={{ width: 112, height: 112 }}>
             {cab.cabImage ? (
               <img
                 src={cab.cabImage}
                 alt={cab.modelName}
                 className="block"
-                style={{width: '100%', height: '100%', objectFit: 'cover', maxWidth: 112, maxHeight: 112}}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', maxWidth: 112, maxHeight: 112 }}
               />
             ) : (
               <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">No Image</div>
@@ -1158,7 +1163,7 @@ function ViewCabModal({ cab, onClose }) {
           <div className="md:col-span-2">
             <div className="flex items-start">
               <span className="w-36 font-semibold text-black">Description:</span>
-              <div className="text-black max-h-24 overflow-y-auto break-words" style={{whiteSpace: 'pre-wrap'}}>{cab.description || '—'}</div>
+              <div className="text-black max-h-24 overflow-y-auto break-words" style={{ whiteSpace: 'pre-wrap' }}>{cab.description || '—'}</div>
             </div>
           </div>
         </div>
