@@ -108,7 +108,7 @@ const adminSections = [
         path: '/blog',
         subMenus: [
           { label: 'Add Blog', path: '/blog/addblog' },
-          { label: 'Blog', path: '/blog/blog' },
+          { label: 'View Blog', path: '/blog/blog' },
         ]
       },
       {
@@ -117,7 +117,7 @@ const adminSections = [
         path: '/about',
         subMenus: [
           { label: 'Add About', path: '/about/addabout' },
-          { label: 'About', path: '/about/about' },
+          { label: 'View About', path: '/about/about' },
         ]
       },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },

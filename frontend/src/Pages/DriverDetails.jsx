@@ -99,6 +99,7 @@ const DriverDetails = () => {
     return (drivers || []).filter((d) => {
       const matchesSearch =
         d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        d.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         d.mobileno?.includes(searchTerm) ||
         d.AssignedCab?.vehicleId
           ?.toLowerCase()
