@@ -1,5 +1,6 @@
 const OrderRequest = require('../models/orderRequest');
 const staff = require('../models/staffModel');
+const { emitWorkerAssigneChnaged, emitUserNotification } = require('../socketManager/socketManager');
 
 exports.getPendingOrderRequests = async (req, res) => {
     try {
@@ -66,7 +67,7 @@ exports.assignWorkerToOrderRequest = async (req, res) => {
             return res.status(400).json({ status: 400, message: 'workerId is required' });
         }
 
-        const worker = await staff.findById(workerId);
+        const worker = await staff.findById(workerId).populate('department');
         if (!worker) {
             return res.status(404).json({ status: 404, message: 'Worker not found' });
         }
@@ -75,8 +76,31 @@ exports.assignWorkerToOrderRequest = async (req, res) => {
             id,
             { workerId },
             { new: true }
-        ).populate('roomId');
+        ).populate('roomId').populate({ path: 'orderId', populate: { path: 'items.product' } });
 
+        emitWorkerAssigneChnaged(workerId);
+        try {
+            const deptId = worker?.department?._id || null;
+            const roomNum = request?.roomId?.roomNumber || '';
+            const itemNames = (request?.orderId?.items || [])
+              .map((it) => it?.product?.name)
+              .filter(Boolean)
+              .join(', ');
+            const toDept = request?.to || '';
+            const msg = roomNum ? `Order request assigned for Room ${roomNum} (${toDept}): ${itemNames}` : `Order request assigned (${toDept})`;
+            await emitUserNotification({
+                userId: workerId,
+                departmentId: deptId,
+                event: 'notify',
+                data: {
+                    type: 'order_request_assigned',
+                    requestId: request?._id,
+                    roomId: request?.roomId?._id,
+                    to: request?.to,
+                    message: msg,
+                }
+            });
+        } catch {}
         if (!request) {
             return res.status(404).json({ status: 404, message: 'OrderRequest not found' });
         }
@@ -110,6 +134,23 @@ exports.advanceOrderRequestStatus = async (req, res) => {
         const next = steps[current];
         request.status = next;
         await request.save();
+
+        try {
+            if (next === 'Completed') {
+                const roomNum = request?.roomId?.roomNumber || '';
+                await emitRoleNotification({
+                    designations: ['admin'],
+                    event: 'notify',
+                    data: {
+                        type: 'order_request_completed',
+                        requestId: request?._id,
+                        roomId: request?.roomId?._id,
+                        to: request?.to,
+                        message: roomNum ? `Order request completed for Room ${roomNum} (${request?.to || ''})` : 'Order request completed'
+                    }
+                });
+            }
+        } catch {}
 
         return res.status(200).json({
             status: 200,

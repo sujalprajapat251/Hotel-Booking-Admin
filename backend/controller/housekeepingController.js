@@ -3,7 +3,7 @@ const Housekeeping = require("../models/housekeepingModel");
 const Staff = require("../models/staffModel");
 const Department = require("../models/departmentModel");
 const OrderRequest = require("../models/orderRequest");
-
+const { emitCafeTableStatusChanged, emitWorkerAssigneChnaged, emitUserNotification } = require('../socketManager/socketManager.js');
 exports.getDirtyRooms = async (req, res) => {
     try {
         // Extract pagination parameters from query
@@ -146,7 +146,22 @@ exports.assignWorker = async (req, res) => {
             cleanStatus: "Pending",
             cleanassign: workerId
         });
-
+        emitWorkerAssigneChnaged(workerId);
+        try {
+            const staffDoc = await Staff.findById(workerId).populate('department');
+            const deptId = staffDoc?.department?._id || null;
+            const roomNum = room?.roomNumber || '';
+            await emitUserNotification({
+                userId: workerId,
+                departmentId: deptId,
+                event: 'notify',
+                data: {
+                    type: 'hk_task_assigned',
+                    roomId,
+                    message: roomNum ? `Housekeeping task assigned for Room ${roomNum}` : 'Housekeeping task assigned'
+                }
+            });
+        } catch {}
         return res.json({
             success: true,
             message: "Worker assigned successfully",
@@ -204,6 +219,19 @@ exports.completeCleaning = async (req, res) => {
         await task.save();
 
         await Room.findByIdAndUpdate(task.roomId, { cleanStatus: "Completed" });
+
+        try {
+            const roomDoc = await Room.findById(task.roomId);
+            await emitRoleNotification({
+                designations: ['admin'],
+                event: 'notify',
+                data: {
+                    type: 'hk_task_completed',
+                    roomId: task.roomId,
+                    message: roomDoc?.roomNumber ? `Cleaning task completed for Room ${roomDoc.roomNumber}` : 'Cleaning task completed'
+                }
+            });
+        } catch {}
 
         return res.json({
             success: true,

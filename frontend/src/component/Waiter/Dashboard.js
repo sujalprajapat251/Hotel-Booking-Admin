@@ -11,6 +11,7 @@ export default function Dashboard() {
 
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.cafeTable.cafeTable);
+  const currentUser = useSelector((state) => state.staff.currentUser);
   useEffect(() => {
     dispatch(getAllCafeTable());
   }, [dispatch]);
@@ -79,7 +80,10 @@ export default function Dashboard() {
     s.on('bar_table_status_changed', refresh);
     s.on('restaurant_table_status_changed', refresh);
     s.on('notify', (data) => {
-      dispatch(receiveNotification(data));
+      const myDeptId = currentUser?.department?._id || currentUser?.departmentId;
+      if (!data?.departmentId || !myDeptId || String(myDeptId) === String(data.departmentId)) {
+        dispatch(receiveNotification(data));
+      }
       if (data?.type === 'item_ready') {
         const tbl = data?.tableId || data?.payload?.tableId;
         if (!activeTableId || !tbl || String(activeTableId) === String(tbl)) {

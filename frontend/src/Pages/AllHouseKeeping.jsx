@@ -12,7 +12,8 @@ import { IoEyeSharp } from 'react-icons/io5';
 import { approveCleaningRoom, assignWorkerToRoom, fetchAllhousekeepingrooms, fetchFreeWorker } from '../Redux/Slice/housekeepingSlice.js';
 import { getAllStaff } from '../Redux/Slice/staff.slice.js';
 import axios from 'axios';
-
+import { SOCKET_URL } from '../Utils/baseUrl.js';
+import { io } from 'socket.io-client';
 const AllHouseKeeping = () => {
 
     const dispatch = useDispatch();
@@ -32,6 +33,21 @@ const AllHouseKeeping = () => {
 
     useEffect(() => {
         dispatch(fetchFreeWorker());
+    }, [dispatch]);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
+        s.on('connect', () => { console.log('socket connected', s.id); });
+        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+        s.on('error', (err) => { console.error('socket error', err?.message || err); });
+        const refresh = () => {
+            dispatch(fetchFreeWorker());
+        };
+        s.on('worker_asignee_changed', refresh);
+        return () => {
+            s.disconnect();
+        };
     }, [dispatch]);
     const { freeWorkers } = useSelector((state) => state.housekeeping);
 
@@ -133,7 +149,7 @@ const AllHouseKeeping = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-            setPage(1); 
+            setPage(1);
             setCurrentPage(1);
         }, 500);
 
@@ -163,7 +179,7 @@ const AllHouseKeeping = () => {
                 roomNo: item.roomNumber || 'N/A',
                 roomType: item.roomType?.roomType || 'N/A',
                 createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item 
+                rawData: item
             }));
             // console
             setHousekeepingRooms(formattedData);

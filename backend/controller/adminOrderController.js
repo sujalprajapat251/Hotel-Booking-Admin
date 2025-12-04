@@ -263,8 +263,16 @@ exports.addItemToTableOrder = async (req, res) => {
                   })
                   .filter(Boolean)
                   .join(', ');
-                await emitRoleNotification({
-                    departmentId: req.user.department,
+                {
+                    const Department = require('../models/departmentModel.js');
+                    const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                    let targetDeptId = req.user.department;
+                    try {
+                        const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                        if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                    } catch {}
+                    await emitRoleNotification({
+                    departmentId: targetDeptId,
                     designations: ['chef','accountant'],
                     excludeUserId: req.user._id,
                     event: 'notify',
@@ -277,6 +285,7 @@ exports.addItemToTableOrder = async (req, res) => {
                         items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
+                }
             } else if (nameDept === 'bar') {
                 const tables = await barTable.findById(tableId);
                 console.log(tables)
@@ -291,8 +300,16 @@ exports.addItemToTableOrder = async (req, res) => {
                   })
                   .filter(Boolean)
                   .join(', ');
-                await emitRoleNotification({
-                    departmentId: req.user.department,
+                {
+                    const Department = require('../models/departmentModel.js');
+                    const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                    let targetDeptId = req.user.department;
+                    try {
+                        const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                        if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                    } catch {}
+                    await emitRoleNotification({
+                    departmentId: targetDeptId,
                     designations: ['chef','accountant'],
                     excludeUserId: req.user._id,
                     event: 'notify',
@@ -305,6 +322,7 @@ exports.addItemToTableOrder = async (req, res) => {
                         items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
+                }
             } else if (nameDept === 'restaurant' || nameDept === 'restro') {
                 const tables = await restroTable.findById(tableId);
                 tables.status = false;
@@ -319,8 +337,16 @@ exports.addItemToTableOrder = async (req, res) => {
                   })
                   .filter(Boolean)
                   .join(', ');
-                await emitRoleNotification({
-                    departmentId: req.user.department,
+                {
+                    const Department = require('../models/departmentModel.js');
+                    const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                    let targetDeptId = req.user.department;
+                    try {
+                        const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                        if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                    } catch {}
+                    await emitRoleNotification({
+                    departmentId: targetDeptId,
                     designations: ['chef','accountant'],
                     excludeUserId: req.user._id,
                     event: 'notify',
@@ -333,6 +359,7 @@ exports.addItemToTableOrder = async (req, res) => {
                         items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                     }
                 });
+                }
             }
             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
         }
@@ -363,8 +390,16 @@ exports.addItemToTableOrder = async (req, res) => {
               })
               .filter(Boolean)
               .join(', ');
-            await emitRoleNotification({
-                departmentId: req.user.department,
+            {
+                const Department = require('../models/departmentModel.js');
+                const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                let targetDeptId = req.user.department;
+                try {
+                    const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                    if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                } catch {}
+                await emitRoleNotification({
+                departmentId: targetDeptId,
                 designations: ['chef','accountant'],
                 excludeUserId: req.user._id,
                 event: 'notify',
@@ -377,6 +412,7 @@ exports.addItemToTableOrder = async (req, res) => {
                     items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
+            }
         } else if (nameDept === 'bar') {
             const tables = await barTable.findById(tableId);
             console.log(tables)
@@ -392,8 +428,16 @@ exports.addItemToTableOrder = async (req, res) => {
               })
               .filter(Boolean)
               .join(', ');
-            await emitRoleNotification({
-                departmentId: req.user.department,
+            {
+                const Department = require('../models/departmentModel.js');
+                const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                let targetDeptId = req.user.department;
+                try {
+                    const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                    if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                } catch {}
+                await emitRoleNotification({
+                departmentId: targetDeptId,
                 designations: ['chef','accountant'],
                 excludeUserId: req.user._id,
                 event: 'notify',
@@ -406,6 +450,7 @@ exports.addItemToTableOrder = async (req, res) => {
                     items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
+            }
         } else if (nameDept === 'restaurant' || nameDept === 'restro') {
             const tables = await restroTable.findById(tableId);
             tables.status = false;
@@ -420,8 +465,16 @@ exports.addItemToTableOrder = async (req, res) => {
               })
               .filter(Boolean)
               .join(', ');
-            await emitRoleNotification({
-                departmentId: req.user.department,
+            {
+                const Department = require('../models/departmentModel.js');
+                const targetName = nameDept === 'restro' ? 'restaurant' : nameDept;
+                let targetDeptId = req.user.department;
+                try {
+                    const deptDoc = await Department.findOne({ name: new RegExp(`^${targetName}$`, 'i') }).select('_id');
+                    if (deptDoc && deptDoc._id) targetDeptId = deptDoc._id;
+                } catch {}
+                await emitRoleNotification({
+                departmentId: targetDeptId,
                 designations: ['chef','accountant'],
                 excludeUserId: req.user._id,
                 event: 'notify',
@@ -434,6 +487,7 @@ exports.addItemToTableOrder = async (req, res) => {
                     items: (populated.items || []).map((it) => ({ name: it?.product?.name, qty: it?.qty }))
                 }
             });
+            }
         }
         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
     } catch (error) {
@@ -731,11 +785,11 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
             emitCafeOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
         } else if (name === 'bar') {
-            const tables = await cafeTable.findById(populatedOrder.table?._id);
+            const tables = await barTable.findById(populatedOrder.table?._id);
             emitBarTableStatusChanged(tables?._id || req.params.id, tables);
             emitBarOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
         } else if (name === 'restaurant' || name === 'restro') {
-            const tables = await cafeTable.findById(populatedOrder.table?._id);
+            const tables = await restroTable.findById(populatedOrder.table?._id);
             emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
             emitRestaurantOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
         }
@@ -752,7 +806,6 @@ exports.UpdateOrderItemStatus = async (req, res) => {
         });
     }
 };
-
 
 exports.cafePayment = async (req, res) => {
     try {
