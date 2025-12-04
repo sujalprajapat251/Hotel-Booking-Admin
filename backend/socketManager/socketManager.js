@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const Staff = require('../models/staffModel')
 const Notification = require('../models/notificationModel')
 
-// Store user-to-socket mappings
 const userSocketMap = new Map();
 const socketUserMap = new Map();
 
@@ -46,16 +45,21 @@ function initializeSocket(io) {
     // Handle user room joining
     socket.on("joinRoom", ({ userId }) => {
       if (userId) {
-        // Store socket-user mapping
-        userSocketMap.set(userId, socket.id);
-        socketUserMap.set(socket.id, userId);
+        const uid = String(userId);
+        const set = userSocketMap.get(uid) || new Set();
+        set.add(socket.id);
+        userSocketMap.set(uid, set);
+        socketUserMap.set(socket.id, uid);
         // console.log(`User ${userId} joined their personal room`);
       }
     });
 
     if (socket.userId) {
-      userSocketMap.set(String(socket.userId), socket.id);
-      socketUserMap.set(socket.id, String(socket.userId));
+      const uid = String(socket.userId);
+      const set = userSocketMap.get(uid) || new Set();
+      set.add(socket.id);
+      userSocketMap.set(uid, set);
+      socketUserMap.set(socket.id, uid);
     }
 
     // Join music-specific room by ID
@@ -93,7 +97,12 @@ function initializeSocket(io) {
       // Remove mappings on disconnect
       const userId = socketUserMap.get(socket.id);
       if (userId) {
-        userSocketMap.delete(userId);
+        const set = userSocketMap.get(userId);
+        if (set) {
+          set.delete(socket.id);
+          if (set.size === 0) userSocketMap.delete(userId);
+          else userSocketMap.set(userId, set);
+        }
         socketUserMap.delete(socket.id);
       }
     });
@@ -106,21 +115,18 @@ function initializeSocket(io) {
 
   // Cleanup disconnected sockets periodically
   setInterval(() => {
-    const disconnectedSockets = [];
-    
     for (const [socketId, userId] of socketUserMap.entries()) {
       const socket = io.sockets.sockets.get(socketId);
       if (!socket || !socket.connected) {
-        disconnectedSockets.push({ socketId, userId });
+        socketUserMap.delete(socketId);
+        const set = userSocketMap.get(userId);
+        if (set) {
+          set.delete(socketId);
+          if (set.size === 0) userSocketMap.delete(userId);
+          else userSocketMap.set(userId, set);
+        }
       }
     }
-    
-    disconnectedSockets.forEach(({ socketId, userId }) => {
-      userSocketMap.delete(userId);
-      socketUserMap.delete(socketId);
-      // console.log(`Cleaned up disconnected socket ${socketId} for user ${userId}`);
-    });
-  
   }, 30000); // Check every 30 seconds
 }
 
@@ -130,7 +136,8 @@ function buildDesignationRegex(designations = []) {
     waiter: /^waiter$/i,
     chef: /^chef$/i,
     accountant: /^accountant$/i,
-    admin: /^admin$/i
+    admin: /^(admin|administrator)$/i,
+    receptionist: /^receptionist$/i
   };
   return designations.map(d => {
     const key = String(d || '').toLowerCase();
@@ -147,14 +154,20 @@ async function emitRoleNotification({ departmentId, designations = [], excludeUs
     const targets = await Staff.find(baseQuery).select('_id department');
     const excludeId = excludeUserId ? String(excludeUserId) : null;
     const docs = [];
+    console.log('or',or ,'baseQuery',baseQuery,'targets',targets,'excludeId',excludeId,'docs',docs )
     targets.forEach(t => {
       const uid = String(t._id);
       if (excludeId && uid === excludeId) return;
-      const socketId = userSocketMap.get(uid);
+      const socketIds = userSocketMap.get(uid);
       const dpt = departmentId || (t?.department ? String(t.department) : null);
       const payload = dpt ? { ...data, departmentId: dpt } : { ...data };
-      if (socketId) {
-        ioInstance.to(socketId).emit(event, payload);
+      if (socketIds && socketIds.size > 0) {
+        for (const sid of socketIds) {
+          const s = ioInstance.sockets.sockets.get(sid);
+          if (s && s.connected) {
+            ioInstance.to(sid).emit(event, payload);
+          }
+        }
       }
       docs.push({ user: uid, department: dpt, type: data?.type || event, message: data?.message || '', payload: data, seen: false });
     });
@@ -174,10 +187,15 @@ async function emitUserNotification({ userId, event = 'notify', data = {}, depar
         departmentId = u?.department?._id || null;
       } catch {}
     }
-    const socketId = userSocketMap.get(uid);
+    const socketIds = userSocketMap.get(uid);
     const payload = departmentId ? { ...data, departmentId } : { ...data };
-    if (socketId) {
-      ioInstance.to(socketId).emit(event, payload);
+    if (socketIds && socketIds.size > 0) {
+      for (const sid of socketIds) {
+        const s = ioInstance.sockets.sockets.get(sid);
+        if (s && s.connected) {
+          ioInstance.to(sid).emit(event, payload);
+        }
+      }
     }
     try {
       const Notification = require('../models/notificationModel');

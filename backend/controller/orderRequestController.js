@@ -1,6 +1,6 @@
 const OrderRequest = require('../models/orderRequest');
 const staff = require('../models/staffModel');
-const { emitWorkerAssigneChnaged, emitUserNotification } = require('../socketManager/socketManager');
+const { emitWorkerAssigneChnaged, emitUserNotification, emitRoleNotification } = require('../socketManager/socketManager');
 
 exports.getPendingOrderRequests = async (req, res) => {
     try {
@@ -139,7 +139,7 @@ exports.advanceOrderRequestStatus = async (req, res) => {
             if (next === 'Completed') {
                 const roomNum = request?.roomId?.roomNumber || '';
                 await emitRoleNotification({
-                    designations: ['admin'],
+                    designations: ['admin','receptionist'],
                     event: 'notify',
                     data: {
                         type: 'order_request_completed',

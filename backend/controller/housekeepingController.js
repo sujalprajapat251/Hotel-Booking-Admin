@@ -3,7 +3,7 @@ const Housekeeping = require("../models/housekeepingModel");
 const Staff = require("../models/staffModel");
 const Department = require("../models/departmentModel");
 const OrderRequest = require("../models/orderRequest");
-const { emitCafeTableStatusChanged, emitWorkerAssigneChnaged, emitUserNotification } = require('../socketManager/socketManager.js');
+const { emitCafeTableStatusChanged, emitWorkerAssigneChnaged, emitUserNotification, emitRoleNotification } = require('../socketManager/socketManager.js');
 exports.getDirtyRooms = async (req, res) => {
     try {
         // Extract pagination parameters from query
@@ -223,7 +223,7 @@ exports.completeCleaning = async (req, res) => {
         try {
             const roomDoc = await Room.findById(task.roomId);
             await emitRoleNotification({
-                designations: ['admin'],
+                designations: ['admin','receptionist'],
                 event: 'notify',
                 data: {
                     type: 'hk_task_completed',

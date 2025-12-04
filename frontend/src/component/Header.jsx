@@ -253,7 +253,7 @@ const Header = ({ onMenuClick }) => {
                 </span>
               )}
             </div>
-            <div ref={notifiRef} className={`h-auto max-h-[400px] bg-white w-[300px] absolute top-full md:right-4 right-2 p-4 border rounded -z-[1] transform-all duration-700 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
+            <div ref={notifiRef} className={`h-auto max-h-[400px] bg-white w-[300px] absolute top-full md:right-4 right-2 p-4 border rounded -z-[1] transform-all duration-500 ${notifi ? 'translate-y-0 shadow-xl' : '-translate-y-full'}`}>
               <div className='flex items-center justify-between border-b-2 pb-2'>
                 <h1 className='text-xl text-senary font-semibold'>Notification</h1>
                 <button
