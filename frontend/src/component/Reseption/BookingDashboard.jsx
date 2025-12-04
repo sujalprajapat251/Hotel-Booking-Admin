@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
-import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
-import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
-import GuestModal from '../component/GuestModel';
-import GuestDetailsModal from '../component/GuestDetailsModal';
+import { fetchRoomsPaginated } from '../../Redux/Slice/createRoomSlice';
+import { fetchRoomTypes } from '../../Redux/Slice/roomtypesSlice';
+import { fetchBookings, updateBooking } from '../../Redux/Slice/bookingSlice';
+import GuestModal from '../../component/GuestModel';
+import GuestDetailsModal from '../../component/GuestDetailsModal';
 import { ChevronDown,RefreshCw } from 'lucide-react';
-import { IMAGE_URL } from '../Utils/baseUrl';
+import { IMAGE_URL } from '../../Utils/baseUrl';
 
 const BookingDashboard = () => {
   const dispatch = useDispatch();
