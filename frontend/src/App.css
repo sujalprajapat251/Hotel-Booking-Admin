@@ -76,12 +76,12 @@ body{
   .ant-picker-date-panel
   .ant-picker-content
   th {
-  color: #f7df9c;
+  color: #795a4d;
   font-weight: 600;
 }
 
 .guest-range-dropdown .ant-picker-cell-in-view {
-  color: #f7df9c;
+  color: #49362d;
 }
 
 .guest-range-dropdown .ant-picker-cell-in-view.ant-picker-cell-disabled {
