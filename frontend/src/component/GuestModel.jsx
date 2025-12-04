@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import { ConfigProvider, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,6 +6,7 @@ import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookin
 import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { ChevronDown } from "lucide-react";
 
 // Helper to calculate number of nights
 function getNights(checkIn, checkOut) {
@@ -23,6 +24,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const { loading: cabBookingLoading } = useSelector((state) => state.cabBooking || {});
   const [activeTab, setActiveTab] = useState("personal");
   const [cabServiceEnabled, setCabServiceEnabled] = useState(false);
+  const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
+  const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
+  const paymentStatusRef = useRef(null);
+  const paymentMethodRef = useRef(null);
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
@@ -121,6 +126,20 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       document.body.style.width = '';
       window.scrollTo(0, scrollY);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
+        setShowPaymentStatusDropdown(false);
+      }
+      if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
+        setShowPaymentMethodDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const dateRangeValue = useMemo(() => {
@@ -306,7 +325,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           <button
             type="button"
             onClick={onClose}
-            className="text-3xl leading-none hover:text-gray-200"
+            className="text-3xl leading-none"
           >
             ×
           </button>
@@ -496,17 +515,40 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
+                <div className="relative" ref={paymentStatusRef}>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
-                  <select
-                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
-                    value={formState.paymentStatus}
-                    onChange={handleChange("paymentStatus")}
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentStatusDropdown(!showPaymentStatusDropdown)}
+                    className="w-full px-4 py-2 bg-[#f3f4f6] border border-gray-200 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                   >
-                    <option value="Pending">Pending</option>
-                    <option value="Paid">Paid</option>
-                    {/* <option value="Partial">Partial</option> */}
-                  </select>
+                    <span className={formState.paymentStatus ? 'text-gray-800' : 'text-gray-400'}>
+                      {formState.paymentStatus || 'Select payment status'}
+                    </span>
+                    <ChevronDown size={18} className="text-gray-600" />
+                  </button>
+                  {showPaymentStatusDropdown && (
+                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, paymentStatus: 'Pending' }));
+                          setShowPaymentStatusDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Pending
+                      </div>
+                      <div
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, paymentStatus: 'Paid' }));
+                          setShowPaymentStatusDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Paid
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -645,17 +687,49 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
+                <div className="relative" ref={paymentMethodRef}>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
-                  <select
-                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
-                    value={formState.paymentMethod}
-                    onChange={handleChange("paymentMethod")}
+                  <button
+                    type="button"
+                    onClick={() => setShowPaymentMethodDropdown(!showPaymentMethodDropdown)}
+                    className="w-full px-4 py-2 bg-[#f3f4f6] border border-gray-200 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
                   >
-                    <option value="Cash">Cash</option>
-                    <option value="Card">Card</option>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                  </select>
+                    <span className={formState.paymentMethod ? 'text-gray-800' : 'text-gray-400'}>
+                      {formState.paymentMethod || 'Select payment method'}
+                    </span>
+                    <ChevronDown size={18} className="text-gray-600" />
+                  </button>
+                  {showPaymentMethodDropdown && (
+                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                      <div
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, paymentMethod: 'Cash' }));
+                          setShowPaymentMethodDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Cash
+                      </div>
+                      <div
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, paymentMethod: 'Card' }));
+                          setShowPaymentMethodDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Card
+                      </div>
+                      <div
+                        onClick={() => {
+                          setFormState((prev) => ({ ...prev, paymentMethod: 'Bank Transfer' }));
+                          setShowPaymentMethodDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Bank Transfer
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>

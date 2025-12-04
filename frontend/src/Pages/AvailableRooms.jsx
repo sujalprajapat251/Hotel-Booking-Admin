@@ -831,7 +831,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {statusTypeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('status', 'All Status');
@@ -871,7 +871,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {roomTypeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('roomType', 'All Types');
@@ -911,7 +911,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {floorDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('floor', 'All Floors');
@@ -952,7 +952,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {bedSizeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('bedSize', 'All Bed Sizes');
@@ -1021,7 +1021,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {housekeepingDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('housekeeping', 'All Status');

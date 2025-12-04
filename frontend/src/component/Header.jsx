@@ -272,7 +272,7 @@ const Header = ({ onMenuClick }) => {
 
       {logoutModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setLogoutModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/50" onClick={() => setLogoutModalOpen(false)}></div>
           <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Logout</h2>

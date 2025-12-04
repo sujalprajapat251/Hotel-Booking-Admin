@@ -187,41 +187,44 @@ const RoomFeatures = () => {
   const currentFeatures = filteredFeatures.slice(startIndex, endIndex);
 
   const handleDownloadExcel = () => {
-      try {
-          if (filteredFeatures.length === 0) {
-            dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
-            return;
-          }
-          // Prepare data for Excel
-          const excelData = filteredFeatures.map((item, index) => {
-            console.log("asd",item)
-              const row = {};
-                  row['No.'] = startIndex + index + 1;
-                  row['Feature Name'] = item.feature || '';
-                  row['Room Type'] = item.roomType.roomType || '';
-              return row;
-          });
-
-          // Create a new workbook
-          const worksheet = XLSX.utils.json_to_sheet(excelData);
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Barlist');
-
-          // Auto-size columns
-          const maxWidth = 20;
-          const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
-          worksheet['!cols'] = wscols;
-
-          // Generate file name with current date
-          const date = new Date();
-          const fileName = `Feature_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
-
-          // Download the file
-          XLSX.writeFile(workbook, fileName);
-          dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
-      } catch (error) {
-          dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+    try {
+      if (currentFeatures.length === 0) {
+        dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+        return;
       }
+
+      const excelData = currentFeatures.map((item, index) => {
+        const row = {};
+
+        if (visibleColumns.no) {
+          row['No.'] = startIndex + index + 1;
+        }
+        if (visibleColumns.feature) {
+          row['Feature Name'] = item.feature || '';
+        }
+        if (visibleColumns.roomType) {
+          row['Room Type'] = item.roomType?.roomType || item.roomType || '';
+        }
+
+        return row;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'RoomFeatures');
+
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
+
+      const date = new Date();
+      const fileName = `Feature_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+    } catch (error) {
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+    }
   };
 
   const handleRefresh = () => {

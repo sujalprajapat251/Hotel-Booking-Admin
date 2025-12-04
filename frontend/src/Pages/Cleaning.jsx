@@ -548,7 +548,7 @@ const Cleaning = () => {
                 {isModalOpen && selectedItem && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity absolute bg-black/40"
+                            className="fixed inset-0 transition-opacity absolute bg-black/50"
                             onClick={handleCloseModal}
                         ></div>
 
@@ -596,7 +596,7 @@ const Cleaning = () => {
                 {isAssignWorkerModalOpen && (
                     <div className="fixed inset-0 z-50 overflow-y-auto">
                         <div
-                            className="fixed inset-0 transition-opacity absolute bg-black/40"
+                            className="fixed inset-0 transition-opacity absolute bg-black/50"
                             onClick={handleAssignWorkerClose}
                         ></div>
 
