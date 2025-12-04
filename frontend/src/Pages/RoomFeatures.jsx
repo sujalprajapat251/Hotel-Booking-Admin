@@ -24,7 +24,7 @@ const RoomFeatures = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const dispatch = useDispatch();
-  const { items: features } = useSelector((state) => state.features);
+  const { items: features, loading } = useSelector((state) => state.features);
   const { items: roomTypes } = useSelector((state) => state.roomtypes);
 
   const [visibleColumns, setVisibleColumns] = useState({
@@ -187,6 +187,7 @@ const RoomFeatures = () => {
   const currentFeatures = filteredFeatures.slice(startIndex, endIndex);
 
   const handleDownloadExcel = () => {
+    try {
       try {
           if (filteredFeatures.length === 0) {
             dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -198,7 +199,7 @@ const RoomFeatures = () => {
               const row = {};
                   row['No.'] = startIndex + index + 1;
                   row['Feature Name'] = item.feature || '';
-                  row['Room Type'] = item.roomType.roomType || '';
+                  row['Room Type'] = item?.roomType?.roomType || '';
               return row;
           });
 
@@ -222,6 +223,39 @@ const RoomFeatures = () => {
       } catch (error) {
           dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
       }
+
+      const excelData = currentFeatures.map((item, index) => {
+        const row = {};
+
+        if (visibleColumns.no) {
+          row['No.'] = startIndex + index + 1;
+        }
+        if (visibleColumns.feature) {
+          row['Feature Name'] = item.feature || '';
+        }
+        if (visibleColumns.roomType) {
+          row['Room Type'] = item.roomType?.roomType || item.roomType || '';
+        }
+
+        return row;
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(excelData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'RoomFeatures');
+
+      const maxWidth = 20;
+      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+      worksheet['!cols'] = wscols;
+
+      const date = new Date();
+      const fileName = `Feature_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+      XLSX.writeFile(workbook, fileName);
+      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+    } catch (error) {
+      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+    }
   };
 
   const handleRefresh = () => {
@@ -308,11 +342,11 @@ const RoomFeatures = () => {
               )}
             </div>
             <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
-              <RefreshCw size={20} />
+              <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
             </button>
             <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
-                            <Download size={20} />
-                        </button>
+              <Download size={20} />
+            </button>
           </div>
         </div>
 
@@ -336,19 +370,16 @@ const RoomFeatures = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {currentFeatures.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center justify-center text-gray-500">
-                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                      </svg>
-                      <p className="text-lg font-medium">No data available</p>
-                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
-                    </div>
-                  </td>
+                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                          <p className="text-lg font-medium">Loading Features...</p>
+                        </div>
+                    </td>
                 </tr>
-              ) : (
+              ) : currentFeatures.length > 0 ? (
                 currentFeatures.map((item, index) => (
                   <tr
                     key={item._id || index}
@@ -398,6 +429,18 @@ const RoomFeatures = () => {
 
                   </tr>
                 ))
+              ) : (
+                <tr>
+                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                        <div className="flex flex-col items-center justify-center text-gray-500">
+                            <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
+                            <p className="text-lg font-medium">No Room Features found</p>
+                            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                        </div>
+                    </td>
+                </tr>
               )}
             </tbody>
           </table>

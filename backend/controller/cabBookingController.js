@@ -227,7 +227,6 @@ exports.getAllCabBookings = async (req, res) => {
     try {
         const {
             status,
-            paymentStatus,
             bookingId,
             assignedCab,
             assignedDriver,
@@ -241,7 +240,6 @@ exports.getAllCabBookings = async (req, res) => {
         const filter = {};
 
         if (status) filter.status = status;
-        if (paymentStatus) filter.paymentStatus = paymentStatus;
         if (bookingId) filter.booking = bookingId;
         if (assignedCab) filter.assignedCab = assignedCab;
         if (assignedDriver) filter.assignedDriver = assignedDriver;
@@ -354,7 +352,6 @@ exports.updateCabBooking = async (req, res) => {
             estimatedDistance,
             estimatedFare,
             status,
-            paymentStatus,
             specialInstructions,
             notes
         } = req.body;
@@ -369,17 +366,22 @@ exports.updateCabBooking = async (req, res) => {
         }
 
         // Update fields if provided
-        if (pickUpLocation) {
-            if (pickUpLocation.address) cabBooking.pickUpLocation.address = pickUpLocation.address;
-            if (pickUpLocation.city !== undefined) cabBooking.pickUpLocation.city = pickUpLocation.city;
-            if (pickUpLocation.state !== undefined) cabBooking.pickUpLocation.state = pickUpLocation.state;
-            if (pickUpLocation.zipCode !== undefined) cabBooking.pickUpLocation.zipCode = pickUpLocation.zipCode;
-            if (pickUpLocation.coordinates) {
-                if (pickUpLocation.coordinates.latitude !== undefined) {
-                    cabBooking.pickUpLocation.coordinates.latitude = pickUpLocation.coordinates.latitude;
-                }
-                if (pickUpLocation.coordinates.longitude !== undefined) {
-                    cabBooking.pickUpLocation.coordinates.longitude = pickUpLocation.coordinates.longitude;
+        if (pickUpLocation !== undefined) {
+            // Handle pickUpLocation as string (enum) or object
+            if (typeof pickUpLocation === 'string') {
+                cabBooking.pickUpLocation = pickUpLocation;
+            } else if (pickUpLocation && typeof pickUpLocation === 'object') {
+                if (pickUpLocation.address) cabBooking.pickUpLocation.address = pickUpLocation.address;
+                if (pickUpLocation.city !== undefined) cabBooking.pickUpLocation.city = pickUpLocation.city;
+                if (pickUpLocation.state !== undefined) cabBooking.pickUpLocation.state = pickUpLocation.state;
+                if (pickUpLocation.zipCode !== undefined) cabBooking.pickUpLocation.zipCode = pickUpLocation.zipCode;
+                if (pickUpLocation.coordinates) {
+                    if (pickUpLocation.coordinates.latitude !== undefined) {
+                        cabBooking.pickUpLocation.coordinates.latitude = pickUpLocation.coordinates.latitude;
+                    }
+                    if (pickUpLocation.coordinates.longitude !== undefined) {
+                        cabBooking.pickUpLocation.coordinates.longitude = pickUpLocation.coordinates.longitude;
+                    }
                 }
             }
         }
@@ -452,9 +454,28 @@ exports.updateCabBooking = async (req, res) => {
         if (bookingDate) cabBooking.bookingDate = new Date(bookingDate);
         if (pickUpTime) cabBooking.pickUpTime = new Date(pickUpTime);
         if (estimatedDistance !== undefined) cabBooking.estimatedDistance = estimatedDistance;
-        if (estimatedFare !== undefined) cabBooking.estimatedFare = estimatedFare;
+        
+        // Handle estimatedFare update and adjust booking total
+        if (estimatedFare !== undefined) {
+            const oldFare = cabBooking.estimatedFare || 0;
+            const newFare = estimatedFare || 0;
+            const fareDifference = newFare - oldFare;
+            
+            cabBooking.estimatedFare = newFare;
+            
+            // Update booking total amount if fare changed
+            if (fareDifference !== 0) {
+                const booking = await Booking.findById(cabBooking.booking);
+                if (booking) {
+                    const currentTotal = booking.payment?.totalAmount || 0;
+                    const newTotal = Math.max(0, currentTotal + fareDifference); // Ensure total doesn't go negative
+                    booking.payment.totalAmount = newTotal;
+                    await booking.save();
+                }
+            }
+        }
+        
         if (status) cabBooking.status = status;
-        if (paymentStatus) cabBooking.paymentStatus = paymentStatus;
         if (specialInstructions !== undefined) cabBooking.specialInstructions = specialInstructions;
         if (notes !== undefined) cabBooking.notes = notes;
 
@@ -495,7 +516,7 @@ exports.updateCabBooking = async (req, res) => {
 // Delete Cab Booking
 exports.deleteCabBooking = async (req, res) => {
     try {
-        const cabBooking = await CabBooking.findByIdAndDelete(req.params.id);
+        const cabBooking = await CabBooking.findById(req.params.id);
 
         if (!cabBooking) {
             return res.status(404).json({
@@ -503,6 +524,22 @@ exports.deleteCabBooking = async (req, res) => {
                 message: "Cab booking not found"
             });
         }
+
+        // Get the associated booking to update total amount
+        const booking = await Booking.findById(cabBooking.booking);
+        
+        if (booking && cabBooking.estimatedFare) {
+            // Subtract cab fare from booking total amount
+            const currentTotal = booking.payment?.totalAmount || 0;
+            const cabFare = cabBooking.estimatedFare || 0;
+            const newTotal = Math.max(0, currentTotal - cabFare); // Ensure total doesn't go negative
+            
+            booking.payment.totalAmount = newTotal;
+            await booking.save();
+        }
+
+        // Delete the cab booking
+        await CabBooking.findByIdAndDelete(req.params.id);
 
         res.status(200).json({
             success: true,

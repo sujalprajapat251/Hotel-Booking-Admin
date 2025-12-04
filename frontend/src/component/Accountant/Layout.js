@@ -10,7 +10,7 @@ const Layout = () => {
   const previousModeRef = useRef(null);
 
   const evaluateViewport = (width) => {
-    if (width <= 500) return 'mobile';
+    if (width <= 650) return 'mobile';
     if (width <= 768) return 'compact';
     return 'desktop';
   };

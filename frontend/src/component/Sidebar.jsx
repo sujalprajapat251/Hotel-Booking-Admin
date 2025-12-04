@@ -108,7 +108,7 @@ const adminSections = [
         path: '/blog',
         subMenus: [
           { label: 'Add Blog', path: '/blog/addblog' },
-          { label: 'Blog', path: '/blog/blog' },
+          { label: 'View Blog', path: '/blog/blog' },
         ]
       },
       {
@@ -117,7 +117,7 @@ const adminSections = [
         path: '/about',
         subMenus: [
           { label: 'Add About', path: '/about/addabout' },
-          { label: 'About', path: '/about/about' },
+          { label: 'View About', path: '/about/about' },
         ]
       },
       { icon: IoPhonePortraitOutline, label: 'Contact', path: '/contact' },
@@ -314,7 +314,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
               {onClose && (
                 <button
                   onClick={onClose}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm500:hidden"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm651:hidden"
                   aria-label="Close sidebar"
                 >
                   <X className="text-xl" />

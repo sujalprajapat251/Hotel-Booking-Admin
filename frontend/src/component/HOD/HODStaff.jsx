@@ -69,7 +69,7 @@ const HODStaff = () => {
     staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     staff?.mobileno?.toString().includes(searchTerm) ||
     staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (staff?.joiningdate && formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (staff?.joiningdate && ( formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(staff.joiningdate).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
     staff?.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -457,7 +457,7 @@ const HODStaff = () => {
         {/* Delete Modal */}
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+            <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
             <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
@@ -542,7 +542,7 @@ const HODStaff = () => {
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
-                        <span>{selectedItem.mobileno}</span>
+                        <span>{selectedItem.countrycode ? selectedItem.countrycode : ""} {selectedItem.mobileno}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Email:</span>
@@ -554,7 +554,17 @@ const HODStaff = () => {
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>
-                        <span>{selectedItem.joiningdate?.split('T')[0]}</span>
+                        <span>
+                          {selectedItem.joiningdate
+                            ? (() => {
+                                const dateObj = new Date(selectedItem.joiningdate);
+                                const day = dateObj.getDate().toString().padStart(2, '0');
+                                const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                                const year = dateObj.getFullYear();
+                                return `${day}/${month}/${year}`;
+                              })()
+                            : ''}
+                        </span>
                       </div>
                       <div className="flex items-start gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Address:</span>

@@ -19,7 +19,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
     room.status === 'Occupied' ||
     (room.status === 'Reserved' && todayStr && checkInStr && todayStr >= checkInStr);
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
       {/* Image Gallery Section */}
       <div className="relative">
         {/* Main Image */}
@@ -99,7 +99,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
       </div>
 
       {/* Content Section */}
-      <div className="p-5">
+      <div className="p-5 flex-1">
         {/* Header with Room Number */}
         <div className="mb-4">
           <div className="flex items-start justify-between mb-2">
@@ -214,9 +214,10 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
             {room.maintenanceNotes}
           </div>
         )}
+      </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-3">
+      {/* Action Buttons */}
+      <div className="px-2 pb-2 space-y-3">
           <button
             onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
             disabled={isAddGuestDisabled}
@@ -264,7 +265,6 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
             </svg>
             Delete Room
           </button> */}
-        </div>
       </div>
     </div>
   );
@@ -426,8 +426,6 @@ const AvailableRooms = () => {
   useEffect(() => {
     dispatch(fetchBookings());
   }, [dispatch]);
-
-  console.log(rooms, "rooms");
 
   // Filter rooms based on filter criteria
   const filteredRooms = useMemo(() => {
@@ -638,7 +636,6 @@ const AvailableRooms = () => {
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
-    console.log('Filter changed:', key, value); // Add this to debug
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -831,7 +828,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {statusTypeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('status', 'All Status');
@@ -871,7 +868,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {roomTypeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('roomType', 'All Types');
@@ -911,7 +908,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {floorDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('floor', 'All Floors');
@@ -952,7 +949,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {bedSizeDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('bedSize', 'All Bed Sizes');
@@ -1021,7 +1018,7 @@ const AvailableRooms = () => {
                 <ChevronDown size={18} className="text-gray-600" />
               </button>
               {housekeepingDropdown && (
-                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                   <div
                     onClick={() => {
                       handleFilterChange('housekeeping', 'All Status');
@@ -1148,13 +1145,12 @@ const AvailableRooms = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
-              console.log(amenities, "amenities");
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {
                 if (!date) return null;
                 const d = new Date(date);
                 return d.toISOString().slice(0, 10);
-              };
+              };  
 
               const todayStr = getDateString(new Date());
               // Use backend-provided currentBooking instead of getBookingForRoom

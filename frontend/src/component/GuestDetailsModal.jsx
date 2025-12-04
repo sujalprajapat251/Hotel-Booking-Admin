@@ -187,7 +187,7 @@ function GuestDetailsModal({
             </h3>
             <InfoItem label="Full Name" value={guest.fullName} />
             <InfoItem label="Address" value={guest.address} />
-            <InfoItem label="Phone Number" value={guest.phone} />
+            <InfoItem label="Phone Number" value={`${guest.countrycode ? guest.countrycode + ' ' : ''}${guest.phone}`} />
             <InfoItem label="Email Address" value={guest.email} />
             <InfoItem label="ID Number" value={guest.idNumber} />
           </div>

@@ -467,7 +467,7 @@ const HODTable = () => {
           {/* Add Modal */}
           {isAddModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/40" onClick={handleAddModalClose}></div>
+              <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
               <div className="relative w-full md:max-w-xl max-w-[90%] rounded-[4px] bg-white p-6 shadow-xl">
                 <div className="flex items-start justify-between mb-6 pb-2 border-b border-gray-200">
                   <h2 className="text-2xl font-semibold text-black">
@@ -537,7 +537,7 @@ const HODTable = () => {
           {/* Delete Modal */}
           {isDeleteModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-black/40" onClick={handleDeleteModalClose}></div>
+              <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
               <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-semibold text-black">Delete Cafe Table</h2>

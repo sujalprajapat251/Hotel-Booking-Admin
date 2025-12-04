@@ -167,7 +167,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
             {onClose && (
               <button
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm500:hidden"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm651:hidden"
                 aria-label="Close sidebar"
               >
                 <X className="text-xl" />

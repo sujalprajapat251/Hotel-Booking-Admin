@@ -67,9 +67,7 @@ const SimpleBarChart = () => {
     }
 
     return (
-        <div style={{
-            width: '100%',
-            maxWidth: '200px',
+        <div className='w-[250px] sm:w-[230px] md:w-[160px] lg:w-[180px] xl:w-[120px]' style={{
             height: '100px',
             background: 'white',
         }}>

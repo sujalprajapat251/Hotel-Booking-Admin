@@ -30,54 +30,55 @@ const Blog = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const blog = useSelector((state) => state.blog.blog)
+    const loading = useSelector((state) => state.blog.loading)
 
     const [visibleColumns, setVisibleColumns] = useState({
-      no: true,
-      image: true,
-      title: true,
-      subtitle: true,
-      description: true,
-      tag: true,
-      count: true,
-      date: true,
-      actions: true,
+        no: true,
+        image: true,
+        title: true,
+        subtitle: true,
+        description: true,
+        tag: true,
+        count: true,
+        date: true,
+        actions: true,
     });
     const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
 
     const toggleColumn = (column) => {
-      setVisibleColumns(prev => ({
-        ...prev,
-        [column]: !prev[column]
-      }));
+        setVisibleColumns(prev => ({
+            ...prev,
+            [column]: !prev[column]
+        }));
     };
 
     useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-          setShowColumnDropdown(false);
-        }
-      };
-  
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowColumnDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     useEffect(() => {
-      const shouldDisableScroll = isModalOpen || isAddModalOpen || isDeleteModalOpen;
-      if (shouldDisableScroll) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
+        const shouldDisableScroll = isModalOpen || isAddModalOpen || isDeleteModalOpen;
+        if (shouldDisableScroll) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
 
-      return () => {
-        document.body.style.overflow = '';
-      };
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, [isModalOpen, isAddModalOpen, isDeleteModalOpen]);
 
     useEffect(() => {
         dispatch(getAllBlog());
-      }, [dispatch]);
+    }, [dispatch]);
 
     const handleViewClick = (item) => {
         setSelectedItem(item);
@@ -225,7 +226,6 @@ const Blog = () => {
         const searchLower = searchTerm.trim().toLowerCase();
         if (!searchLower) return true;
 
-        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
         const formattedDate = formatDate(item.date).toLowerCase();
         const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
         const isoDate = toIsoDate(item.date).toLowerCase();
@@ -240,7 +240,7 @@ const Blog = () => {
             item.name?.toLowerCase().includes(searchLower) ||
             item.tag?.toLowerCase().includes(searchLower) ||
             countValue.includes(searchLower) ||
-            formattedCreatedAt.includes(searchLower) ||
+            (item?.createdAt && (formatDate(item.createdAt).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(item.createdAt).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
             formattedDate.includes(searchLower) ||
             isoCreatedAt.includes(searchLower) ||
             isoDate.includes(searchLower)
@@ -261,12 +261,12 @@ const Blog = () => {
             // Prepare data for Excel
             const excelData = filteredBookings.map((item, index) => {
                 const row = {};
-                
+
                 if (visibleColumns.no) {
                     row['No.'] = startIndex + index + 1;
                 }
                 if (visibleColumns.image) {
-                    row['Image'] = item.image ?  item.image : '';
+                    row['Image'] = item.image ? item.image : '';
                 }
                 if (visibleColumns.title) {
                     row['Title'] = item.title || '';
@@ -285,26 +285,26 @@ const Blog = () => {
                 }
                 return row;
             });
-  
+
             // Create a new workbook
             const worksheet = XLSX.utils.json_to_sheet(excelData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, 'Blog');
-  
+
             // Auto-size columns
             const maxWidth = 20;
             const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
             worksheet['!cols'] = wscols;
-  
+
             // Generate file name with current date
             const date = new Date();
             const fileName = `Blog_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
-  
+
             // Download the file
             XLSX.writeFile(workbook, fileName);
-            dispatch(setAlert({ text:"Export completed..!", color: 'success' }));
+            dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
         } catch (error) {
-            dispatch(setAlert({ text:"Export failed..!", color: 'error' }));
+            dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
     };
 
@@ -314,7 +314,7 @@ const Blog = () => {
         setCurrentPage(1);
     };
 
-    
+
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
 
@@ -327,73 +327,73 @@ const Blog = () => {
 
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
-                  <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                    {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Blog</p> */}
+                    <div className='flex gap-2 md:gap-5 sm:justify-between'>
+                        {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Blog</p> */}
 
-                    {/* Search Bar */}
-                    <div className="relative  max-w-md">
-                      <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
-                      />
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        {/* Search Bar */}
+                        <div className="relative  max-w-md">
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+                            />
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        </div>
                     </div>
-                  </div>
 
                     {/* Action Buttons */}
                     <div className="flex items-center gap-1 justify-end mt-2">
-                      <div className="relative" ref={dropdownRef}>
-                        <button
-                          onClick={() => navigate('/blog/addblog', { state: { mode: 'add' } })}
-                          className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
-                          title="Add Blog"
-                        >
-                            <FiPlusCircle size={20}/>
-                        </button>
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => navigate('/blog/addblog', { state: { mode: 'add' } })}
+                                className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
+                                title="Add Blog"
+                            >
+                                <FiPlusCircle size={20} />
+                            </button>
 
-                        <button
-                          onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                          className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
-                          title="Show/Hide Columns"
-                        >
-                          <Filter size={20} />
-                        </button>
+                            <button
+                                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
+                                title="Show/Hide Columns"
+                            >
+                                <Filter size={20} />
+                            </button>
 
-                        {showColumnDropdown && (
-                          <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
-                            <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
-                              <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
-                            </div>
-                            <div className="max-h-44 overflow-y-auto">
-                              {Object.keys(visibleColumns).map((column) => (
-                                <label
-                                  key={column}
-                                  className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={visibleColumns[column]}
-                                    onChange={() => toggleColumn(column)}
-                                    className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
-                                  />
-                                  <span className="ml-2 text-sm text-gray-700 capitalize">
-                                    {column === 'joiningDate' ? 'Joining Date' : column}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                            {showColumnDropdown && (
+                                <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                                    <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                                        <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                                    </div>
+                                    <div className="max-h-44 overflow-y-auto">
+                                        {Object.keys(visibleColumns).map((column) => (
+                                            <label
+                                                key={column}
+                                                className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={visibleColumns[column]}
+                                                    onChange={() => toggleColumn(column)}
+                                                    className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                                                />
+                                                <span className="ml-2 text-sm text-gray-700 capitalize">
+                                                    {column === 'joiningDate' ? 'Joining Date' : column}
+                                                </span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors" title="Refresh" onClick={handleRefresh}>
                             <RefreshCw size={20} />
                         </button>
-                      <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
-                        <Download size={20} />
-                      </button>
+                        <button className="p-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition-colors" title="Download" onClick={handleDownloadExcel}>
+                            <Download size={20} />
+                        </button>
                     </div>
                 </div>
 
@@ -402,49 +402,47 @@ const Blog = () => {
                     <table className="w-full min-w-[1000px]">
                         <thead className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] sticky top-0 z-10 shadow-sm">
                             <tr>
-                            {visibleColumns.no && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
-                            )}
-                            {visibleColumns.image && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
-                            )}
-                            {visibleColumns.title && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Title</th>
-                            )}
-                            {visibleColumns.subtitle && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Sub Title</th>
-                            )}
-                            {visibleColumns.description && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
-                            )}
-                            {visibleColumns.tag && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Tag</th>
-                            )}
-                            {visibleColumns.count && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Count</th>
-                            )}
-                            {visibleColumns.date && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
-                            )}
-                            {visibleColumns.actions && (
-                                <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
-                            )}
+                                {visibleColumns.no && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">No</th>
+                                )}
+                                {visibleColumns.image && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
+                                )}
+                                {visibleColumns.title && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Title</th>
+                                )}
+                                {visibleColumns.subtitle && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Sub Title</th>
+                                )}
+                                {visibleColumns.description && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
+                                )}
+                                {visibleColumns.tag && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Tag</th>
+                                )}
+                                {visibleColumns.count && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Count</th>
+                                )}
+                                {visibleColumns.date && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Date</th>
+                                )}
+                                {visibleColumns.actions && (
+                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Action</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
-                            {currentData.length === 0 ? (
+
+                            {loading ? (
                                 <tr>
                                     <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
-                                    <div className="flex flex-col items-center justify-center text-gray-500">
-                                        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                                        </svg>
-                                        <p className="text-lg font-medium">No data available</p>
-                                        <p className="text-sm mt-1">Try adjusting your search or filters</p>
-                                    </div>
+                                        <div className="flex flex-col items-center justify-center text-gray-500">
+                                            <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                                            <p className="text-lg font-medium">Loading...</p>
+                                        </div>
                                     </td>
                                 </tr>
-                            ) : (
+                            ) : currentData.length > 0 ? (
                                 currentData.map((item, index) => (
                                     <tr
                                         key={index}
@@ -518,30 +516,41 @@ const Blog = () => {
                                             <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="mv_table_action flex">
                                                     <div onClick={() => handleViewClick(item)}><IoEyeSharp className='text-[18px] text-quaternary' /></div>
-                                                    <div 
-                                                    onClick={() => {
-                                                        setIsEditMode(true);
-                                                        setEditingItem(item);
-                                                        formik.setValues({
-                                                            title: item.title || '',
-                                                            subtitle: item.subtitle || '',
-                                                            description: item.description || '',
-                                                            tag: item.tag || '',
-                                                            count: item.count || '',
-                                                            image: null,
-                                                        });
-                                                        formik.setTouched({});
-                                                        setIsAddModalOpen(true);
-                                                        navigate('/blog/addblog', { state: { mode: 'edit', blog: item } });
-                                                    }}
+                                                    <div
+                                                        onClick={() => {
+                                                            setIsEditMode(true);
+                                                            setEditingItem(item);
+                                                            formik.setValues({
+                                                                title: item.title || '',
+                                                                subtitle: item.subtitle || '',
+                                                                description: item.description || '',
+                                                                tag: item.tag || '',
+                                                                count: item.count || '',
+                                                                image: null,
+                                                            });
+                                                            formik.setTouched({});
+                                                            setIsAddModalOpen(true);
+                                                            navigate('/blog/addblog', { state: { mode: 'edit', blog: item } });
+                                                        }}
                                                     ><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                                                     <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                                                 </div>
                                             </td>
                                         )}
-
                                     </tr>
                                 ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                        <div className="flex flex-col items-center justify-center text-gray-500">
+                                            <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                            </svg>
+                                            <p className="text-lg font-medium">No data available</p>
+                                            <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             )}
                         </tbody>
                     </table>
@@ -549,49 +558,49 @@ const Blog = () => {
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                  <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
-                    <span className="text-sm text-gray-600">Items per page:</span>
-                    <div className="relative">
-                      <select
-                        value={itemsPerPage}
-                        onChange={(e) => {
-                          setItemsPerPage(Number(e.target.value));
-                          setCurrentPage(1);
-                        }}
-                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
-                      >
-                        <option value={5}>5</option>
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={100}>100</option>
-                      </select>
+                    <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
+                        <span className="text-sm text-gray-600">Items per page:</span>
+                        <div className="relative">
+                            <select
+                                value={itemsPerPage}
+                                onChange={(e) => {
+                                    setItemsPerPage(Number(e.target.value));
+                                    setCurrentPage(1);
+                                }}
+                                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                            >
+                                <option value={5}>5</option>
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
-                    <span className="text-sm text-gray-600">
-                      {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
-                    </span>
+                    <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
+                        <span className="text-sm text-gray-600">
+                            {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
+                        </span>
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronLeft size={20} />
-                      </button>
-                      <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        <ChevronRight size={20} />
-                      </button>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
                     </div>
-                  </div>
                 </div>
-                
+
             </div>
 
             {/* View Modal */}
@@ -636,7 +645,7 @@ const Blog = () => {
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Sub Title:</span>
                                             <span className="text-gray-900 max-h-40 overflow-y-auto prose prose-sm max-w-none">{selectedItem.subtitle}</span>
                                         </div>
-                                        <div className="flex items-start gap-3">    
+                                        <div className="flex items-start gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
                                             <div
                                                 className="text-gray-900 max-h-40 overflow-y-auto prose prose-sm max-w-none"
@@ -654,7 +663,7 @@ const Blog = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>      
+                        </div>
                     </div>
                 </div>
             )}

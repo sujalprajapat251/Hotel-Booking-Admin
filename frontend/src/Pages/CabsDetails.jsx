@@ -57,7 +57,11 @@ const CabsDetails = () => {
     return vehicleInventory.filter((vehicle) => {
       const matchesSearch =
         vehicle.modelName?.toLowerCase().includes(search) ||
-        vehicle.registrationNumber?.toLowerCase().includes(search);
+        vehicle.registrationNumber?.toLowerCase().includes(search) || 
+        vehicle.description?.toLowerCase().includes(search) || 
+        vehicle.vehicleId?.toLowerCase().includes(search) || 
+        vehicle.perKmCharge?.toString().toLowerCase().includes(search) || 
+        vehicle.fuelType?.toLowerCase().includes(search);
 
       const matchesStatus =
         statusFilter === "All" ? true : vehicle.status === statusFilter;
@@ -331,7 +335,7 @@ const CabsDetails = () => {
                     {vehicle.fuelType || "—"}
                   </td>
                   <td className="px-5 py-4 text-black">
-                    ₹{vehicle.perKmCharge || 0}
+                    ${vehicle.perKmCharge || 0}
                   </td>
                   <td
                     className="px-5 py-4 text-black"

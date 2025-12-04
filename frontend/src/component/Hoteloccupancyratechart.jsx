@@ -42,7 +42,7 @@ const HotelOccupancyDashboard = () => {
         <div className="flex items-center justify-center">
             <div className="w-full">
                 <h2 className="text-2xl font-semibold mb-3" style={{ color: colors.senary }}>
-                    Hotel Occupancy Rate
+                    Hotel Revenue
                 </h2>
 
                 <div className="flex justify-between items-end gap-4 mb-3">
