@@ -27,7 +27,6 @@ export const fetchRoomsPaginated = createAsyncThunk(
       const response = await axios.get(`${BASE_URL}/rooms/pagination`, {
         params: { page, limit, ...filters }
       });
-      console.log(response.data,"response");
 
       return {
         items: response.data?.data || [],

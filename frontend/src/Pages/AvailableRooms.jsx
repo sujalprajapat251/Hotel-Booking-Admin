@@ -427,8 +427,6 @@ const AvailableRooms = () => {
     dispatch(fetchBookings());
   }, [dispatch]);
 
-  console.log(rooms, "rooms");
-
   // Filter rooms based on filter criteria
   const filteredRooms = useMemo(() => {
     if (!rooms || rooms.length === 0) return [];
@@ -638,7 +636,6 @@ const AvailableRooms = () => {
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
-    console.log('Filter changed:', key, value); // Add this to debug
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -1148,13 +1145,12 @@ const AvailableRooms = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
-              console.log(amenities, "amenities");
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {
                 if (!date) return null;
                 const d = new Date(date);
                 return d.toISOString().slice(0, 10);
-              };
+              };  
 
               const todayStr = getDateString(new Date());
               // Use backend-provided currentBooking instead of getBookingForRoom

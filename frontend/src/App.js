@@ -27,7 +27,7 @@ import StaffForm from './Pages/StaffForm.jsx';
 import User from './Pages/User';
 import TermsCondition from "./Pages/TermsCondition";
 import Profile from './Pages/Profile';
-import BookingDashboard from './Pages/BookingDashboard';
+import BookingDashboard from './component/Reseption/BookingDashboard.jsx';
 import ProtectedRoute from './component/ProtectedRoute';
 import Cafe from './Pages/Cafe';
 import Cafecategory from './Pages/Cafecategory';
@@ -67,8 +67,7 @@ import CafeOrderList from './Pages/CafeOrderList.jsx';
 import HouseKeepingLayout from './component/HouseKeepingWorker/Layout';
 import HouseKeepingDashboard from './component/HouseKeepingWorker/Dashboard';
 import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
-import Cleaning from './Pages/Cleaning.jsx';
-import Maintenence from './Pages/Maintenence.jsx';
+import Maintenence from './component/Reseption/Maintenence.jsx';
 import OrderRequest from './Pages/OrderRequest.jsx';
 import Order from './component/HouseKeepingWorker/Order.jsx';
 
