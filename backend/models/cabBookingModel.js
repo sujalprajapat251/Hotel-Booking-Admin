@@ -52,11 +52,6 @@ const cabBookingSchema = new mongoose.Schema({
         enum: ["Pending", "Confirmed", "Assigned", "InProgress", "Completed", "Cancelled"],
         default: "Pending"
     },
-    paymentStatus: {
-        type: String,
-        enum: ["Pending", "Paid", "Partial", "Refunded"],
-        default: "Pending"
-    },
     specialInstructions: {
         type: String,
         trim: true
