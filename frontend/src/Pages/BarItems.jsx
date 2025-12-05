@@ -356,7 +356,7 @@ const BarItems = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-1 justify-end mt-2">
+                    <div className="flex items-center gap-1 justify-end mt-2 whitespace-nowrap">
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => {

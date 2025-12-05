@@ -202,7 +202,7 @@ const Departments = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1 justify-end mt-2">
+          <div className="flex items-center gap-1 justify-end mt-2 whitespace-nowrap">
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => {
@@ -383,14 +383,13 @@ const Departments = () => {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Add Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">
                 {isEditMode ? 'Edit Department' : 'Add Department'}

@@ -227,3 +227,41 @@ body{
 .guest-range-dropdown .ant-picker-today-btn:hover {
   color: #a4915f;
 }
+/* Responsive adjustments for Help/FAQ header: place search + action buttons side-by-side
+   on devices between 425px and 767px (inclusive of 425, up to md breakpoint) */
+@media (min-width: 425px) and (max-width: 767px) {
+  .faq-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .faq-header .faq-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* make the search take available space */
+  .faq-header .faq-left .relative {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .faq-header .faq-right {
+    margin-top: 0 !important;
+    width: auto !important;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  /* tighten up the search input so it doesn't overflow on smaller widths */
+  .faq-header .faq-left input[type="text"] {
+    min-width: 0;
+  }
+}

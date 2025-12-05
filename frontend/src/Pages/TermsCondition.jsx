@@ -120,7 +120,7 @@ const TermsTable = () => {
 
       <div className='bg-white rounded-lg shadow-md overflow-hidden'>
         {/* Header */}
-        <div className="md600:flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-gray-200">
           <div className='flex gap-2 md:gap-6 sm:justify-between'>
             {/* <p className="text-[15px] font-semibold text-gray-800 text-nowrap content-center">Terms & Conditions</p> */}
 
@@ -135,7 +135,7 @@ const TermsTable = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
           </div>
-          <div className='flex'>
+          <div className='flex mt-2 whitespace-nowrap'>
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => {
@@ -215,7 +215,7 @@ const TermsTable = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between px-1 sm:px-3 py-3 border-t border-gray-200 bg-gray-50">
           <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">Items per page:</span>
             <div className="relative">

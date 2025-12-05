@@ -104,12 +104,12 @@ const FAQPage = () => {
           <h1 className="text-2xl font-semibold text-black">Faq</h1>
         </section>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px]">
-          <div className='flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px] faq-header">
+          <div className='faq-left flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
             {/* <p className="text-[16px] font-semibold text-gray-800">Faqs</p> */}
 
             {/* Search Bar */}
-            <div className="relative w-full sm:max-w-xs">
+            <div className="relative max-w-md">
               <input
                 type="text"
                 placeholder="Search..."
@@ -120,7 +120,7 @@ const FAQPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
             </div>
           </div>
-          <div className='flex justify-end mt-3 md:mt-0 w-full md:w-auto'>
+          <div className='faq-right flex justify-end mt-2'>
             <button
               onClick={() => setIsAddModalOpen(true)}
               className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#4CAF50]/10 rounded-lg transition-colors"
@@ -215,7 +215,7 @@ const FAQPage = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Add Faqs</h2>
               <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
@@ -282,7 +282,7 @@ const FAQPage = () => {
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsEditModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Edit Faqs</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-800">
@@ -327,7 +327,7 @@ const FAQPage = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-3">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Faqs</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">

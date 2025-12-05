@@ -319,19 +319,17 @@ const CabsDetails = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-12 w-12 rounded-full border border-gray-200 overflow-hidden bg-gray-100">
                           {vehicle.cabImage ? (
                             <img
                               src={vehicle.cabImage}
                               alt={vehicle.modelName}
-                              className="h-full w-full object-cover"
+                              className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A]"
                             />
                           ) : (
                             <div className="h-full w-full flex items-center justify-center text-xs text-gray-400">
                               No Image
                             </div>
                           )}
-                        </div>
                         <div>
                           <p className="text-sm font-medium text-black">
                             {vehicle.modelName}
@@ -425,7 +423,7 @@ const CabsDetails = () => {
           </table>
         </div>
 
-        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+        <div className="flex items-center justify-between px-2 sm:px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">Items per page:</span>
             <div className="relative">
