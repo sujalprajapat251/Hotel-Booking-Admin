@@ -454,7 +454,11 @@ const updateBooking = async (req, res) => {
         }
 
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity price cleanStatus' },
+            { 
+                path: 'room', 
+                select: 'roomNumber roomType status capacity price cleanStatus',
+                populate: { path: 'roomType' }
+            },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
