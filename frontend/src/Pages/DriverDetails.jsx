@@ -539,7 +539,7 @@ const DriverDetails = () => {
             </tbody>
           </table>
         </div>
-        <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+        <div className="flex items-center justify-between px-1 sm:px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
           <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
             <span className="text-sm text-gray-600">Items per page:</span>
             <div className="relative">
