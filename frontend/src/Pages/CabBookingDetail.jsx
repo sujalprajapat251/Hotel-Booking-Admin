@@ -383,9 +383,25 @@ const CabBookingDetail = () => {
                             <IoEyeSharp className="text-[18px] text-quaternary" />
                           </button>
                         </div>
-                        {/* <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit">
+                        <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit" onClick={() => {
+                          setEditBooking(booking);
+                          setEditForm({
+                            pickupLocation: booking.pickupLocation || "Airport",
+                            dropLocation: booking.dropLocation || "Hotel",
+                            bookingDate: booking.bookingDate
+                              ? new Date(booking.bookingDate).toISOString().split('T')[0]
+                              : "",
+                            pickupTime: booking.pickupTime
+                              ? new Date(booking.pickupTime).toISOString().slice(0, 16)
+                              : "",
+                            estimatedDistance: booking.distance && booking.distance !== "--" ? booking.distance : "",
+                            estimatedFare: booking.fare && booking.fare !== "--" ? booking.fare : "",
+                            notes: booking.notes || "",
+                          });
+                          setShowEditModal(true);
+                        }}>
                         <FiEdit className="text-[18px]" />
-                      </div> */}
+                      </div>
                         <div title="Delete">
                           <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
                         </div>

@@ -41,30 +41,35 @@ body{
   border: 1px solid #d1d5db;
   padding: 0 0.75rem;
   color: #000000;
+  width: 100%;
 }
 
 .guest-range-picker.ant-picker-focused {
-  border: 1px solid #b79982;
+  border-color: #b79982;
   box-shadow: 0 0 0 2px rgba(167, 135, 106, 0.35);
 }
 
 .guest-range-picker .ant-picker-input > input {
   color: #f7df9c;
   font-weight: 500;
+  font-size: 14px;
 }
 
 .guest-range-picker .ant-picker-suffix {
   color: #f7df9c;
 }
 
-.guest-range-picker .ant-picker-clear {
-  color: #e3c78a;
-}
-
 .guest-range-dropdown .ant-picker-panel-container {
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 20px 45px rgba(117, 86, 71, 0.45);
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: #fff;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: 12px;
 }
 
 .guest-range-dropdown .ant-picker-panel {
@@ -72,56 +77,153 @@ body{
   border: none;
 }
 
-.guest-range-dropdown
-  .ant-picker-date-panel
-  .ant-picker-content
-  th {
+@media (min-width: 900px) {
+  .guest-range-dropdown .ant-picker-panels {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+}
+
+@media (max-width: 899px) {
+  .guest-range-dropdown .ant-picker-panels {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100%;
+    gap: 20px;
+  }
+
+  .guest-range-dropdown .ant-picker-panel-container {
+    max-width: 450px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 9vh !important;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-y: scroll;
+  }
+
+  .guest-range-dropdown .ant-picker-panel-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .guest-range-dropdown .ant-picker-date-panel {
+    width: 100% !important;
+  }
+
+  .guest-range-dropdown .ant-picker-body {
+    padding: 10px;
+  }
+
+  .guest-range-dropdown .ant-picker-content {
+    width: 100%;
+    table-layout: fixed;
+  }
+}
+
+@media (max-width: 480px) {
+  .guest-range-dropdown .ant-picker-panel-container {
+    transform: translateX(-50%) scale(1.08) !important;
+    transform-origin: top center !important;
+  }
+
+  .guest-range-dropdown .ant-picker-panel-container {
+    width: 250px;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    top: 9vh !important;
+  }
+
+  .guest-range-dropdown .ant-picker-header-view button,
+  .guest-range-dropdown .ant-picker-header button {
+    font-size: 16px;
+  }
+
+  .guest-range-dropdown .ant-picker-content th {
+    font-size: 13px;
+    padding: 10px 0;
+  }
+
+  .guest-range-dropdown .ant-picker-body {
+    padding: 14px;
+  }
+}
+
+.guest-range-dropdown .ant-picker-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(247, 223, 156, 0.25);
+}
+
+.guest-range-dropdown .ant-picker-header-view button,
+.guest-range-dropdown .ant-picker-header button {
+  color: rgb(104, 81, 55);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.guest-range-dropdown .ant-picker-header button:hover {
+  color: #a4915f;
+}
+
+.guest-range-dropdown .ant-picker-content th {
   color: #795a4d;
   font-weight: 600;
+  font-size: 12px;
+  padding: 8px 0;
+}
+
+.guest-range-dropdown .ant-picker-cell-inner {
+  min-width: 32px;
+  height: 32px;
+  line-height: 32px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: auto;
+}
+
+.guest-range-dropdown .ant-picker-cell:hover .ant-picker-cell-inner {
+  background: rgba(247, 223, 156, 0.15);
 }
 
 .guest-range-dropdown .ant-picker-cell-in-view {
   color: #49362d;
 }
 
-.guest-range-dropdown .ant-picker-cell-in-view.ant-picker-cell-disabled {
-  color: #b79982;
-  opacity: 0.4;
+.guest-range-dropdown .ant-picker-cell-disabled {
+  opacity: 0.45;
 }
 
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-today
-  .ant-picker-cell-inner::before {
-  border-color: #f7df9c;
+.guest-range-dropdown .ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: #f7df9c !important;
 }
 
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-selected
-  .ant-picker-cell-inner,
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-range-start
-  .ant-picker-cell-inner,
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-range-end
-  .ant-picker-cell-inner {
+.guest-range-dropdown .ant-picker-cell-selected .ant-picker-cell-inner,
+.guest-range-dropdown .ant-picker-cell-range-start .ant-picker-cell-inner,
+.guest-range-dropdown .ant-picker-cell-range-end .ant-picker-cell-inner {
   background: linear-gradient(135deg, #f7df9c, #b79982);
-  color: #3c2417;
+  color: #3c2417 !important;
+  font-weight: 600;
   border-radius: 999px;
-  box-shadow: 0 8px 18px rgba(167, 135, 106, 0.4);
+  box-shadow: 0 4px 12px rgba(167, 135, 106, 0.4);
 }
 
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-in-range
-  .ant-picker-cell-inner {
+.guest-range-dropdown .ant-picker-cell-in-range .ant-picker-cell-inner {
   background: rgba(163, 135, 106, 0.2);
   color: #fff2d1;
 }
 
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-range-hover-start::before,
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-range-hover-end::before,
-.guest-range-dropdown
-  .ant-picker-cell-in-view.ant-picker-cell-range-hover::before {
+.guest-range-dropdown .ant-picker-cell-range-hover::before {
   background: rgba(247, 223, 156, 0.2);
+}
+
+.guest-range-dropdown .ant-picker-footer {
+  background: rgba(117, 86, 71, 0.6);
+  border-top: 1px solid rgba(247, 223, 156, 0.2);
+}
+
+.guest-range-dropdown .ant-picker-today-btn {
+  color: #f7df9c;
+}
+
+.guest-range-dropdown .ant-picker-today-btn:hover {
+  color: #a4915f;
 }
