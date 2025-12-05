@@ -138,12 +138,10 @@ const FAQPage = () => {
         <div className="flex flex-col mt-4 gap-4">
           {loading ? (
             <tr>
-              <td colSpan={12} className="px-6 py-12 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500">
                   <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                   <p className="text-lg font-medium">Loading...</p>
                 </div>
-              </td>
             </tr>
           ) : filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (

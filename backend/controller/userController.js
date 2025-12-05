@@ -2,6 +2,7 @@ const User = require('../models/userModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
+const { uploadToS3, deleteFromS3 } = require('../utils/s3Service');
 
 exports.createUser = async (req, res) => {
     try {

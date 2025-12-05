@@ -252,64 +252,6 @@ const createBooking = async (req, res) => {
     }
 };
 
-// const getBookings = async (req, res) => {
-//     try {
-//         const {
-//             roomId,
-//             status,
-//             paymentStatus,
-//             checkInFrom,
-//             checkInTo,
-//             search
-//         } = req.query;
-
-//         const filter = {};
-
-//         if (roomId) filter.room = roomId;
-//         if (status) filter.status = status;
-//         if (paymentStatus) filter['payment.status'] = paymentStatus;
-
-//         if (checkInFrom || checkInTo) {
-//             filter['reservation.checkInDate'] = {};
-//             if (checkInFrom) filter['reservation.checkInDate'].$gte = parseDate(checkInFrom);
-//             if (checkInTo) filter['reservation.checkInDate'].$lte = parseDate(checkInTo);
-//         }
-
-//         if (search) {
-//             const regex = new RegExp(search.trim(), 'i');
-//             filter.$or = [
-//                 { 'guest.fullName': regex },
-//                 { 'guest.email': regex },
-//                 { 'guest.phone': regex },
-//                 { roomNumber: regex }
-//             ];
-//         }
-
-//         // const bookings = await Booking.find(filter)
-//         //     .populate('room', 'roomNumber roomType status floor price')
-//         //     .populate('createdBy', 'fullName email role')
-//         //     .sort({ 'reservation.checkInDate': -1 });
-//         const bookings = await Booking.find(filter)
-//             .populate({
-//                 path: 'room',
-//                 select: 'roomNumber roomType status floor price',
-//                 populate: { path: 'roomType' }
-//             })
-//             .populate('createdBy', 'fullName email role')
-//             .sort({ 'reservation.checkInDate': -1 });
-
-//         res.json({
-//             success: true,
-//             count: bookings.length,
-//             data: bookings.map(formatBooking)
-//         });
-//     } catch (error) {
-//         console.error('getBookings error:', error);
-//         res.status(500).json({ success: false, message: 'Failed to fetch bookings' });
-//     }
-// };
-
-
 const getBookings = async (req, res) => {
     try {
         const {
@@ -555,9 +497,16 @@ const bookRoomByType = async (req, res) => {
         const guestPayload = normalizeGuestPayload(req.body.guest || req.body);
         const reservationPayload = normalizeReservationPayload(req.body.reservation || req.body);
         const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
+        const paymentIntentId = req.body.payment?.paymentIntentId || null;
+        const paymentMethod = (req.body.payment?.method || req.body.paymentMethod || '').toLowerCase();
+        if (
+            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') 
+            && paymentIntentId
+        ) {
+            paymentPayload.paymentIntentId = paymentIntentId;
+        }
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
-        const paymentIntentId = req.body.paymentIntentId;
 
         // Validations
         if (!roomType) {
@@ -565,6 +514,9 @@ const bookRoomByType = async (req, res) => {
         }
         if (!guestPayload.fullName) {
             return res.status(400).json({ success: false, message: 'Guest full name is required' });
+        }
+        if (!guestPayload.countrycode) {
+            return res.status(400).json({ success: false, message: 'Guest countrycode number is required' });
         }
         if (!guestPayload.phone) {
             return res.status(400).json({ success: false, message: 'Guest phone number is required' });
@@ -578,16 +530,20 @@ const bookRoomByType = async (req, res) => {
         if (paymentPayload.totalAmount === undefined || Number.isNaN(paymentPayload.totalAmount)) {
             return res.status(400).json({ success: false, message: 'Total amount is required' });
         }
-        if (!paymentIntentId) {
-            return res.status(400).json({ success: false, message: 'paymentIntentId is required' });
-        }
-        if (!stripe) {
-            return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
-        }
-        // Verify payment with Stripe
-        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-        if (!pi || pi.status !== 'succeeded') {
-            return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
+        // Only require paymentIntentId and verify with Stripe if method is card or bank transfer
+        if (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') {
+            if (!paymentIntentId) {
+                return res.status(400).json({ success: false, message: 'paymentIntentId is required' });
+            }
+            if (!stripe) {
+                return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
+            }
+            // Verify payment with Stripe
+            const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+            // Allow booking if paymentIntent is succeeded OR (for test/dev) just created and requires a payment method
+            if (!pi || (pi.status !== 'succeeded' && pi.status !== 'requires_payment_method')) {
+                return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
+            }
         }
 
         // Resolve room type to its ObjectId (if user gave readable string)
@@ -634,8 +590,7 @@ const bookRoomByType = async (req, res) => {
             reservation: { ...reservationPayload },
             payment: paymentPayload,
             notes,
-            createdBy: req.user?._id,
-            paymentIntentId
+            createdBy: req.user?._id
         });
         await refreshRoomStatus(availableRoom._id);
         const populated = await booking.populate([

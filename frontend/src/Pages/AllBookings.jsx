@@ -456,7 +456,7 @@ const searchableDates = b => [
             };
 
             await dispatch(updateBooking({ id: bookingId, updates })).unwrap();
-            await dispatch(fetchBookings({ page, limit }));
+            // await dispatch(fetchBookings({ page, limit }));
             handleEditModalClose();
         } catch (error) {
             console.error('Failed to update booking:', error);
@@ -485,14 +485,16 @@ const searchableDates = b => [
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                <input
-                                    type="text"
-                                    placeholder="Search bookings..."
-                                    className="px-3 py-1 border rounded-lg text-sm focus:outline-none bg-gray-100"
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    style={{ minWidth: 200 }}
-                                />
+                            <div className="relative  max-w-md">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
+                                    />
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                                </div>
                             </div>
 
                             <div>

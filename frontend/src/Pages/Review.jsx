@@ -15,7 +15,7 @@ const Review = () => {
 	const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 	const [imageUrl, setImageUrl] = useState(userImg);
 
-	const { currentUser, loading, success, message } = useSelector(
+	const { currentUser, success, message } = useSelector(
 		(state) => state.staff
 	);
 
@@ -36,9 +36,9 @@ const Review = () => {
 	});
 	const dropdownRef = useRef(null);
 
-	const getReview = useSelector((state) => state.review.reviews);
+	const { reviews, loading } = useSelector((state) => state.review);
 
-	
+
 	const formatDate = (dateString) => {
 		if (!dateString) return '';
 		const date = new Date(dateString);
@@ -46,16 +46,16 @@ const Review = () => {
 		const month = (date.getMonth() + 1).toString().padStart(2, '0');
 		const year = date.getFullYear();
 		return `${day}/${month}/${year}`;
-	  };
+	};
 
 
 	// Add filtering logic search functionallty
-	const filteredBookings = getReview.filter(staff =>
+	const filteredBookings = reviews.filter(staff =>
 		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		(staff?.createdAt && ( formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase()))) 
+		(staff?.createdAt && (formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase())))
 	);
 
 	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
@@ -102,7 +102,7 @@ const Review = () => {
 		];
 	};
 
-	const ratingBreakdown = calculateRatingBreakdown(getReview);
+	const ratingBreakdown = calculateRatingBreakdown(reviews);
 	const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
 
 	const calculateAverage = (reviews) => {
@@ -111,7 +111,7 @@ const Review = () => {
 		return (sum / reviews.length).toFixed(1);
 	};
 
-	const averageRating = calculateAverage(getReview);
+	const averageRating = calculateAverage(reviews);
 
 	const renderStars = (count) => {
 		return (
@@ -332,19 +332,16 @@ const Review = () => {
 						</thead>
 
 						<tbody className="divide-y divide-gray-200">
-							{paginatedBookings.length === 0 ? (
+							{loading ? (
 								<tr>
 									<td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
 										<div className="flex flex-col items-center justify-center text-gray-500">
-											<svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-											</svg>
-											<p className="text-lg font-medium">No data available</p>
-											<p className="text-sm mt-1">Try adjusting your search or filters</p>
+											<RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+											<p className="text-lg font-medium">Loading...</p>
 										</div>
 									</td>
 								</tr>
-							) : (
+							) : paginatedBookings?.length > 0 ? (
 								paginatedBookings.map((item, index) => (
 									<tr key={index} className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
 										{visibleColumns.No && (
@@ -408,6 +405,18 @@ const Review = () => {
 										)}
 									</tr>
 								))
+							) : (
+								<tr>
+									<td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+										<div className="flex flex-col items-center justify-center text-gray-500">
+											<svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+											</svg>
+											<p className="text-lg font-medium">No Room Types available</p>
+											<p className="text-sm mt-1">Try adjusting your search or filters</p>
+										</div>
+									</td>
+								</tr>
 							)}
 						</tbody>
 					</table>
