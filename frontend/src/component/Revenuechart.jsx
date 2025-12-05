@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { BarChart, Bar, Cell, XAxis } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, Tooltip } from 'recharts';
 
 const warmColors = ["#F7DF9C", "#E3C78A", "#B79982", "#A3876A", "#876B56", "#755647"];
 
@@ -18,6 +18,26 @@ const getPath = (x, y, width, height) => {
 const TriangleBar = (props) => {
   const { fill, x, y, width, height } = props;
   return <path d={getPath(Number(x), Number(y), Number(width), Number(height))} fill={fill} />;
+};
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        color: 'white',
+        padding: '6px 10px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+      }}>
+        <p style={{ margin: 0, fontWeight: 'bold', color: '#fff', fontSize: '12px' }}>
+          {payload[0].payload.name}: {payload[0].value}
+        </p>
+      </div>
+    );
+  }
+  return null;
 };
 
 export default function Example() {
@@ -61,12 +81,11 @@ export default function Example() {
         data={chartData}
         margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
       >
-        <XAxis dataKey="name" tick={{ fontSize: fontSize }} />
-
+        <Tooltip content={<CustomTooltip />} />
+        
         <Bar
           dataKey="value"
           shape={<TriangleBar />}
-          label={{ position: "top", fontSize: fontSize }}
         >
           {chartData.map((_, index) => (
             <Cell
