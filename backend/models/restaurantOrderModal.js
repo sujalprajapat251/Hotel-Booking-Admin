@@ -61,6 +61,9 @@ const restaurantOrderSchema = new mongoose.Schema({
     paymentMethod:{
         type: String,
     },
+    paymentIntentId:{
+        type:String,
+    },
     total:{
         type: Number,
         default:0

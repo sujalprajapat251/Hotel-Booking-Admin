@@ -489,7 +489,7 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex md600:flex-col lg:flex-row  xl:flex-col 2xl:flex-row justify-between '>
+            <div className='sm:flex justify-between items-center gap-1 h-full w-full'>
               <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Booking</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.newBookings}</p>
@@ -497,7 +497,7 @@ export const Dashboard = () => {
                   <p className='text-green-500'></p>
                 </div>
               </div>
-              <div className='w-[220px] ms-auto'>
+              <div className='w-[220px] md:ms-auto mx-auto'>
                 <Newbookingchart />
               </div>
             </div>
@@ -506,7 +506,7 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex md600:flex-col lg:flex-row  xl:flex-col 2xl:flex-row justify-between'>
+            <div className='sm:flex justify-between items-center h-full gap-1 w-full'>
               <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Available Rooms</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.availableRooms}</p>
@@ -514,7 +514,7 @@ export const Dashboard = () => {
                   <p className='text-red-500'></p>
                 </div>
               </div>
-              <div className='w-[180px] ms-auto'>
+              <div className='w-[220px] md:ms-auto mx-auto'>
                 <Availablerooms />
               </div>
             </div>
@@ -523,7 +523,7 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex md600:flex-col lg:flex-row  xl:flex-col 2xl:flex-row justify-between  h-full'>
+            <div className='sm:flex justify-between items-center gap-1 h-full w-full'>
               <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Revenue</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>${getDashboardData?.totalRevenue}</p>
@@ -531,7 +531,7 @@ export const Dashboard = () => {
                   <p className='text-green-500'></p>
                 </div>
               </div>
-              <div className='w-fit ms-auto mt-auto'>
+              <div className='w-[220px] md:ms-auto mx-auto'>
                 <Revenuechart />
               </div>
             </div>
@@ -540,7 +540,7 @@ export const Dashboard = () => {
             borderColor: '#E3C78A',
             boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
           }}>
-            <div className='sm:flex md600:flex-col lg:flex-row  xl:flex-col 2xl:flex-row justify-between '>
+            <div className='sm:flex justify-between items-center gap-1 h-full w-full'>
               <div className=''>
                 <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Checkout</p>
                 <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.checkoutCount}</p>
@@ -548,7 +548,7 @@ export const Dashboard = () => {
                   <p className='text-red-500'></p>
                 </div>
               </div>
-              <div className='w-[220px] ms-auto'>
+              <div className='w-[220px] md:ms-auto mx-auto'>
                 <Checkoutchart />
               </div>
             </div>

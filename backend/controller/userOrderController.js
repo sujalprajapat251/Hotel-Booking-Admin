@@ -269,7 +269,8 @@ exports.createOrder = async (req, res) => {
             room: roomId,
             name,
             contact,
-            items: normalized
+            items: normalized,
+            paymentIntentId : paymentIntentId,
         });
         const populated = await created.populate([
             { path: 'items.product' },

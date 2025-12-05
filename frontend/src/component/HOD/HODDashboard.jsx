@@ -66,7 +66,7 @@ const HODDashboard = () => {
           borderColor: '#E3C78A',
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
-          <div className='sm:flex justify-between items-center'>
+          <div className='sm:flex justify-between items-center gap-1 h-full w-full'>
             <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>New Orders</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.newOrders}</p>
@@ -74,7 +74,7 @@ const HODDashboard = () => {
                 <p className='text-green-500'></p>
               </div>
             </div>
-            <div className='w-[220px] ms-auto'>
+            <div className='w-[220px] md:ms-auto mx-auto'>
               <HODbookingchart />
             </div>
           </div>
@@ -83,7 +83,7 @@ const HODDashboard = () => {
           borderColor: '#E3C78A',
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
-          <div className='sm:flex justify-between items-center'>
+          <div className='sm:flex justify-between items-center h-full gap-1 w-full'>
             <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Revenue</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>${getHodDashboard?.totalRevenue}</p>
@@ -91,7 +91,7 @@ const HODDashboard = () => {
                 <p className='text-red-500'></p>
               </div>
             </div>
-            <div className='w-[180px] ms-auto'>
+            <div className='w-[220px] md:ms-auto mx-auto'>
               <HODtotalRevenue />
             </div>
           </div>
@@ -100,7 +100,7 @@ const HODDashboard = () => {
           borderColor: '#E3C78A',
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
-          <div className='sm:flex justify-between items-center'>
+          <div className='sm:flex justify-between items-center gap-1 h-full w-full'>
             <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Order</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalOrder}</p>
@@ -108,7 +108,7 @@ const HODDashboard = () => {
                 <p className='text-red-500'></p>
               </div>
             </div>
-            <div className='w-[220px] h-[80px] ms-auto'>
+            <div className='w-[220px]  md:ms-auto mx-auto'>
               <TotalOrderchart />
             </div>
           </div>
@@ -117,7 +117,7 @@ const HODDashboard = () => {
           borderColor: '#E3C78A',
           boxShadow: '0 8px 32px rgba(117, 86, 71, 0.12), 0 2px 8px rgba(163, 135, 106, 0.08)'
         }}>
-          <div className='sm:flex justify-between items-center'>
+          <div className='sm:flex justify-between items-center h-full gap-1 w-full'>
             <div className=''>
               <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Total Staff</p>
               <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getHodDashboard?.totalStaff}</p>
@@ -125,7 +125,7 @@ const HODDashboard = () => {
                 <p className='text-green-500'></p>
               </div>
             </div>
-            <div className='w-[220px] ms-auto'>
+            <div className='w-[220px] md:ms-auto mx-auto'>
               <HODtotalStaffchart />
             </div>
           </div>
