@@ -3,7 +3,7 @@ import { ConfigProvider, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookingSlice";
-import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
+import { createCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { ChevronDown } from "lucide-react";
@@ -28,6 +28,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
   const paymentStatusRef = useRef(null);
   const paymentMethodRef = useRef(null);
+  const { cabs } = useSelector((state) => state.cab || { cabs: [] });
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
@@ -55,7 +56,54 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     cabNotes: "",
   });
 
-  const CAB_FARE_RATE = 20; // Set your rate per km
+ // Fetch cabs on component mount
+ useEffect(() => {
+  dispatch(getAllCabBookings());
+}, [dispatch]);
+
+// Helper function to get perKmCharge based on seating capacity
+const getPerKmCharge = (seatingCapacity) => {
+  if (!seatingCapacity || !cabs || cabs.length === 0) {
+    return 20; // Default fallback value
+  }
+
+  const capacityNumber = seatingCapacity === "10+" ? 10 : parseInt(seatingCapacity);
+  
+  // First, try to find exact match
+  const exactMatch = cabs.find(cab => cab.seatingCapacity === seatingCapacity && cab.status === "Available");
+  if (exactMatch && exactMatch.perKmCharge) {
+    return exactMatch.perKmCharge;
+  }
+
+  // If no exact match, find cabs with equal or higher capacity
+  if (!isNaN(capacityNumber)) {
+    const suitableCabs = cabs
+      .filter(cab => {
+        if (cab.seatingCapacity === "10+") return true;
+        const cabCapacity = parseInt(cab.seatingCapacity);
+        return !isNaN(cabCapacity) && cabCapacity >= capacityNumber && cab.status === "Available";
+      })
+      .sort((a, b) => {
+        // Sort by capacity ascending to get the smallest suitable cab
+        const aCap = a.seatingCapacity === "10+" ? 999 : parseInt(a.seatingCapacity);
+        const bCap = b.seatingCapacity === "10+" ? 999 : parseInt(b.seatingCapacity);
+        return aCap - bCap;
+      });
+
+    if (suitableCabs.length > 0 && suitableCabs[0].perKmCharge) {
+      return suitableCabs[0].perKmCharge;
+    }
+  }
+
+  // Fallback: use first available cab's perKmCharge or default
+  const firstAvailableCab = cabs.find(cab => cab.status === "Available" && cab.perKmCharge);
+  return firstAvailableCab?.perKmCharge || 20;
+};
+
+// Get current CAB_FARE_RATE based on selected seating capacity
+const CAB_FARE_RATE = useMemo(() => {
+  return getPerKmCharge(formState.preferredSeatingCapacity);
+}, [formState.preferredSeatingCapacity, cabs]);
   const inputClasses =
     "w-full border border-tertiary/40 rounded-lg p-2 bg-white/95 text-senary placeholder:text-quinary/60 focus:outline-none focus:ring-2 focus:ring-quaternary/40 focus:border-quaternary/60 transition";
   const textareaClasses = `${inputClasses} h-24`;
@@ -74,18 +122,20 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         estimatedFare: "",
       }));
     }
-  }, [formState.estimatedDistance, cabServiceEnabled]);
+  }, [formState.estimatedDistance, cabServiceEnabled, CAB_FARE_RATE]);
 
   // Recalculate totalAmount whenever stay dates or price changes
   useEffect(() => {
     const nights = getNights(formState.checkInDate, formState.checkOutDate);
     const pricePerNight = room?.price?.base || 0;
-    const total = nights * pricePerNight;
+    const roomTotal = nights * pricePerNight;
+    const cabCharge = cabServiceEnabled && formState.estimatedFare ? parseFloat(formState.estimatedFare) : 0;
+    const total = roomTotal + cabCharge;
     setFormState((prev) => ({
       ...prev,
       totalAmount: total > 0 ? total : "",
     }));
-  }, [formState.checkInDate, formState.checkOutDate, room]);
+  }, [formState.checkInDate, formState.checkOutDate, room, formState.estimatedFare, cabServiceEnabled]);
 
 
   const roomSummary = useMemo(() => {
@@ -126,6 +176,20 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       document.body.style.width = '';
       window.scrollTo(0, scrollY);
     };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
+        setShowPaymentStatusDropdown(false);
+      }
+      if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
+        setShowPaymentMethodDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -686,6 +750,16 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   </div>
                 </div>
               )}
+
+                {/* Booking Summary */}
+                <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-[#FFFAEB]">
+                <h4 className="font-semibold text-md mb-2 text-senary">Booking Summary</h4>
+                <div className="flex flex-col gap-1 text-sm">
+                  <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * (room?.price?.base || 0)}</b></span>
+                  <span>Cab Charges: <b>{cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0}</b></span>
+                  <span className="border-t border-quinary/20 pt-1 mt-1">Total Amount: <b>{formState.totalAmount}</b></span>
+                </div>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="relative" ref={paymentMethodRef}>

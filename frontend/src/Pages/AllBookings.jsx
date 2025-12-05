@@ -80,6 +80,17 @@ const AllBookings = () => {
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
     };
+
+    const formatDateTime = (dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    };
     
     const [searchQuery, setSearchQuery] = useState("");
     const filteredBookings = booking.filter(b => {
@@ -378,6 +389,7 @@ const searchableDates = b => [
             payment: {
                 status: rawData.payment?.status || bookingItem.status || 'Pending',
                 totalAmount: rawData.payment?.totalAmount || 0,
+                refundAmount: rawData.payment?.refundAmount || 0,
                 currency: rawData.payment?.currency || 'USD',
                 method: rawData.payment?.method || 'Cash'
             },
@@ -459,6 +471,22 @@ const searchableDates = b => [
                 return;
             }
 
+            // Check if checkout date is before check-in date
+            const checkInDate = new Date(editFormData.reservation.checkInDate);
+            const checkOutDate = new Date(editFormData.reservation.checkOutDate);
+            const isEarlyCheckout = checkOutDate < checkInDate;
+            const isCheckedOut = editFormData.status === 'CheckedOut';
+
+            // If early checkout and status is CheckedOut, automatically set payment status to Refunded
+            if (isEarlyCheckout && isCheckedOut) {
+                editFormData.payment.status = 'Refunded';
+                editFormData.payment.refundAmount = editFormData.payment.totalAmount || 0;
+                dispatch(setAlert({ 
+                    text: `Early checkout detected! Payment status automatically set to Refunded. Refund amount: ${editFormData.payment.currency} ${editFormData.payment.refundAmount}`, 
+                    color: 'warning' 
+                }));
+            }
+
             const updates = {
                 guest: editFormData.guest,
                 reservation: {
@@ -476,6 +504,7 @@ const searchableDates = b => [
             handleEditModalClose();
         } catch (error) {
             console.error('Failed to update booking:', error);
+            dispatch(setAlert({ text: error.message || 'Failed to update booking', color: 'error' }));
         }
     };
 
@@ -826,15 +855,27 @@ const searchableDates = b => [
                                                 </span>Booking Information</h4>
                                             <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
                                                 <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In:</span>
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In Date:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
                                                 </div>
                                                 <div className="flex items-center p-1 rounded-lg transition-colors"
                                                     style={{ backgroundColor: 'transparent' }}
                                                 >
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out:</span>
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out Date:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
                                                 </div>
+                                                {selectedItem.rawData?.checkInTime && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check In Time:</span>
+                                                        <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkInTime)}</span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.checkOutTime && (
+                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check Out Time:</span>
+                                                        <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkOutTime)}</span>
+                                                    </div>
+                                                )}
                                                 {selectedItem.createdAt && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Created At:</span>
@@ -894,11 +935,27 @@ const searchableDates = b => [
                                                         {selectedItem.status}
                                                     </span>
                                                 </div>
-                                                {selectedItem.rawData?.payment?.totalAmount && (
+                                                {selectedItem.rawData?.payment?.totalAmount !== undefined && (
                                                     <div className="flex items-center p-2 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Total Amount:</span>
-                                                        <span className="text-sm sm:text-base">
+                                                        <span className="text-sm sm:text-base font-semibold">
                                                             {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && (
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Refund Amount:</span>
+                                                        <span className="text-sm sm:text-base font-semibold text-red-600">
+                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.refundAmount}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && selectedItem.rawData?.payment?.totalAmount !== undefined && (
+                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Net Amount:</span>
+                                                        <span className="text-sm sm:text-base font-semibold text-blue-600">
+                                                            {selectedItem.rawData.payment.currency || 'USD'} {(selectedItem.rawData.payment.totalAmount - selectedItem.rawData.payment.refundAmount).toFixed(2)}
                                                         </span>
                                                     </div>
                                                 )}
@@ -1092,9 +1149,31 @@ const searchableDates = b => [
                                                         type="date"
                                                         required
                                                         value={editFormData.reservation.checkOutDate}
-                                                        onChange={(e) => handleEditFormChange('reservation', 'checkOutDate', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const newCheckOutDate = e.target.value;
+                                                            handleEditFormChange('reservation', 'checkOutDate', newCheckOutDate);
+                                                            
+                                                            // Warn if checkout is before check-in
+                                                            if (newCheckOutDate && editFormData.reservation.checkInDate) {
+                                                                const checkIn = new Date(editFormData.reservation.checkInDate);
+                                                                const checkOut = new Date(newCheckOutDate);
+                                                                if (checkOut < checkIn) {
+                                                                    dispatch(setAlert({ 
+                                                                        text: 'Warning: Check-out date is before check-in date. Payment will be automatically set to Refunded if booking status is CheckedOut.', 
+                                                                        color: 'warning' 
+                                                                    }));
+                                                                }
+                                                            }
+                                                        }}
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
+                                                    {editFormData.reservation.checkOutDate && editFormData.reservation.checkInDate && 
+                                                        new Date(editFormData.reservation.checkOutDate) < new Date(editFormData.reservation.checkInDate) && (
+                                                            <p className="text-xs text-yellow-600 mt-1">
+                                                                ⚠️ Check-out is before check-in. Refund will be processed if status is CheckedOut.
+                                                            </p>
+                                                        )
+                                                    }
                                                 </div>
                                                 {/* <div>
                                                     <label className="text-sm font-medium text-black mb-1">Booking Source</label>

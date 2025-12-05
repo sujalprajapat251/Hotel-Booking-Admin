@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
 import { RiDeleteBinLine } from "react-icons/ri";
+import { GoDotFill } from "react-icons/go";
 import {
   Search,
   Filter,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
-import { getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
+import { deleteCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
 
 const statusColors = {
   Pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -402,7 +403,10 @@ const CabBookingDetail = () => {
                         }}>
                         <FiEdit className="text-[18px]" />
                       </div>
-                        <div title="Delete">
+                        <div title="Delete" onClick={() => {
+                          setDeleteBooking(booking);
+                          setShowDeleteModal(true);
+                        }}>
                           <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
                         </div>
                       </div>
@@ -428,95 +432,131 @@ const CabBookingDetail = () => {
 
         {/* View Modal */}
         {showViewModal && selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:p-6">
-            <div className="w-full max-w-[90%] md:max-w-2xl bg-white rounded-lg shadow-xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] border-b border-[#B79982]">
-                <h3 className="text-xl font-semibold text-[#755647]">Booking Details</h3>
-                <button 
-                  onClick={closeView} 
-                  className="p-1 rounded text-[#755647] hover:text-[#876B56] hover:bg-white/30 transition-colors"
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-6">
+            <div className="w-full max-w-4xl bg-white rounded-lg shadow-xl border border-gray-200">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Cab Booking Details</h3>
+                <button
+                  onClick={closeView}
+                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
-              <div className="p-3 md:p-6 overflow-y-auto bg-[#F0F3FB]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[15px]">
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Guest Name:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.guestName}</div>
+
+              <div className="px-5 md:px-8 py-5 md:py-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                {/* Guest Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <GoDotFill className="text-gray-700" size={18} />
+                    <span>Guest Information</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Name:</span>
+                      <span className="text-gray-900">{selectedBooking.guestName}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Room / Guest ID:</span>
+                      <span className="text-gray-900">{selectedBooking.roomNumber}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Room/Guest ID:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.roomNumber}</div>
+                </div>
+
+                {/* Booking Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <GoDotFill className="text-gray-700" size={18} />
+                    <span>Booking Information</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Date:</span>
+                      <span className="text-gray-900">
+                        {selectedBooking.bookingDate
+                          ? new Date(selectedBooking.bookingDate).toLocaleDateString("en-GB")
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Time:</span>
+                      <span className="text-gray-900">
+                        {selectedBooking.pickupTime
+                          ? new Date(selectedBooking.pickupTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+                          : "—"}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Status:</span>
+                      <span className="text-gray-900">{selectedBooking.status}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Pickup Location:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.pickupLocation}</div>
+                </div>
+
+                {/* Trip Details */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <GoDotFill className="text-gray-700" size={18} />
+                    <span>Trip Details</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Pickup Location:</span>
+                      <span className="text-gray-900">{selectedBooking.pickupLocation}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Drop Location:</span>
+                      <span className="text-gray-900">{selectedBooking.dropLocation}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Driver:</span>
+                      <span className="text-gray-900">{selectedBooking.driver}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Vehicle:</span>
+                      <span className="text-gray-900">{selectedBooking.vehicle}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Distance (KM):</span>
+                      <span className="text-gray-900">{selectedBooking.distance ?? "—"}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Drop Location:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.dropLocation}</div>
+                </div>
+
+                {/* Payment Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <GoDotFill className="text-gray-700" size={18} />
+                    <span>Payment Information</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[130px]">Payment Status:</span>
+                      <span className="text-gray-900">{selectedBooking.paymentStatus}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[130px]">Total Fare:</span>
+                      <span className="text-gray-900">
+                        {selectedBooking.fare === "--" ? "—" : `₹${selectedBooking.fare}`}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[130px]">Payment Method:</span>
+                      <span className="text-gray-900">{selectedBooking.paymentMethod}</span>
                     </div>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Date:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.bookingDate ? new Date(selectedBooking.bookingDate).toLocaleDateString('en-GB') : '—'}</div>
-                    </div>
+                </div>
+
+                {/* Additional Information */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                    <GoDotFill className="text-gray-700" size={18} />
+                    <span>Additional Information</span>
                   </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Time:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.pickupTime ? new Date(selectedBooking.pickupTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Driver:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.driver}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Vehicle:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.vehicle}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Distance(KM):</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.distance ?? '—'}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Total Fare:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.fare === '--' ? '—' : `₹${selectedBooking.fare}`}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 md:w-36 font-semibold text-[#755647]">Payment Status:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.paymentStatus}</div>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-32 font-semibold text-[#755647]">Method:</div>
-                      <div className="font-medium text-gray-800">{selectedBooking.paymentMethod}</div>
-                    </div>
-                  </div>
-                  <div className="md:col-span-2 bg-white rounded-lg p-3 border border-[#B79982]">
-                    <div className="flex items-start">
-                      <div className="w-28 md:w-32 font-semibold text-[#755647]">Notes:</div>
-                      <div className="ml-4 font-medium text-gray-800 flex-1">{selectedBooking.notes}</div>
+                  <div className="grid grid-cols-1 gap-y-3 text-[15px]">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[110px]">Notes:</span>
+                      <span className="text-gray-900 flex-1">{selectedBooking.notes}</span>
                     </div>
                   </div>
                 </div>
@@ -527,18 +567,19 @@ const CabBookingDetail = () => {
 
         {/* Edit Modal */}
         {showEditModal && editBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:p-6">
-            <div className="w-full max-w-[90%] md:max-w-xl bg-white rounded-lg shadow-xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] border-b border-[#B79982]">
-                <h3 className="text-xl font-semibold text-[#755647]">Edit Cab Booking</h3>
-                <button 
-                  onClick={() => setShowEditModal(false)} 
-                  className="p-1 rounded text-[#755647] hover:text-[#876B56] hover:bg-white/30 transition-colors"
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-6">
+            <div className="w-full max-w-5xl bg-white rounded-lg shadow-xl border border-gray-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Edit Cab Booking</h3>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                   disabled={isUpdating}
                 >
                   <X size={20} />
                 </button>
               </div>
+
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -586,99 +627,123 @@ const CabBookingDetail = () => {
                     setIsUpdating(false);
                   }
                 }}
-                className="p-4 md:p-6 space-y-4 bg-[#F0F3FB]"
+                className="px-6 md:px-8 py-5 space-y-6 max-h-[80vh] overflow-y-auto bg-white"
               >
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Pickup Location</label>
-                  <select
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.pickupLocation}
-                    onChange={e => setEditForm(f => ({ ...f, pickupLocation: e.target.value }))}
-                    disabled={isUpdating}
-                  >
-                    <option value="Airport">Airport</option>
-                    <option value="Railway Station">Railway Station</option>
-                    <option value="Bus Station">Bus Station</option>
-                  </select>
+                {/* Trip Information */}
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900">Trip Information</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Pickup Location</label>
+                      <select
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.pickupLocation}
+                        onChange={e => setEditForm(f => ({ ...f, pickupLocation: e.target.value }))}
+                        disabled={isUpdating}
+                      >
+                        <option value="Airport">Airport</option>
+                        <option value="Railway Station">Railway Station</option>
+                        <option value="Bus Station">Bus Station</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Drop Location</label>
+                      <input
+                        type="text"
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.dropLocation}
+                        onChange={e => setEditForm(f => ({ ...f, dropLocation: e.target.value }))}
+                        disabled={isUpdating}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Drop Location</label>
-                  <input
-                    type="text"
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.dropLocation}
-                    onChange={e => setEditForm(f => ({ ...f, dropLocation: e.target.value }))}
-                    disabled={isUpdating}
-                  />
+
+                {/* Schedule */}
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900">Schedule</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Booking Date</label>
+                      <input
+                        type="date"
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.bookingDate}
+                        onChange={e => setEditForm(f => ({ ...f, bookingDate: e.target.value }))}
+                        disabled={isUpdating}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Pickup Time</label>
+                      <input
+                        type="datetime-local"
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.pickupTime}
+                        onChange={e => setEditForm(f => ({ ...f, pickupTime: e.target.value }))}
+                        disabled={isUpdating}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Booking Date</label>
-                  <input
-                    type="date"
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.bookingDate}
-                    onChange={e => setEditForm(f => ({ ...f, bookingDate: e.target.value }))}
-                    disabled={isUpdating}
-                  />
+
+                {/* Fare Details */}
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900">Fare Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Estimated Distance (km)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.estimatedDistance}
+                        onChange={e => setEditForm(f => ({ ...f, estimatedDistance: e.target.value }))}
+                        disabled={isUpdating}
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Estimated Fare</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.estimatedFare}
+                        onChange={e => setEditForm(f => ({ ...f, estimatedFare: e.target.value }))}
+                        disabled={isUpdating}
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Pickup Time</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.pickupTime}
-                    onChange={e => setEditForm(f => ({ ...f, pickupTime: e.target.value }))}
-                    disabled={isUpdating}
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Estimated Distance (km)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.estimatedDistance}
-                    onChange={e => setEditForm(f => ({ ...f, estimatedDistance: e.target.value }))}
-                    disabled={isUpdating}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Estimated Fare</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800"
-                    value={editForm.estimatedFare}
-                    onChange={e => setEditForm(f => ({ ...f, estimatedFare: e.target.value }))}
-                    disabled={isUpdating}
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold mb-2 text-[#755647]">Notes</label>
+
+                {/* Notes */}
+                <div className="space-y-1.5">
+                  <h4 className="text-lg font-semibold text-gray-900">Notes</h4>
                   <textarea
-                    rows={3}
-                    className="w-full border border-[#B79982] rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent bg-white text-gray-800 resize-none"
+                    rows={4}
+                    className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 resize-none"
                     value={editForm.notes}
                     onChange={e => setEditForm(f => ({ ...f, notes: e.target.value }))}
                     disabled={isUpdating}
+                    placeholder="Add any additional instructions"
                   />
                 </div>
-                <div className="flex justify-end gap-3 pt-4 border-t border-[#B79982]">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowEditModal(false)} 
-                    className="px-5 py-2.5 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+                <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="px-5 py-2.5 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isUpdating}
                   >
                     Cancel
                   </button>
-                  <button 
-                    type="submit" 
-                    className="px-5 py-2.5 rounded-lg bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] hover:from-[#E3C78A] hover:to-[#D4B87A] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-md bg-[#D6B782] text-[#4A372B] hover:bg-[#c8a76f] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
                     disabled={isUpdating}
                   >
                     {isUpdating ? (
@@ -687,7 +752,7 @@ const CabBookingDetail = () => {
                         Updating...
                       </>
                     ) : (
-                      "Update"
+                      "Update Booking"
                     )}
                   </button>
                 </div>
@@ -698,55 +763,37 @@ const CabBookingDetail = () => {
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && deleteBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 md:p-6">
-            <div className="w-full max-w-[90%] md:max-w-md bg-white rounded-lg shadow-xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] border-b border-[#B79982]">
-                <h3 className="text-xl font-semibold text-[#755647]">Confirm Delete</h3>
-                <button 
-                  onClick={() => setShowDeleteModal(false)} 
-                  className="p-1 rounded text-[#755647] hover:text-[#876B56] hover:bg-white/30 transition-colors"
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-3 py-6">
+            <div className="w-full max-w-md bg-white rounded-lg shadow-xl border border-gray-200">
+              <div className="flex items-start justify-between px-5 py-4 border-b border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">Delete Booking</h3>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="p-2 rounded text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
                   disabled={isDeleting}
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
-              <div className="p-4 md:p-6 bg-[#F0F3FB]">
-                <div className="mb-6">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
-                      <RiDeleteBinLine className="text-red-600 text-3xl" />
-                    </div>
-                  </div>
-                  <p className="text-center text-gray-800 font-medium mb-2">
-                    Are you sure you want to delete this cab booking?
-                  </p>
-                  <div className="bg-white rounded-lg p-3 mt-4 border border-[#B79982]">
-                    <p className="text-sm text-gray-600 mb-1">
-                      <span className="font-semibold text-[#755647]">Guest:</span> {deleteBooking.guestName}
-                    </p>
-                    <p className="text-sm text-gray-600 mb-1">
-                      <span className="font-semibold text-[#755647]">Pickup:</span> {deleteBooking.pickupLocation}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      <span className="font-semibold text-[#755647]">Drop:</span> {deleteBooking.dropLocation}
-                    </p>
-                  </div>
-                  <p className="text-center text-sm text-red-600 mt-4 font-medium">
-                    This action cannot be undone.
-                  </p>
-                </div>
-                <div className="flex justify-end gap-3 pt-4 border-t border-[#B79982]">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowDeleteModal(false)} 
-                    className="px-5 py-2.5 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+
+              <div className="px-5 py-5 space-y-5">
+                <p className="text-sm text-gray-800">
+                  Are you sure you want to delete the booking for{" "}
+                  <span className="font-semibold">{deleteBooking.guestName}</span>?
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-3 justify-end pt-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteModal(false)}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-md border border-gray-300 text-gray-800 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isDeleting}
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => {
+                    onClick={async () => {
                       if (!deleteBooking) return;
                       setIsDeleting(true);
                       try {
@@ -756,7 +803,6 @@ const CabBookingDetail = () => {
                         if (page > newTotalPages) {
                           setPage(newTotalPages);
                         }
-                        dispatch(setAlert({ text: "Booking deleted!", color: "success" }));
                         setShowDeleteModal(false);
                         setDeleteBooking(null);
                       } catch (err) {
@@ -766,7 +812,7 @@ const CabBookingDetail = () => {
                         setIsDeleting(false);
                       }
                     }}
-                    className="px-5 py-2.5 rounded-lg bg-red-600 text-white hover:bg-red-700 font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-md bg-[#E9D08C] text-gray-900 hover:bg-[#dec57f] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                     disabled={isDeleting}
                   >
                     {isDeleting ? (
@@ -775,10 +821,7 @@ const CabBookingDetail = () => {
                         Deleting...
                       </>
                     ) : (
-                      <>
-                        <RiDeleteBinLine size={16} />
-                        Delete
-                      </>
+                      "Delete"
                     )}
                   </button>
                 </div>

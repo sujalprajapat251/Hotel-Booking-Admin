@@ -14,6 +14,8 @@ const formatBooking = (doc) => ({
     room: doc.room,
     roomNumber: doc.roomNumber,
     status: doc.status,
+    checkInTime: doc.checkInTime,
+    checkOutTime: doc.checkOutTime,
     guest: doc.guest,
     reservation: doc.reservation,
     payment: doc.payment,
@@ -51,6 +53,7 @@ const normalizeReservationPayload = (payload = {}) => ({
 const normalizePaymentPayload = (payload = {}) => ({
     status: payload.paymentStatus || (payload.payment?.status) || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined) || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
+    refundAmount: payload.refundAmount !== undefined ? Number(payload.refundAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
     transactions: payload.transactions,
@@ -386,26 +389,30 @@ const updateBooking = async (req, res) => {
 
         if (shouldValidateDates) {
             const { checkInDate, checkOutDate } = booking.reservation;
-            if (!checkInDate || !checkOutDate || checkOutDate <= checkInDate) {
+            if (!checkInDate || !checkOutDate) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Check-out date must be after check-in date'
+                    message: 'Check-in and check-out dates are required'
                 });
             }
-
-            const overlappingBooking = await ensureRoomAvailability({
-                roomId: booking.room,
-                checkInDate,
-                checkOutDate,
-                excludeBookingId: booking._id
-            });
-
-            if (overlappingBooking) {
-                return res.status(409).json({
-                    success: false,
-                    message: 'Room already booked for the selected dates',
-                    conflictBookingId: overlappingBooking._id
+            
+            // Allow early checkout (checkout before check-in) - refund will be processed automatically
+            // Only validate if checkout is not before check-in (normal case)
+            if (checkOutDate > checkInDate) {
+                const overlappingBooking = await ensureRoomAvailability({
+                    roomId: booking.room,
+                    checkInDate,
+                    checkOutDate,
+                    excludeBookingId: booking._id
                 });
+
+                if (overlappingBooking) {
+                    return res.status(409).json({
+                        success: false,
+                        message: 'Room already booked for the selected dates',
+                        conflictBookingId: overlappingBooking._id
+                    });
+                }
             }
         }
 
@@ -414,6 +421,10 @@ const updateBooking = async (req, res) => {
             const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
+            }
+            // Update refund amount if provided
+            if (paymentPayload.refundAmount !== undefined && !Number.isNaN(paymentPayload.refundAmount)) {
+                booking.payment.refundAmount = paymentPayload.refundAmount;
             }
             // Only update payment status if it's explicitly provided and valid
             if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
@@ -424,10 +435,50 @@ const updateBooking = async (req, res) => {
             if (Array.isArray(paymentPayload.transactions)) booking.payment.transactions = paymentPayload.transactions;
         }
 
-        // Track if status is changing to CheckedOut (before updating booking.status)
+        // Track if status is changing to CheckedIn or CheckedOut (before updating booking.status)
         const originalStatus = booking.status;
         const newStatus = req.body.status;
+        const isChangingToCheckedIn = newStatus === 'CheckedIn' && originalStatus !== 'CheckedIn';
         const isChangingToCheckedOut = newStatus === 'CheckedOut' && originalStatus !== 'CheckedOut';
+        // Determine final status after update
+        const finalStatus = newStatus || originalStatus;
+
+        // Track check-in time when status changes to CheckedIn
+        if (isChangingToCheckedIn && !booking.checkInTime) {
+            booking.checkInTime = new Date();
+        }
+
+        // Track check-out time when status changes to CheckedOut
+        if (isChangingToCheckedOut && !booking.checkOutTime) {
+            booking.checkOutTime = new Date();
+        }
+
+        // Check for early checkout (checkout before check-in date) - should trigger refund
+        const checkInDate = booking.reservation.checkInDate;
+        const checkOutDate = booking.reservation.checkOutDate;
+        // Compare dates (normalize to date only, ignoring time)
+        let isEarlyCheckout = false;
+        if (checkInDate && checkOutDate) {
+            const checkInDateOnly = new Date(checkInDate);
+            checkInDateOnly.setHours(0, 0, 0, 0);
+            const checkOutDateOnly = new Date(checkOutDate);
+            checkOutDateOnly.setHours(0, 0, 0, 0);
+            isEarlyCheckout = checkOutDateOnly < checkInDateOnly;
+        }
+        
+        // Initialize refundAmount if not set
+        if (booking.payment.refundAmount === undefined || booking.payment.refundAmount === null) {
+            booking.payment.refundAmount = 0;
+        }
+        
+        console.log('Refund Check:', {
+            checkInDate: checkInDate,
+            checkOutDate: checkOutDate,
+            isEarlyCheckout,
+            finalStatus,
+            currentRefundAmount: booking.payment.refundAmount,
+            totalAmount: booking.payment.totalAmount
+        });
 
         if (req.body.status) {
             booking.status = req.body.status;
@@ -436,6 +487,61 @@ const updateBooking = async (req, res) => {
 
         if (req.body.notes !== undefined || req.body.additionalNotes !== undefined) {
             booking.notes = req.body.notes ?? req.body.additionalNotes;
+        }
+
+        // Handle early checkout refund: if checkout date is before check-in date and status is CheckedOut
+        // This handles both: status changing to CheckedOut OR checkout date being changed to before check-in while already CheckedOut
+        // Also handle if refundAmount is explicitly provided in the request
+        const explicitRefundAmount = req.body.payment?.refundAmount;
+        const shouldProcessRefund = (finalStatus === 'CheckedOut' && isEarlyCheckout) || (explicitRefundAmount !== undefined && explicitRefundAmount > 0);
+        
+        if (shouldProcessRefund) {
+            // Calculate refund amount: use explicit amount if provided, otherwise full amount for early checkout
+            let refundAmount = 0;
+            if (explicitRefundAmount !== undefined && explicitRefundAmount > 0) {
+                refundAmount = explicitRefundAmount;
+            } else if (isEarlyCheckout) {
+                refundAmount = booking.payment.totalAmount || 0;
+            }
+            
+            // Only process if refund amount is valid
+            if (refundAmount > 0) {
+                // Only update payment status if it's not already Refunded (to avoid overwriting manual changes)
+                if (booking.payment.status !== 'Refunded') {
+                    booking.payment.status = 'Refunded';
+                }
+                
+                // Store refund amount
+                booking.payment.refundAmount = refundAmount;
+                
+                // Initialize transactions array if needed
+                if (!Array.isArray(booking.payment.transactions)) {
+                    booking.payment.transactions = [];
+                }
+                
+                // Check if refund transaction already exists to avoid duplicates
+                const hasRefundTransaction = booking.payment.transactions.some(
+                    t => t.status === 'Refunded' && (
+                        (isEarlyCheckout && t.notes && t.notes.includes('Early checkout refund')) ||
+                        (explicitRefundAmount && t.reference && t.reference.includes('REF-'))
+                    )
+                );
+                
+                if (!hasRefundTransaction) {
+                    const refundNote = isEarlyCheckout 
+                        ? `Early checkout refund - Checkout date (${new Date(checkOutDate).toLocaleDateString()}) is before check-in date (${new Date(checkInDate).toLocaleDateString()})`
+                        : `Refund processed - Amount: ${refundAmount}`;
+                    
+                    booking.payment.transactions.push({
+                        amount: refundAmount,
+                        method: booking.payment.method,
+                        status: 'Refunded',
+                        paidAt: new Date(),
+                        reference: `REF-${booking._id}-${Date.now()}`,
+                        notes: refundNote
+                    });
+                }
+            }
         }
 
         await booking.save();

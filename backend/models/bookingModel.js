@@ -80,6 +80,11 @@ const PaymentSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    refundAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     currency: {
       type: String,
       default: "USD",
@@ -147,6 +152,12 @@ const BookingSchema = new mongoose.Schema(
         "NoShow",
       ],
       default: "Pending",
+    },
+    checkInTime: {
+      type: Date,
+    },
+    checkOutTime: {
+      type: Date,
     },
     guest: GuestSchema,
     reservation: ReservationSchema,
