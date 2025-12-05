@@ -67,8 +67,10 @@ const SimpleBarChart = () => {
     }
 
     return (
-        <div className='w-[220px] sm:w-[230px] md:w-[160px] lg:w-[180px] xl:w-[120px]' style={{
-            height: '100px',
+        <div style={{
+            width: '100%',
+            maxWidth: '220px',
+            height: '120px',
             background: 'white',
         }}>
             <ResponsiveContainer width="100%" height="100%">

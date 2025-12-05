@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { BarChart, Bar, Cell, XAxis, Tooltip } from 'recharts';
+import { BarChart, Bar, Cell, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 const warmColors = ["#F7DF9C", "#E3C78A", "#B79982", "#A3876A", "#876B56", "#755647"];
 
@@ -74,12 +74,11 @@ export default function Example() {
   }
 
   return (
-    <div className="min-w-full">
+    <div style={{ width: '100%', maxWidth: '220px', height: '120px' }}>
+        <ResponsiveContainer width="100%" height="100%">
       <BarChart
-        width={150}
-        height={100}
         data={chartData}
-        margin={{ top: 15, right: 0, left: 0, bottom: 0 }}
+        margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
       >
         <Tooltip content={<CustomTooltip />} />
         
@@ -95,6 +94,7 @@ export default function Example() {
           ))}
         </Bar>
       </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

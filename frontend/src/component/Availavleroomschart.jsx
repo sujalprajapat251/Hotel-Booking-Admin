@@ -39,7 +39,7 @@ export default function CustomActiveShapePieChart({
     return (
         <div style={{
             width: '100%',
-            maxWidth: '200px',
+            maxWidth: '220px',
             height: '120px',
         }}>
             <ResponsiveContainer width="100%" height="100%">
