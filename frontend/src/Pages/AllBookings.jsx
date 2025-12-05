@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
+import { deleteBooking, fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiEdit } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -315,6 +315,22 @@ const searchableDates = b => [
     const handleDeleteModalClose = () => {
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!itemToDelete) return;
+
+        try {
+            const result = await dispatch(deleteBooking(itemToDelete.id));
+            if (deleteBooking.fulfilled.match(result)) {
+                dispatch(setAlert({ text: "Booking deleted successfully..!", color: 'success' }));
+                dispatch(fetchBookings({ page, limit }));
+            }
+        } catch (error) {
+            dispatch(setAlert({ text: "Failed to delete Booking", color: 'error' }));
+        } finally {
+            handleDeleteModalClose();
+        }
     };
 
     useEffect(() => {
@@ -1284,6 +1300,7 @@ const searchableDates = b => [
                                 <button
                                     type="button"
                                     className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                                    onClick={handleDeleteConfirm}
                                 >
                                     Delete
                                 </button>
