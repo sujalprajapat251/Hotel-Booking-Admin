@@ -100,7 +100,7 @@ export const deleteBooking = createAsyncThunk(
         headers: getAuthHeaders()
       });
 
-      dispatch(setAlert({ text: response.data.message, color: 'success' }));
+      dispatch(setAlert({ text: response.data.message || "Booking deleted successfully..!", color: 'success' }));
       return id;
     } catch (error) {
       return handleErrors(error, dispatch, rejectWithValue);

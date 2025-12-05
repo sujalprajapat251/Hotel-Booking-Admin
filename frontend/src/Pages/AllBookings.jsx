@@ -323,7 +323,6 @@ const searchableDates = b => [
         try {
             const result = await dispatch(deleteBooking(itemToDelete.id));
             if (deleteBooking.fulfilled.match(result)) {
-                dispatch(setAlert({ text: "Booking deleted successfully..!", color: 'success' }));
                 dispatch(fetchBookings({ page, limit }));
             }
         } catch (error) {

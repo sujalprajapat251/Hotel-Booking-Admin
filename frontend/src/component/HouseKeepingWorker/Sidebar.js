@@ -155,7 +155,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
           <div className="flex items-center justify-between flex-1">
             <div>
               <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-              <p className="text-xs text-gray-500">Chef Panel</p>
+              {/* <p className="text-xs text-gray-500">Chef Panel</p> */}
             </div>
             {onClose && (
               <button
