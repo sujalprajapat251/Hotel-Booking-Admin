@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       return <Navigate to="/chef/dashboard" replace />
     }
     else if (userRole === 'Worker') {
-      return <Navigate to="/worker/dashboard" replace />
+      return <Navigate to="/worker/task" replace />
     }
     else if (userRole === 'Head of Department') {
       return <Navigate to="/hod/dashboard" replace />
@@ -52,7 +52,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       return <Navigate to="/chef/dashboard" replace />
     }
     else if (userRole === 'Worker') {
-      return <Navigate to="/worker/dashboard" replace />
+      return <Navigate to="/worker/task" replace />
     }
     if (userRole === 'Head of Department') {
       return <Navigate to="/hod/dashboard" replace />
