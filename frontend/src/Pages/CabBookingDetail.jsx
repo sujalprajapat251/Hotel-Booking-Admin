@@ -369,15 +369,6 @@ const CabBookingDetail = () => {
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${payStatusColors[booking.paymentStatus] || "bg-gray-50 text-gray-600 border-gray-200"
-                          }`}
-                      >
-                        {booking.paymentStatus}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-gray-800">{booking.paymentMethod}</td>
-                    <td className="px-4 py-3">
-                      <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"
                           }`}
                       >
