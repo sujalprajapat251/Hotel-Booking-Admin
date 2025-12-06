@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import HODbookingchart from '../HOD/HODbookingchart';
 import HODtotalRevenue from '../HOD/HODtotalRevenuechart';
 import TotalOrderchart from '../HOD/HODTotalOrderchart';
@@ -33,32 +35,31 @@ const HODDashboard = () => {
     color: colors[index % colors.length],
   }));
 
-  const getCurrentYearMonth = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-  };
-
-  const getCurrentYear = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    return year;
-  };
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   useEffect(() => {
-    const yearMonth = getCurrentYearMonth();
-    const currentYear = getCurrentYear();
+    if (selectedDate) {
+      const yearMonth = selectedDate.format('YYYY-MM');
+      const currentYear = selectedDate.format('YYYY');
 
-    dispatch(getAllHodDashboard(yearMonth));
-    dispatch(getAllPaymentMethod());
-    dispatch(getAllMonthlyRevenue(currentYear));
-  }, [dispatch]);
+      dispatch(getAllHodDashboard(yearMonth));
+      dispatch(getAllPaymentMethod(yearMonth));
+      dispatch(getAllMonthlyRevenue(currentYear));
+    }
+  }, [dispatch, selectedDate]);
 
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-800 mt-4 md:mt-3">HOD Dashboard</h1>
+        <DatePicker
+          picker="month"
+          value={selectedDate}
+          onChange={(date) => setSelectedDate(date)}
+          allowClear={false}
+          className="mt-4 md:mt-3"
+          format="MMMM YYYY"
+        />
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-5'>

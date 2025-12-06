@@ -19,13 +19,14 @@ import { getAllReview } from '../Redux/Slice/review.slice.js';
 import { Link, useNavigate } from 'react-router-dom'
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { getAllDashboard, getAllOrdersummery, getAllReservation, getAllRevenue, getAllRoomAvailability, getAllServicerequests } from '../Redux/Slice/dashboard.silce.js';
+import { getAllBookingtrends, getAllDashboard, getAllOccupancyrate, getAllOrdersummery, getAllReservation, getAllRevenue, getAllRoomAvailability, getAllServicerequests } from '../Redux/Slice/dashboard.silce.js';
 import { IoBedOutline } from "react-icons/io5";
 import { IoIosRestaurant } from "react-icons/io";
 import { GiMartini } from "react-icons/gi";
 import { PiBroomLight } from 'react-icons/pi';
 import { VscChecklist } from 'react-icons/vsc';
 import { CiCoffeeCup } from 'react-icons/ci';
+import { DatePicker } from 'antd';
 dayjs.extend(relativeTime);
 
 export const Dashboard = () => {
@@ -33,6 +34,7 @@ export const Dashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [booking, setBooking] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const {
     items
@@ -423,29 +425,24 @@ export const Dashboard = () => {
 
   const averageRating = calculateAverage(getReview);
 
-  const getCurrentYearMonth = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `${year}-${month}`;
-  };
-
   const formatNumber = (num) => {
     if (!num) return "0";
     return num.toLocaleString("en-IN");
   };
 
   useEffect(() => {
-    const yearMonth = getCurrentYearMonth();
+    const yearMonth = selectedDate.format("YYYY-MM");
 
     dispatch(getAllReview());
     dispatch(getAllRevenue(yearMonth));
     dispatch(getAllDashboard(yearMonth));
     dispatch(getAllRoomAvailability());
-    dispatch(getAllReservation());
-    dispatch(getAllOrdersummery());
+    dispatch(getAllReservation(yearMonth));
+    dispatch(getAllOrdersummery(yearMonth));
     dispatch(getAllServicerequests());
-  }, [dispatch]);
+    dispatch(getAllBookingtrends(yearMonth));
+    dispatch(getAllOccupancyrate(yearMonth));
+  }, [dispatch, selectedDate]);
 
   const handleNavigateQuickAccess = (route) => {
     navigate(route);
@@ -460,26 +457,38 @@ export const Dashboard = () => {
             <p className='text-2xl font-semibold text-black'>Hi, Welcome back!</p>
             <p className='font-bold text-black'>Dashboard</p>
           </div>
-          <div className='text-end'>
-            <h2 className='font-bold md600:px-4 text-black'>Customer Ratings</h2>
-            <div className='flex items-center md600:px-4 justify-end'>
-              <div className="flex">
-                {[...Array(5)].map((_, i) => {
-                  const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
-                  return (
-                    <span key={i} className="relative">
-                      <span className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]">★</span>
-                      <span
-                        className="text-yellow-400 text-[16px] md600:text-[18px] lg:text-[20px] absolute top-0 left-0 overflow-hidden"
-                        style={{ width: `${filledPercent}%` }}
-                      >
-                        ★
+          <div className='flex items-center gap-4'>
+            <div className='bg-white rounded-md shadow-sm'>
+              <DatePicker
+                picker="month"
+                value={selectedDate}
+                onChange={(date) => date && setSelectedDate(date)}
+                format="MMMM YYYY"
+                allowClear={false}
+                className='w-40 border-none'
+              />
+            </div>
+            <div className='text-end'>
+              <h2 className='font-bold md600:px-4 text-black'>Customer Ratings</h2>
+              <div className='flex items-center md600:px-4 justify-end'>
+                <div className="flex">
+                  {[...Array(5)].map((_, i) => {
+                    const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
+                    return (
+                      <span key={i} className="relative">
+                        <span className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]">★</span>
+                        <span
+                          className="text-yellow-400 text-[16px] md600:text-[18px] lg:text-[20px] absolute top-0 left-0 overflow-hidden"
+                          style={{ width: `${filledPercent}%` }}
+                        >
+                          ★
+                        </span>
                       </span>
-                    </span>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                <span className='ml-2 text-black'>{`${averageRating}/5`}</span>
               </div>
-              <span className='ml-2 text-black'>{`${averageRating}/5`}</span>
             </div>
           </div>
         </div>
@@ -705,8 +714,8 @@ export const Dashboard = () => {
                   View All
                 </button>
               </div>
-
-              {recentRequests.map((request, index) => (
+              {recentRequests.length >0  ? 
+              recentRequests.map((request, index) => (
                 <div
                   key={index}
                   className={`flex items-start gap-3 p-3 rounded-lg border-l-4 ${request.borderColor} ${request.bgColor}`}
@@ -730,7 +739,10 @@ export const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              ))
+              :
+              <div className='h-full w-full flex justify-center items-center p-5 text-gray-500'>No Service Requests</div>}
+
             </div>
           </div>
 
@@ -840,7 +852,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <div className='mt-5 rounded-lg shadow-sm w-full'>
+        <div className='mt-5 rounded-lg  w-full'>
           <div className='lg:flex gap-5 justify-between'>
             <div className='bg-white p-3 lg:p-5 rounded-xl w-full xl:w-[66.34%]  border-2' style={{
               borderColor: '#E3C78A',
@@ -857,7 +869,6 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        {/* <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm"> */}
         <div className='grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5'>
           <div className="bg-white rounded-xl border-2 p-3 md:p-5" style={{
             borderColor: '#E3C78A',

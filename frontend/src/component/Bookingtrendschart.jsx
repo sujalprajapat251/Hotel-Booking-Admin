@@ -1,8 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { ChevronDown } from 'lucide-react';
-import { getAllBookingtrends } from '../Redux/Slice/dashboard.silce';
 
 const colors = {
     primary: '#F7DF9C',
@@ -14,25 +11,7 @@ const colors = {
 };
 
 const BookingTrendsChart = () => {
-    const dispatch = useDispatch();
     const bookingTrends = useSelector(state => state.dashboard.getBookingtrends);
-    const [selectedPeriod, setSelectedPeriod] = useState('Last 7 Days');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-    const periods = ['Last 7 Days', 'Last 30 Days', 'This Year'];
-
-    useEffect(() => {
-        dispatch(getAllBookingtrends(7));
-    }, [dispatch]);
-
-    const handlePeriodChange = (period) => {
-        setSelectedPeriod(period);
-        setIsDropdownOpen(false);
-
-        if (period === 'Last 7 Days') dispatch(getAllBookingtrends(7));
-        else if (period === 'Last 30 Days') dispatch(getAllBookingtrends(30));
-        else if (period === 'This Year') dispatch(getAllBookingtrends('year'));
-    };
 
     const chartData = bookingTrends?.timeline || [];
 
@@ -47,38 +26,6 @@ const BookingTrendsChart = () => {
                 <h2 className="text-[16px] font-semibold" style={{ color: colors.senary }}>
                     Booking Trends
                 </h2>
-
-                <div className="relative">
-                    <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm bg-white rounded-lg border"
-                        style={{ color: colors.quinary, borderColor: colors.secondary }}
-                    >
-                        {selectedPeriod}
-                        <ChevronDown size={16} className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-
-                    {isDropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg z-10 border"
-                            style={{ borderColor: colors.secondary }}>
-                            {periods.map(period => (
-                                <button
-                                    key={period}
-                                    onClick={() => handlePeriodChange(period)}
-                                    className="w-full text-left px-4 py-2 text-sm"
-                                    style={{
-                                        backgroundColor:
-                                            selectedPeriod === period ? 'rgba(247, 223, 156, 0.2)' : 'transparent',
-                                        color:
-                                            selectedPeriod === period ? colors.senary : colors.quinary
-                                    }}
-                                >
-                                    {period}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
             </div>
 
             <div className="flex gap-12 mb-3">
