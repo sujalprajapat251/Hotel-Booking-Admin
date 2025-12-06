@@ -210,14 +210,14 @@ exports.DepartmentDashboard = async (req, res) => {
             newOrders,
             totalOrder: newOrders,
             orderSources: {
-                direct: directOrders,
+                [departmentName]: directOrders,
                 room: roomOrders
             },
             orderTrend,
 
             totalRevenue,
             revenueSources: {
-                direct: directRevenue,
+                [departmentName]: directRevenue,
                 room: roomRevenue
             },
 
@@ -249,8 +249,19 @@ exports.getDepartmentPaymentSummary = async (req, res) => {
         const { config, deptKey } = deptResult;
         const { orderModel, itemCollection } = config;
 
+        // Filter by month if provided
+        const matchQuery = { payment: "Paid" };
+        const { month } = req.query;
+        
+        if (month && /^\d{4}-\d{2}$/.test(month)) {
+            const [year, mon] = month.split("-").map(Number);
+            const start = new Date(year, mon - 1, 1);
+            const end = new Date(year, mon, 0, 23, 59, 59);
+            matchQuery.createdAt = { $gte: start, $lte: end };
+        }
+
         const paymentSummary = await orderModel.aggregate([
-            { $match: { payment: "Paid" } },
+            { $match: matchQuery },
             { $unwind: "$items" },
 
             {

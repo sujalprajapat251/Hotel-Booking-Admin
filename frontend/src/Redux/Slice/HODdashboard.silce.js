@@ -34,11 +34,12 @@ export const getAllHodDashboard = createAsyncThunk(
 
 export const getAllPaymentMethod = createAsyncThunk(
     'revenue/getAllPaymentMethod',
-    async (_, { dispatch, rejectWithValue }) => {
+    async (month, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getdepartmentpaymentsummary`,
+            const query = month ? `?month=${month}` : '';
+            const response = await axios.get(`${BASE_URL}/getdepartmentpaymentsummary${query}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

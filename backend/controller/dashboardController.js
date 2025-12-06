@@ -238,16 +238,30 @@ exports.roomAvailability = async (req, res) => {
 // ------------------------------------------------------------
 exports.reservationDaywise = async (req, res) => {
     try {
-        const today = new Date();
+        let { month: queryMonth } = req.query;
+        let year, month;
+        let today = new Date();
 
-        const year = today.getFullYear();
-        const month = today.getMonth(); // 0–11
+        if (queryMonth && /^\d{4}-\d{2}$/.test(queryMonth)) {
+             [year, month] = queryMonth.split("-").map(Number);
+             month = month - 1; // 0-indexed
+        } else {
+             year = today.getFullYear();
+             month = today.getMonth();
+        }
 
-        // Start of current month
+        // Start of the month
         const start = new Date(year, month, 1);
 
-        // Today (atyare sudhi)
-        const end = new Date(year, month, today.getDate(), 23, 59, 59);
+        // End of the month (or today if current month, matching original logic?)
+        // Original logic: const end = new Date(year, month, today.getDate(), 23, 59, 59);
+        // If we want to see full month history for past months, we should use end of month.
+        let end;
+        if (year === today.getFullYear() && month === today.getMonth()) {
+             end = new Date(year, month, today.getDate(), 23, 59, 59);
+        } else {
+             end = new Date(year, month + 1, 0, 23, 59, 59);
+        }
 
         // Fetch all bookings of this month
         const reservations = await RoomBooking.aggregate([
@@ -302,7 +316,7 @@ exports.reservationDaywise = async (req, res) => {
 
         return res.json({
             success: true,
-            month: today.toLocaleString("en-US", { month: "long" }),
+            month: start.toLocaleString("en-US", { month: "long" }),
             data: finalData
         });
 
@@ -317,9 +331,9 @@ exports.reservationDaywise = async (req, res) => {
 // ------------------------------------------------------------
 // Order Summary
 // ------------------------------------------------------------
-async function getOrderSummary(model, itemCollection) {
+async function getOrderSummary(model, itemCollection, matchQuery = {}) {
     return model.aggregate([
-        { $match: { payment: "Paid" } },  // no from filter
+        { $match: { payment: "Paid", ...matchQuery } },  // no from filter
 
         { $unwind: "$items" },
 
@@ -359,9 +373,19 @@ async function getOrderSummary(model, itemCollection) {
 }
 exports.orderDashboard = async (req, res) => {
     try {
-        const bar = await getOrderSummary(BarOrder, "baritems");
-        const cafe = await getOrderSummary(CafeOrder, "cafeitems");
-        const restro = await getOrderSummary(RestroOrder, "restaurantitems");
+        const { month } = req.query;
+        let matchQuery = {};
+
+        if (month && /^\d{4}-\d{2}$/.test(month)) {
+            let [year, mon] = month.split("-").map(Number);
+            const start = new Date(year, mon - 1, 1);
+            const end = new Date(year, mon, 0, 23, 59, 59);
+            matchQuery = { createdAt: { $gte: start, $lte: end } };
+        }
+
+        const bar = await getOrderSummary(BarOrder, "baritems", matchQuery);
+        const cafe = await getOrderSummary(CafeOrder, "cafeitems", matchQuery);
+        const restro = await getOrderSummary(RestroOrder, "restaurantitems", matchQuery);
 
         res.status(200).json({
             success: true,
@@ -378,23 +402,34 @@ exports.orderDashboard = async (req, res) => {
 // ------------------------------------------------------------
 exports.getBookingTrends = async (req, res) => {
     try {
-        let { range } = req.query;
-        let startDate, endDate = new Date();
+        let { range, month } = req.query;
+        let startDate, endDate;
         const now = new Date();
 
-        // Calculate startDate based on range
-        if (range === "7") {
+        if (month) {
+            const [year, mon] = month.split("-").map(Number);
+            startDate = new Date(year, mon - 1, 1);
+            endDate = new Date(year, mon, 0, 23, 59, 59);
+        } else if (range === "7") {
+            endDate = new Date();
             startDate = new Date(now);
             startDate.setDate(startDate.getDate() - 6); 
             startDate.setHours(0, 0, 0, 0);
         } else if (range === "30") {
+            endDate = new Date();
             startDate = new Date(now);
             startDate.setDate(startDate.getDate() - 29); 
             startDate.setHours(0, 0, 0, 0);
         } else if (range === "year") {
+            endDate = new Date();
             startDate = new Date(now.getFullYear(), 0, 1); 
         } else {
-            return res.status(400).json({ success: false, message: "Invalid range. Use 7, 30, or year" });
+            // Default to 7 days if nothing provided
+            range = "7";
+            endDate = new Date();
+            startDate = new Date(now);
+            startDate.setDate(startDate.getDate() - 6); 
+            startDate.setHours(0, 0, 0, 0);
         }
 
         // Aggregation pipeline
@@ -408,7 +443,12 @@ exports.getBookingTrends = async (req, res) => {
         }
 
         const bookings = await RoomBooking.aggregate([
-            { $match: { createdAt: { $gte: startDate, $lte: endDate }, status: "Confirmed" } },
+            { 
+                $match: { 
+                    createdAt: { $gte: startDate, $lte: endDate }, 
+                    status: { $in: ["Confirmed", "CheckedIn", "CheckedOut"] } 
+                } 
+            },
             { $group: { _id: groupId, count: { $sum: 1 } } },
             { $sort: sort }
         ]);
@@ -431,7 +471,7 @@ exports.getBookingTrends = async (req, res) => {
                 const dayName = dayNames[loopDate.getDay()];
                 let nameLabel;
 
-                if (range === "30") {
+                if (range === "30" || month) {
                     // Show day + date like 'Mon 28'
                     nameLabel = `${dayName} ${loopDate.getDate()}`;
                 } else {
@@ -512,27 +552,40 @@ exports.monthWiseOccupancy = async (req, res) => {
 // Get total revenue month-wise
 // ------------------------------------------------------------
 exports.monthlyRevenue = async (req, res) => {
-    const { year } = req.query;
+    const { year, month } = req.query;
 
-    if (!year || !/^\d{4}$/.test(year)) {
+    let targetYear = year;
+    let targetMonth = null; // 0-indexed
+
+    if (month) {
+        const [y, m] = month.split("-");
+        targetYear = y;
+        targetMonth = parseInt(m, 10) - 1;
+    }
+
+    if (!targetYear || !/^\d{4}$/.test(targetYear)) {
         return res.status(400).json({
             success: false,
-            message: "year is required (format: YYYY)"
+            message: "Valid year (YYYY) or month (YYYY-MM) is required"
         });
     }
 
     const revenueByMonth = [];
-
     const today = new Date();
-    const currentMonth = today.getMonth(); // 0-indexed
-    const currentYear = today.getFullYear();
+    
+    // If no specific month requested, default to today's month if year matches, else null
+    if (targetMonth === null) {
+        if (parseInt(targetYear) === today.getFullYear()) {
+            targetMonth = today.getMonth();
+        }
+    }
 
     let currentRevenue = 0;
     let prevRevenue = 0;
 
-    for (let month = 0; month < 12; month++) {
-        const start = new Date(year, month, 1);
-        const end = new Date(year, month + 1, 0, 23, 59, 59);
+    for (let m = 0; m < 12; m++) {
+        const start = new Date(targetYear, m, 1);
+        const end = new Date(targetYear, m + 1, 0, 23, 59, 59);
 
         // Room booking revenue
         const bookingRevenueData = await RoomBooking.aggregate([
@@ -560,20 +613,39 @@ exports.monthlyRevenue = async (req, res) => {
             (restroRevenue[0]?.total || 0);
 
         revenueByMonth.push({
-            month: month + 1,
+            month: m + 1,
             totalRevenue
         });
 
-        // Store current and previous month revenue
-        if (month === currentMonth && year == currentYear) currentRevenue = totalRevenue;
-        if (month === currentMonth - 1 && year == currentYear) prevRevenue = totalRevenue;
-        // handle Jan case (previous month of Jan)
-        if (month === 11 && currentMonth === 0 && year == currentYear) prevRevenue = totalRevenue;
+        // Store current and previous month revenue based on targetMonth
+        if (targetMonth !== null) {
+            if (m === targetMonth) currentRevenue = totalRevenue;
+            if (m === targetMonth - 1) prevRevenue = totalRevenue;
+        }
+    }
+
+    // Handle Jan case for prevRevenue (Dec of previous year)
+    if (targetMonth === 0) {
+        const prevYear = parseInt(targetYear) - 1;
+        const start = new Date(prevYear, 11, 1);
+        const end = new Date(prevYear, 11 + 1, 0, 23, 59, 59);
+        
+        // Calculate only if needed
+        const bookingRevenueData = await RoomBooking.aggregate([
+            { $match: { createdAt: { $gte: start, $lte: end }, "payment.status": "Paid" } },
+            { $group: { _id: null, total: { $sum: "$payment.totalAmount" } } }
+        ]);
+        const bookingRevenue = bookingRevenueData[0]?.total || 0;
+        const barRevenue = await calculateRevenue(BarOrder, "baritems", start, end);
+        const cafeRevenue = await calculateRevenue(CafeOrder, "cafeitems", start, end);
+        const restroRevenue = await calculateRevenue(RestroOrder, "restaurantitems", start, end);
+        
+        prevRevenue = bookingRevenue + (barRevenue[0]?.total || 0) + (cafeRevenue[0]?.total || 0) + (restroRevenue[0]?.total || 0);
     }
 
     return res.json({
         success: true,
-        year,
+        year: targetYear,
         revenueByMonth,
         currentRevenue,
         prevRevenue

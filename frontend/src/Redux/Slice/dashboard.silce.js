@@ -97,11 +97,12 @@ export const getAllReservation = createAsyncThunk(
 
 export const getAllOrdersummery = createAsyncThunk(
     'revenue/getAllOrdersummery',
-    async (_, { dispatch, rejectWithValue }) => {
+    async (getCurrentYearMonth, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getordersummery`,
+            const query = getCurrentYearMonth ? `?month=${getCurrentYearMonth}` : '';
+            const response = await axios.get(`${BASE_URL}/getordersummery${query}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -118,11 +119,21 @@ export const getAllOrdersummery = createAsyncThunk(
 
 export const getAllBookingtrends = createAsyncThunk(
     'revenue/getBookingtrends',
-    async (getCurrentRange, { dispatch, rejectWithValue }) => {
+    async (filter, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getbookingtrends?range=${getCurrentRange}`,
+            let query = '';
+            if (filter && (filter === '7' || filter === '30' || filter === 'year')) {
+                query = `range=${filter}`;
+            } else if (filter) {
+                // Assume it's a month string YYYY-MM
+                query = `month=${filter}`;
+            } else {
+                query = `range=7`; // Default
+            }
+
+            const response = await axios.get(`${BASE_URL}/getbookingtrends?${query}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -139,11 +150,20 @@ export const getAllBookingtrends = createAsyncThunk(
 
 export const getAllOccupancyrate = createAsyncThunk(
     'revenue/getOccupancyrate',
-    async (getCurrentYear, { dispatch, rejectWithValue }) => {
+    async (filter, { dispatch, rejectWithValue }) => {
 
         try {
             const token = await localStorage.getItem("token");
-            const response = await axios.get(`${BASE_URL}/getoccupancyrate?year=${getCurrentYear}`,
+            let query = '';
+            // Check if filter is in YYYY-MM format
+            if (filter && /^\d{4}-\d{2}$/.test(filter)) {
+                query = `month=${filter}`;
+            } else {
+                // Assume it's a year or default to current year
+                query = `year=${filter || new Date().getFullYear()}`;
+            }
+            
+            const response = await axios.get(`${BASE_URL}/getoccupancyrate?${query}`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

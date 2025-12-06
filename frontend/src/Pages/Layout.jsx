@@ -81,7 +81,7 @@ const Layout = () => {
           <Header onMenuClick={toggleSidebar} />
         </div>
         <div className="flex-1 overflow-y-auto bg-slate-50 pt-[72px]">
-          <Outlet />
+          <Outlet  />
         </div>
       </main>
     </div>

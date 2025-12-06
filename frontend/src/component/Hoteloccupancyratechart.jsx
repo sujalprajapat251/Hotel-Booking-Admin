@@ -22,10 +22,6 @@ const HotelOccupancyDashboard = () => {
         return new Date().getFullYear();
     };
 
-    useEffect(() => {
-        dispatch(getAllOccupancyrate(getCurrentYear()));
-    }, [dispatch]);
-
     const getOccupancyrate = useSelector((state) => state.dashboard.getOccupancyrate);
 
     const formatNumber = (num) => {
