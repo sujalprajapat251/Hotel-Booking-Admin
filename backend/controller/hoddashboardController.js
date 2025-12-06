@@ -4,9 +4,8 @@ const RestroOrder = require('../models/restaurantOrderModal');
 const Staff = require('../models/staffModel');
 const Department = require('../models/departmentModel');
 
-// --------------------------------------------
 // DEPARTMENT CONFIGURATION
-// --------------------------------------------
+
 const DEPARTMENT_CONFIG = {
     cafe: {
         orderModel: CafeOrder,
@@ -28,9 +27,8 @@ const DEPARTMENT_CONFIG = {
     }
 };
 
-// --------------------------------------------
 // GENERIC REVENUE CALCULATION (FOR ALL DEPARTMENTS)
-// --------------------------------------------
+
 function calculateRevenue(orderModel, itemCollection, start, end, fromType = null) {
     const matchQuery = {
         createdAt: { $gte: start, $lte: end },
@@ -62,9 +60,8 @@ function calculateRevenue(orderModel, itemCollection, start, end, fromType = nul
     ]);
 }
 
-// --------------------------------------------
 // HELPER FUNCTION: GET DEPARTMENT CONFIG FROM USER
-// --------------------------------------------
+
 async function getDepartmentConfigFromUser(req) {
     if (!req.user) {
         return { error: { status: 401, message: 'Unauthorized' } };
@@ -89,10 +86,7 @@ async function getDepartmentConfigFromUser(req) {
     return { config: DEPARTMENT_CONFIG[deptKey], deptKey, departmentName: dept.name };
 }
 
-// ------------------------------------------------------------
 // DYNAMIC DEPARTMENT DASHBOARD API (CAFE, BAR, RESTAURANT)
-// Automatically detects department from logged-in user
-// ------------------------------------------------------------
 exports.DepartmentDashboard = async (req, res) => {
     try {
         // Get department config from user
@@ -121,9 +115,9 @@ exports.DepartmentDashboard = async (req, res) => {
         const start = new Date(year, mon - 1, 1);
         const end = new Date(year, mon, 0, 23, 59, 59);
 
-        // --------------------------------------------
+        
         // 1️⃣ DIRECT + ROOM SERVICE ORDER COUNTS
-        // --------------------------------------------
+        
         const directOrders = await orderModel.countDocuments({
             createdAt: { $gte: start, $lte: end },
             payment: "Paid",
@@ -138,9 +132,8 @@ exports.DepartmentDashboard = async (req, res) => {
 
         const newOrders = directOrders + roomOrders;
 
-        // --------------------------------------------
         // 2️⃣ ORDER TREND
-        // --------------------------------------------
+        
         const orderTrendData = await orderModel.aggregate([
             { $match: { createdAt: { $gte: start, $lte: end }, payment: "Paid" } },
             {
@@ -156,10 +149,9 @@ exports.DepartmentDashboard = async (req, res) => {
             date: d._id,
             count: d.count
         }));
-
-        // --------------------------------------------
+        
         // 3️⃣ REVENUE SPLIT
-        // --------------------------------------------
+        
         const directRevenueData = await calculateRevenue(orderModel, itemCollection, start, end, fromValues.direct);
         const directRevenue = directRevenueData[0]?.total || 0;
 
@@ -168,9 +160,8 @@ exports.DepartmentDashboard = async (req, res) => {
 
         const totalRevenue = directRevenue + roomRevenue;
 
-        // --------------------------------------------
         // 4️⃣ STAFF → DEPARTMENT WISE → DESIGNATION WISE + TOTAL
-        // --------------------------------------------
+        
         const departmentDoc = await Department.findById(req.user.department);
 
         let departmentStaff = {};
@@ -199,9 +190,8 @@ exports.DepartmentDashboard = async (req, res) => {
             });
         }
 
-        // --------------------------------------------
         // RESPONSE
-        // --------------------------------------------
+        
         return res.json({
             success: true,
             department: deptKey,
@@ -235,7 +225,6 @@ exports.DepartmentDashboard = async (req, res) => {
 };
 
 // PAYMENT METHOD WISE — REVENUE + COUNT (DYNAMIC)
-// Automatically detects department from logged-in user
 exports.getDepartmentPaymentSummary = async (req, res) => {
     try {
         const deptResult = await getDepartmentConfigFromUser(req);
@@ -274,9 +263,6 @@ exports.getDepartmentPaymentSummary = async (req, res) => {
             },
             { $unwind: "$productData" },
 
-            // Fix payment method:
-            // 1) if from = room → card
-            // 2) if paymentMethod missing/null/empty → card
             {
                 $addFields: {
                     fixedPaymentMethod: {
@@ -346,8 +332,6 @@ exports.getDepartmentPaymentSummary = async (req, res) => {
     }
 };
 
-// REVENUE BY MONTH (DYNAMIC)
-// Automatically detects department from logged-in user
 exports.getDepartmentRevenueByMonth = async (req, res) => {
     try {
         // Get department config from user
@@ -393,7 +377,6 @@ exports.getDepartmentRevenueByMonth = async (req, res) => {
             },
             { $unwind: "$productData" },
 
-            // Group by month
             {
                 $group: {
                     _id: { 

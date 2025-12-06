@@ -144,32 +144,32 @@ const StaffForm = () => {
   });
 
   // Helper function to extract country code and mobile from mobileno
-const extractMobileAndCode = (mobileno, storedCountryCode) => {
-  const mobilenoStr = mobileno ? String(mobileno).replace(/\D/g, '') : '';
-  // If mobileno already contains a country code (e.g. +911234567890)
-  if (typeof mobileno === 'string' && mobileno.startsWith('+')) {
-    const codeMatch = mobileno.match(/^(\+\d{1,3})/);
-    if (codeMatch) {
-      const localNumber = mobileno.replace(codeMatch[1], '').trim();
-      const numericLocal = localNumber.replace(/\D/g, '');
-      const dialDigits = codeMatch[1].replace('+', '');
-      return {
-        countrycode: codeMatch[1],
-        mobile: numericLocal,
-        fullMobile: `${dialDigits}${numericLocal}`
-      };
+  const extractMobileAndCode = (mobileno, storedCountryCode) => {
+    const mobilenoStr = mobileno ? String(mobileno).replace(/\D/g, '') : '';
+    // If mobileno already contains a country code (e.g. +911234567890)
+    if (typeof mobileno === 'string' && mobileno.startsWith('+')) {
+      const codeMatch = mobileno.match(/^(\+\d{1,3})/);
+      if (codeMatch) {
+        const localNumber = mobileno.replace(codeMatch[1], '').trim();
+        const numericLocal = localNumber.replace(/\D/g, '');
+        const dialDigits = codeMatch[1].replace('+', '');
+        return {
+          countrycode: codeMatch[1],
+          mobile: numericLocal,
+          fullMobile: `${dialDigits}${numericLocal}`
+        };
+      }
     }
-  }
 
-  const resolvedCountryCode = storedCountryCode || '+91';
-  const dialDigits = resolvedCountryCode.replace('+', '');
+    const resolvedCountryCode = storedCountryCode || '+91';
+    const dialDigits = resolvedCountryCode.replace('+', '');
 
-  return {
-    countrycode: resolvedCountryCode,
-    mobile: mobilenoStr,
-    fullMobile: mobilenoStr ? `${dialDigits}${mobilenoStr}` : ''
+    return {
+      countrycode: resolvedCountryCode,
+      mobile: mobilenoStr,
+      fullMobile: mobilenoStr ? `${dialDigits}${mobilenoStr}` : ''
+    };
   };
-};
 
   // Formik initialization
   const initialPhoneValues = useMemo(
@@ -203,7 +203,7 @@ const extractMobileAndCode = (mobileno, storedCountryCode) => {
           name: values.name,
           email: values.email,
           mobileno: values.mobile,
-          countrycode:values.countrycode,
+          countrycode: values.countrycode,
           address: values.address,
           department: values.department,
           designation: values.designation,
@@ -245,8 +245,8 @@ const extractMobileAndCode = (mobileno, storedCountryCode) => {
 
   const designationOptions = useMemo(() => {
     const specific = DEPARTMENT_DESIGNATION_MAP[resolvedDepartmentName] || [];
-    const combined = resolvedDepartmentName === 'Reception' 
-      ? specific 
+    const combined = resolvedDepartmentName === 'Reception'
+      ? specific
       : [...specific, 'Head of Department'];
     return [...new Set(combined)];
   }, [resolvedDepartmentName]);
@@ -336,7 +336,6 @@ const extractMobileAndCode = (mobileno, storedCountryCode) => {
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full max-h-[90vh]'>
-        {/* <p className=' text-[20px] font-semiboldtext-black '>Add New Staff</p> */}
         <div className="w-full ">
           <div className="w-full mx-auto bg-white rounded-lg shadow-md overflow-hidden">
             <div className="bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">

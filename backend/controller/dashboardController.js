@@ -5,9 +5,6 @@ const RoomBooking = require("../models/bookingModel");
 const Room = require("../models/createRoomModel");
 const RoomType = require("../models/roomtypeModel");
 
-// ------------------------------------------------------------
-// COMMON FUNCTIONS
-// ------------------------------------------------------------
 // Line chart: booking trend by day
 function lineTrend(model, match = {}) {
     return model.aggregate([
@@ -50,9 +47,7 @@ function calculateRevenue(model, itemCollection, start, end) {
     ]);
 }
 
-// ------------------------------------------------------------
 // DASHBOARD API (ROOM PIE, NEW BOOKINGS, REVENUE SOURCES)
-// ------------------------------------------------------------
 exports.dashboard = async (req, res) => {
     const { month } = req.query;
 
@@ -198,9 +193,7 @@ exports.dashboard = async (req, res) => {
     });
 };
 
-// ------------------------------------------------------------
 // Room Availability API (Occupied , Reserved , Available, Not Ready)
-// ------------------------------------------------------------
 exports.roomAvailability = async (req, res) => {
     try {
 
@@ -233,9 +226,7 @@ exports.roomAvailability = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Reservation API (Booked , cancelled)
-// ------------------------------------------------------------
 exports.reservationDaywise = async (req, res) => {
     try {
         let { month: queryMonth } = req.query;
@@ -253,9 +244,6 @@ exports.reservationDaywise = async (req, res) => {
         // Start of the month
         const start = new Date(year, month, 1);
 
-        // End of the month (or today if current month, matching original logic?)
-        // Original logic: const end = new Date(year, month, today.getDate(), 23, 59, 59);
-        // If we want to see full month history for past months, we should use end of month.
         let end;
         if (year === today.getFullYear() && month === today.getMonth()) {
              end = new Date(year, month, today.getDate(), 23, 59, 59);
@@ -328,9 +316,8 @@ exports.reservationDaywise = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Order Summary
-// ------------------------------------------------------------
+
 async function getOrderSummary(model, itemCollection, matchQuery = {}) {
     return model.aggregate([
         { $match: { payment: "Paid", ...matchQuery } },  // no from filter
@@ -397,9 +384,7 @@ exports.orderDashboard = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Booking Trend 
-// ------------------------------------------------------------
 exports.getBookingTrends = async (req, res) => {
     try {
         let { range, month } = req.query;
@@ -499,9 +484,7 @@ exports.getBookingTrends = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Hotel Occupancy Rate
-// ------------------------------------------------------------
 exports.monthWiseOccupancy = async (req, res) => {
     try {
         const totalRooms = await Room.countDocuments();   // total rooms available
@@ -548,9 +531,7 @@ exports.monthWiseOccupancy = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Get total revenue month-wise
-// ------------------------------------------------------------
 exports.monthlyRevenue = async (req, res) => {
     const { year, month } = req.query;
 
@@ -652,9 +633,7 @@ exports.monthlyRevenue = async (req, res) => {
     });
 };
 
-// ------------------------------------------------------------
 // REVENUE DASHBOARD (DETAILED SOURCE WISE)
-// ------------------------------------------------------------
 exports.getRevenueDashboard = async (req, res) => {
     try {
         const { month } = req.query;
@@ -770,10 +749,7 @@ exports.getRevenueDashboard = async (req, res) => {
     }
 };
 
-
-// ------------------------------------------------------------
 // Service Requests
-// ------------------------------------------------------------
 exports.serviceRequests = async (req, res) => {
     try {
         // ----- 1. COUNT STATUS WISE -----

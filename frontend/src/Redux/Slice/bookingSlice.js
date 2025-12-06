@@ -28,10 +28,9 @@ export const fetchBookings = createAsyncThunk(
   async (params = {}, { dispatch, rejectWithValue }) => {
     try {
       const response = await axios.get(`${BASE_URL}/bookings`, {
-        params, // This will include page, limit, search, etc.
+        params, 
         headers: getAuthHeaders()
       });
-      // console.log('response', response.data);
       
       // Return the entire response data
       return response.data;
@@ -44,7 +43,6 @@ export const fetchBookings = createAsyncThunk(
 export const createBooking = createAsyncThunk(
   'booking/create',
   async (bookingData, { dispatch, rejectWithValue }) => {
-    console.log(bookingData, "bookingData");
     try {
       const response = await axios.post(`${BASE_URL}/bookings`, bookingData, {
         headers: {

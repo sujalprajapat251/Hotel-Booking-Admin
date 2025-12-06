@@ -46,7 +46,6 @@ const formatBooking = (doc) => ({
 const createRoom = async (req, res) => {
   try {
     let imagePaths = [];
-    // Parse JSON strings from FormData
     let price, capacity, features, bed;
 
     if (typeof req.body.price === 'string') {
@@ -138,14 +137,6 @@ const createRoom = async (req, res) => {
         return res.status(404).json({ success: false, message: 'One or more features not found' });
       }
     }
-
-    // Handle image uploads
-    // let imagePaths = [];
-    // if (req.files && req.files.length > 0) {
-    //     imagePaths = req.files.map(file => `/uploads/image/${file.filename}`);
-    // } else if (images && Array.isArray(images)) {
-    //     imagePaths = images;
-    // }
 
     if (req.files && req.files.length > 0) {
       // Upload each file to S3
@@ -437,8 +428,8 @@ const getRoomsWithPagination = async (req, res) => {
     const rooms = await Room.find(query)
       .populate('roomType', 'roomType')
       .populate('features', 'feature')
-      .collation({ locale: 'en', numericOrdering: true }) // numeric order sorting
-      .sort({ floor: 1, roomNumber: 1 })                  // first by floor, then by room number
+      .collation({ locale: 'en', numericOrdering: true }) 
+      .sort({ floor: 1, roomNumber: 1 })                  
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -761,7 +752,7 @@ const autoUpdateRoomBeds = async (req, res) => {
     let updated = [];
 
     for (let room of rooms) {
-      const typeName = room.roomType.roomType; // "deluxe" / "Super Deluxe Room" / "premium"
+      const typeName = room.roomType.roomType; 
 
       if (!bedRules[typeName]) continue;
 

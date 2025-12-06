@@ -49,7 +49,6 @@ const LoginPage = () => {
                 .then((response) => {
                     if (response.meta?.requestStatus === "fulfilled") {
                         const userRole = response.payload?.user?.designation || 'user';
-                        console.log('user', userRole)
                         if (userRole === 'admin') {
                             navigate("/dashboard");
                         }

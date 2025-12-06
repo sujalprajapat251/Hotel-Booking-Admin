@@ -470,11 +470,6 @@ const Cleaning = () => {
                                                             >
                                                                 <FiEdit className="text-[#6777ef] text-[18px]" />
                                                             </div>
-                                                            {/* <div
-                                                                onClick={() => handleDeleteClick(housekeeping)}
-                                                            >
-                                                                <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                                                            </div> */}
                                                         </div>
                                                     </td>
                                                 )}

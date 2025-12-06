@@ -17,7 +17,6 @@ const createReview = async (req, res) => {
 
         const savedReview = await review.save();
 
-        // If this is a room review and a roomId is provided,
         // attach this review to the corresponding room document
         if (reviewType === 'room' && roomId) {
             await Room.findByIdAndUpdate(
@@ -109,7 +108,6 @@ const getReviewById = async (req, res) => {
         });
     }
 };
-
 
 module.exports = {
     createReview,

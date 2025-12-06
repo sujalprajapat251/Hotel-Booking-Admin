@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Upload, Calendar, ChevronDown, X } from 'lucide-react';
+import { Upload, ChevronDown, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { createStaff, updateStaff } from '../../Redux/Slice/staff.slice';
 import { getAllDepartment } from '../../Redux/Slice/department.slice';
-import { IMAGE_URL } from '../../Utils/baseUrl';
 import PhoneInput from "react-phone-input-2";
 import 'react-phone-input-2/lib/style.css';
 import { parsePhoneNumberFromString } from "libphonenumber-js";
@@ -352,45 +351,6 @@ const StaffForm = () => {
                       )}
                     </div>
 
-                    {/* <div className="relative" ref={departmentRef}>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Department *</label>
-                      <button
-                        type="button"
-                        onClick={() => setShowDepartmentDropdown(!showDepartmentDropdown)}
-                        className={`w-full px-4 py-2 bg-gray-100 border rounded-lg flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.department && formik.errors.department ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                      >
-                        <span className={selectedDepartmentName || formik.values.department ? 'text-gray-800' : 'text-gray-400'}>
-                          {selectedDepartmentName || formik.values.department || 'Select department'}
-                        </span>
-                        <ChevronDown size={18} className="text-gray-600" />
-                      </button>
-                      {showDepartmentDropdown && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                          {departments && departments.length > 0 ? (
-                            [...departments].reverse().map((dept) => (
-                              <div
-                                key={dept._id}
-                                onClick={() => {
-                                  formik.setFieldValue('department', dept._id);
-                                  setSelectedDepartmentName(dept.name);
-                                  setShowDepartmentDropdown(false);
-                                }}
-                                className="px-4 py-2 hover:bg-[#F7DF9C]/20 cursor-pointer text-sm text-gray-800"
-                              >
-                                {dept.name}
-                              </div>
-                            ))
-                          ) : (
-                            <div className="px-4 py-2 text-sm text-gray-500">No departments available</div>
-                          )}
-                        </div>
-                      )}
-                      {formik.touched.department && formik.errors.department && (
-                        <div className="text-red-500 text-xs mt-1">{formik.errors.department}</div>
-                      )}
-                    </div> */}
-
                     <div className="relative" ref={designationRef}>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Designation *</label>
                       <button
@@ -600,25 +560,6 @@ const StaffForm = () => {
                 </button>
               </div>
 
-              {/* <div className="flex justify-center gap-3 mt-6 pt-6 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigate('/staff');
-                  }}
-                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gray-50 transition-colors font-semibold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-[#E3C78A] hover:to-[#F7DF9C] transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit'}
-                </button>
-              </div> */}
             </div>
           </div>
         </div>

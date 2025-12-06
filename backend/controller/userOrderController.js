@@ -5,58 +5,11 @@ const CafeItem = require('../models/cafeitemModel');
 const BarItem = require('../models/baritemModel');
 const RestaurantItem = require('../models/restaurantitemModel');
 let stripe = null;
+
 try {
     const Stripe = require('stripe');
     stripe = Stripe(process.env.STRIPE_SECRET);
 } catch {}
-
-
-// exports.addItemTocafeOrder = async (req, res) => {
-//     try {
-//         const { product, qty, description, name, contact, roomId } = req.body;
-//         if (!product) {
-//             return res.status(400).json({ status: 400, message: "Product is required" });
-//         }
-//         const fromValue = 'room';
-
-//         const existingOrder = await cafeOrder
-//             .findOne({ from: fromValue, room: roomId, payment: 'Pending' })
-//             .sort({ createdAt: -1, _id: -1 });
-
-//         if (existingOrder) {
-//             existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
-//             await existingOrder.save();
-
-//             const populated = await existingOrder.populate([
-//                 { path: 'items.product' },
-//                 { path: 'room' }
-//             ]);
-//             // if (nameDept === 'cafe') {
-//             //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//             // }
-//             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
-//         }
-
-//         const created = await cafeOrder.create({
-//             from: fromValue,
-//             room: roomId,
-//             name,
-//             contact,
-//             items: [{ product, qty: qty || 1, description, status: 'Pending' }]
-//         });
-
-//         const populated = await created.populate([
-//             { path: 'items.product' },
-//             { path: 'room' }
-//         ]);
-//         // if (nameDept === 'cafe') {
-//         //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//         // }
-//         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
-//     } catch (error) {
-//         return res.status(500).json({ status: 500, message: error.message });
-//     }
-// };
 
 exports.getOrdercafeByRoom = async (req, res) => {
     try {
@@ -70,58 +23,6 @@ exports.getOrdercafeByRoom = async (req, res) => {
         return res.status(500).json({ status: 500, message: error.message });
     }
 }
-
-
-
-
-// exports.addItemTobarOrder = async (req, res) => {
-//     try {
-//         const { product, qty, description, name, contact, roomId } = req.body;
-
-//         if (!product) {
-//             return res.status(400).json({ status: 400, message: "Product is required" });
-//         }
-
-//         const fromValue = 'room';
-
-//         const existingOrder = await barOrder
-//             .findOne({ from: fromValue, room: roomId, payment: 'Pending' })
-//             .sort({ createdAt: -1, _id: -1 });
-
-//         if (existingOrder) {
-//             existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
-//             await existingOrder.save();
-
-//             const populated = await existingOrder.populate([
-//                 { path: 'items.product' },
-//                 { path: 'room' }
-//             ]);
-//             // if (nameDept === 'cafe') {
-//             //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//             // }
-//             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
-//         }
-
-//         const created = await barOrder.create({
-//             from: fromValue,
-//             room: roomId,
-//             name,
-//             contact,
-//             items: [{ product, qty: qty || 1, description, status: 'Pending' }]
-//         });
-
-//         const populated = await created.populate([
-//             { path: 'items.product' },
-//             { path: 'room' }
-//         ]);
-//         // if (nameDept === 'cafe') {
-//         //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//         // }
-//         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
-//     } catch (error) {
-//         return res.status(500).json({ status: 500, message: error.message });
-//     }
-// };
 
 exports.getOrderbarByRoom = async (req, res) => {
     try {
@@ -162,64 +63,12 @@ exports.removeItembarOrder = async (req, res) => {
         const updated = await barOrder.findById(id)
             .populate({ path: 'items.product' })
             .populate({ path: 'table' });
-        // if (name === 'cafe') {
-        //     emitCafeOrderChanged(updated.table?._id || updated.table, updated);
-        // }
+
         return res.status(200).json({ status: 200, message: 'Item removed successfully', data: updated });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }
 };
-
-
-// exports.addItemTorestroOrder = async (req, res) => {
-//     try {
-//         const { product, qty, description, name, contact, roomId } = req.body;
-
-//         if (!product) {
-//             return res.status(400).json({ status: 400, message: "Product is required" });
-//         }
-
-//         const fromValue = 'room';
-
-//         const existingOrder = await restroOrder
-//             .findOne({ from: fromValue, room: roomId, payment: 'Pending' })
-//             .sort({ createdAt: -1, _id: -1 });
-
-//         if (existingOrder) {
-//             existingOrder.items.push({ product, qty: qty || 1, description, status: 'Pending' });
-//             await existingOrder.save();
-
-//             const populated = await existingOrder.populate([
-//                 { path: 'items.product' },
-//                 { path: 'room' }
-//             ]);
-//             // if (nameDept === 'cafe') {
-//             //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//             // }
-//             return res.status(200).json({ status: 200, message: 'Item added to existing order', data: populated });
-//         }
-
-//         const created = await restroOrder.create({
-//             from: fromValue,
-//             room: roomId,
-//             name,
-//             contact,
-//             items: [{ product, qty: qty || 1, description, status: 'Pending' }]
-//         });
-
-//         const populated = await created.populate([
-//             { path: 'items.product' },
-//             { path: 'room' }
-//         ]);
-//         // if (nameDept === 'cafe') {
-//         //     emitCafeOrderChanged(populated.table?._id || tableId, populated);
-//         // }
-//         return res.status(200).json({ status: 200, message: 'New order created and item added', data: populated });
-//     } catch (error) {
-//         return res.status(500).json({ status: 500, message: error.message });
-//     }
-// };
 
 exports.getOrderrestroByRoom = async (req, res) => {
     try {

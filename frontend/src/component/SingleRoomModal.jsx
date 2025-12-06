@@ -20,7 +20,6 @@ export default function SingleRoomModal({ id, onClose }) {
         dispatch(getRoomById(id))
     }, [id])
 
-
     useEffect(() => {
         const scrollY = window.scrollY;
     

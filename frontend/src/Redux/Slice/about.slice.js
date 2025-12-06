@@ -23,7 +23,6 @@ export const getAllAbout = createAsyncThunk(
                     }
                 }
             );
-            console.log("-----------",response)
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);

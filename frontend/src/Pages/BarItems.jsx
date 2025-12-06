@@ -431,9 +431,6 @@ const BarItems = () => {
                                 {visibleColumns.price && (
                                     <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Price</th>
                                 )}
-                                {/* {visibleColumns.image && (
-                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
-                                )} */}
                                 {visibleColumns.description && (
                                     <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
                                 )}

@@ -54,7 +54,6 @@ export default function Dashboard() {
     setActiveTableId(ele?.id || ele?._id || null);
   }
   const handleserved = async (ele) => {
-    console.log('product', ele)
     let orderData = {
       orderId: menu?._id,
       itemId: ele._id
