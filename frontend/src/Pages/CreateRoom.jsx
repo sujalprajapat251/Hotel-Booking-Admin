@@ -410,7 +410,7 @@ const CreateRoom = () => {
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showRoomTypeDropdown && (
-                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                     {roomTypes.map((type) => {
                       const optionId = type.id || type._id;
                       return (
@@ -599,7 +599,7 @@ const CreateRoom = () => {
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showMainBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
@@ -655,7 +655,7 @@ const CreateRoom = () => {
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showChildBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
@@ -734,7 +734,7 @@ const CreateRoom = () => {
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showStatusDropdown && (
-                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                     {statusOptions.map((status) => (
                       <div
                         key={status}

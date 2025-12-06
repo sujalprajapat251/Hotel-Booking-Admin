@@ -693,7 +693,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={genderDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowGenderDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowGenderDropdown((prev) => !prev);
+                        setShowAssignedDropdown(false);
+                        setShowStatusDropdown(false);
+                      }}
                       name="gender"
                       value={driverForm.gender}
                       onChange={handleDriverInputChange}
@@ -717,7 +721,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: "gender", value: option } });
                               setShowGenderDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {option}
                           </li>
@@ -742,7 +746,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={assignedDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowAssignedDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowAssignedDropdown((prev) => !prev);
+                        setShowGenderDropdown(false);
+                        setShowStatusDropdown(false);
+                      }}
                       name="AssignedCab"
                       className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
                     >
@@ -763,7 +771,7 @@ const DriverDetails = () => {
                             handleDriverInputChange({ target: { name: 'AssignedCab', value: '' } });
                             setShowAssignedDropdown(false);
                           }}
-                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                         >
                           Select Cab (Optional)
                         </li>
@@ -774,7 +782,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: 'AssignedCab', value: cab._id } });
                               setShowAssignedDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {cab.vehicleId} - {cab.modelName}
                           </li>
@@ -788,7 +796,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={statusDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowStatusDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowStatusDropdown((prev) => !prev);
+                        setShowGenderDropdown(false);
+                        setShowAssignedDropdown(false);
+                      }}
                       name="status"
                       className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
                       required
@@ -805,7 +817,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: 'status', value: opt } });
                               setShowStatusDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {opt}
                           </li>
