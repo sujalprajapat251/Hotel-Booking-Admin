@@ -54,7 +54,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
   };
 
   return (
-    <div>
+    <div className='sp_sidebar'>
       <NavLink
         to={path}
         className={({ isActive: navActive }) =>
