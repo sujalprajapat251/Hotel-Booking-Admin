@@ -69,7 +69,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
 
         {/* Sub Images Thumbnails */}
         {subImages.length > 0 && (
-          <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100">
+          <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100 overflow-x-auto scrollbar-hide">
             {subImages.map((img, idx) => (
               <button
                 key={idx}
@@ -740,7 +740,7 @@ const AvailableRooms = () => {
       </section>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
         {cards.map((card, index) => (
           <div
             key={index}
@@ -1278,7 +1278,7 @@ const AvailableRooms = () => {
 
       {/* Pagination Controls */}
       {!loading && totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between bg-white rounded-lg shadow-md px-4 py-3 text-sm text-quinary">
+        <div className="mt-6 flex flex-wrap gap-4 items-center w-full justify-center md:justify-between  bg-white rounded-lg shadow-md px-4 py-3 text-sm text-quinary">
           <div>
             Showing{' '}
             {total === 0
@@ -1288,7 +1288,7 @@ const AvailableRooms = () => {
             {Math.min(page * limit, total || (page * limit))}{' '}
             of {total || 'many'} rooms
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center gap-2">
             <button
               onClick={() => setLocalPage((prev) => Math.max(prev - 1, 1))}
               disabled={page <= 1}

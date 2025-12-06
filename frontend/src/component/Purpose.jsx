@@ -137,7 +137,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <Coffee className="text-[18px]" /> Cafe
+                    <Coffee className="text-[18px] hidden sm:block" /> Cafe
                 </button>
 
                 <button
@@ -148,7 +148,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <GiMartini className="text-[19px]" /> Bar
+                    <GiMartini className="text-[19px] hidden sm:block" /> Bar
                 </button>
 
                 <button
@@ -159,7 +159,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
                             : "text-[#A3876A]"
                         }`}
                 >
-                    <IoIosRestaurant className="text-[21px]" /> Restaurant
+                    <IoIosRestaurant className="text-[21px] hidden sm:block" /> Restaurant
                 </button>
             </div>
 

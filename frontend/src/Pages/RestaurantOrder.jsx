@@ -480,7 +480,7 @@ const RestaurantOrder = () => {
             {/* Pagination */}
             <div className="flex items-center justify-between px-3 py-3 border-t border-gray-200 bg-gray-50 rounded-b-lg" >
               <div className="flex items-center gap-1 sm:gap-3 md600:gap-2 md:gap-3">
-                <span className="text-sm text-gray-600">Items per page:</span>
+                <span className="text-sm text-gray-600 whitespace-nowrap">Items per page:</span>
                 <div className="relative">
                   <select
                     value={itemsPerPage}
@@ -488,7 +488,7 @@ const RestaurantOrder = () => {
                       setItemsPerPage(Number(e.target.value));
                       setCurrentPage(1);
                     }}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                    className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
                   >
                     <option value={5}>5</option>
                     <option value={10}>10</option>
@@ -499,7 +499,7 @@ const RestaurantOrder = () => {
               </div>
 
               <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 whitespace-nowrap">
                   {paginationStart} - {paginationEnd} of {totalItems}
                 </span>
 

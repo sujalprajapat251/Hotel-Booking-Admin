@@ -270,7 +270,7 @@ export default function TableOrder() {
                                                 className="px-2 sm:px-3 py-1 bg-quinary text-white rounded-xl text-xs sm:text-sm cursor-pointer"
                                                 onClick={() => item.available === false ? null : handleAdd(item)}
                                             >
-                                                + add
+                                                + Add
                                             </p>
 
                                             <p className="text-quinary text-xs sm:text-sm">${item.price}</p>
@@ -328,7 +328,7 @@ export default function TableOrder() {
                                     <div key={item.product._id} className="border-b py-2 sm:py-3">
 
                                         {/* ITEM ROW */}
-                                        <div className="flex items-center gap-1 sm:gap-2 p-2 px-3">
+                                        <div className="flex items-center gap-1">
                                             <img
                                                 src={`${item.product.image}`}
                                                 alt={item.product.name}
