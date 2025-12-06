@@ -546,7 +546,7 @@ const StaffForm = () => {
               <div className="flex items-center justify-center gap-3 mt-6 pt-6 border-t border-gray-200">
                 <button
                   type="button"
-                  onClick={() => navigate('/staff')}
+                  onClick={() => navigate('/hod/staff')}
                   className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
                   Cancel

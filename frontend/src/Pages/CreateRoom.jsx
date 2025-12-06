@@ -878,14 +878,14 @@ const CreateRoom = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/rooms/available')}
-                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gradient-to-r hover:from-[#F7DF9C] hover:to-[#E3C78A] hover:border-transparent transition-all font-semibold"
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-white hover:to-white hover:border-2 hover:border-[#E3C78A] transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
                   {loading ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Room' : 'Submit'}
                 </button>
