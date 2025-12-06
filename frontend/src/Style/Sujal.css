@@ -1,27 +1,33 @@
 .selected-flag {
   width: 100% !important;
 }
-.react-tel-input .flag-dropdown.open .selected-flag{
+
+.react-tel-input .flag-dropdown.open .selected-flag {
   background-color: #f3f4f6 !important;
 }
-.react-tel-input .country-list .country:hover{
+
+.react-tel-input .country-list .country:hover {
   background-color: #F7DF9C !important;
 }
-.search-emoji{
+
+.search-emoji {
   display: none !important;
 }
-.react-tel-input .country-list .search-box{
+
+.react-tel-input .country-list .search-box {
   width: 95% !important;
   margin-left: 0 !important;
   padding: 5px 5px !important;
 }
-.react-tel-input .country-list .search-box:focus{
+
+.react-tel-input .country-list .search-box:focus {
   border-color: rgb(183 153 130) !important;
 }
 
-input[type="checkbox"]{
+input[type="checkbox"] {
   accent-color: #755647;
 }
+
 .sp_login .left {
   display: flex;
   animation-name: left;
@@ -37,7 +43,7 @@ input[type="checkbox"]{
 .sp_login .right {
   flex: 1;
   transition: 1s;
-  background-image: url("https://www.pennyspencer.com.au/wp-content/uploads/2016/02/Screen-Shot-2016-03-01-at-3.17.59-pm.png");
+  background-image: url("../Images/hotel1.png");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -161,6 +167,22 @@ input[type="checkbox"]{
   height: 50vh;
 }
 
+@media(max-width:374px) {
+  @keyframes left {
+    0% {
+      opacity: 0;
+      width: 0%;
+    }
+
+    100% {
+      opacity: 1;
+      width: 440px;
+      padding: 1.5rem;
+    }
+  }
+
+}
+
 @media (min-width: 640px) {
   .recharts-wrapper {
     height: 50vh;
@@ -180,7 +202,7 @@ input[type="checkbox"]{
 }
 
 
-.recharts-surface:focus{
+.recharts-surface:focus {
   outline: none;
 }
 
@@ -188,4 +210,36 @@ input[type="checkbox"]{
 .recharts-area-_r_2u_:focus,
 .recharts-zindex--100-_r_2s_:focus {
   outline: none;
+}
+
+
+.sp_sidebar a:hover {
+  color: #876B56 !important;
+}
+
+/* For Ant Design DatePicker (can customize selector for your case) */
+.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-cell-inner:focus {
+  background: #876B56 !important;
+  /* Use your preferred brown hex */
+  color: #fff !important;
+  border-color: #876B56 !important;
+}
+
+.ant-picker-dropdown .ant-picker-header-view>button:hover {
+  color: #876B56;
+}
+
+.ant-picker-outlined {
+  border-style: none;
+}
+
+.ant-picker-outlined:focus-within {
+  box-shadow: none;
+}
+
+/* If there's a primary button override for the month picker */
+.ant-picker-month-btn.ant-picker-cell-selected {
+  background: #876B56 !important;
+  color: #fff !important;
 }
