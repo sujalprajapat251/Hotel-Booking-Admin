@@ -4,6 +4,7 @@ import { FiGrid, FiLayers, FiChevronDown, FiChevronRight } from 'react-icons/fi'
 import { HiOutlineLocationMarker } from 'react-icons/hi';
 import { LuContact, LuUsers } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
+import { X } from 'lucide-react';
 
 // HOD menu items
 const hodSections = [
@@ -152,19 +153,29 @@ const HODSidebar = ({ open = true, isMobile = false, isCompact = false, onClose 
       data-compact={isCompact ? 'true' : 'false'}
     >
       <div
-        className={`flex items-center gap-3 ${
-          open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
-        }`}
+        className={`flex gap-3 ${open ? 'px-6 pt-4 pb-[14px] items-start justify-between' : 'px-0 pt-4 pb-[14px] justify-center'}`}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
-          <HiOutlineLocationMarker className="text-2xl" />
-        </div>
-        {open ? (
-          <div>
-            <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-            <p className="text-xs text-gray-500">HOD Panel</p>
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-senary">
+            <HiOutlineLocationMarker className="text-2xl" />
           </div>
-        ) : null}
+          {open ? (
+            <div>
+              <p className="text-xl font-semibold text-senary">Taj Hotel</p>
+              <p className="text-xs text-gray-500">HOD Panel</p>
+            </div>
+          ) : null}
+        </div>
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-senary hover:bg-primary/30 transition-colors duration-200 sm651:hidden"
+            aria-label="Close sidebar"
+          >
+            <X className="text-xl" />
+          </button>
+        )}
       </div>
 
       <nav className="pb-10">

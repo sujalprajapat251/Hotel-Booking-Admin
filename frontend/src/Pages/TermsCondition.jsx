@@ -263,7 +263,7 @@ const TermsTable = () => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsAddModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">
                 {isEditMode ? 'Edit Terms & Conditions' : 'Add Terms & Conditions'}
@@ -332,7 +332,7 @@ const TermsTable = () => {
       {isDeleteModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsDeleteModalOpen(false)}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-3">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Terms</h2>
               <button onClick={() => setIsDeleteModalOpen(false)} className="text-gray-500 hover:text-gray-800">

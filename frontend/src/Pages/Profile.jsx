@@ -160,13 +160,7 @@ const Profile = () => {
   };
 
   const handleEditToggle = () => {
-    if (isEditMode) {
-      // Save changes
-      handleSubmit();
-    } else {
-      // Enter edit mode
-      setIsEditMode(true);
-    }
+    setIsEditMode(prev => !prev);
   };
 
   const handleCancel = () => {
@@ -301,23 +295,14 @@ const Profile = () => {
               </div>
             </div>
             <div className="flex gap-2">
-              {isEditMode && (
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center justify-center gap-2 mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                  disabled={isSubmitting}
-                >
-                  <span className="text-sm font-medium">Cancel</span>
-                </button>
-              )}
               <button
                 onClick={handleEditToggle}
                 className="mv_user_add flex items-center justify-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-lg"
                 disabled={isSubmitting}
               >
-                <Edit2 className="w-6 sm:w-4 h-6 sm:h-4" />
+                <Edit2 className="w-4 h-4" />
                 <span className="text-sm font-medium">
-                  {isSubmitting ? 'Updating...' : isEditMode ? 'Update Profile' : 'Edit Profile'}
+                  {isSubmitting ? 'Updating...' : 'Edit'}
                 </span>
               </button>
             </div>
@@ -461,6 +446,25 @@ const Profile = () => {
               )}
             </div>
           </div>
+          {/* Action buttons shown under Address when editing */}
+          {isEditMode && (
+            <div className="flex gap-2 mt-6 justify-center">
+              <button
+                onClick={handleCancel}
+                className="flex items-center justify-center gap-2 mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                disabled={isSubmitting}
+              >
+                <span className="text-sm font-medium">Cancel</span>
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="flex items-center justify-center text-sm gap-2 px-4 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-[4px] border border-black h-[45px] w-[160px] text-black transition-all duration-300 ease-in-out"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Updating...' : 'Update'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Change Password Section */}
