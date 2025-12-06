@@ -36,10 +36,23 @@ const HODTable = () => {
   const filteredData = cafeTable.filter((item) => {
     const searchLower = searchTerm.trim().toLowerCase();
     if (!searchLower) return true;
+    let matchesStatus = false;
+    if ('available'.includes(searchLower) && (searchLower === 'available' || 'available'.startsWith(searchLower))) {
+      matchesStatus = item.status === true;
+    }
+    if ('occupied'.includes(searchLower) && (searchLower === 'occupied' || 'occupied'.startsWith(searchLower))) {
+      matchesStatus = item.status === false;
+    }
+
+    let statusString = '';
+    if(item.status === true) statusString = 'available';
+    else if(item.status === false) statusString = 'occupied';
 
     return (
       item.title?.toLowerCase().includes(searchLower) ||
-      item.limit?.toString().toLowerCase().includes(searchLower)
+      item.limit?.toString().toLowerCase().includes(searchLower) ||
+      statusString.includes(searchLower) ||
+      matchesStatus
     );
   });
 

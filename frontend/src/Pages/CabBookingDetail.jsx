@@ -76,7 +76,9 @@ const CabBookingDetail = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteBooking, setDeleteBooking] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const loading = false;
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const loading = useSelector((state) => state.cabBooking.loading);
 
   useEffect(() => {
     dispatch(getAllCabBookings());
@@ -95,7 +97,7 @@ const CabBookingDetail = () => {
   }, [searchTerm]);
 
   const handleRefresh = () => {
-    setCabBookings(staticCabBookings.map((booking) => ({ ...booking })));
+    setCabBookings(staticCabBookings.map(normalizeBooking));
     setStatusFilter("All");
     setSearchTerm("");
     setDebouncedSearch("");
@@ -105,6 +107,28 @@ const CabBookingDetail = () => {
   const handleLimitChange = (e) => {
     setLimit(Number(e.target.value));
     setPage(1);
+  };
+
+  const handleDeleteClick = (staffItem) => {
+    setItemToDelete(staffItem);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteModalClose = () => {
+    setIsDeleteModalOpen(false);
+    setItemToDelete(null);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (itemToDelete && itemToDelete.id) {
+      try {
+        await dispatch(deleteCabBooking(itemToDelete.id)).unwrap();
+        setIsDeleteModalOpen(false);
+        setItemToDelete(null);
+      } catch (error) {
+        console.error('Error deleting staff:', error);
+      }
+    }
   };
 
   const filteredBookings = useMemo(() => {
@@ -238,13 +262,12 @@ const CabBookingDetail = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200 gap-4">
           <div className="flex flex-col md:flex-row md:items-center gap-3 flex-1">
-            <p className="text-[16px] font-semibold text-gray-800 text-nowrap">All Cab Bookings</p>
-            <div className="relative max-w-md w-full">
+            <div className="relative max-w-md">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search bookings..."
+                placeholder="Search..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
               />
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -403,10 +426,7 @@ const CabBookingDetail = () => {
                         }}>
                         <FiEdit className="text-[18px]" />
                       </div>
-                        <div title="Delete" onClick={() => {
-                          setDeleteBooking(booking);
-                          setShowDeleteModal(true);
-                        }}>
+                        <div title="Delete" onClick={() => handleDeleteClick(booking)}>
                           <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
                         </div>
                       </div>
@@ -871,6 +891,41 @@ const CabBookingDetail = () => {
           </div>
         </div>
       </div>
+
+      {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
+            <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-semibold text-black">Delete Cab Booking</h2>
+                <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-gray-700 mb-8 text-center">
+                Are you sure you want to delete this cab booking?
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleDeleteModalClose}
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteConfirm}
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
   );
 };

@@ -48,11 +48,11 @@ const Review = () => {
 		return `${day}/${month}/${year}`;
 	};
 
-
 	// Add filtering logic search functionallty
 	const filteredBookings = reviews.filter(staff =>
 		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+		staff?.roomId?.roomType?.roomType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
 		(staff?.createdAt && (formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase())))
@@ -209,11 +209,23 @@ const Review = () => {
 						<h2 className="text-lg font-semibold text-gray-800 capitalize">{currentUser?.name || 'No Name'}</h2>
 
 						<div className="flex items-center gap-2 text-sm text-gray-700">
+							<div className="flex items-center gap-1">
+								{[...Array(5)].map((_, i) => {
+									const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
+									return (
+										<span key={i} className="relative inline-block">
+											<AiFillStar className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]" />
+											<span className="absolute top-0 left-0 overflow-hidden" style={{ width: `${filledPercent}%` }} >
+												<AiFillStar className="text-[#F6A623] text-[16px] md600:text-[18px] lg:text-[20px]" />
+											</span>
+										</span>
+									);
+								})}
+							</div>
+						</div>
+						<div className="flex items-center gap-2 text-sm text-gray-700">
 							<span className="font-bold text-lg">{averageRating}</span>
-							<AiFillStar className="text-yellow-400" />
-							<a className="text-black underline">
-								({totalReviews} reviews)
-							</a>
+							<p className="text-black">({totalReviews} reviews)</p>
 						</div>
 					</div>
 				</div>
@@ -234,9 +246,9 @@ const Review = () => {
 									></div>
 								</div>
 
-								<a className="text-black text-sm underline whitespace-nowrap">
+								<p className="text-black text-sm whitespace-nowrap">
 									{item.count} reviews
-								</a>
+								</p>
 							</div>
 						);
 					})}
