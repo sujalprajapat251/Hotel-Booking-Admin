@@ -29,7 +29,7 @@ const cabBookingSchema = new mongoose.Schema({
     },
     assignedDriver: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "driver"
+        ref: "staff"
     },
     bookingDate: {
         type: Date,

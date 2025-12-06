@@ -11,7 +11,7 @@ const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, getBlogRea
 const { createTermCondition, getAllTermConditions, getTermConditionById, updateTermCondition, deleteTermCondition } = require('../controller/termsController');
 const { createFAQ, getAllFAQ, getFAQById, updateFAQ, deleteFAQ } = require('../controller/faqController');
 const { createDepartment, getAllDepartments, getDepartmentById, updateDepartment, deleteDepartment } = require('../controller/departmentController');
-const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff, getAllHODStaff } = require('../controller/staffController');
+const { createStaff, getAllStaff, getStaffById, updateStaff, deleteStaff, getStaff, getAllHODStaff, getAllDrivers } = require('../controller/staffController');
 const { createRoom, getRooms, getRoomById, updateRoom, deleteRoom, autoUpdateRoomBeds, getRoomsWithPagination, refreshAllRoomsStatus } = require('../controller/createRoomController');
 const { createBooking, getBookings, getBookingById, updateBooking, deleteBooking, bookRoomByType, createBookingPaymentIntent } = require('../controller/bookingController');
 const { createCafeCategory, getAllCafeCategories, getSingleCafeCategory, updateCafeCategory, deleteCafeCategory } = require('../controller/cafecategoryController');
@@ -24,8 +24,9 @@ const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestauran
 const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment, getAllCafeunpaid, getAllCafeOrdersByAdmin, getAllBarOrdersByAdmin, getAllRestaurantOrdersByAdmin } = require('../controller/adminOrderController');
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
 const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../controller/cabController');
-const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
-const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId } = require('../controller/cabBookingController');
+// Driver routes now use staffController - drivers are staff with designation "Driver"
+// const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
+const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId, assignDriversToUnassignedBookings, advanceCabBookingStatus } = require('../controller/cabBookingController');
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
@@ -213,12 +214,14 @@ indexRoutes.get('/getcab/:id', getCabById);
 indexRoutes.put('/updatecab/:id', auth, adminOnly, upload.single("cabImage"), updateCab);
 indexRoutes.delete('/deletecab/:id', auth, adminOnly, deleteCab);
 
-// Driver routes
-indexRoutes.post('/createdriver', auth, adminOnly, upload.single("image"), createDriver);
-indexRoutes.get('/getalldriver', getAllDrivers);
-indexRoutes.get('/getdriver/:id', getDriverById);
-indexRoutes.put('/updatedriver/:id', auth, adminOnly, upload.single("image"), updateDriver);
-indexRoutes.delete('/deletetdriver/:id', auth, adminOnly, deleteDriver);
+// Driver routes - Drivers are now created/managed through staff with designation "Driver"
+// To create a driver, use /createstaff with designation: "Driver"
+// To get all drivers, use /getalldriver (uses staffController.getAllDrivers)
+indexRoutes.get('/getalldriver', getAllDrivers); // Returns all staff with designation "Driver"
+// To get/update/delete a driver, use staff routes with the driver's ID:
+// GET /getstaff/:id - to get driver details
+// PUT /updatestaff/:id - to update driver
+// DELETE /deletetstaff/:id - to delete driver
 
 // Cab Booking routes
 indexRoutes.post('/createcabbooking', auth, createCabBooking);
@@ -227,6 +230,8 @@ indexRoutes.get('/getcabbooking/:id', getCabBookingById);
 indexRoutes.put('/updatecabbooking/:id', auth, updateCabBooking);
 indexRoutes.delete('/deletecabbooking/:id', auth, deleteCabBooking);
 indexRoutes.get('/getcabbookingsbybooking/:bookingId', getCabBookingsByBookingId);
+indexRoutes.post('/assigndriverstounassignedbookings', auth, adminOnly, assignDriversToUnassignedBookings);
+indexRoutes.put('/cabbooking/:id/status', auth, advanceCabBookingStatus);
 
 // Review routes
 indexRoutes.post('/reviews', auth, createReview);

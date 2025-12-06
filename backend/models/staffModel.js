@@ -28,7 +28,8 @@ const staffSchema = mongoose.Schema({
     },
     department: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "department"
+        ref: "department",
+        required: false  // Optional for drivers
     },
     designation: {
         type: String,
@@ -48,6 +49,14 @@ const staffSchema = mongoose.Schema({
     otp: {
         type: Number,
     },
+    AssignedCab: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "cab"
+    },
+    status: {
+        type: String,
+        enum: ["Available", "Unavailable", "Leave", "onTrip"]
+    }
 }, {
     timestamps: true,
     versionKey: false

@@ -129,6 +129,33 @@ export const deleteCabBooking = createAsyncThunk(
     }
 );
 
+//  Advance Cab Booking Status (for drivers)
+export const advanceCabBookingStatus = createAsyncThunk(
+    "cabBooking/advanceStatus",
+    async (id, { dispatch, rejectWithValue }) => {
+        try {
+            const token = localStorage.getItem("token");
+
+            const response = await axios.put(
+                `${BASE_URL}/cabbooking/${id}/status`,
+                {},
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            dispatch(setAlert({ 
+                text: response.data.message || "Status updated successfully", 
+                color: "success" 
+            }));
+
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 // ------------------------------------------------------------------------------------
 
 const cabBookingSlice = createSlice({
@@ -214,6 +241,26 @@ const cabBookingSlice = createSlice({
                 if (state.totalCount > 0) {
                     state.totalCount -= 1;
                 }
+            })
+
+            //  ADVANCE STATUS
+            .addCase(advanceCabBookingStatus.pending, (state) => {
+                state.loading = true;
+                state.isError = false;
+            })
+            .addCase(advanceCabBookingStatus.fulfilled, (state, action) => {
+                state.loading = false;
+                const index = state.cabBookings.findIndex(
+                    (item) => item._id === action.payload._id
+                );
+                if (index !== -1) {
+                    state.cabBookings[index] = action.payload;
+                }
+            })
+            .addCase(advanceCabBookingStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.isError = true;
+                state.message = action.payload?.message;
             });
     },
 });

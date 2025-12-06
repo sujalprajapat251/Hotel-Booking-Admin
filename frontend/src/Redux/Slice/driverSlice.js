@@ -32,12 +32,42 @@ export const createDriver = createAsyncThunk(
     async (driverData, { dispatch, rejectWithValue }) => {
         try {
             const formData = new FormData();
+            // Add designation: "Driver" to ensure it's created as a driver
+            formData.append("designation", "Driver");
+            
+            // Required fields for driver creation
+            const requiredFields = ['name', 'email', 'password', 'countrycode', 'mobileno', 'address', 'gender', 'joiningdate', 'designation'];
+            
             for (let key in driverData) {
-                formData.append(key, driverData[key]);
+                // Skip _id, fullMobile, and existingImage for new driver
+                if (key === "_id" || key === "fullMobile" || key === "existingImage") {
+                    continue;
+                }
+                
+                const value = driverData[key];
+                
+                // Skip null and undefined
+                if (value === null || value === undefined) {
+                    // But if it's a required field, we should have caught this in frontend validation
+                    continue;
+                }
+                
+                // For optional fields (like AssignedCab, image), skip empty strings
+                if (!requiredFields.includes(key)) {
+                    if (typeof value === 'string' && value.trim() === '') {
+                        continue;
+                    }
+                    if (key === 'AssignedCab' && (value === '' || value === null)) {
+                        continue;
+                    }
+                }
+                
+                // Append the value (required fields should always have values at this point)
+                formData.append(key, value);
             }
 
             const token = localStorage.getItem("token");
-            const response = await axios.post(`${BASE_URL}/createdriver`, formData, {
+            const response = await axios.post(`${BASE_URL}/createstaff`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "multipart/form-data"
@@ -74,13 +104,26 @@ export const updateDriver = createAsyncThunk(
             const { _id, ...updateFields } = driverData;
 
             const formData = new FormData();
-            Object.entries(updateFields).forEach(([key, value]) => {
-                if (value !== undefined) formData.append(key, value);
+            
+            // Ensure designation is "Driver" when updating (but don't duplicate if already present)
+            // Remove designation from updateFields if it exists to avoid duplication
+            const { designation, ...restFields } = updateFields;
+            formData.append("designation", "Driver");
+            
+            // Append all other fields
+            Object.entries(restFields).forEach(([key, value]) => {
+                // Skip fields that shouldn't be sent
+                if (key === "fullMobile" || key === "existingImage") {
+                    return;
+                }
+                if (value !== undefined && value !== null) {
+                    formData.append(key, value);
+                }
             });
 
             const token = localStorage.getItem("token");
             const response = await axios.put(
-                `${BASE_URL}/updatedriver/${_id}`,
+                `${BASE_URL}/updatestaff/${_id}`,
                 formData,
                 {
                     headers: {
@@ -92,7 +135,7 @@ export const updateDriver = createAsyncThunk(
 
             dispatch(setAlert({ text: "Driver updated successfully", color: "success" }));
 
-            return response.data.driver;
+            return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
         }
@@ -105,7 +148,7 @@ export const deleteDriver = createAsyncThunk(
     async (id, { dispatch, rejectWithValue }) => {
         try {
             const token = localStorage.getItem("token");
-            await axios.delete(`${BASE_URL}/deletetdriver/${id}`, {
+            await axios.delete(`${BASE_URL}/deletetstaff/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

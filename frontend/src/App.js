@@ -66,6 +66,8 @@ import HouseKeepingLayout from './component/HouseKeepingWorker/Layout';
 import Tasks from './component/HouseKeepingWorker/Tasks.jsx';
 import OrderRequest from './Pages/OrderRequest.jsx';
 import Order from './component/HouseKeepingWorker/Order.jsx';
+import DriverDashboard from './component/Driver/DriverDashboard.jsx';
+import DriverLayout from './component/Driver/Layout';
 
 const { store, persistor } = configureStore();
 function App() {
@@ -456,7 +458,21 @@ function App() {
                   }
                 />
               </Route>
-
+              <Route path='/driver' element={<DriverLayout />}>
+                <Route path='dashboard' element={
+                  <ProtectedRoute allowedRoles={['Driver']}>
+                    <DriverDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route
+                  path='user-profile'
+                  element={
+                    <ProtectedRoute allowedRoles={['Driver']}>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
             </Routes>
           </SnackbarProvider>
         </PersistGate>

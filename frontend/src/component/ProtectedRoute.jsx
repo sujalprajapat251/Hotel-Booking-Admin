@@ -33,6 +33,9 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     else if (userRole === 'Accountant') {
       return <Navigate to="/accountant/dashboard" replace />
     }
+    else if (userRole === 'Driver') {
+      return <Navigate to="/driver/dashboard" replace />
+    }
     else {
       return <Navigate to="/booking-dashboard" replace />;
     }
@@ -59,6 +62,9 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     }
     if (userRole === 'Accountant') {
       return <Navigate to="/accountant/dashboard" replace />
+    }
+    if (userRole === 'Driver') {
+      return <Navigate to="/driver/dashboard" replace />
     }
     // Otherwise redirect to dashboard
     return <Navigate to="/dashboard" replace />;

@@ -71,18 +71,12 @@ const PaymentSchema = new mongoose.Schema(
         "Pending",
         "Paid",
         "Partial",
-        "Refunded"
       ],
       default: "Pending",
     },
     totalAmount: {
       type: Number,
       required: true,
-      min: 0,
-    },
-    refundAmount: {
-      type: Number,
-      default: 0,
       min: 0,
     },
     currency: {

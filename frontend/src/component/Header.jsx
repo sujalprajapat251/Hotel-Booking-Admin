@@ -64,6 +64,8 @@ const Header = ({ onMenuClick }) => {
       navigate("/worker/user-profile")
     } else if (userRole === 'Accountant') {
       navigate("/accountant/user-profile")
+    } else if (userRole === 'Driver') {
+      navigate("/driver/user-profile")
     } else {
       navigate('/');
     }

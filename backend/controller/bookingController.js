@@ -1,6 +1,6 @@
 const Booking = require('../models/bookingModel');
 const Room = require('../models/createRoomModel');
-
+const CabBooking = require('../models/cabBookingModel');
 const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
 // Stripe Integration
 let stripe = null;
@@ -51,9 +51,11 @@ const normalizeReservationPayload = (payload = {}) => ({
 });
 
 const normalizePaymentPayload = (payload = {}) => ({
-    status: payload.paymentStatus || (payload.payment?.status) || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined) || 'Pending',
+    status: payload.paymentStatus
+        || (payload.payment?.status)
+        || (payload.status && ['Pending', 'Paid', 'Partial'].includes(payload.status) ? payload.status : undefined)
+        || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
-    refundAmount: payload.refundAmount !== undefined ? Number(payload.refundAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
     transactions: payload.transactions,
@@ -404,12 +406,8 @@ const updateBooking = async (req, res) => {
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
             }
-            // Update refund amount if provided
-            if (paymentPayload.refundAmount !== undefined && !Number.isNaN(paymentPayload.refundAmount)) {
-                booking.payment.refundAmount = paymentPayload.refundAmount;
-            }
             // Only update payment status if it's explicitly provided and valid
-            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
+            if (paymentPayload.status && ['Pending', 'Paid', 'Partial'].includes(paymentPayload.status)) {
                 booking.payment.status = paymentPayload.status;
             }
             if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
@@ -448,11 +446,6 @@ const updateBooking = async (req, res) => {
             isEarlyCheckout = checkOutDateOnly < checkInDateOnly;
         }
         
-        // Initialize refundAmount if not set
-        if (booking.payment.refundAmount === undefined || booking.payment.refundAmount === null) {
-            booking.payment.refundAmount = 0;
-        }
-
         if (req.body.status) {
             booking.status = req.body.status;
         }
@@ -462,29 +455,15 @@ const updateBooking = async (req, res) => {
             booking.notes = req.body.notes ?? req.body.additionalNotes;
         }
 
-        // Also handle if refundAmount is explicitly provided in the request
-        const explicitRefundAmount = req.body.payment?.refundAmount;
-        const shouldProcessRefund = (finalStatus === 'CheckedOut' && isEarlyCheckout) || (explicitRefundAmount !== undefined && explicitRefundAmount > 0);
-        
-        if (shouldProcessRefund) {
+        // Handle early checkout refund: if checkout date is before check-in date and status is CheckedOut
+        // This handles both: status changing to CheckedOut OR checkout date being changed to before check-in while already CheckedOut
+
+        if (finalStatus === 'CheckedOut' && isEarlyCheckout) {
             // Calculate refund amount: use explicit amount if provided, otherwise full amount for early checkout
-            let refundAmount = 0;
-            if (explicitRefundAmount !== undefined && explicitRefundAmount > 0) {
-                refundAmount = explicitRefundAmount;
-            } else if (isEarlyCheckout) {
-                refundAmount = booking.payment.totalAmount || 0;
-            }
+            let refundAmount = booking.payment.totalAmount || 0;
             
             // Only process if refund amount is valid
-            if (refundAmount > 0) {
-                // Only update payment status if it's not already Refunded (to avoid overwriting manual changes)
-                if (booking.payment.status !== 'Refunded') {
-                    booking.payment.status = 'Refunded';
-                }
-                
-                // Store refund amount
-                booking.payment.refundAmount = refundAmount;
-                
+            if (refundAmount > 0) {                
                 // Initialize transactions array if needed
                 if (!Array.isArray(booking.payment.transactions)) {
                     booking.payment.transactions = [];
@@ -556,11 +535,13 @@ const deleteBooking = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+        await CabBooking.deleteMany({ booking: id });
+
         await refreshRoomStatus(booking.room);
 
         res.json({
             success: true,
-            message: 'Booking deleted successfully',
+            message: 'Booking and associated cab bookings deleted successfully',
             data: formatBooking(booking)
         });
     } catch (error) {

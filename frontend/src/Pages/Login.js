@@ -67,6 +67,9 @@ const LoginPage = () => {
                         else if (userRole === 'Accountant') {
                             navigate("/accountant/dashboard")
                         }
+                        else if (userRole === 'Driver') {
+                            navigate("/driver/dashboard")
+                        }
                         else {
                             navigate("/booking-dashboard");
                         }
