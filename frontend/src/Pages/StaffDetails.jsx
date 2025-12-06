@@ -363,9 +363,9 @@ const StaffTable = () => {
                                   alt={staff.name}
                                   className="w-11 h-11 rounded-full object-cover border-2 border-[#E3C78A] shadow-sm"
                                 />
-                                <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full">
+                                {/* <div className="absolute -bottom-0 -right-0 w-2 h-2 rounded-full">
                                   {staff.status}
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           </td>

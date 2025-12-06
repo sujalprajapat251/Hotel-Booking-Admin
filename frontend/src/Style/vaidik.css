@@ -71,6 +71,18 @@
     border: 1px solid black;
     color: black;
 }
+.mv_resetpass_add{
+    border: 1px solid black;
+    height: 45px;
+    width: 160px;
+    border-radius: 4px;
+    color: black;
+    transition: 0.3s ease-in-out;
+}
+.mv_resetpass_add:hover{
+    border: 1px solid black;
+    color: black;
+}
 
 @media(max-width:576px) {
     .mv_Add_btn {
@@ -104,6 +116,11 @@
     .mv_user_add{
         height: 40px;
         width: 100px;
+        font-size: 14px;
+    }
+    .mv_resetpass_add{
+        height: 40px;
+        width: 150px;
         font-size: 14px;
     }
 }

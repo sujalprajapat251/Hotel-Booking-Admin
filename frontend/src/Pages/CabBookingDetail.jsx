@@ -14,6 +14,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   X,
 } from "lucide-react";
 import * as XLSX from 'xlsx';
@@ -78,6 +79,7 @@ const CabBookingDetail = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [showPickupLocationDropdown, setShowPickupLocationDropdown] = useState(false);
   const loading = useSelector((state) => state.cabBooking.loading);
 
   useEffect(() => {
@@ -592,7 +594,10 @@ const CabBookingDetail = () => {
               <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                 <h3 className="text-xl font-semibold text-gray-900">Edit Cab Booking</h3>
                 <button
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowEditModal(false);
+                    setShowPickupLocationDropdown(false);
+                  }}
                   className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                   disabled={isUpdating}
                 >
@@ -639,6 +644,7 @@ const CabBookingDetail = () => {
                     );
                     dispatch(setAlert({ text: "Booking updated!", color: "success" }));
                     setShowEditModal(false);
+                    setShowPickupLocationDropdown(false);
                     setEditBooking(null);
                   } catch (err) {
                     console.error("Update error:", err);
@@ -655,16 +661,35 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Pickup Location</label>
-                      <select
-                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
-                        value={editForm.pickupLocation}
-                        onChange={e => setEditForm(f => ({ ...f, pickupLocation: e.target.value }))}
-                        disabled={isUpdating}
-                      >
-                        <option value="Airport">Airport</option>
-                        <option value="Railway Station">Railway Station</option>
-                        <option value="Bus Station">Bus Station</option>
-                      </select>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => !isUpdating && setShowPickupLocationDropdown(!showPickupLocationDropdown)}
+                          disabled={isUpdating}
+                          className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 flex items-center justify-between"
+                        >
+                          <span className="text-left">
+                            {editForm.pickupLocation || 'Select pickup location'}
+                          </span>
+                          <ChevronDown size={18} className="text-gray-600" />
+                        </button>
+                        {showPickupLocationDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            {['Airport', 'Railway Station', 'Bus Station'].map((location) => (
+                              <div
+                                key={location}
+                                onClick={() => {
+                                  setEditForm(f => ({ ...f, pickupLocation: location }));
+                                  setShowPickupLocationDropdown(false);
+                                }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {location}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Drop Location</label>
@@ -755,7 +780,10 @@ const CabBookingDetail = () => {
                 <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
                   <button
                     type="button"
-                    onClick={() => setShowEditModal(false)}
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setShowPickupLocationDropdown(false);
+                    }}
                     className="px-5 py-2.5 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isUpdating}
                   >

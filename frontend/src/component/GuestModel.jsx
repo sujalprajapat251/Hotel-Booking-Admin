@@ -1,12 +1,11 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ConfigProvider, DatePicker } from "antd";
 import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookingSlice";
-import { createCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
+import { createCabBooking } from "../Redux/Slice/cabBookingSlice";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import { ChevronDown } from "lucide-react";
 
 // Helper to calculate number of nights
 function getNights(checkIn, checkOut) {
@@ -24,11 +23,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const { loading: cabBookingLoading } = useSelector((state) => state.cabBooking || {});
   const [activeTab, setActiveTab] = useState("personal");
   const [cabServiceEnabled, setCabServiceEnabled] = useState(false);
-  const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
-  const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
-  const paymentStatusRef = useRef(null);
-  const paymentMethodRef = useRef(null);
-  const { cabs } = useSelector((state) => state.cab || { cabs: [] });
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
@@ -56,54 +50,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     cabNotes: "",
   });
 
- // Fetch cabs on component mount
- useEffect(() => {
-  dispatch(getAllCabBookings());
-}, [dispatch]);
-
-// Helper function to get perKmCharge based on seating capacity
-const getPerKmCharge = (seatingCapacity) => {
-  if (!seatingCapacity || !cabs || cabs.length === 0) {
-    return 20; // Default fallback value
-  }
-
-  const capacityNumber = seatingCapacity === "10+" ? 10 : parseInt(seatingCapacity);
-  
-  // First, try to find exact match
-  const exactMatch = cabs.find(cab => cab.seatingCapacity === seatingCapacity && cab.status === "Available");
-  if (exactMatch && exactMatch.perKmCharge) {
-    return exactMatch.perKmCharge;
-  }
-
-  // If no exact match, find cabs with equal or higher capacity
-  if (!isNaN(capacityNumber)) {
-    const suitableCabs = cabs
-      .filter(cab => {
-        if (cab.seatingCapacity === "10+") return true;
-        const cabCapacity = parseInt(cab.seatingCapacity);
-        return !isNaN(cabCapacity) && cabCapacity >= capacityNumber && cab.status === "Available";
-      })
-      .sort((a, b) => {
-        // Sort by capacity ascending to get the smallest suitable cab
-        const aCap = a.seatingCapacity === "10+" ? 999 : parseInt(a.seatingCapacity);
-        const bCap = b.seatingCapacity === "10+" ? 999 : parseInt(b.seatingCapacity);
-        return aCap - bCap;
-      });
-
-    if (suitableCabs.length > 0 && suitableCabs[0].perKmCharge) {
-      return suitableCabs[0].perKmCharge;
-    }
-  }
-
-  // Fallback: use first available cab's perKmCharge or default
-  const firstAvailableCab = cabs.find(cab => cab.status === "Available" && cab.perKmCharge);
-  return firstAvailableCab?.perKmCharge || 20;
-};
-
-// Get current CAB_FARE_RATE based on selected seating capacity
-const CAB_FARE_RATE = useMemo(() => {
-  return getPerKmCharge(formState.preferredSeatingCapacity);
-}, [formState.preferredSeatingCapacity, cabs]);
+  const CAB_FARE_RATE = 20; // Set your rate per km
   const inputClasses =
     "w-full border border-tertiary/40 rounded-lg p-2 bg-white/95 text-senary placeholder:text-quinary/60 focus:outline-none focus:ring-2 focus:ring-quaternary/40 focus:border-quaternary/60 transition";
   const textareaClasses = `${inputClasses} h-24`;
@@ -122,20 +69,18 @@ const CAB_FARE_RATE = useMemo(() => {
         estimatedFare: "",
       }));
     }
-  }, [formState.estimatedDistance, cabServiceEnabled, CAB_FARE_RATE]);
+  }, [formState.estimatedDistance, cabServiceEnabled]);
 
   // Recalculate totalAmount whenever stay dates or price changes
   useEffect(() => {
     const nights = getNights(formState.checkInDate, formState.checkOutDate);
     const pricePerNight = room?.price?.base || 0;
-    const roomTotal = nights * pricePerNight;
-    const cabCharge = cabServiceEnabled && formState.estimatedFare ? parseFloat(formState.estimatedFare) : 0;
-    const total = roomTotal + cabCharge;
+    const total = nights * pricePerNight;
     setFormState((prev) => ({
       ...prev,
       totalAmount: total > 0 ? total : "",
     }));
-  }, [formState.checkInDate, formState.checkOutDate, room, formState.estimatedFare, cabServiceEnabled]);
+  }, [formState.checkInDate, formState.checkOutDate, room]);
 
 
   const roomSummary = useMemo(() => {
@@ -176,34 +121,6 @@ const CAB_FARE_RATE = useMemo(() => {
       document.body.style.width = '';
       window.scrollTo(0, scrollY);
     };
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
-        setShowPaymentStatusDropdown(false);
-      }
-      if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
-        setShowPaymentMethodDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
-        setShowPaymentStatusDropdown(false);
-      }
-      if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
-        setShowPaymentMethodDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const dateRangeValue = useMemo(() => {
@@ -309,8 +226,7 @@ const CAB_FARE_RATE = useMemo(() => {
         guest: {
           fullName: formState.fullName,
           email: formState.email,
-          countrycode: formState.countrycode,
-          phone: formState.mobile,
+          phone: formState.phone,
           idNumber: formState.idNumber,
           address: formState.address,
         },
@@ -371,11 +287,11 @@ const CAB_FARE_RATE = useMemo(() => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <form
-        className="bg-white w-[95%] sm500:w-[70%] max-h-[90vh] rounded-lg overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
+        className="bg-white w-[70%] max-h-[90vh] rounded-lg overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
         onSubmit={handleSubmit}
       >
         {/* HEADER */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-4">
+        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">
           <div>
             <h2 className="text-xl font-semibold text-black">Add New Guest</h2>
             {roomSummary && (
@@ -390,7 +306,7 @@ const CAB_FARE_RATE = useMemo(() => {
           <button
             type="button"
             onClick={onClose}
-            className="text-3xl leading-none"
+            className="text-3xl leading-none hover:text-gray-200"
           >
             ×
           </button>
@@ -400,7 +316,7 @@ const CAB_FARE_RATE = useMemo(() => {
         <div className="flex border-b border-primary/40 bg-primary/20">
           <button
             type="button"
-            className={`flex-1 text-center py-3 text-[14px] sm500:text-[16px] font-medium transition ${
+            className={`flex-1 text-center py-3 font-medium transition ${
               activeTab === "personal"
                 ? "border-b-4 border-senary bg-white text-senary shadow-inner"
                 : "text-quinary hover:bg-primary/30"
@@ -412,7 +328,7 @@ const CAB_FARE_RATE = useMemo(() => {
 
           <button
             type="button"
-            className={`flex-1 text-center py-3 text-[14px] sm500:text-[16px] font-medium transition ${
+            className={`flex-1 text-center py-3 font-medium transition ${
               activeTab === "reservation"
                 ? "border-b-4 border-senary bg-white text-senary shadow-inner"
                 : "text-quinary hover:bg-primary/30"
@@ -580,40 +496,17 @@ const CAB_FARE_RATE = useMemo(() => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div className="relative" ref={paymentStatusRef}>
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPaymentStatusDropdown(!showPaymentStatusDropdown)}
-                    className="w-full px-4 py-2 bg-[#f3f4f6] border border-gray-200 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  <select
+                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
+                    value={formState.paymentStatus}
+                    onChange={handleChange("paymentStatus")}
                   >
-                    <span className={formState.paymentStatus ? 'text-gray-800' : 'text-gray-400'}>
-                      {formState.paymentStatus || 'Select payment status'}
-                    </span>
-                    <ChevronDown size={18} className="text-gray-600" />
-                  </button>
-                  {showPaymentStatusDropdown && (
-                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                      <div
-                        onClick={() => {
-                          setFormState((prev) => ({ ...prev, paymentStatus: 'Pending' }));
-                          setShowPaymentStatusDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        Pending
-                      </div>
-                      <div
-                        onClick={() => {
-                          setFormState((prev) => ({ ...prev, paymentStatus: 'Paid' }));
-                          setShowPaymentStatusDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        Paid
-                      </div>
-                    </div>
-                  )}
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                    {/* <option value="Partial">Partial</option> */}
+                  </select>
                 </div>
               </div>
 
@@ -751,60 +644,18 @@ const CAB_FARE_RATE = useMemo(() => {
                 </div>
               )}
 
-                {/* Booking Summary */}
-                <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-[#FFFAEB]">
-                <h4 className="font-semibold text-md mb-2 text-senary">Booking Summary</h4>
-                <div className="flex flex-col gap-1 text-sm">
-                  <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * (room?.price?.base || 0)}</b></span>
-                  <span>Cab Charges: <b>{cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0}</b></span>
-                  <span className="border-t border-quinary/20 pt-1 mt-1">Total Amount: <b>{formState.totalAmount}</b></span>
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div className="relative" ref={paymentMethodRef}>
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Method</label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPaymentMethodDropdown(!showPaymentMethodDropdown)}
-                    className="w-full px-4 py-2 bg-[#f3f4f6] border border-gray-200 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
+                  <select
+                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
+                    value={formState.paymentMethod}
+                    onChange={handleChange("paymentMethod")}
                   >
-                    <span className={formState.paymentMethod ? 'text-gray-800' : 'text-gray-400'}>
-                      {formState.paymentMethod || 'Select payment method'}
-                    </span>
-                    <ChevronDown size={18} className="text-gray-600" />
-                  </button>
-                  {showPaymentMethodDropdown && (
-                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                      <div
-                        onClick={() => {
-                          setFormState((prev) => ({ ...prev, paymentMethod: 'Cash' }));
-                          setShowPaymentMethodDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        Cash
-                      </div>
-                      <div
-                        onClick={() => {
-                          setFormState((prev) => ({ ...prev, paymentMethod: 'Card' }));
-                          setShowPaymentMethodDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        Card
-                      </div>
-                      <div
-                        onClick={() => {
-                          setFormState((prev) => ({ ...prev, paymentMethod: 'Bank Transfer' }));
-                          setShowPaymentMethodDropdown(false);
-                        }}
-                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                      >
-                        Bank Transfer
-                      </div>
-                    </div>
-                  )}
+                    <option value="Cash">Cash</option>
+                    <option value="Card">Card</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                  </select>
                 </div>
 
                 <div>
@@ -835,7 +686,7 @@ const CAB_FARE_RATE = useMemo(() => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-center sm500:justify-end gap-4 px-6 pb-6">
+        <div className="flex justify-end gap-4 px-6 pb-6">
           <button
             type="button"
             onClick={onClose}
@@ -849,7 +700,7 @@ const CAB_FARE_RATE = useMemo(() => {
             disabled={creating || cabBookingLoading}
             className={`mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white`}
           >
-            {creating || cabBookingLoading ? "Saving..." : "Save"}
+            {creating || cabBookingLoading ? "Saving..." : "Save Guest Details"}
           </button>
         </div>
       </form>

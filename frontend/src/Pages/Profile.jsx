@@ -253,7 +253,7 @@ const Profile = () => {
 
         {/* Profile Header */}
         <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-6">
-          <div className="flex flex-col md:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-start justify-between gap-6">
             <div className="flex items-center gap-5 md:gap-9">
               <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0">
                 <div className="relative flex items-center justify-center">
@@ -344,7 +344,7 @@ const Profile = () => {
                   disabled={currentUser?.designation !== "admin" && true}
                 />
               ) : (
-                <p className="text-base text-gray-900">{currentUser?.email || 'No Email'}</p>
+                <p className="text-base text-gray-900 break-words whitespace-normal overflow-hidden">{currentUser?.email || 'No Email'}</p>
               )}
             </div>
             <div>
@@ -458,7 +458,7 @@ const Profile = () => {
               </button>
               <button
                 onClick={handleSubmit}
-                className="flex items-center justify-center text-sm gap-2 px-4 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-[4px] border border-black h-[45px] w-[160px] text-black transition-all duration-300 ease-in-out"
+                className="flex items-center justify-center mv_user_add text-sm gap-2 px-4 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-[4px] border border-black h-[45px] w-[160px] text-black transition-all duration-300 ease-in-out"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Updating...' : 'Update'}
@@ -470,14 +470,14 @@ const Profile = () => {
         {/* Change Password Section */}
         {currentUser?.designation === "admin" && (
           <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg md:text-xl font-semibold text-gray-900 mb-2">Security</h3>
                 <p className="text-sm text-gray-600">Manage your password and security settings</p>
               </div>
               <button
                 onClick={() => setShowPasswordModal(true)}
-                className="mv_user_add flex items-center justify-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-lg"
+                className="mv_resetpass_add flex items-center justify-center gap-2 px-4 py-2 text-white bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] rounded-lg"
               >
                 Reset Password
               </button>
