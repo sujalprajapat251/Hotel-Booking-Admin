@@ -291,9 +291,8 @@ indexRoutes.get('/getdepartmentpaymentsummary', auth, getDepartmentPaymentSummar
 indexRoutes.get('/getdepartmentrevenuebymonth', auth, getDepartmentRevenueByMonth);
 
 // Notifications
-indexRoutes.get('/notifications', auth, getMyNotifications);
+indexRoutes.get('/notifications', auth, getMyNotifications);   
 indexRoutes.put('/notifications/:id/seen', auth, markSeen);
 indexRoutes.delete('/notifications', auth, clearAll);
-
 
 module.exports = indexRoutes;
