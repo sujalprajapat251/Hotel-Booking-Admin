@@ -18,11 +18,8 @@ const calculateOrderAmount = (items) => {
         throw new Error("Items array is missing or empty");
     }
 
-    console.log("Original amount:", items[0].amount);
     return Math.round(items[0].amount * 100);
 };
-
-
 
 app.post("/create-payment-intent", async (req, res) => {
     const { items, currency } = req.body;

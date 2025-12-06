@@ -106,7 +106,6 @@ const FAQPage = () => {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px] faq-header">
           <div className='faq-left flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
-            {/* <p className="text-[16px] font-semibold text-gray-800">Faqs</p> */}
 
             {/* Search Bar */}
             <div className="relative max-w-md">

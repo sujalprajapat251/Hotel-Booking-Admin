@@ -74,9 +74,6 @@ export const removeItemFromOrder = createAsyncThunk(
     }
 );
 
-// get current login user details
-
-
 const waiterSlice = createSlice({
     name: 'waiter',
     initialState: {
@@ -88,24 +85,6 @@ const waiterSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            // .addCase(addCafeOrder.pending, (state) => {
-            //     state.loading = true;
-            //     state.message = 'Fetching User...';
-            //     state.isError = false;
-            // })
-            // .addCase(addCafeOrder.fulfilled, (state, action) => {
-            //     state.loading = false;
-            //     state.success = true;
-            //     state.message = 'user fetched successfully';
-            //     state.users = action.payload;
-            //     state.isError = false;
-            // })
-            // .addCase(addCafeOrder.rejected, (state, action) => {
-            //     state.loading = false;
-            //     state.success = false;
-            //     state.isError = true;
-            //     state.message = action.payload?.message || 'Failed to fetch user';
-            // })
             .addCase(addItemToTableOrder.pending, (state) => {
                 state.loading = true;
                 state.message = 'Adding item to order...';

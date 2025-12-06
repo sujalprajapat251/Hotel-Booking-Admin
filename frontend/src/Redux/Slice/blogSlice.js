@@ -23,7 +23,6 @@ export const getAllBlog = createAsyncThunk(
                     }
                 }
             );
-            console.log("-----------",response)
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -54,7 +53,6 @@ export const createBlog = createAsyncThunk(
                     }
                 }
             );
-            console.log("-----------",response)
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -86,7 +84,6 @@ export const updateBlog = createAsyncThunk(
                     }
                 }
             );
-            console.log("-----------",response)
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -107,7 +104,6 @@ export const deleteBlog = createAsyncThunk(
                     }
                 }
             );
-            console.log("-----------delete",response)
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue, 'Failed to delete blog');

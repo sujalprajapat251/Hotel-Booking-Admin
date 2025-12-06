@@ -159,11 +159,7 @@ export default function Dashboard() {
                 <div className='flex flex-col lg:flex-row gap-5'>
                     <div className="w-full xl:w-1/3 max-h-screen p-5">
                         <div className='overflow-hidden'>
-                            <div className="flex items-center justify-between">
-                                {/* <div className="py-3 px-4">
-                                <h2 className="text-lg font-semibold text-gray-800">Pending Orders</h2>
-                            </div> */}
-                            </div>
+                      
                             <div className="overflow-x-auto overflow-y-auto lg:p-0 max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
                                 <ul className="space-y-2 p-3 ">
                                     {data

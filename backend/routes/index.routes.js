@@ -1,8 +1,7 @@
 const express = require('express');
 const indexRoutes = express.Router();
 const upload = require('../helper/imageUpload')
-// const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword } = require('../controller/userController');
-// const { auth } = require('../middleware/auth');
+
 const { createRoomType, getRoomTypes, getRoomTypeById, updateRoomType, deleteRoomType } = require('../controller/roomtypecontroller');
 const { createFeature, getFeatures, getFeaturesByRoomType, getFeatureById, updateFeature, deleteFeature } = require('../controller/featuresController');
 const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById } = require('../controller/userController');
@@ -31,7 +30,6 @@ const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminre
 const { createReview, getAllReviews, getReviewById } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
-// const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks } = require('../controller/housekeepingController');
 const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 const {  DepartmentDashboard, getDepartmentPaymentSummary, getDepartmentRevenueByMonth } = require('../controller/hoddashboardController');
@@ -169,10 +167,6 @@ indexRoutes.get('/getAllTable', auth, getTables)
 indexRoutes.get('/getTable/:id', auth, getTableById)
 indexRoutes.put('/updateTable/:id', auth, updateTable)
 indexRoutes.delete('/deleteTable/:id', auth, deleteTable)
-// indexRoutes.get('/getAllTable',auth,getTables)
-// indexRoutes.get('/getTable/:id',auth,getTableById)
-// indexRoutes.put('/updateTable/:id',auth,updateTable)
-// indexRoutes.delete('/deleteTable/:id',auth,deleteTable)
 
 // Generic HOD table management
 indexRoutes.get('/tables', auth, getTables)
@@ -239,7 +233,6 @@ indexRoutes.post('/reviews', auth, createReview);
 indexRoutes.get('/reviews', getAllReviews);
 indexRoutes.get('/reviews/:id', getReviewById);
 
-// indexRoutes.post('/addCafeOrder',createCafeOrder)
 // admin side api 
 indexRoutes.get('/getCafeOrder', auth, getAllCafeOrders)
 indexRoutes.get('/getCafeOrderitems/:status', getAllOrderItemsStatus)

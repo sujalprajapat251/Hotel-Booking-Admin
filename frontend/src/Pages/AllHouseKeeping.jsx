@@ -331,7 +331,6 @@ const AllHouseKeeping = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentData = filteredBookings.slice(startIndex, endIndex);
-    console.log('currentData', currentData);
 
     const handleApprove = (id) => {
         dispatch(approveCleaningRoom(id));
@@ -353,7 +352,6 @@ const AllHouseKeeping = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Housekeeping</p> */}
 
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">

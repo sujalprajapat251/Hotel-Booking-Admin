@@ -44,7 +44,6 @@ export default function Example() {
   const getDashboardData = useSelector(
     (state) => state.HODDashboard.getHodDashboard
   );
-  console.log('getDashboardData', getDashboardData);
 
   const chartData = getDashboardData?.orderSources
     ? Object.entries(getDashboardData.orderSources).map(([key, value]) => ({
@@ -60,51 +59,25 @@ export default function Example() {
   return (
     <div style={{ width: '100%', maxWidth: '220px', height: '120px' }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-          <defs>
-            <linearGradient id="warmGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#F7DF9C" />
-              <stop offset="20%" stopColor="#E3C78A" />
-              <stop offset="40%" stopColor="#B79982" />
-              <stop offset="60%" stopColor="#A3876A" />
-              <stop offset="80%" stopColor="#876B56" />
-              <stop offset="100%" stopColor="#755647" />
-            </linearGradient>
-          </defs>
-
+        <BarChart
+          data={chartData}
+          margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
+        >
           <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
+
+          <Bar
             dataKey="value"
-            stroke="url(#warmGradient)"
-            fill="url(#warmGradient)"
-            strokeWidth={3}
-          />
-        </AreaChart>
+            shape={<TriangleBar />}
+          >
+            {chartData.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={warmColors[index % warmColors.length]}
+              />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
-
-    // <div style={{ width: '100%', maxWidth: '220px', height: '120px' }}>
-    //   <ResponsiveContainer width="100%" height="100%">
-    //     <BarChart
-    //       data={chartData}
-    //       margin={{ top: 10, right: 10, left: 10, bottom: 10 }}
-    //     >
-    //       <Tooltip content={<CustomTooltip />} />
-
-    //       <Bar
-    //         dataKey="value"
-    //         shape={<TriangleBar />}
-    //       >
-    //         {chartData.map((_, index) => (
-    //           <Cell
-    //             key={`cell-${index}`}
-    //             fill={warmColors[index % warmColors.length]}
-    //           />
-    //         ))}
-    //       </Bar>
-    //     </BarChart>
-    //   </ResponsiveContainer>
-    // </div>
   );
 }

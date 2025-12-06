@@ -94,7 +94,6 @@ export const fetchOrderTasks = createAsyncThunk(
 export const acceptWorkeorders = createAsyncThunk(
     'worker/acceptWorkeorders',
     async ({ id }, { dispatch, rejectWithValue }) => {
-        // console.log('order', id);
         try {
             const response = await axios.put(
                 `${BASE_URL}/orderRequest/${id}/status`,

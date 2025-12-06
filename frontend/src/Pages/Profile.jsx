@@ -307,10 +307,8 @@ const Profile = () => {
               </button>
             </div>
           </div>
-          {/* </div> */}
 
           {/* Personal Information */}
-          {/* <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-6"> */}
           <div className="flex items-center justify-between pt-6 md:pt-8 mt-6 mb-3">
             <h3 className="text-lg md:text-xl font-semibold text-gray-900">Personal Information</h3>
           </div>

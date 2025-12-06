@@ -18,9 +18,7 @@ const buildBaseAvailabilityQuery = (excludeDriverIds = []) => {
     return query;
 };
 
-/**
- * Finds the next available driver, preferring drivers that are already tied to the requested cab.
- */
+
 const findAvailableDriver = async ({ preferredCabId = null, excludeDriverIds = [] } = {}) => {
     const normalizedExcludeIds = normalizeIds(excludeDriverIds);
     const baseQuery = buildBaseAvailabilityQuery(normalizedExcludeIds);
@@ -39,11 +37,7 @@ const findAvailableDriver = async ({ preferredCabId = null, excludeDriverIds = [
     return Driver.findOne(baseQuery).sort({ updatedAt: 1 });
 };
 
-/**
- * Reassigns all active bookings tied to a driver that has become unavailable.
- * Attempts to keep bookings linked to the same cab, otherwise falls back to any available driver.
- * If no driver is available the booking will temporarily remain without a driver.
- */
+
 const reassignBookingsForDriver = async (driverId) => {
     if (!driverId) return;
 

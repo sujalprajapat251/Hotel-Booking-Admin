@@ -122,7 +122,6 @@ const TermsTable = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border-b border-gray-200">
           <div className='flex gap-2 md:gap-6 sm:justify-between'>
-            {/* <p className="text-[15px] font-semibold text-gray-800 text-nowrap content-center">Terms & Conditions</p> */}
 
             <div className="relative max-w-md">
               <input

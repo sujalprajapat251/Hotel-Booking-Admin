@@ -92,43 +92,7 @@ const Header = ({ onMenuClick }) => {
   const bellRef = useRef(null);
   const { items: notifications = [], unread = 0 } = useSelector((state) => state.notifications || {});
 
-  // const formatMessage = (n) => {
-  //   const t = n?.type || n?.payload?.type || '';
-  //   const p = n?.payload || {};
-  //   console.log(n);
-  //   if (n?.message) return n.message;
-  //   if (p?.message) return p.message;
-  //   if (t === 'table_status_changed') {
-  //     const title = p.tableTitle || p.tableId || '';
-  //     const status = p.status || '';
-  //     return `Table ${title} status changed to ${status}`.trim();
-  //   }
-  //   if (t === 'new_order') {
-  //     const title = p.tableTitle || p.tableId || '';
-  //     const items = Array.isArray(p.items) ? p.items.filter(Boolean) : [];
-  //     const list = items
-  //       .map((it) => {
-  //         const nm = it?.name || it?.product?.name || '';
-  //         const q = it?.qty ?? it?.quantity ?? 1;
-  //         return nm ? `${nm} x${q}` : '';
-  //       })
-  //       .filter(Boolean)
-  //       .join(', ');
-  //     const suffix = list ? `: ${list}` : '';
-  //     return `New order arise on ${title}${suffix}`.trim();
-  //   }
-  //   if (t === 'item_ready') {
-  //     const title = p.tableTitle || p.tableId || '';
-  //     const itemName = p.itemName || '';
-  //     return `${itemName} is ready on ${title}`.trim();
-  //   }
-  //   if (t === 'order_paid') {
-  //     const title = p.tableTitle || p.tableId || '';
-  //     return `Order paid for ${title}`.trim();
-  //   }
-  //   return 'Notification';
-  // };
-
+ 
   useEffect(() => {
     dispatch(fetchNotifications());
   }, [dispatch]);
@@ -216,7 +180,6 @@ const Header = ({ onMenuClick }) => {
                     onError={(e) => (e.target.src = userImg)}
                   />
                 </div>
-                {/* <FiChevronDown className="text-lg text-quaternary transition-transform" /> */}
               </button>
 
               {isProfileOpen ? (
@@ -286,7 +249,6 @@ const Header = ({ onMenuClick }) => {
       </header>
 
       {/* Logout Modal */}
-
       {logoutModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setLogoutModalOpen(false)}></div>

@@ -159,8 +159,6 @@ const BookingDashboard = () => {
     dispatch(fetchBookings());
   }, [dispatch]);
 
-  console.log(rooms, "rooms");
-
   // Filter rooms based on filter criteria (without useMemo)
   let filteredRooms = [];
   if (rooms && rooms.length > 0) {
@@ -209,9 +207,6 @@ const BookingDashboard = () => {
       if (filters.housekeeping !== 'All Status' && room.cleanStatus !== filters.housekeeping) {
         return false;
       }
-
-      // Date filters (check-in/check-out) - would need booking data to implement fully
-      // For now, we'll skip date filtering as it requires booking information
 
       return true;
     }).sort((a, b) => {
@@ -343,7 +338,6 @@ const BookingDashboard = () => {
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
-    console.log('Filter changed:', key, value);
     setFilters(prev => ({
       ...prev,
       [key]: value
@@ -390,8 +384,8 @@ const BookingDashboard = () => {
     {
       title: 'TOTAL ROOMS',
       value: displayStats.total,
-      color: '#755647', // senary - deep brown
-      iconBg: '#876B56', // quinary - brown
+      color: '#755647', 
+      iconBg: '#876B56',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -402,8 +396,8 @@ const BookingDashboard = () => {
     {
       title: 'AVAILABLE',
       value: displayStats.available,
-      color: '#A3876A', // quaternary - taupe brown
-      iconBg: '#B79982', // tertiary - muted sand
+      color: '#A3876A', 
+      iconBg: '#B79982',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 6L9 17L4 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -413,8 +407,8 @@ const BookingDashboard = () => {
     {
       title: 'OCCUPIED',
       value: displayStats.occupied,
-      color: '#876B56', // quinary - brown
-      iconBg: '#A3876A', // quaternary - taupe brown
+      color: '#876B56', 
+      iconBg: '#A3876A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -425,8 +419,8 @@ const BookingDashboard = () => {
     {
       title: 'OCCUPANCY RATE',
       value: `${displayStats.occupancyRate}%`,
-      color: '#B79982', // tertiary - muted sand
-      iconBg: '#E3C78A', // secondary - tan
+      color: '#B79982', 
+      iconBg: '#E3C78A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 3V21H21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -638,7 +632,6 @@ const BookingDashboard = () => {
               )}
             </div>
 
-            {/* Bed Size Filter */}
             {/* Bed Size Filter */}
             <div className="relative" ref={bedSizeRef}>
               <label className="block text-sm font-medium text-gray-700 mb-2">Bed Size</label>
@@ -852,7 +845,6 @@ const BookingDashboard = () => {
 
               // Get amenities from features
               const amenities = room.features || [];
-              console.log(amenities, "amenities");
 
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {

@@ -61,8 +61,6 @@ export const getAllCafeOrder = createAsyncThunk(
                 }
             );
 
-            console.log("cafeListOrder", response)
-
             return response.data.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);

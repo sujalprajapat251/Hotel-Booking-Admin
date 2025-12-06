@@ -661,11 +661,6 @@ export const Dashboard = () => {
 
                   <div className={`relative ${item.bgColor} ${item.iconColor} p-2 md:p-1 lg:p-4 rounded-xl group-hover:scale-110 transition-transform duration-300 flex-shrink-0`}>
                     {item.icon}
-                    {/* {item.badge && (
-                      <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] md:text-[12px] font-bold rounded-full w-4 h-4 md:w-6 md:h-6 flex items-center justify-center shadow-lg">
-                        {item.badge}
-                      </span>
-                    )} */}
                   </div>
 
                   <p className="text-sm md:text-md lg:text-[15px] font-medium" style={{ color: '#755647' }}>

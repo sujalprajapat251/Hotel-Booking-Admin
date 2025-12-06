@@ -62,8 +62,8 @@ exports.createCabBooking = async (req, res) => {
             // Find cabs that are not booked during the pick-up time
             const bookedCabIds = await CabBooking.find({
                 pickUpTime: {
-                    $lte: new Date(pickUpDateTime.getTime() + 2 * 60 * 60 * 1000), // 2 hours after pick-up
-                    $gte: new Date(pickUpDateTime.getTime() - 2 * 60 * 60 * 1000)  // 2 hours before pick-up
+                    $lte: new Date(pickUpDateTime.getTime() + 2 * 60 * 60 * 1000), 
+                    $gte: new Date(pickUpDateTime.getTime() - 2 * 60 * 60 * 1000)  
                 },
                 status: { $in: ["Pending", "Confirmed", "Assigned", "InProgress"] }
             }).distinct('assignedCab');
@@ -532,7 +532,7 @@ exports.deleteCabBooking = async (req, res) => {
             // Subtract cab fare from booking total amount
             const currentTotal = booking.payment?.totalAmount || 0;
             const cabFare = cabBooking.estimatedFare || 0;
-            const newTotal = Math.max(0, currentTotal - cabFare); // Ensure total doesn't go negative
+            const newTotal = Math.max(0, currentTotal - cabFare); 
             
             booking.payment.totalAmount = newTotal;
             await booking.save();

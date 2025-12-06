@@ -40,9 +40,6 @@ const DriverDetails = () => {
   const { drivers, loading, error } = useSelector((state) => state.driver);
   const { cabs } = useSelector((state) => state.cab);
 
-  console.log(drivers);
-
-
   useEffect(() => {
     dispatch(getAllDrivers());
     dispatch(getAllCabs());
@@ -52,7 +49,7 @@ const DriverDetails = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
-  const [driverModalMode, setDriverModalMode] = useState("add"); // "add" or "edit"
+  const [driverModalMode, setDriverModalMode] = useState("add"); 
   const [driverLoading, setDriverLoading] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewDriver, setViewDriver] = useState(null);
@@ -338,9 +335,6 @@ const DriverDetails = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className="flex gap-2 md:gap-5 sm:justify-between">
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
-              Driver Items
-            </p> */}
             <div className="relative max-w-md">
               <input
                 type="text"

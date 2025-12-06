@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
-import { LuUsers } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
 import { X } from 'lucide-react';
 

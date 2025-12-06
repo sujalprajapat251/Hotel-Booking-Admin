@@ -332,10 +332,7 @@ const CAB_FARE_RATE = useMemo(() => {
         notes: formState.notes,
       };
 
-      console.log(payload, "payload");
-
       const bookingResult = await dispatch(createBooking(payload)).unwrap();
-      console.log(bookingResult, "bookingResult");
 
       // Cab booking logic unchanged
       if (cabServiceEnabled) {
@@ -355,7 +352,6 @@ const CAB_FARE_RATE = useMemo(() => {
           specialInstructions: formState.specialInstructions || "",
           notes: formState.cabNotes || "",
         };
-        console.log("Creating cab booking with payload:", cabBookingPayload);
         await dispatch(createCabBooking(cabBookingPayload)).unwrap();
       }
       if (onBooked) {
