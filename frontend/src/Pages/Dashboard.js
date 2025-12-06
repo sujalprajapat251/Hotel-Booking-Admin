@@ -517,8 +517,8 @@ export const Dashboard = () => {
           }}>
             <div className='sm:flex justify-between items-center h-full gap-1 w-full'>
               <div className=''>
-                <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Available Rooms</p>
-                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.availableRooms}</p>
+                <p className='text-[20px] font-semibold' style={{ color: '#755647' }}>Paid Bookings</p>
+                <p className='text-[16px] font-semibold' style={{ color: '#876B56' }}>{getDashboardData?.totalBookedRooms}</p>
                 <div className='flex gap-1 items-center'>
                   <p className='text-red-500'></p>
                 </div>

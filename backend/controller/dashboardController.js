@@ -86,22 +86,33 @@ exports.dashboard = async (req, res) => {
     // ---------------- 2. ROOM PIE ----------------
     const roomTypes = await RoomType.find();
     const roomPie = [];
+    let totalBookedRooms = 0;
 
     for (let rt of roomTypes) {
 
-        const totalRooms = await Room.countDocuments({ roomType: rt._id });
+        // Total rooms of this roomtype
+        const roomIds = await Room.find({ roomType: rt._id }).select("_id");
+        const totalRooms = roomIds.length;
 
-        const bookedRooms = await RoomBooking.countDocuments({
+        const totalBooked = await RoomBooking.countDocuments({
             "payment.status": "Paid",
-            room: { $in: await Room.find({ roomType: rt._id }).select("_id") }
+            room: { $in: roomIds.map(r => r._id) }
         });
-
-        const availableRooms = totalRooms - bookedRooms;
-
+    
+        // Booked rooms ONLY for selected month
+        const monthlyBooked = await RoomBooking.countDocuments({
+            "payment.status": "Paid",
+            room: { $in: roomIds.map(r => r._id) },
+            createdAt: { $gte: start, $lte: end }   // <--- MONTH FILTER ADDED
+        });
+    
+        const availableRooms = totalRooms - monthlyBooked;
+        totalBookedRooms += monthlyBooked;
+    
         roomPie.push({
             roomType: rt.roomType,
-            booked: bookedRooms,
-            available: availableRooms
+            booked: monthlyBooked,
+            available: availableRooms,
         });
     }
 
@@ -190,6 +201,7 @@ exports.dashboard = async (req, res) => {
         bookingTrend,
         roomPie,
         availableRooms: roomPie.reduce((sum, r) => sum + r.available, 0),
+        totalBookedRooms,
         totalRevenue,
         revenueSources,
         checkoutCount,
@@ -371,6 +383,22 @@ async function getOrderSummary(model, itemCollection, matchQuery = {}) {
         }
     ]);
 }
+
+function ensureAllCategories(results, expectedCategories) {
+    const resultMap = new Map(results.map(r => [r.from, r]));
+    const finalResults = expectedCategories.map(category => {
+        if (resultMap.has(category)) {
+            return resultMap.get(category);
+        }
+        return {
+            from: category,
+            totalOrders: 0,
+            totalAmount: 0
+        };
+    });
+    return finalResults;
+}
+
 exports.orderDashboard = async (req, res) => {
     try {
         const { month } = req.query;
@@ -383,9 +411,13 @@ exports.orderDashboard = async (req, res) => {
             matchQuery = { createdAt: { $gte: start, $lte: end } };
         }
 
-        const bar = await getOrderSummary(BarOrder, "baritems", matchQuery);
-        const cafe = await getOrderSummary(CafeOrder, "cafeitems", matchQuery);
-        const restro = await getOrderSummary(RestroOrder, "restaurantitems", matchQuery);
+        const barResults = await getOrderSummary(BarOrder, "baritems", matchQuery);
+        const cafeResults = await getOrderSummary(CafeOrder, "cafeitems", matchQuery);
+        const restroResults = await getOrderSummary(RestroOrder, "restaurantitems", matchQuery);
+
+        const bar = ensureAllCategories(barResults, ["bar", "room"]);
+        const cafe = ensureAllCategories(cafeResults, ["cafe", "room"]);
+        const restro = ensureAllCategories(restroResults, ["restaurant", "room"]);
 
         res.status(200).json({
             success: true,
@@ -769,7 +801,6 @@ exports.getRevenueDashboard = async (req, res) => {
         return res.status(500).json({ success: false, error: error.message });
     }
 };
-
 
 // ------------------------------------------------------------
 // Service Requests
