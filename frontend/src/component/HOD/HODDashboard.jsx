@@ -161,11 +161,11 @@ const HODDashboard = () => {
               {stats.map((item, index) => (
                 <div
                   key={index}
-                  className="flex flex-col border-l-4 pl-3"
+                  className="flex flex-col border-l-4 pl-1.5"
                   style={{ borderColor: item.color }}
                 >
                   <span className="text-sm mb-1" style={{ color: '#A3876A' }}>{item.label}</span>
-                  <p className="text-3xl font-semibold" style={{ color: '#755647' }}>${item.value}</p>
+                  <p className="text-[22px] xl:text-[30px] font-semibold" style={{ color: '#755647' }}>${item.value}</p>
                 </div>
               ))}
             </div>

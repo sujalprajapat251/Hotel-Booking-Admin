@@ -44,7 +44,7 @@ const HotelOccupancyDashboard = () => {
                 <div className="flex justify-between items-end gap-4 mb-3">
                     <div>
                         <div className="text-[40px] font-bold" style={{ color: colors.quinary }}>
-                            {formatNumber(getOccupancyrate?.currentRevenue)}
+                            ${formatNumber(getOccupancyrate?.currentRevenue)}
                         </div>
                         <div className="text-sm mt-1" style={{ color: colors.quaternary }}>
                             Current Month
@@ -58,7 +58,7 @@ const HotelOccupancyDashboard = () => {
                             Previous Month
                         </div>
                         <div className="text-2xl font-semibold" style={{ color: colors.quinary }}>
-                            {formatNumber(getOccupancyrate?.prevRevenue)}
+                            ${formatNumber(getOccupancyrate?.prevRevenue)}
                         </div>
                     </div>
                 </div>

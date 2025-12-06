@@ -650,7 +650,7 @@ export const Dashboard = () => {
                   }}
                   onClick={() => handleNavigateQuickAccess(item.path)}
                 >
-                  <div className="absolute -top-10 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
+                  <div className="text-wrap absolute -top-10 left-0 text-white text-xs px-3 py-2 3xl:px-2 3xl:py-1 4xl:px-3 4xl:py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap shadow-lg z-20" style={{
                     backgroundColor: '#755647'
                   }}>
                     {item.description}
