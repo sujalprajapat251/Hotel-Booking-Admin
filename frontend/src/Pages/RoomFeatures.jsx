@@ -574,7 +574,7 @@ const RoomFeatures = () => {
                 ) : null}
               </div>
               
-              <div className="flex items-center justify-center pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-center pt-4 border-t border-gray-200 gap-3">
                 <button
                   type="button"
                   onClick={handleAddModalClose}
