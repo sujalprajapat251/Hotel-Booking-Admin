@@ -54,7 +54,7 @@ const Header = ({ onMenuClick }) => {
     // Navigate to the appropriate profile page
     if (userRole === 'Head of Department') {
       navigate('/hod/user-profile');
-    } else if (userRole === 'admin') {
+    } else if (userRole === 'admin' || userRole === 'receptionist') {
       navigate("/user-profile");
     } else if (userRole === 'Waiter') {
       navigate("/waiter/user-profile");

@@ -644,7 +644,7 @@ const searchableDates = b => [
                                                 {visibleColumns.name && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm text-black">{bookingItem.name}</span>
+                                                            <span className="text-sm text-black capitalize">{bookingItem.name}</span>
                                                         </div>
                                                     </td>
                                                 )}
@@ -679,7 +679,7 @@ const searchableDates = b => [
                                                     </td>
                                                 )}
                                                 {visibleColumns.roomType && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                                                         <div className="flex items-center">
                                                             <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
                                                                 backgroundColor: 'rgba(183, 153, 130, 0.2)',
@@ -817,6 +817,11 @@ const searchableDates = b => [
                                                 <div className="flex sm:flex-row flex-col">
                                                     <span className="min-w-[60px] font-italic text-black">Name:</span>
                                                     <span className="break-words whitespace-normal">{selectedItem.name || "N/A"}</span>
+                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                <div className="flex items-center p-1 rounded-lg transition-colors"
+                                                >
+                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px] " >Name:</span>
+                                                    <span className="text-sm sm:text-base capitalize">{selectedItem.name || 'N/A'}</span>
                                                 </div>
                                                 {selectedItem.phone && (
                                                     <div className="flex sm:flex-row flex-col">
@@ -893,7 +898,7 @@ const searchableDates = b => [
                                                 {selectedItem.roomType && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors" >
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Room Type:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.roomType}</span>
+                                                        <span className="text-sm sm:text-base capitalize">{selectedItem.roomType}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.room?.floor && (
@@ -954,7 +959,7 @@ const searchableDates = b => [
                                                 {selectedItem.rawData?.payment?.method && (
                                                     <div className="flex items-center p-2 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[120px] sm:min-w-[140px]">Payment Method:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.payment.method}</span>
+                                                        <span className="text-sm sm:text-base capitalize">{selectedItem.rawData.payment.method}</span>
                                                     </div>
                                                 )}
                                             </div>

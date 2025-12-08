@@ -313,7 +313,7 @@ function App() {
                 <Route
                   path='/user-profile'
                   element={
-                    <ProtectedRoute allowedRoles={['admin', 'user']}>
+                    <ProtectedRoute allowedRoles={['admin', 'user', 'receptionist']}>
                       <Profile />
                     </ProtectedRoute>
                   }

@@ -368,15 +368,15 @@ const CabBookingDetail = () => {
                 filteredBookings.map((booking, idx) => (
                   <tr key={booking.id} className="border-b border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200">
                     <td className="px-4 py-3 text-gray-800">{(page - 1) * limit + idx + 1}</td>
-                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.guestName}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap capitalize">{booking.guestName}</td>
                     <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.roomNumber}</td>
                     <td className="px-4 py-3 text-gray-800">
-                      <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 whitespace-nowrap capitalize">
                         <MapPin size={14} className="text-blue-600" />
                         {booking.pickupLocation}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-800">
+                    <td className="px-4 py-3 text-gray-800 capitalize">
                       <span className="inline-flex items-center gap-1">
                         <MapPin size={14} className="text-red-600" />
                         {booking.dropLocation}
@@ -394,15 +394,15 @@ const CabBookingDetail = () => {
                         {booking.pickupTime ? new Date(booking.pickupTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.driver}</td>
-                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{booking.vehicle}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap capitalize">{booking.driver}</td>
+                    <td className="px-4 py-3 text-gray-800 whitespace-nowrap capitalize">{booking.vehicle}</td>
                     <td className="px-4 py-3 font-medium text-gray-800">{booking.distance}</td>
                     <td className="px-4 py-3 text-[#15803D] font-semibold">
                       {booking.fare === "--" ? "—" : `$${booking.fare}`}
                     </td>
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${statusColors[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"
+                        className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border capitalize ${statusColors[booking.status] || "bg-gray-50 text-gray-600 border-gray-200"
                           }`}
                       >
                         {booking.status}
@@ -489,7 +489,7 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Name:</span>
-                      <span className="text-gray-900">{selectedBooking.guestName}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.guestName}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Room / Guest ID:</span>
@@ -523,7 +523,7 @@ const CabBookingDetail = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Status:</span>
-                      <span className="text-gray-900">{selectedBooking.status}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.status}</span>
                     </div>
                   </div>
                 </div>
@@ -537,19 +537,19 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Pickup Location:</span>
-                      <span className="text-gray-900">{selectedBooking.pickupLocation}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.pickupLocation}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Drop Location:</span>
-                      <span className="text-gray-900">{selectedBooking.dropLocation}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.dropLocation}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Driver:</span>
-                      <span className="text-gray-900">{selectedBooking.driver}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.driver}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Vehicle:</span>
-                      <span className="text-gray-900">{selectedBooking.vehicle}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.vehicle}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[110px]">Distance (KM):</span>
@@ -567,7 +567,7 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[130px]">Payment Status:</span>
-                      <span className="text-gray-900">{selectedBooking.paymentStatus}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.paymentStatus}</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[130px]">Total Fare:</span>
@@ -577,7 +577,7 @@ const CabBookingDetail = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="text-gray-600 min-w-[130px]">Payment Method:</span>
-                      <span className="text-gray-900">{selectedBooking.paymentMethod}</span>
+                      <span className="text-gray-900 capitalize">{selectedBooking.paymentMethod}</span>
                     </div>
                   </div>
                 </div>

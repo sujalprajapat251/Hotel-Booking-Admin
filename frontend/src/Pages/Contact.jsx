@@ -276,7 +276,7 @@ const Contact = () => {
 
                     {/* Name */}
                     {visibleColumns.name && (
-                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                         <div className="flex items-center gap-3">
                           <span className="text-sm text-gray-800">{item.name}</span>
                         </div>

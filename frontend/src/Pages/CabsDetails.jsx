@@ -346,7 +346,7 @@ const CabsDetails = () => {
                             </div>
                           )}
                         <div>
-                          <p className="text-sm font-medium text-black">
+                          <p className="text-sm font-medium text-black capitalize">
                             {vehicle.modelName}
                           </p>
                           <p className="text-xs text-gray-600">
@@ -358,7 +358,7 @@ const CabsDetails = () => {
                     <td className="px-5 py-4 text-black">
                       {vehicle.vehicleId || "—"}
                     </td>
-                    <td className="px-5 py-4 text-black">
+                    <td className="px-5 py-4 text-black capitalize">
                       {vehicle.fuelType || "—"}
                     </td>
                     <td className="px-5 py-4 text-black">
@@ -1128,7 +1128,7 @@ function ViewCabModal({ cab, onClose }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[15px] text-black">
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Model Name:</span>
-            <span className="truncate">{cab.modelName || '—'}</span>
+            <span className="truncate capitalize">{cab.modelName || '—'}</span>
           </div>
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Registration No.:</span>
@@ -1146,7 +1146,7 @@ function ViewCabModal({ cab, onClose }) {
 
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Fuel Type:</span>
-            <span>{cab.fuelType || '—'}</span>
+            <span className="capitalize">{cab.fuelType || '—'}</span>
           </div>
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Per Km Charge:</span>
@@ -1155,7 +1155,7 @@ function ViewCabModal({ cab, onClose }) {
 
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Driver Assigned:</span>
-            <span>{cab.driverAssigned ? 'Yes' : 'No'}</span>
+            <span className="capitalize">{cab.driverAssigned ? 'Yes' : 'No'}</span>
           </div>
           <div className="flex items-start">
             <span className="w-36 font-semibold text-black">Status:</span>

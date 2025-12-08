@@ -463,7 +463,7 @@ const AllHouseKeeping = () => {
                                                 {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-medium text-gray-800">{housekeeping.name}</span>
+                                                            <span className="text-sm font-medium text-gray-800 capitalize">{housekeeping.name}</span>
                                                         </div>
                                                     </td>
                                                 )}
@@ -478,7 +478,7 @@ const AllHouseKeeping = () => {
                                                     <td className="x-5 py-2 md600:py-3 lg:px-6">{housekeeping.roomNo}</td>
                                                 )}
                                                 {visibleColumns.roomType && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                                                         <div className="flex items-center">
                                                             <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
                                                                 backgroundColor: 'rgba(183, 153, 130, 0.2)',
@@ -608,11 +608,11 @@ const AllHouseKeeping = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Worker Name:</span>
-                                            <span className='text-gray-900'>{selectedItem.name}</span>
+                                            <span className='text-gray-900 capitalize'>{selectedItem.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]" >Room Type:</span>
-                                            <span className='text-gray-900'>{selectedItem.roomType}</span>
+                                            <span className='text-gray-900 capitalize'>{selectedItem.roomType}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]" >Payment Status:</span>

@@ -567,7 +567,7 @@ const DriverDetails = () => {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-black">
+                          <p className="text-sm font-medium text-black capitalize">
                             {driver.name || "—"}
                           </p>
                           <p className="text-xs text-gray-600">
@@ -1031,7 +1031,7 @@ const DriverDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[15px]">
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Name:</span>
-                <span>{viewDriver.name || '—'}</span>
+                <span className="capitalize">{viewDriver.name || '—'}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Email:</span>
@@ -1043,15 +1043,15 @@ const DriverDetails = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Assigned Cab:</span>
-                <span>{viewDriver.AssignedCab?.vehicleId || 'Not Assigned'}</span>
+                <span className="capitalize">{viewDriver.AssignedCab?.vehicleId || 'Not Assigned'}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Gender:</span>
-                <span>{viewDriver.gender || '—'}</span>
+                <span className="capitalize">{viewDriver.gender || '—'}</span>
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold w-32 text-black">Status:</span>
-                <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold ${statusColors(viewDriver.status)}`}>
+                <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold capitalize ${statusColors(viewDriver.status)}`}>
                   {viewDriver.status || '—'}
                 </span>
               </div>

@@ -387,14 +387,14 @@ const RoomFeatures = () => {
                       <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                     )}
                     {visibleColumns.feature && (
-                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                         <div className="flex items-center gap-2">
                           {item.feature}
                         </div>
                       </td>
                     )}
                     {visibleColumns.roomType && (
-                      <td className="px-5 py-3 text-sm">
+                      <td className="px-5 py-3 text-sm capitalize">
                         <span className="inline-flex items-center rounded-[4px] bg-[#F7DF9C]/50 px-3 py-1 text-xs font-semibold text-[#755647]">
                           {item.roomType?.roomType || item.roomType || 'N/A'}
                         </span>

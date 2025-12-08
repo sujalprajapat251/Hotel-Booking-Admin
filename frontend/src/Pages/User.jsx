@@ -271,7 +271,7 @@ const User = () => {
                                                                     })()}
                                                                 </div>
                                                             )}
-                                                            <span className="text-sm font-medium text-gray-800">{user.name}</span>
+                                                            <span className="text-sm font-medium text-gray-800 capitalize">{user.name}</span>
                                                         </div>
                                                     </td>
                                                 )}

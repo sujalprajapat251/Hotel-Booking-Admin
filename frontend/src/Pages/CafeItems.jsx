@@ -471,14 +471,14 @@ const CafeItems = () => {
                                                         alt={item.name}
                                                         className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                                                     />
-                                                    <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                                                    <span className="text-sm font-medium text-gray-800 capitalize">{item.name}</span>
                                                 </div>
                                             </td>
                                         )}
 
                                         {/* Category */}
                                         {visibleColumns.category && (
-                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                            <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                                                 <div className="flex items-center gap-2">
                                                     {item.category?.name}
                                                 </div>
@@ -656,15 +656,15 @@ const CafeItems = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Name:</span>
-                                            <span className="text-gray-900">{selectedItem.name}</span>
+                                            <span className="text-gray-900 capitalize">{selectedItem.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Category:</span>
-                                            <span className="text-gray-900">{selectedItem.category?.name || 'N/A'}</span>
+                                            <span className="text-gray-900 capitalize">{selectedItem.category?.name || 'N/A'}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Price:</span>
-                                            <span className="text-gray-900">{selectedItem.price}</span>
+                                            <span className="text-gray-900">${selectedItem.price}</span>
                                         </div>
                                         <div className="flex items-start gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
