@@ -54,10 +54,10 @@ export default function SingleRoomModal({ id, onClose }) {
                 <div className='py-5'>
                 <div className='px-5'>
                     <h1 className='text-3xl font-semibold text-senary'>{room?.roomNumber}</h1>
-                    <div className='py-2'>
-                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1 mx-1 rounded'>{room?.viewType}</span>
-                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1  mx-1 rounded'>{room?.roomType?.roomType}</span>
-                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1  mx-1 rounded'>{room?.floor} floor</span>
+                    <div className='py-2 flex flex-wrap gap-3'>
+                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1 mx-1 rounded text-nowrap'>{room?.viewType}</span>
+                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1  mx-1 rounded text-nowrap'>{room?.roomType?.roomType}</span>
+                        <span className='capitalize text-sm text-senary bg-senary/20 px-2 py-1  mx-1 rounded text-nowrap'>{room?.floor} floor</span>
                     </div>
                 </div>
 
