@@ -23,9 +23,7 @@ function initializeSocket(io) {
       const decoded = jwt.verify(token, process.env.SECRET_KEY);
       
       // Check if user exists
-      // console.log(decoded._id);
       const user = await Staff.findById(decoded._id);
-      // console.log(user);
       if (!user) {
         return next(new Error('Authentication error: User not found'));
       }
@@ -40,7 +38,6 @@ function initializeSocket(io) {
   });
 
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id, "userId:", socket.userId || null);
   
     // Handle user room joining
     socket.on("joinRoom", ({ userId }) => {
@@ -50,7 +47,6 @@ function initializeSocket(io) {
         set.add(socket.id);
         userSocketMap.set(uid, set);
         socketUserMap.set(socket.id, uid);
-        // console.log(`User ${userId} joined their personal room`);
       }
     });
 
@@ -68,7 +64,6 @@ function initializeSocket(io) {
       const room = `music:${musicId}`;
       try {
         socket.join(room);
-        // console.log(`Socket ${socket.id} joined music room ${room}`);
       } catch (err) {
         console.error(`Failed to join music room ${room}:`, err?.message || err);
       }
@@ -80,7 +75,6 @@ function initializeSocket(io) {
       const room = `music:${musicId}`;
       try {
         socket.leave(room);
-        // console.log(`Socket ${socket.id} left music room ${room}`);
       } catch (err) {
         console.error(`Failed to leave music room ${room}:`, err?.message || err);
       }
@@ -92,7 +86,6 @@ function initializeSocket(io) {
 
     // Handle disconnect with cleanup
     socket.on("disconnect", (reason) => {
-      console.log(`Socket ${socket.id} disconnected: ${reason}`);
        
       // Remove mappings on disconnect
       const userId = socketUserMap.get(socket.id);
@@ -109,7 +102,6 @@ function initializeSocket(io) {
 
     // Handle reconnection
     socket.on("reconnect", () => {
-      // console.log(`Socket ${socket.id} reconnected`);
     });
   });
 
@@ -154,7 +146,6 @@ async function emitRoleNotification({ departmentId, designations = [], excludeUs
     const targets = await Staff.find(baseQuery).select('_id department');
     const excludeId = excludeUserId ? String(excludeUserId) : null;
     const docs = [];
-    console.log('or',or ,'baseQuery',baseQuery,'targets',targets,'excludeId',excludeId,'docs',docs )
     targets.forEach(t => {
       const uid = String(t._id);
       if (excludeId && uid === excludeId) return;

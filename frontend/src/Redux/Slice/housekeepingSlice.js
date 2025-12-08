@@ -19,45 +19,14 @@ const getAuthHeaders = () => {
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// // Updated fetchBookings to support pagination
-// export const fetchAllhousekeepingrooms = createAsyncThunk(
-//     'haousekeeping/fetchAllhousekeepingrooms',
-//     async (params = {}, { dispatch, rejectWithValue }) => {
-//         try {
-//             const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
-//                 params, // This will include page, limit, search, etc.
-//                 headers: getAuthHeaders()
-//             });
-//             // console.log('response', response.data);
-
-//             // Return the entire response data
-//             return response.data;
-//         } catch (error) {
-//             return handleErrors(error, dispatch, rejectWithValue);
-//         }
-//     }
-// );
-
-
 export const fetchAllhousekeepingrooms = createAsyncThunk(
     'housekeeping/fetchAllhousekeepingrooms',
     async (params = {}, { dispatch, rejectWithValue }) => {
         try {
-            // Log the request parameters
-            console.log('📤 Fetching housekeeping rooms with params:', params);
 
             const response = await axios.get(`${BASE_URL}/getallhousekeepingroom`, {
                 params, // This will include page, limit, search, etc.
                 headers: getAuthHeaders()
-            });
-
-            // Log the response
-            console.log('📥 Housekeeping API Response:', {
-                dataCount: response.data?.data?.length || 0,
-                pagination: response.data?.pagination,
-                totalCount: response.data?.pagination?.totalCount,
-                currentPage: response.data?.pagination?.currentPage,
-                totalPages: response.data?.pagination?.totalPages
             });
 
             // Return the entire response data
@@ -100,7 +69,6 @@ export const fetchFreeWorker = createAsyncThunk(
             const response = await axios.get(`${BASE_URL}/getfreeworker`, {
                 headers: getAuthHeaders()
             });
-            console.log('responseeeeeeee', response.data);
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -119,7 +87,6 @@ export const approveCleaningRoom = createAsyncThunk(
                 { headers: getAuthHeaders() }
             );
             dispatch(setAlert({ text: response.data.message || 'Room marked as clean!', color: 'success' }));
-            console.log('response', response?.data);
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -162,7 +129,6 @@ const housekeepingSlice = createSlice({
             .addCase(fetchAllhousekeepingrooms.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload?.data || [];
-                // console.log('itemssss', action.payload.data);
                 state.totalCount = action.payload.totalCount || 0;
                 state.currentPage = action.payload.currentPage || 1;
                 state.totalPages = action.payload.totalPages || 0;
@@ -177,8 +143,7 @@ const housekeepingSlice = createSlice({
             })
             .addCase(fetchFreeWorker.fulfilled, (state, action) => {
                 state.loadingWorkers = false;
-                state.freeWorkers = action.payload?.data || []; // Store in freeWorkers instead of items
-                console.log('Free workers:', action.payload.data);
+                state.freeWorkers = action.payload?.data || []; 
             })
             .addCase(fetchFreeWorker.rejected, (state, action) => {
                 state.loadingWorkers = false;

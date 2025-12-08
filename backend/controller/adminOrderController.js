@@ -7,37 +7,6 @@ const restroTable = require("../models/restaurantTableModel.js");
 const OrderRequest = require('../models/orderRequest.js');
 const { emitCafeOrderChanged, emitBarOrderChanged, emitRestaurantOrderChanged, emitCafeTableStatusChanged, emitBarTableStatusChanged, emitRestaurantTableStatusChanged, emitRoleNotification } = require('../socketManager/socketManager.js');
 
-// exports.createCafeOrder = async (req, res) => {
-//     try {
-//         const { name, contact, items, from, table, room } = req.body;
-//         if (!items || !from) {
-//             return res.status(400).json({
-//                 status: 400,
-//                 message: "All fields are required"
-//             });
-//         }
-//         const newTable = await cafeOrder.create({
-//             name,
-//             contact,
-//             items,
-//             from,
-//             table: from === 'cafe' ? table : null,  // store table only for cafe
-//             room: from === 'hotel' ? room : null    // store room only for hotel
-//         });
-//         res.status(200).json({
-//             status: 200,
-//             message: "Cafe Table created successfully..!",
-//             data: newTable
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({
-//             status: 500,
-//             message: error.message
-//         });
-//     }
-// }
-
 exports.getAllCafeOrders = async (req, res) => {
     try {
         if (!req.user) {
@@ -73,7 +42,6 @@ exports.getAllCafeOrders = async (req, res) => {
         res.status(500).json({ status: 500, message: error.message });
     }
 };
-
 
 exports.getCafeOrderById = async (req, res) => {
     try {
@@ -188,28 +156,6 @@ exports.cancelCafeOrder = async (req, res) => {
     }
 };
 
-
-// exports.addItemToOrder = async (req, res) => {
-//     try {
-//         const { itemId } = req.body;
-
-//         const updatedOrder = await cafeOrder.findByIdAndUpdate(
-//             req.params.id,
-//             { $push: { items: itemId } },
-//             { new: true }
-//         );
-
-//         res.status(200).json({
-//             status: 200,
-//             message: "Item added successfully",
-//             data: updatedOrder
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({ status: 500, message: error.message });
-//     }
-// };
-
 exports.addItemToTableOrder = async (req, res) => {
     try {
         const { product, qty, description, name, contact } = req.body;
@@ -288,7 +234,6 @@ exports.addItemToTableOrder = async (req, res) => {
                 }
             } else if (nameDept === 'bar') {
                 const tables = await barTable.findById(tableId);
-                console.log(tables)
                 tables.save();
                 emitBarTableStatusChanged(tables?._id || req.params.id, tables);
                 emitBarOrderChanged(populated.table?._id || tableId, populated);
@@ -415,7 +360,6 @@ exports.addItemToTableOrder = async (req, res) => {
             }
         } else if (nameDept === 'bar') {
             const tables = await barTable.findById(tableId);
-            console.log(tables)
             tables.status = false;
             tables.save();
             emitBarTableStatusChanged(tables?._id || req.params.id, tables);

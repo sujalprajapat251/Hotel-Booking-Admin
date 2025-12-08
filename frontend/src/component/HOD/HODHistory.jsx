@@ -644,15 +644,6 @@ const HODHistory = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
-            {/* <div className="flex justify-end px-6 py-4 border-t border-gray-200">
-              <button
-                onClick={handleCloseModal}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-              >
-                Close
-              </button>
-            </div> */}
           </div>
         </div>
       )}

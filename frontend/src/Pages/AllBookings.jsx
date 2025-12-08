@@ -25,9 +25,7 @@ const AllBookings = () => {
     } = useSelector((state) => state.booking);    
 
     const user = useSelector((state) => state.auth?.user);
-    console.log(user, "user");
     const userRole = user?.designation || '';
-    console.log(userRole, "userRole");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
 
@@ -99,7 +97,7 @@ const AllBookings = () => {
 // Helper to include both raw and formatted date string
 const searchableDates = b => [
     b.checkIn,
-    formatDate(b.checkIn),     // user-facing format
+    formatDate(b.checkIn),   
     b.checkOut,
     formatDate(b.checkOut),
     b.createdAt,
@@ -168,7 +166,6 @@ const searchableDates = b => [
         { value: 'Cancelled', label: 'Cancelled' },
         { value: 'NoShow', label: 'No Show' },
     ];
-
 
     useEffect(() => {
         const params = {
@@ -1107,15 +1104,6 @@ const searchableDates = b => [
                                                         className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                                                     />
                                                 </div>
-                                                {/* <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Nationality</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.guest.nationality}
-                                                        onChange={(e) => handleEditFormChange('guest', 'nationality', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div> */}
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Address</label>
                                                     <input
@@ -1174,15 +1162,6 @@ const searchableDates = b => [
                                                         )
                                                     }
                                                 </div>
-                                                {/* <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Booking Source</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.reservation.bookingSource}
-                                                        onChange={(e) => handleEditFormChange('reservation', 'bookingSource', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div> */}
                                                 <div>
                                                     <label className="text-sm font-medium text-black mb-1">Adults</label>
                                                     <input

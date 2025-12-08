@@ -33,6 +33,22 @@ const CabsDetails = () => {
   const statusDropdownRef = useRef(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
+  // Close the status dropdown when clicking outside of it
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        showStatusDropdown &&
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(e.target)
+      ) {
+        setShowStatusDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showStatusDropdown]);
+
   const defaultCabFields = {
     modelName: "",
     registrationNumber: "",
@@ -204,7 +220,6 @@ const CabsDetails = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className="flex gap-2 md:gap-5 sm:justify-between">
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Cab Items</p> */}
             <div className="relative max-w-md">
               <input
                 type="text"
@@ -651,7 +666,7 @@ const CabsDetails = () => {
                               handleAddInputChange({ target: { name: 'status', value: opt } });
                               setShowStatusDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {opt}
                           </li>

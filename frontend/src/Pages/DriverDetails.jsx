@@ -35,13 +35,30 @@ const statusColors = (status) => {
   }
 };
 
+// Helper function to get country code from dial code
+const getCountryFromDialCode = (countrycode) => {
+  if (!countrycode) return "in";
+  const dialCode = countrycode.replace('+', '');
+  // Common dial code to country mapping
+  const dialCodeMap = {
+    '91': 'in',
+    '1': 'us',
+    '44': 'gb',
+    '86': 'cn',
+    '81': 'jp',
+    '49': 'de',
+    '33': 'fr',
+    '61': 'au',
+    '971': 'ae',
+    '966': 'sa',
+  };
+  return dialCodeMap[dialCode] || "in";
+};
+
 const DriverDetails = () => {
   const dispatch = useDispatch();
   const { drivers, loading, error } = useSelector((state) => state.driver);
   const { cabs } = useSelector((state) => state.cab);
-
-  console.log(drivers);
-
 
   useEffect(() => {
     dispatch(getAllDrivers());
@@ -52,7 +69,7 @@ const DriverDetails = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [isDriverModalOpen, setIsDriverModalOpen] = useState(false);
-  const [driverModalMode, setDriverModalMode] = useState("add"); // "add" or "edit"
+  const [driverModalMode, setDriverModalMode] = useState("add"); 
   const [driverLoading, setDriverLoading] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewDriver, setViewDriver] = useState(null);
@@ -97,15 +114,13 @@ const DriverDetails = () => {
 
   const filteredDrivers = useMemo(() => {
     return (drivers || []).filter((d) => {
+      const search = searchTerm ? String(searchTerm).toLowerCase() : '';
       const matchesSearch =
-        d.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        d.mobileno?.includes(searchTerm) ||
-        d.AssignedCab?.vehicleId
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All" ? true : d.status === statusFilter;
+        (d.name ? String(d.name).toLowerCase().includes(search) : false) ||
+        (d.email ? String(d.email).toLowerCase().includes(search) : false) ||
+        (d.mobileno ? String(d.mobileno).includes(String(searchTerm)) : false) ||
+        (d.AssignedCab?.vehicleId ? String(d.AssignedCab.vehicleId).toLowerCase().includes(search) : false);
+      const matchesStatus = statusFilter === "All" ? true : d.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [drivers, searchTerm, statusFilter]);
@@ -165,14 +180,22 @@ const DriverDetails = () => {
       ? new Date(driver.joiningdate).toISOString().split('T')[0]
       : "";
 
+    // Handle phone number - convert to string and construct fullMobile properly
+    const mobilenoStr = driver.mobileno ? String(driver.mobileno) : "";
+    const countrycode = driver.countrycode || "+91";
+    // Remove + from countrycode for PhoneInput (it expects just the dial code)
+    const dialCode = countrycode.replace('+', '');
+    // Construct fullMobile: dialCode + mobileno (PhoneInput format)
+    const fullMobile = mobilenoStr ? `${dialCode}${mobilenoStr}` : "";
+
     setDriverForm({
       _id: driver._id,
       name: driver.name || "",
       email: driver.email || "",
       password: "", // Don't pre-fill password
-      mobileno: driver.mobileno || "",
-      countrycode: "+91",
-      fullMobile: driver.mobileno || "",
+      mobileno: mobilenoStr,
+      countrycode: countrycode,
+      fullMobile: fullMobile,
       address: driver.address || "",
       gender: driver.gender || "",
       joiningdate: joiningDate,
@@ -190,9 +213,14 @@ const DriverDetails = () => {
 
   const handleDriverInputChange = (e) => {
     const { name, value, type, files } = e.target;
+    // Ensure value is a string if used in string operations later.
+    let safeValue = value;
+    if (typeof safeValue !== 'string') {
+      safeValue = safeValue ? String(safeValue) : '';
+    }
     setDriverForm((prev) => ({
       ...prev,
-      [name]: type === "file" ? files[0] : value,
+      [name]: type === "file" ? files[0] : safeValue,
     }));
   };
 
@@ -200,12 +228,91 @@ const DriverDetails = () => {
     e.preventDefault();
     setDriverLoading(true);
     try {
+      // Prepare driver data - ensure mobileno is a number for backend
+      const driverData = { ...driverForm };
+      
+      // Ensure countrycode has a default value
+      if (!driverData.countrycode || driverData.countrycode.trim() === "") {
+        driverData.countrycode = "+91";
+      }
+      
+      // Frontend validation for required fields
+      if (driverModalMode === "add") {
+        if (!driverData.name || !driverData.name.trim()) {
+          dispatch(setAlert({ text: "Name is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.email || !driverData.email.trim()) {
+          dispatch(setAlert({ text: "Email is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.password || !driverData.password.trim()) {
+          dispatch(setAlert({ text: "Password is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.mobileno || driverData.mobileno.toString().trim() === "") {
+          dispatch(setAlert({ text: "Mobile number is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.countrycode || driverData.countrycode.trim() === "") {
+          dispatch(setAlert({ text: "Country code is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.address || !driverData.address.trim()) {
+          dispatch(setAlert({ text: "Address is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.gender || !driverData.gender.trim()) {
+          dispatch(setAlert({ text: "Gender is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        if (!driverData.joiningdate || driverData.joiningdate.trim() === "") {
+          dispatch(setAlert({ text: "Joining date is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+      }
+      
+      // Convert mobileno to number if it's a string (backend expects Number)
+      if (driverData.mobileno) {
+        const mobilenoNum = typeof driverData.mobileno === 'string' 
+          ? parseInt(driverData.mobileno, 10)
+          : Number(driverData.mobileno);
+        
+        if (isNaN(mobilenoNum) || mobilenoNum <= 0) {
+          dispatch(setAlert({ text: "Valid mobile number is required", color: "error" }));
+          setDriverLoading(false);
+          return;
+        }
+        driverData.mobileno = mobilenoNum;
+      }
+      
+      // Remove fields that shouldn't be sent to backend
+      delete driverData.fullMobile; // This is only for PhoneInput
+      delete driverData.existingImage; // This is only for preview
+      
+      // Ensure designation is set to "Driver" (required for staff model)
+      driverData.designation = "Driver";
+      
+      // Handle AssignedCab - convert empty string to null/undefined
+      if (driverData.AssignedCab === "" || driverData.AssignedCab === null) {
+        delete driverData.AssignedCab; // Don't send if empty
+      }
+      
       if (driverModalMode === "add") {
         // Add mode - create new driver
-        await dispatch(createDriver(driverForm));
+        // Remove _id for new driver
+        delete driverData._id;
+        await dispatch(createDriver(driverData));
       } else {
         // Edit mode - update existing driver
-        const driverData = { ...driverForm };
         // Remove empty password and image if not changed
         if (!driverData.password || driverData.password.trim() === "") {
           delete driverData.password;
@@ -213,13 +320,14 @@ const DriverDetails = () => {
         if (!driverData.image) {
           delete driverData.image;
         }
-        delete driverData.existingImage; // Remove preview field
 
         await dispatch(updateDriver(driverData));
       }
       setIsDriverModalOpen(false);
       setDriverForm(defaultDriverFields);
       dispatch(getAllDrivers()); // Refresh the list
+    } catch (error) {
+      console.error("Error submitting driver:", error);
     } finally {
       setDriverLoading(false);
     }
@@ -338,9 +446,6 @@ const DriverDetails = () => {
       <div className="bg-white rounded-lg shadow-md">
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className="flex gap-2 md:gap-5 sm:justify-between">
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">
-              Driver Items
-            </p> */}
             <div className="relative max-w-md">
               <input
                 type="text"
@@ -647,16 +752,17 @@ const DriverDetails = () => {
                     Mobile Number
                   </label>
                   <PhoneInput
-                    country={"in"}
+                    country={getCountryFromDialCode(driverForm.countrycode)}
                     enableSearch={true}
                     value={driverForm.fullMobile || ""}
                     onChange={(value, country) => {
-                      const nextValue = value || "";
-                      const dialCode = country?.dialCode || "";
+                      // Ensure value is always a string
+                      const nextValue = typeof value === 'string' ? value : (value ? String(value) : '');
+                      const dialCode = country?.dialCode || '';
                       const mobileOnly = nextValue.slice(dialCode.length);
                       setDriverForm((prev) => ({
                         ...prev,
-                        countrycode: dialCode ? `+${dialCode}` : "",
+                        countrycode: dialCode ? `+${dialCode}` : prev.countrycode || '+91',
                         mobileno: mobileOnly,
                         fullMobile: nextValue,
                       }));
@@ -693,7 +799,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={genderDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowGenderDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowGenderDropdown((prev) => !prev);
+                        setShowAssignedDropdown(false);
+                        setShowStatusDropdown(false);
+                      }}
                       name="gender"
                       value={driverForm.gender}
                       onChange={handleDriverInputChange}
@@ -717,7 +827,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: "gender", value: option } });
                               setShowGenderDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {option}
                           </li>
@@ -742,7 +852,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={assignedDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowAssignedDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowAssignedDropdown((prev) => !prev);
+                        setShowGenderDropdown(false);
+                        setShowStatusDropdown(false);
+                      }}
                       name="AssignedCab"
                       className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
                     >
@@ -763,7 +877,7 @@ const DriverDetails = () => {
                             handleDriverInputChange({ target: { name: 'AssignedCab', value: '' } });
                             setShowAssignedDropdown(false);
                           }}
-                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                          className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                         >
                           Select Cab (Optional)
                         </li>
@@ -774,7 +888,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: 'AssignedCab', value: cab._id } });
                               setShowAssignedDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {cab.vehicleId} - {cab.modelName}
                           </li>
@@ -788,7 +902,11 @@ const DriverDetails = () => {
                   <div className="relative" ref={statusDropdownRef}>
                     <button
                       type="button"
-                      onClick={() => setShowStatusDropdown((prev) => !prev)}
+                      onClick={() => {
+                        setShowStatusDropdown((prev) => !prev);
+                        setShowGenderDropdown(false);
+                        setShowAssignedDropdown(false);
+                      }}
                       name="status"
                       className="w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between"
                       required
@@ -805,7 +923,7 @@ const DriverDetails = () => {
                               handleDriverInputChange({ target: { name: 'status', value: opt } });
                               setShowStatusDropdown(false);
                             }}
-                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-2"
+                            className="hover:bg-[#F7DF9C] cursor-pointer px-4 py-1 text-sm"
                           >
                             {opt}
                           </li>

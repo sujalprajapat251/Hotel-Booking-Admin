@@ -46,7 +46,6 @@ const RestaurantOrder = () => {
 
   const { restaurantOrder, loading } = useSelector((state) => state.vieworder);
 
-
   const getOrderItemCount = (order) => {
     if (!order?.items?.length) return 0;
     return order.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
@@ -280,7 +279,6 @@ const RestaurantOrder = () => {
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Restaurant Order List</p> */}
 
                 {/* Search Bar */}
                 <div className="relative  max-w-md">
@@ -526,8 +524,7 @@ const RestaurantOrder = () => {
       </div >
 
       {/* Order Details Modal */}
-      {
-        isModalOpen && selectedOrder && (
+      {isModalOpen && selectedOrder && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-[4px] shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Modal Header */}

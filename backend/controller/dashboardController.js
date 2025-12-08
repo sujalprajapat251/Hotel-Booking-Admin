@@ -5,9 +5,6 @@ const RoomBooking = require("../models/bookingModel");
 const Room = require("../models/createRoomModel");
 const RoomType = require("../models/roomtypeModel");
 
-// ------------------------------------------------------------
-// COMMON FUNCTIONS
-// ------------------------------------------------------------
 // Line chart: booking trend by day
 function lineTrend(model, match = {}) {
     return model.aggregate([
@@ -50,9 +47,7 @@ function calculateRevenue(model, itemCollection, start, end) {
     ]);
 }
 
-// ------------------------------------------------------------
 // DASHBOARD API (ROOM PIE, NEW BOOKINGS, REVENUE SOURCES)
-// ------------------------------------------------------------
 exports.dashboard = async (req, res) => {
     const { month } = req.query;
 
@@ -86,22 +81,33 @@ exports.dashboard = async (req, res) => {
     // ---------------- 2. ROOM PIE ----------------
     const roomTypes = await RoomType.find();
     const roomPie = [];
+    let totalBookedRooms = 0;
 
     for (let rt of roomTypes) {
 
-        const totalRooms = await Room.countDocuments({ roomType: rt._id });
+        // Total rooms of this roomtype
+        const roomIds = await Room.find({ roomType: rt._id }).select("_id");
+        const totalRooms = roomIds.length;
 
-        const bookedRooms = await RoomBooking.countDocuments({
+        const totalBooked = await RoomBooking.countDocuments({
             "payment.status": "Paid",
-            room: { $in: await Room.find({ roomType: rt._id }).select("_id") }
+            room: { $in: roomIds.map(r => r._id) }
         });
-
-        const availableRooms = totalRooms - bookedRooms;
-
+    
+        // Booked rooms ONLY for selected month
+        const monthlyBooked = await RoomBooking.countDocuments({
+            "payment.status": "Paid",
+            room: { $in: roomIds.map(r => r._id) },
+            createdAt: { $gte: start, $lte: end }   // <--- MONTH FILTER ADDED
+        });
+    
+        const availableRooms = totalRooms - monthlyBooked;
+        totalBookedRooms += monthlyBooked;
+    
         roomPie.push({
             roomType: rt.roomType,
-            booked: bookedRooms,
-            available: availableRooms
+            booked: monthlyBooked,
+            available: availableRooms,
         });
     }
 
@@ -190,6 +196,7 @@ exports.dashboard = async (req, res) => {
         bookingTrend,
         roomPie,
         availableRooms: roomPie.reduce((sum, r) => sum + r.available, 0),
+        totalBookedRooms,
         totalRevenue,
         revenueSources,
         checkoutCount,
@@ -198,9 +205,7 @@ exports.dashboard = async (req, res) => {
     });
 };
 
-// ------------------------------------------------------------
 // Room Availability API (Occupied , Reserved , Available, Not Ready)
-// ------------------------------------------------------------
 exports.roomAvailability = async (req, res) => {
     try {
 
@@ -233,9 +238,7 @@ exports.roomAvailability = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Reservation API (Booked , cancelled)
-// ------------------------------------------------------------
 exports.reservationDaywise = async (req, res) => {
     try {
         let { month: queryMonth } = req.query;
@@ -253,9 +256,6 @@ exports.reservationDaywise = async (req, res) => {
         // Start of the month
         const start = new Date(year, month, 1);
 
-        // End of the month (or today if current month, matching original logic?)
-        // Original logic: const end = new Date(year, month, today.getDate(), 23, 59, 59);
-        // If we want to see full month history for past months, we should use end of month.
         let end;
         if (year === today.getFullYear() && month === today.getMonth()) {
              end = new Date(year, month, today.getDate(), 23, 59, 59);
@@ -328,9 +328,8 @@ exports.reservationDaywise = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Order Summary
-// ------------------------------------------------------------
+
 async function getOrderSummary(model, itemCollection, matchQuery = {}) {
     return model.aggregate([
         { $match: { payment: "Paid", ...matchQuery } },  // no from filter
@@ -371,6 +370,22 @@ async function getOrderSummary(model, itemCollection, matchQuery = {}) {
         }
     ]);
 }
+
+function ensureAllCategories(results, expectedCategories) {
+    const resultMap = new Map(results.map(r => [r.from, r]));
+    const finalResults = expectedCategories.map(category => {
+        if (resultMap.has(category)) {
+            return resultMap.get(category);
+        }
+        return {
+            from: category,
+            totalOrders: 0,
+            totalAmount: 0
+        };
+    });
+    return finalResults;
+}
+
 exports.orderDashboard = async (req, res) => {
     try {
         const { month } = req.query;
@@ -383,9 +398,13 @@ exports.orderDashboard = async (req, res) => {
             matchQuery = { createdAt: { $gte: start, $lte: end } };
         }
 
-        const bar = await getOrderSummary(BarOrder, "baritems", matchQuery);
-        const cafe = await getOrderSummary(CafeOrder, "cafeitems", matchQuery);
-        const restro = await getOrderSummary(RestroOrder, "restaurantitems", matchQuery);
+        const barResults = await getOrderSummary(BarOrder, "baritems", matchQuery);
+        const cafeResults = await getOrderSummary(CafeOrder, "cafeitems", matchQuery);
+        const restroResults = await getOrderSummary(RestroOrder, "restaurantitems", matchQuery);
+
+        const bar = ensureAllCategories(barResults, ["bar", "room"]);
+        const cafe = ensureAllCategories(cafeResults, ["cafe", "room"]);
+        const restro = ensureAllCategories(restroResults, ["restaurant", "room"]);
 
         res.status(200).json({
             success: true,
@@ -397,9 +416,7 @@ exports.orderDashboard = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Booking Trend 
-// ------------------------------------------------------------
 exports.getBookingTrends = async (req, res) => {
     try {
         let { range, month } = req.query;
@@ -499,9 +516,7 @@ exports.getBookingTrends = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Hotel Occupancy Rate
-// ------------------------------------------------------------
 exports.monthWiseOccupancy = async (req, res) => {
     try {
         const totalRooms = await Room.countDocuments();   // total rooms available
@@ -548,9 +563,7 @@ exports.monthWiseOccupancy = async (req, res) => {
     }
 };
 
-// ------------------------------------------------------------
 // Get total revenue month-wise
-// ------------------------------------------------------------
 exports.monthlyRevenue = async (req, res) => {
     const { year, month } = req.query;
 
@@ -652,9 +665,7 @@ exports.monthlyRevenue = async (req, res) => {
     });
 };
 
-// ------------------------------------------------------------
 // REVENUE DASHBOARD (DETAILED SOURCE WISE)
-// ------------------------------------------------------------
 exports.getRevenueDashboard = async (req, res) => {
     try {
         const { month } = req.query;
@@ -770,10 +781,7 @@ exports.getRevenueDashboard = async (req, res) => {
     }
 };
 
-
-// ------------------------------------------------------------
 // Service Requests
-// ------------------------------------------------------------
 exports.serviceRequests = async (req, res) => {
     try {
         // ----- 1. COUNT STATUS WISE -----

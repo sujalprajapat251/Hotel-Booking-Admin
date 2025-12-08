@@ -3,48 +3,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require("nodemailer");
 
-// exports.createUser = async (req, res) => {
-//     try {
-//         let { name, email, password, role } = req.body;
-
-//         role = role || "user";
-
-
-//         if (!name || !email || !password) {
-//             return res.status(400).json({ status: 400, message: 'Name, email and password are required.' });
-//         }
-
-//         const existingUser = await User.findOne({ email });
-//         if (existingUser) {
-//             return res.status(400).json({ status: 400, message: 'Email already in use.' });
-//         }
-
-//         let salt = await bcrypt.genSalt(10);
-//         let hashPassword = await bcrypt.hash(password, salt);
-
-//         const user = await User.create({
-//             name,
-//             email,
-//             password: hashPassword,
-//             role
-//         });
-
-//         let token = null;
-//         if (role === "user") {
-//             token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
-//         }
-
-//         return res.status(200).json({
-//             status: 200,
-//             message: 'User created successfully..!',
-//             user: user,
-//             token: token
-//         });
-//     } catch (error) {
-//         return res.status(500).json({ status: 500, message: error.message });
-//     }
-// };
-
 exports.adminLogin = async (req, res) => {
     try {
         let { email, password } = req.body;
@@ -83,7 +41,6 @@ exports.adminLogin = async (req, res) => {
         return res.status(500).json({ status: 500, message: error.message });
     }
 };
-
 
 exports.updateStaff = async (req, res) => {
     try {
@@ -342,10 +299,6 @@ exports.admingetAllUsers = async (req, res) => {
         });
     }
 };
-
-
-
-
 
 exports.adminchangePassword = async (req, res) => {
     try {

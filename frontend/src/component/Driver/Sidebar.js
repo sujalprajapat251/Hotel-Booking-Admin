@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiGrid, FiLayers, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { FiChevronDown } from 'react-icons/fi';
 import { HiOutlineLocationMarker } from 'react-icons/hi';
-import { LuContact, LuUsers } from 'react-icons/lu';
+import { LuContact } from 'react-icons/lu';
 import { RxDashboard } from "react-icons/rx";
 import { X } from 'lucide-react';
 
@@ -12,8 +12,8 @@ const hodSections = [
     title: null,
     key: 'main',
     items: [
-      { icon: RxDashboard, label: 'Dashboard', path: '/waiter/dashboard' },
-      { icon: LuUsers, label: 'Table', path: '/waiter/table' },
+      { icon: RxDashboard, label: 'Dashboard', path: '/driver/dashboard' },
+      { icon: LuContact, label: 'Profile', path: '/driver/profile' },
     ],
   },
 ];
@@ -54,7 +54,7 @@ const MenuItem = ({ icon: Icon, label, badge, open, path, subMenus, onItemClick 
   };
 
   return (
-    <div className="px-3 mb-1 sp_sidebar">
+    <div className="sp_sidebar px-3 mb-1">
       <NavLink
         to={path}
         className={({ isActive: navActive }) =>
@@ -162,7 +162,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
           <div className="flex items-center justify-between flex-1">
             <div>
               <p className="text-xl font-semibold text-senary">Taj Hotel</p>
-              <p className="text-xs text-gray-500">Waiter Panel</p>
+              <p className="text-xs text-gray-500">Driver Panel</p>
             </div>
             {onClose && (
               <button

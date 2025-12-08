@@ -147,9 +147,8 @@ export default function Dashboard() {
               <div className="border-t border-b py-4">
                 {menu?.items?.length > 0 ? <div className="space-y-4">
                   {menu?.items?.map((m) => (
-                    <div className='py-3 border-b last:border-b-0'>
-
-                      <div key={m.id} className="flex items-center gap-4 ">
+                    <div key={m._id} className='py-3 border-b last:border-b-0'>
+                      <div className="flex items-center gap-4 ">
                         <img src={ `${m.product.image}`} alt="dish" className="w-14 h-14 rounded-full object-cover" />
                         <div className="flex-1">
                           <div className="font-medium">{m.product.name}</div>

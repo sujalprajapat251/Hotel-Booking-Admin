@@ -1,6 +1,6 @@
 const Booking = require('../models/bookingModel');
 const Room = require('../models/createRoomModel');
-
+const CabBooking = require('../models/cabBookingModel');
 const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
 // Stripe Integration
 let stripe = null;
@@ -51,9 +51,11 @@ const normalizeReservationPayload = (payload = {}) => ({
 });
 
 const normalizePaymentPayload = (payload = {}) => ({
-    status: payload.paymentStatus || (payload.payment?.status) || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined) || 'Pending',
+    status: payload.paymentStatus
+        || (payload.payment?.status)
+        || (payload.status && ['Pending', 'Paid', 'Partial'].includes(payload.status) ? payload.status : undefined)
+        || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
-    refundAmount: payload.refundAmount !== undefined ? Number(payload.refundAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
     transactions: payload.transactions,
@@ -61,10 +63,6 @@ const normalizePaymentPayload = (payload = {}) => ({
 });
 
 const ensureRoomAvailability = async ({ roomId, checkInDate, checkOutDate, excludeBookingId }) => {
-    console.log(roomId, "roomId");
-    console.log(checkInDate, "checkInDate");
-    console.log(checkOutDate, "checkOutDate");
-    console.log(excludeBookingId, "excludeBookingId");
 
     if (!checkInDate || !checkOutDate) {
         return null;
@@ -107,18 +105,14 @@ const refreshRoomStatus = async (roomId) => {
             status: { $in: ACTIVE_BOOKING_STATUSES },
             'reservation.checkInDate': { $gt: now }
         }).sort({ 'reservation.checkInDate': 1 });
-        // Optionally, you could set a different status for 'Booked in future'
-        // For now, we will leave as 'Available'
     }
 
     await Room.findByIdAndUpdate(roomId, { status: nextStatus });
 };
 
-
 // Create Stripe PaymentIntent for booking
 const createBookingPaymentIntent = async (req, res) => {
     try {
-    console.log(process.env.STRIPE_SECRET, "STRIPE_SECRET");
 
         const { totalAmount, currency = 'usd' } = req.body;
         if (!stripe) return res.status(500).json({ success: false, message: 'Stripe SDK not initialized on server' });
@@ -158,10 +152,6 @@ const createBooking = async (req, res) => {
         const status = req.body.status || 'Pending';
         const notes = req.body.notes || req.body.additionalNotes;
 
-        console.log(paymentIntentId, "paymentIntentId");
-
-        
-
         if (!roomId) {
             return res.status(400).json({ success: false, message: 'roomId is required' });
         }
@@ -200,7 +190,6 @@ const createBooking = async (req, res) => {
         }
 
         const room = await Room.findById(roomId).select('roomNumber status');
-        console.log(room, "room");
 
         if (!room) {
             return res.status(404).json({ success: false, message: 'Room not found' });
@@ -212,9 +201,6 @@ const createBooking = async (req, res) => {
             checkOutDate: reservationPayload.checkOutDate
         });
 
-        console.log(overlappingBooking, "overlappingBooking");
-
-
         if (overlappingBooking) {
             return res.status(409).json({
                 success: false,
@@ -222,7 +208,6 @@ const createBooking = async (req, res) => {
                 conflictBookingId: overlappingBooking._id
             });
         }
-
 
         const booking = await Booking.create({
             room: roomId,
@@ -264,8 +249,8 @@ const getBookings = async (req, res) => {
             checkInFrom,
             checkInTo,
             search,
-            page = 1,      // Add pagination params
-            limit = 10     // Add pagination params
+            page = 1,      
+            limit = 10     
         } = req.query;
 
         const filter = {};
@@ -307,7 +292,7 @@ const getBookings = async (req, res) => {
                 populate: { path: 'roomType' }
             })
             .populate('createdBy', 'fullName email role')
-            .sort({ createdAt: -1 }) // Sort by latest first
+            .sort({ createdAt: -1 }) 
             .skip(skip)
             .limit(limitNum);
 
@@ -396,7 +381,6 @@ const updateBooking = async (req, res) => {
                 });
             }
             
-            // Allow early checkout (checkout before check-in) - refund will be processed automatically
             // Only validate if checkout is not before check-in (normal case)
             if (checkOutDate > checkInDate) {
                 const overlappingBooking = await ensureRoomAvailability({
@@ -422,12 +406,8 @@ const updateBooking = async (req, res) => {
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
             }
-            // Update refund amount if provided
-            if (paymentPayload.refundAmount !== undefined && !Number.isNaN(paymentPayload.refundAmount)) {
-                booking.payment.refundAmount = paymentPayload.refundAmount;
-            }
             // Only update payment status if it's explicitly provided and valid
-            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
+            if (paymentPayload.status && ['Pending', 'Paid', 'Partial'].includes(paymentPayload.status)) {
                 booking.payment.status = paymentPayload.status;
             }
             if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
@@ -466,20 +446,6 @@ const updateBooking = async (req, res) => {
             isEarlyCheckout = checkOutDateOnly < checkInDateOnly;
         }
         
-        // Initialize refundAmount if not set
-        if (booking.payment.refundAmount === undefined || booking.payment.refundAmount === null) {
-            booking.payment.refundAmount = 0;
-        }
-        
-        console.log('Refund Check:', {
-            checkInDate: checkInDate,
-            checkOutDate: checkOutDate,
-            isEarlyCheckout,
-            finalStatus,
-            currentRefundAmount: booking.payment.refundAmount,
-            totalAmount: booking.payment.totalAmount
-        });
-
         if (req.body.status) {
             booking.status = req.body.status;
         }
@@ -491,29 +457,13 @@ const updateBooking = async (req, res) => {
 
         // Handle early checkout refund: if checkout date is before check-in date and status is CheckedOut
         // This handles both: status changing to CheckedOut OR checkout date being changed to before check-in while already CheckedOut
-        // Also handle if refundAmount is explicitly provided in the request
-        const explicitRefundAmount = req.body.payment?.refundAmount;
-        const shouldProcessRefund = (finalStatus === 'CheckedOut' && isEarlyCheckout) || (explicitRefundAmount !== undefined && explicitRefundAmount > 0);
-        
-        if (shouldProcessRefund) {
+
+        if (finalStatus === 'CheckedOut' && isEarlyCheckout) {
             // Calculate refund amount: use explicit amount if provided, otherwise full amount for early checkout
-            let refundAmount = 0;
-            if (explicitRefundAmount !== undefined && explicitRefundAmount > 0) {
-                refundAmount = explicitRefundAmount;
-            } else if (isEarlyCheckout) {
-                refundAmount = booking.payment.totalAmount || 0;
-            }
+            let refundAmount = booking.payment.totalAmount || 0;
             
             // Only process if refund amount is valid
-            if (refundAmount > 0) {
-                // Only update payment status if it's not already Refunded (to avoid overwriting manual changes)
-                if (booking.payment.status !== 'Refunded') {
-                    booking.payment.status = 'Refunded';
-                }
-                
-                // Store refund amount
-                booking.payment.refundAmount = refundAmount;
-                
+            if (refundAmount > 0) {                
                 // Initialize transactions array if needed
                 if (!Array.isArray(booking.payment.transactions)) {
                     booking.payment.transactions = [];
@@ -546,9 +496,6 @@ const updateBooking = async (req, res) => {
 
         await booking.save();
 
-        console.log("booking0", booking);
-
-        // Update room cleanStatus to "Dirty" when booking status changes to CheckedOut
         // Note: booking.room is already updated if roomChanged is true, so this will update the correct room
         if (isChangingToCheckedOut) {
             await Room.findByIdAndUpdate(booking.room, { cleanStatus: 'Dirty' });
@@ -588,11 +535,13 @@ const deleteBooking = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
+        await CabBooking.deleteMany({ booking: id });
+
         await refreshRoomStatus(booking.room);
 
         res.json({
             success: true,
-            message: 'Booking deleted successfully',
+            message: 'Booking and associated cab bookings deleted successfully',
             data: formatBooking(booking)
         });
     } catch (error) {
@@ -725,5 +674,5 @@ module.exports = {
     updateBooking,
     deleteBooking,
     bookRoomByType,
-    createBookingPaymentIntent, // <- export new intent fn
+    createBookingPaymentIntent, 
 };

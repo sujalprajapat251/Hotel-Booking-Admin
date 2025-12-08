@@ -175,32 +175,26 @@ const authSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload.message;
                 state.message = action.payload?.message || "Login Failed";
-                // enqueueSnackbar(state.message, { variant: 'error' });
-
             })
             .addCase(forgotPassword.fulfilled, (state, action) => {
                 state.loading = false;
                 state.error = null;
-                state.message = action.payload; // Assuming the API returns a success message
-                // enqueueSnackbar(state.message, { variant: 'success' });
+                state.message = action.payload; 
             })
             .addCase(forgotPassword.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload.message;
                 state.message = action.payload?.message || "Forgot Password Failed";
-                // enqueueSnackbar(state.message, { variant: 'error' });
             })
             .addCase(verifyOtp.fulfilled, (state, action) => {
                 state.loading = false;
                 state.error = null;
-                state.message = action.payload.message; // Assuming the API returns a success message
-                // enqueueSnackbar(state.message, { variant: 'success' });
+                state.message = action.payload.message; 
             })
             .addCase(verifyOtp.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload.message;
                 state.message = action.payload.data?.message || "Verify OTP Failed";
-                // enqueueSnackbar(state.message, { variant: 'error' });
             })
             .addCase(resendOtp.pending, (state) => {
                 state.resendingOtp = true;
@@ -219,14 +213,12 @@ const authSlice = createSlice({
             .addCase(resetPassword.fulfilled, (state, action) => {
                 state.loading = false;
                 state.error = null;
-                state.message = action.payload; // Assuming the API returns a success message
-                // enqueueSnackbar(state.message, { variant: 'success' });
+                state.message = action.payload; 
             })
             .addCase(resetPassword.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload.message;
                 state.message = action.payload?.message || "Reset Password Failed";
-                // enqueueSnackbar(state.message, { variant: 'error' });
             })
             .addCase(logoutUser.fulfilled, (state, action) => {
                 state.user = null;
@@ -240,7 +232,6 @@ const authSlice = createSlice({
                 state.message = action.payload?.message || "Logged out successfully";
             })
             .addCase(logoutUser.rejected, (state, action) => {
-                // Even if logout API fails, we should still clear the local state
                 state.user = null;
                 state.isAuthenticated = false;
                 state.loggedIn = false;

@@ -340,7 +340,6 @@ const RestaurantItems = () => {
                 {/* Header */}
                 <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                     <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                        {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Restaurant Items</p> */}
 
                         {/* Search Bar */}
                         <div className="relative  max-w-md">
@@ -431,9 +430,6 @@ const RestaurantItems = () => {
                                 {visibleColumns.price && (
                                     <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Price</th>
                                 )}
-                                {/* {visibleColumns.image && (
-                                    <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Image</th>
-                                )} */}
                                 {visibleColumns.description && (
                                     <th className="px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Description</th>
                                 )}

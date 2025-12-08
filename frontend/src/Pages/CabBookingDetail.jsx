@@ -16,10 +16,13 @@ import {
   ChevronRight,
   ChevronDown,
   X,
+  ChevronDown,
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
-import { deleteCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
+import { deleteCabBooking, getAllCabBookings, updateCabBooking } from "../Redux/Slice/cabBookingSlice";
+import { getAllDrivers } from "../Redux/Slice/driverSlice";
+import { getAllCabs } from "../Redux/Slice/cab.slice";
 
 const statusColors = {
   Pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
@@ -61,6 +64,8 @@ const normalizeBooking = (raw) => ({
 const CabBookingDetail = () => {
   const dispatch = useDispatch();
   const staticCabBookings = useSelector((state) => state.cabBooking.cabBookings);
+  const { drivers } = useSelector((state) => state.driver);
+  const { cabs } = useSelector((state) => state.cab);
   const [cabBookings, setCabBookings] = useState(staticCabBookings.map(normalizeBooking));
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
@@ -72,6 +77,7 @@ const CabBookingDetail = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editBooking, setEditBooking] = useState(null);
+  const [editBookingRaw, setEditBookingRaw] = useState(null); // Store raw booking data for IDs
   const [editForm, setEditForm] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -84,6 +90,8 @@ const CabBookingDetail = () => {
 
   useEffect(() => {
     dispatch(getAllCabBookings());
+    dispatch(getAllDrivers());
+    dispatch(getAllCabs());
   }, [dispatch]);
 
   useEffect(() => {
@@ -410,7 +418,10 @@ const CabBookingDetail = () => {
                           </button>
                         </div>
                         <div className="p-1 text-[#6777ef] hover:text-[#4255d4] rounded-lg transition-colors" title="Edit" onClick={() => {
+                          // Find the raw booking data to get IDs
+                          const rawBooking = staticCabBookings.find(b => b._id === booking.id);
                           setEditBooking(booking);
+                          setEditBookingRaw(rawBooking);
                           setEditForm({
                             pickupLocation: booking.pickupLocation || "Airport",
                             dropLocation: booking.dropLocation || "Hotel",
@@ -423,6 +434,9 @@ const CabBookingDetail = () => {
                             estimatedDistance: booking.distance && booking.distance !== "--" ? booking.distance : "",
                             estimatedFare: booking.fare && booking.fare !== "--" ? booking.fare : "",
                             notes: booking.notes || "",
+                            assignedDriver: rawBooking?.assignedDriver?._id || rawBooking?.assignedDriver || "",
+                            assignedCab: rawBooking?.assignedCab?._id || rawBooking?.assignedCab || "",
+                            status: booking.status || "Pending",
                           });
                           setShowEditModal(true);
                         }}>
@@ -597,6 +611,8 @@ const CabBookingDetail = () => {
                   onClick={() => {
                     setShowEditModal(false);
                     setShowPickupLocationDropdown(false);
+                    setEditBooking(null);
+                    setEditBookingRaw(null);
                   }}
                   className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
                   disabled={isUpdating}
@@ -606,49 +622,66 @@ const CabBookingDetail = () => {
               </div>
 
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
-                  if (!editBooking) return;
+                  if (!editBooking || !editBookingRaw) return;
                   setIsUpdating(true);
                   try {
-                    const bookingDateValue = editForm.bookingDate
-                      ? new Date(editForm.bookingDate).toISOString()
-                      : editBooking.bookingDate;
-                    const pickupTimeValue = editForm.pickupTime
-                      ? new Date(editForm.pickupTime).toISOString()
-                      : editBooking.pickupTime;
-                    const distanceValue =
-                      editForm.estimatedDistance === "" || editForm.estimatedDistance === undefined
-                        ? editBooking.distance
-                        : Number(editForm.estimatedDistance);
-                    const fareValue =
-                      editForm.estimatedFare === "" || editForm.estimatedFare === undefined
-                        ? editBooking.fare
-                        : Number(editForm.estimatedFare);
+                    const updateData = {
+                      pickUpLocation: editForm.pickupLocation || "Airport",
+                      dropLocation: {
+                        address: editForm.dropLocation || "Hotel"
+                      },
+                      bookingDate: editForm.bookingDate
+                        ? new Date(editForm.bookingDate).toISOString()
+                        : editBookingRaw.bookingDate,
+                      pickUpTime: editForm.pickupTime
+                        ? new Date(editForm.pickupTime).toISOString()
+                        : editBookingRaw.pickUpTime,
+                      estimatedDistance: editForm.estimatedDistance === "" || editForm.estimatedDistance === undefined
+                        ? undefined
+                        : Number(editForm.estimatedDistance),
+                      estimatedFare: editForm.estimatedFare === "" || editForm.estimatedFare === undefined
+                        ? undefined
+                        : Number(editForm.estimatedFare),
+                      notes: editForm.notes || "",
+                    };
 
-                    setCabBookings((prev) =>
-                      prev.map((booking) =>
-                        booking.id === editBooking.id
-                          ? {
-                              ...booking,
-                              pickupLocation: editForm.pickupLocation || "Airport",
-                              dropLocation: editForm.dropLocation || "Hotel",
-                              bookingDate: bookingDateValue,
-                              pickupTime: pickupTimeValue,
-                              distance: distanceValue,
-                              fare: fareValue,
-                              notes: editForm.notes || "",
-                            }
-                          : booking
-                      )
-                    );
-                    dispatch(setAlert({ text: "Booking updated!", color: "success" }));
+                    // Add driver assignment if changed
+                    if (editForm.assignedDriver !== undefined) {
+                      updateData.assignedDriver = editForm.assignedDriver && editForm.assignedDriver !== "" 
+                        ? editForm.assignedDriver 
+                        : null;
+                    }
+
+                    // Add cab assignment if changed
+                    if (editForm.assignedCab !== undefined) {
+                      updateData.assignedCab = editForm.assignedCab && editForm.assignedCab !== "" 
+                        ? editForm.assignedCab 
+                        : null;
+                    }
+
+                    // Add status if changed
+                    if (editForm.status !== undefined) {
+                      updateData.status = editForm.status;
+                    }
+
+                    // Call the update API
+                    await dispatch(updateCabBooking({ 
+                      id: editBookingRaw._id, 
+                      updateData 
+                    })).unwrap();
+
+                    // Refresh the bookings list
+                    await dispatch(getAllCabBookings());
+                    
                     setShowEditModal(false);
                     setShowPickupLocationDropdown(false);
                     setEditBooking(null);
+                    setEditBookingRaw(null);
                   } catch (err) {
                     console.error("Update error:", err);
-                    dispatch(setAlert({ text: "Update failed!", color: "error" }));
+                    dispatch(setAlert({ text: err?.message || "Update failed!", color: "error" }));
                   } finally {
                     setIsUpdating(false);
                   }
@@ -731,6 +764,60 @@ const CabBookingDetail = () => {
                   </div>
                 </div>
 
+                {/* Assignment Details */}
+                <div className="space-y-3">
+                  <h4 className="text-lg font-semibold text-gray-900">Assignment Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Assigned Driver</label>
+                      <select
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.assignedDriver || ""}
+                        onChange={e => setEditForm(f => ({ ...f, assignedDriver: e.target.value || null }))}
+                        disabled={isUpdating}
+                      >
+                        <option value="">Unassigned</option>
+                        {drivers && drivers.map((driver) => (
+                          <option key={driver._id} value={driver._id}>
+                            {driver.name} {driver.status === "Available" ? "(Available)" : `(${driver.status})`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Assigned Cab</label>
+                      <select
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.assignedCab || ""}
+                        onChange={e => setEditForm(f => ({ ...f, assignedCab: e.target.value || null }))}
+                        disabled={isUpdating}
+                      >
+                        <option value="">Unassigned</option>
+                        {cabs && cabs.map((cab) => (
+                          <option key={cab._id} value={cab._id}>
+                            {cab.vehicleId} - {cab.modelName} {cab.status === "Available" ? "(Available)" : `(${cab.status})`}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">Status</label>
+                      <select
+                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
+                        value={editForm.status || "Pending"}
+                        onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                        disabled={isUpdating}
+                      >
+                        {statusFilterOptions.filter(s => s !== "All").map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Fare Details */}
                 <div className="space-y-3">
                   <h4 className="text-lg font-semibold text-gray-900">Fare Details</h4>
@@ -783,6 +870,8 @@ const CabBookingDetail = () => {
                     onClick={() => {
                       setShowEditModal(false);
                       setShowPickupLocationDropdown(false);
+                      setEditBooking(null);
+                      setEditBookingRaw(null);
                     }}
                     className="px-5 py-2.5 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isUpdating}

@@ -30,7 +30,7 @@ export default function CustomActiveShapePieChart({
 
     const getDashboardData = useSelector((state) => state.dashboard.getDashboard);
 
-    const chartData = getDashboardData?.roomPie ? Object.values(getDashboardData.roomPie).map(item => ({ name: item.roomType, value: item.available })) : [];
+    const chartData = getDashboardData?.roomPie ? Object.values(getDashboardData.roomPie).map(item => ({ name: item.roomType, value: item.booked })) : [];
 
     if (!chartData.length) {
         return <div style={{ padding: '20px', textAlign: 'center' }}>No data available</div>;

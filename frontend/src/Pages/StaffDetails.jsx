@@ -228,7 +228,6 @@ const StaffTable = () => {
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between items-center min-w-0'>
-                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p> */}
 
                 {/* Search Bar */}
                 <div className="relative flex-1 min-w-0">

@@ -195,7 +195,6 @@ const RoomFeatures = () => {
           }
           // Prepare data for Excel
           const excelData = filteredFeatures.map((item, index) => {
-            console.log("asd",item)
               const row = {};
                   row['No.'] = startIndex + index + 1;
                   row['Feature Name'] = item.feature || '';
@@ -276,7 +275,6 @@ const RoomFeatures = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Room Features</p> */}
 
             {/* Search Bar */}
             <div className="relative  max-w-md">

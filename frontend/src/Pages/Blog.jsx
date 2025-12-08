@@ -12,7 +12,6 @@ import { getAllBlog, createBlog, updateBlog, deleteBlog } from '../Redux/Slice/b
 import * as XLSX from 'xlsx';
 import 'react-quill-new/dist/quill.snow.css';
 import { setAlert } from '../Redux/Slice/alert.slice';
-import { IMAGE_URL } from '../Utils/baseUrl';
 
 const Blog = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -456,7 +455,6 @@ const Blog = () => {
                                             <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                                                 <div className="flex items-center gap-3">
                                                     <div className="relative">
-                                                        {console.log(item.image)}
                                                         <img
                                                             src={item.image}
                                                             alt={item.name}

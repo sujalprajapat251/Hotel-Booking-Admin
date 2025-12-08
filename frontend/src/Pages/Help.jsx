@@ -106,7 +106,6 @@ const FAQPage = () => {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-white rounded-[4px] faq-header">
           <div className='faq-left flex flex-col sm:flex-row sm:items-center gap-3 md:gap-5 w-full'>
-            {/* <p className="text-[16px] font-semibold text-gray-800">Faqs</p> */}
 
             {/* Search Bar */}
             <div className="relative max-w-md">
@@ -137,12 +136,12 @@ const FAQPage = () => {
 
         <div className="flex flex-col mt-4 gap-4">
           {loading ? (
-            <tr>
+            <div>
                 <div className="flex flex-col items-center justify-center text-gray-500">
                   <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                   <p className="text-lg font-medium">Loading...</p>
                 </div>
-            </tr>
+            </div>
           ) : filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, index) => (
                 <div
@@ -316,8 +315,8 @@ const FAQPage = () => {
               </div>
 
               <div className="flex items-center justify-center pt-4">
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="mv_user_cancel">Cancel</button>
-                <button type="submit" className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]">Update</button>
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]">Cancel</button>
+                <button type="submit" className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white">Update</button>
               </div>
             </form>
           </div>

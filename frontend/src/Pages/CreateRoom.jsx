@@ -384,7 +384,7 @@ const CreateRoom = () => {
                   value={formik.values.roomNumber}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g., 203"
+                  placeholder="Enter room number"
                   className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                     formik.touched.roomNumber && formik.errors.roomNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
@@ -410,7 +410,7 @@ const CreateRoom = () => {
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showRoomTypeDropdown && (
-                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                     {roomTypes.map((type) => {
                       const optionId = type.id || type._id;
                       return (
@@ -445,7 +445,7 @@ const CreateRoom = () => {
                   value={formik.values.floor}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g., 2"
+                  placeholder="Enter floor"
                   min="0"
                   className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                     formik.touched.floor && formik.errors.floor ? 'border-red-500' : 'border-gray-300'
@@ -468,7 +468,7 @@ const CreateRoom = () => {
                     value={formik.values.price.base}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g., 2000"
+                    placeholder="Enter base price"
                     min="0"
                     step="0.01"
                     className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
@@ -490,7 +490,7 @@ const CreateRoom = () => {
                     value={formik.values.price.weekend}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g., 2500"
+                    placeholder="Enter weekend price"
                     min="0"
                     step="0.01"
                     className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
@@ -515,7 +515,7 @@ const CreateRoom = () => {
                     value={formik.values.capacity.adults}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g., 2"
+                    placeholder="Enter adults"
                     min="1"
                     className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                       formik.touched.capacity?.adults && formik.errors.capacity?.adults ? 'border-red-500' : 'border-gray-300'
@@ -536,7 +536,7 @@ const CreateRoom = () => {
                     value={formik.values.capacity.children}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
-                    placeholder="e.g., 1"
+                    placeholder="Enter children"
                     min="0"
                     className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                       formik.touched.capacity?.children && formik.errors.capacity?.children
@@ -599,7 +599,7 @@ const CreateRoom = () => {
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showMainBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
@@ -626,7 +626,7 @@ const CreateRoom = () => {
                       value={formik.values.bed.mainBed.count}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      placeholder="e.g., 1"
+                      placeholder="Enter main bed"
                       min="1"
                       className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                         formik.touched.bed?.mainBed?.count && formik.errors.bed?.mainBed?.count
@@ -655,7 +655,7 @@ const CreateRoom = () => {
                       <ChevronDown size={18} className="text-gray-600" />
                     </button>
                     {showChildBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
@@ -682,7 +682,7 @@ const CreateRoom = () => {
                       value={formik.values.bed.childBed.count}
                       onChange={formik.handleChange}
                       onBlur={formik.handleBlur}
-                      placeholder="e.g., 1"
+                      placeholder="Enter child bed"
                       min="1"
                       className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                         formik.touched.bed?.childBed?.count && formik.errors.bed?.childBed?.count
@@ -708,7 +708,7 @@ const CreateRoom = () => {
                   value={formik.values.viewType}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="e.g., City View, Ocean View"
+                  placeholder="Enter view type"
                   className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
                     formik.touched.viewType && formik.errors.viewType ? 'border-red-500' : 'border-gray-300'
                   }`}
@@ -734,7 +734,7 @@ const CreateRoom = () => {
                   <ChevronDown size={18} className="text-gray-600" />
                 </button>
                 {showStatusDropdown && (
-                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1">
+                  <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
                     {statusOptions.map((status) => (
                       <div
                         key={status}
@@ -878,14 +878,14 @@ const CreateRoom = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/rooms/available')}
-                  className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-[4px] hover:bg-gradient-to-r hover:from-[#F7DF9C] hover:to-[#E3C78A] hover:border-transparent transition-all font-semibold"
+                  className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-2 bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] text-[#755647] rounded-[4px] hover:from-white hover:to-white hover:border-2 hover:border-[#E3C78A] transition-all font-semibold shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                 >
                   {loading ? (isEditMode ? 'Updating...' : 'Creating...') : isEditMode ? 'Update Room' : 'Submit'}
                 </button>

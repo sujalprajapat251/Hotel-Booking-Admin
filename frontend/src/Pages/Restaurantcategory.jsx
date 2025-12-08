@@ -193,7 +193,6 @@ const Restaurantcategory = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between items-center min-w-0'>
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Restaurant Category</p> */}
 
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0">
@@ -224,39 +223,41 @@ const Restaurantcategory = () => {
                 <FiPlusCircle size={20} />
               </button>
 
-              <button
-                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors flex-shrink-0"
-                title="Show/Hide Columns"
-              >
-                <Filter size={20} />
-              </button>
+              <div className='relative'>
+                <button
+                  onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                  className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors flex-shrink-0"
+                  title="Show/Hide Columns"
+                >
+                  <Filter size={20} />
+                </button>
 
-              {showColumnDropdown && (
-                <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
-                  <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                {showColumnDropdown && (
+                  <div className="absolute right-0 mt-2 w-44 md600:w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 ">
+                    <div className="px-3 py-2 md600:px-4 md:py-3 border-b border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
+                    </div>
+                    <div className="max-h-44 overflow-y-auto">
+                      {Object.keys(visibleColumns).map((column) => (
+                        <label
+                          key={column}
+                          className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns[column]}
+                            onChange={() => toggleColumn(column)}
+                            className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                          />
+                          <span className="ml-2 text-sm text-gray-700 capitalize">
+                            {column}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <div className="max-h-44 overflow-y-auto">
-                    {Object.keys(visibleColumns).map((column) => (
-                      <label
-                        key={column}
-                        className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={visibleColumns[column]}
-                          onChange={() => toggleColumn(column)}
-                          className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 capitalize">
-                          {column}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             <button className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex-shrink-0" title="Refresh" onClick={handleRefresh}>
               <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />

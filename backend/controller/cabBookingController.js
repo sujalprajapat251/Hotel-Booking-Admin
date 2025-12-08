@@ -1,8 +1,8 @@
 const CabBooking = require("../models/cabBookingModel");
 const Booking = require("../models/bookingModel");
 const Cab = require("../models/cabModel");
-const Driver = require("../models/driverModel");
-const { findAvailableDriver } = require("../utils/driverAssignment");
+const Staff = require("../models/staffModel");
+const { findAvailableDriver, assignDriversToUnassignedBookings } = require("../utils/driverAssignment");
 
 // Create Cab Booking
 exports.createCabBooking = async (req, res) => {
@@ -62,8 +62,8 @@ exports.createCabBooking = async (req, res) => {
             // Find cabs that are not booked during the pick-up time
             const bookedCabIds = await CabBooking.find({
                 pickUpTime: {
-                    $lte: new Date(pickUpDateTime.getTime() + 2 * 60 * 60 * 1000), // 2 hours after pick-up
-                    $gte: new Date(pickUpDateTime.getTime() - 2 * 60 * 60 * 1000)  // 2 hours before pick-up
+                    $lte: new Date(pickUpDateTime.getTime() + 2 * 60 * 60 * 1000), 
+                    $gte: new Date(pickUpDateTime.getTime() - 2 * 60 * 60 * 1000)  
                 },
                 status: { $in: ["Pending", "Confirmed", "Assigned", "InProgress"] }
             }).distinct('assignedCab');
@@ -126,7 +126,7 @@ exports.createCabBooking = async (req, res) => {
 
         // Verify driver exists if assigned & fallback to available driver when needed
         if (assignedDriver) {
-            const driver = await Driver.findById(assignedDriver);
+            const driver = await Staff.findOne({ _id: assignedDriver, designation: "Driver" });
             if (!driver) {
                 return res.status(404).json({
                     success: false,
@@ -148,13 +148,18 @@ exports.createCabBooking = async (req, res) => {
                 }
 
                 resolvedDriverId = alternativeDriver._id;
+            } else {
+                resolvedDriverId = driver._id;
             }
         } else {
-            // Auto-assign driver for the selected cab
+            // Auto-assign driver for the selected cab (or any available driver if no cab)
             const autoDriver = await findAvailableDriver({ preferredCabId: resolvedCabId });
 
             if (autoDriver) {
                 resolvedDriverId = autoDriver._id;
+            } else if (resolvedCabId) {
+                // If cab is assigned but no driver found, still create booking but warn
+                console.warn(`No available driver found for cab ${resolvedCabId}`);
             }
         }
 
@@ -418,7 +423,7 @@ exports.updateCabBooking = async (req, res) => {
             if (assignedDriver === null) {
                 cabBooking.assignedDriver = null;
             } else if (assignedDriver) {
-                const driver = await Driver.findById(assignedDriver);
+                const driver = await Staff.findOne({ _id: assignedDriver, designation: "Driver" });
                 if (!driver) {
                     return res.status(404).json({
                         success: false,
@@ -532,7 +537,7 @@ exports.deleteCabBooking = async (req, res) => {
             // Subtract cab fare from booking total amount
             const currentTotal = booking.payment?.totalAmount || 0;
             const cabFare = cabBooking.estimatedFare || 0;
-            const newTotal = Math.max(0, currentTotal - cabFare); // Ensure total doesn't go negative
+            const newTotal = Math.max(0, currentTotal - cabFare); 
             
             booking.payment.totalAmount = newTotal;
             await booking.save();
@@ -586,6 +591,163 @@ exports.getCabBookingsByBookingId = async (req, res) => {
         res.status(500).json({
             success: false,
             message: error.message
+        });
+    }
+};
+
+// Assign drivers to unassigned bookings
+exports.assignDriversToUnassignedBookings = async (req, res) => {
+    try {
+        const result = await assignDriversToUnassignedBookings();
+        
+        res.status(200).json({
+            success: true,
+            message: `Driver assignment completed. ${result.assigned} out of ${result.total} bookings assigned.`,
+            data: result
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Advance Cab Booking Status (for drivers)
+exports.advanceCabBookingStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user?._id; // Get driver ID from authenticated user
+
+        const cabBooking = await CabBooking.findById(id)
+            .populate({
+                path: "booking",
+                select: "guest reservation roomNumber status",
+                populate: {
+                    path: "room",
+                    select: "roomNumber roomType"
+                }
+            })
+            .populate({
+                path: "assignedDriver",
+                select: "name email mobileno"
+            });
+
+        if (!cabBooking) {
+            return res.status(404).json({ 
+                status: 404, 
+                success: false,
+                message: 'Cab booking not found' 
+            });
+        }
+
+        // Verify that the authenticated user is the assigned driver
+        if (cabBooking.assignedDriver && cabBooking.assignedDriver._id.toString() !== userId.toString()) {
+            return res.status(403).json({ 
+                status: 403, 
+                success: false,
+                message: 'You are not authorized to update this booking' 
+            });
+        }
+
+        // Define status progression steps
+        const steps = {
+            'Pending': 'InProgress',
+            'Confirmed': 'InProgress',
+            'Assigned': 'InProgress',
+            'InProgress': 'Completed',
+            'Completed': 'Completed',
+            'Cancelled': 'Cancelled' // Cannot advance from cancelled
+        };
+
+        const current = cabBooking.status;
+        const next = steps[current];
+
+        if (!next) {
+            return res.status(400).json({ 
+                status: 400, 
+                success: false,
+                message: `Cannot advance status from ${current}` 
+            });
+        }
+
+        if (current === 'Cancelled') {
+            return res.status(400).json({ 
+                status: 400, 
+                success: false,
+                message: 'Cannot advance status for cancelled bookings' 
+            });
+        }
+
+        if (current === 'Completed') {
+            return res.status(400).json({ 
+                status: 400, 
+                success: false,
+                message: 'Booking is already completed' 
+            });
+        }
+
+        // Update status
+        cabBooking.status = next;
+        await cabBooking.save();
+
+        // Populate the updated booking
+        const populatedBooking = await cabBooking.populate([
+            {
+                path: "booking",
+                select: "guest reservation roomNumber status",
+                populate: {
+                    path: "room",
+                    select: "roomNumber roomType"
+                }
+            },
+            {
+                path: "assignedCab",
+                select: "vehicleId modelName registrationNumber seatingCapacity perKmCharge"
+            },
+            {
+                path: "assignedDriver",
+                select: "name email mobileno"
+            }
+        ]);
+
+        // Send notification when completed
+        try {
+            if (next === 'Completed') {
+                const { emitRoleNotification } = require('../socketManager/socketManager');
+                const roomNum = cabBooking?.booking?.roomNumber || cabBooking?.booking?.room?.roomNumber || '';
+                const guestName = cabBooking?.booking?.guest?.fullName || 'Guest';
+                
+                await emitRoleNotification({
+                    designations: ['admin', 'receptionist'],
+                    event: 'notify',
+                    data: {
+                        type: 'cab_booking_completed',
+                        cabBookingId: cabBooking._id,
+                        bookingId: cabBooking.booking?._id,
+                        roomId: cabBooking.booking?.room?._id,
+                        message: roomNum 
+                            ? `Cab booking completed for Room ${roomNum} (${guestName})` 
+                            : `Cab booking completed for ${guestName}`
+                    }
+                });
+            }
+        } catch (notificationError) {
+            // Log but don't fail the request if notification fails
+            console.error('Notification error:', notificationError);
+        }
+
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: `Status updated: ${current} → ${next}`,
+            data: populatedBooking
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            status: 500, 
+            success: false,
+            message: error.message 
         });
     }
 };

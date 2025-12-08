@@ -248,10 +248,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         notes: formState.notes,
       };
 
-      console.log(payload, "payload");
-
       const bookingResult = await dispatch(createBooking(payload)).unwrap();
-      console.log(bookingResult, "bookingResult");
 
       // Cab booking logic unchanged
       if (cabServiceEnabled) {
@@ -271,7 +268,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           specialInstructions: formState.specialInstructions || "",
           notes: formState.cabNotes || "",
         };
-        console.log("Creating cab booking with payload:", cabBookingPayload);
         await dispatch(createCabBooking(cabBookingPayload)).unwrap();
       }
       if (onBooked) {

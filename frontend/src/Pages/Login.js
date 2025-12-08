@@ -49,7 +49,6 @@ const LoginPage = () => {
                 .then((response) => {
                     if (response.meta?.requestStatus === "fulfilled") {
                         const userRole = response.payload?.user?.designation || 'user';
-                        console.log('user', userRole)
                         if (userRole === 'admin') {
                             navigate("/dashboard");
                         }
@@ -67,6 +66,9 @@ const LoginPage = () => {
                         }
                         else if (userRole === 'Accountant') {
                             navigate("/accountant/dashboard")
+                        }
+                        else if (userRole === 'Driver') {
+                            navigate("/driver/dashboard")
                         }
                         else {
                             navigate("/booking-dashboard");

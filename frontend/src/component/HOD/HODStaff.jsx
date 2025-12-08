@@ -20,9 +20,6 @@ const HODStaff = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -207,7 +204,6 @@ const HODStaff = () => {
             {/* Header */}
             <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
               <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">All Staffs</p> */}
 
                 {/* Search Bar */}
                 <div className="relative max-w-md">
@@ -468,7 +464,7 @@ const HODStaff = () => {
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-            <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl">
+            <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-3">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-black">Delete Staff</h2>
                 <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>

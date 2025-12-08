@@ -23,24 +23,12 @@ export const fetchAllOrderRequesr = createAsyncThunk(
     'housekeeping/fetchAllOrderRequesr',
     async (params = {}, { dispatch, rejectWithValue }) => {
         try {
-            // Log the request parameters
-            console.log('📤 Fetching housekeeping rooms with params:', params);
 
             const response = await axios.get(`${BASE_URL}/getorderRequest`, {
                 // params, // This will include page, limit, search, etc.
                 headers: getAuthHeaders()
             });
 
-            // Log the response
-            console.log('📥 Housekeeping API Response:', {
-                dataCount: response.data?.data?.length || 0,
-                pagination: response.data?.pagination,
-                totalCount: response.data?.pagination?.totalCount,
-                currentPage: response.data?.pagination?.currentPage,
-                totalPages: response.data?.pagination?.totalPages
-            });
-
-            console.log('response', response.data);
             // Return the entire response data
             return response.data;
         } catch (error) {
@@ -73,22 +61,6 @@ export const assignWorkerToOrderRequest = createAsyncThunk(
     }
 );
 
-// export const fetchFreeWorker = createAsyncThunk(
-//     'housekeeping/fetchFreeWorker',
-
-//     async (_, { dispatch, rejectWithValue }) => {
-//         try {
-//             const response = await axios.get(`${BASE_URL}/getfreeworker`, {
-//                 headers: getAuthHeaders()
-//             });
-//             console.log('responseeeeeeee', response.data);
-//             return response.data;
-//         } catch (error) {
-//             return handleErrors(error, dispatch, rejectWithValue);
-//         }
-//     }
-// )
-
 // Approve Cleaning (Head Supervisor)
 export const approveCleaningRoom = createAsyncThunk(
     'housekeeping/approveCleaningRoom',
@@ -100,7 +72,6 @@ export const approveCleaningRoom = createAsyncThunk(
                 { headers: getAuthHeaders() }
             );
             dispatch(setAlert({ text: response.data.message || 'Room marked as clean!', color: 'success' }));
-            console.log('response', response?.data);
             return response.data;
         } catch (error) {
             return handleErrors(error, dispatch, rejectWithValue);
@@ -143,7 +114,6 @@ const orderRequestSlice = createSlice({
             .addCase(fetchAllOrderRequesr.fulfilled, (state, action) => {
                 state.loading = false;
                 state.items = action.payload?.data || [];
-                console.log('itemssss', action.payload);
                 state.totalCount = action.payload.totalCount || 0;
                 state.currentPage = action.payload.currentPage || 1;
                 state.totalPages = action.payload.totalPages || 0;
@@ -152,19 +122,6 @@ const orderRequestSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
-            // .addCase(fetchFreeWorker.pending, (state) => {
-            //     state.loadingWorkers = true;
-            //     state.error = null;
-            // })
-            // .addCase(fetchFreeWorker.fulfilled, (state, action) => {
-            //     state.loadingWorkers = false;
-            //     state.freeWorkers = action.payload?.data || []; // Store in freeWorkers instead of items
-            //     console.log('Free workers:', action.payload.data);
-            // })
-            // .addCase(fetchFreeWorker.rejected, (state, action) => {
-            //     state.loadingWorkers = false;
-            //     state.error = action.payload;
-            // })
             // Add these new cases for assignWorkerToRoom
             .addCase(assignWorkerToOrderRequest.pending, (state) => {
                 state.creating = true;

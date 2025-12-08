@@ -8,7 +8,7 @@ export const configureStore = () => {
     const persistConfig = {
         key: "root",
         storage,
-        whitelist: ['auth'], // Persist auth state to keep user logged in
+        whitelist: ['auth'], 
     };
 
     const persistedReducer = persistReducer(persistConfig, rootReducer);

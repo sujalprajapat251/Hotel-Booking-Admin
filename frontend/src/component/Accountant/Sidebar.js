@@ -150,7 +150,7 @@ const Sidebar = ({ open = true, isMobile = false, isCompact = false, onClose }) 
       data-compact={isCompact ? 'true' : 'false'}
     >
       <div
-        className={`flex items-center gap-3 ${
+        className={`flex items-center gap-3 sp_sidebar ${
           open ? 'px-6 pt-4 pb-[14px]' : 'px-0 pt-4 pb-[14px] justify-center'
         }`}
       >

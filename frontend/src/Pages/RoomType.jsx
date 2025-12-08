@@ -45,7 +45,6 @@ const RoomType = () => {
     }),
     onSubmit: async (values, { resetForm }) => {
       const cleanedRoomType = values.roomType.trim();
-      console.log(editingId)
       try {
         if (editingId) {
           await dispatch(updateRoomType({ id: editingId, roomType: cleanedRoomType })).unwrap();
@@ -186,7 +185,6 @@ const RoomType = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Room Types</p> */}
 
             {/* Search Bar */}
             <div className="relative  max-w-md">
@@ -284,7 +282,7 @@ const RoomType = () => {
               ) : currentRoomTypes?.length > 0 ? (
                 currentRoomTypes.map((item, index) => (
                   <tr
-                    key={item._id}
+                    key={index}
                     className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
                   >
                     {visibleColumns.no && (

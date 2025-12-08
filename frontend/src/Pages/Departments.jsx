@@ -171,11 +171,7 @@ const Departments = () => {
   }, [dispatch])
 
   return (
-    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full"
-    // style={{
-    //   background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EFE6 100%)'
-    // }}
-    >
+    <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
         <h1 className="text-2xl font-semibold text-black">Departments</h1>
       </section>
@@ -186,7 +182,6 @@ const Departments = () => {
         {/* Header */}
         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
           <div className='flex gap-2 md:gap-5 sm:justify-between'>
-            {/* <p className="text-[16px] font-semibold text-gray-800 text-nowrap content-center">Departments</p> */}
 
             {/* Search Bar */}
             <div className="relative  max-w-md">
