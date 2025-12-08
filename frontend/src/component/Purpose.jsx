@@ -63,8 +63,8 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
         getOrdersummery?.cafe || [],
         ["#f7df9c", "#B79982"],
         [
-            <IoBedOutline className="text-[18px] font-bold" />,
-            <Coffee className="text-[18px] font-bold" />
+            <Coffee className="text-[18px] font-bold" />,
+            <IoBedOutline className="text-[18px] font-bold" />
         ]
     );
 
@@ -72,8 +72,8 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
         getOrdersummery?.bar || [],
         ["#f7df9c", "#755647"],
         [
-            <IoBedOutline className="text-[18px] font-bold" />,
-            <GiMartini className="text-[18px] font-bold" />
+            <GiMartini className="text-[18px] font-bold" />,
+            <IoBedOutline className="text-[18px] font-bold" />
         ]
     );
 
@@ -81,8 +81,8 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
         getOrdersummery?.restro || [],
         ["#E3C78A", "#B79982"],
         [
-            <IoBedOutline className="text-[18px] font-bold" />,
-            <IoIosRestaurant className="text-[18px] font-bold" />
+            <IoIosRestaurant className="text-[18px] font-bold" />,
+            <IoBedOutline className="text-[18px] font-bold" />
         ]
     );
 
