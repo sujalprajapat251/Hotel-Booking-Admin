@@ -22,7 +22,7 @@ const AllBookings = () => {
         currentPage: reduxCurrentPage,
         totalPages: reduxTotalPages,
         loading
-    } = useSelector((state) => state.booking);    
+    } = useSelector((state) => state.booking);
 
     const user = useSelector((state) => state.auth?.user);
     const userRole = user?.designation || '';
@@ -53,7 +53,7 @@ const AllBookings = () => {
         reservation: {
             checkInDate: '',
             checkOutDate: '',
-            
+
             occupancy: {
                 adults: 1,
                 children: 0
@@ -89,28 +89,28 @@ const AllBookings = () => {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         return `${day}/${month}/${year} ${hours}:${minutes}`;
     };
-    
+
     const [searchQuery, setSearchQuery] = useState("");
     const filteredBookings = booking.filter(b => {
         const normalized = str => (str ?? '').toString().toLowerCase().trim();
 
-// Helper to include both raw and formatted date string
-const searchableDates = b => [
-    b.checkIn,
-    formatDate(b.checkIn),   
-    b.checkOut,
-    formatDate(b.checkOut),
-    b.createdAt,
-    formatDate(b.createdAt),
-    b.rawData?.reservation?.checkInDate,
-    formatDate(b.rawData?.reservation?.checkInDate),
-    b.rawData?.reservation?.checkOutDate,
-    formatDate(b.rawData?.reservation?.checkOutDate),
-    b.rawData?.createdAt,
-    formatDate(b.rawData?.createdAt),
-    b.rawData?.updatedAt,
-    formatDate(b.rawData?.updatedAt)
-];
+        // Helper to include both raw and formatted date string
+        const searchableDates = b => [
+            b.checkIn,
+            formatDate(b.checkIn),
+            b.checkOut,
+            formatDate(b.checkOut),
+            b.createdAt,
+            formatDate(b.createdAt),
+            b.rawData?.reservation?.checkInDate,
+            formatDate(b.rawData?.reservation?.checkInDate),
+            b.rawData?.reservation?.checkOutDate,
+            formatDate(b.rawData?.reservation?.checkOutDate),
+            b.rawData?.createdAt,
+            formatDate(b.rawData?.createdAt),
+            b.rawData?.updatedAt,
+            formatDate(b.rawData?.updatedAt)
+        ];
         const valuesToSearch = [
             b.name,
             b.roomNumber,
@@ -196,7 +196,7 @@ const searchableDates = b => [
         }
     }, [items]);
 
-   
+
 
     const totalBookings = totalCount || 0;
     const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
@@ -477,9 +477,9 @@ const searchableDates = b => [
             if (isEarlyCheckout && isCheckedOut) {
                 editFormData.payment.status = 'Refunded';
                 editFormData.payment.refundAmount = editFormData.payment.totalAmount || 0;
-                dispatch(setAlert({ 
-                    text: `Early checkout detected! Payment status automatically set to Refunded. Refund amount: ${editFormData.payment.currency} ${editFormData.payment.refundAmount}`, 
-                    color: 'warning' 
+                dispatch(setAlert({
+                    text: `Early checkout detected! Payment status automatically set to Refunded. Refund amount: ${editFormData.payment.currency} ${editFormData.payment.refundAmount}`,
+                    color: 'warning'
                 }));
             }
 
@@ -526,7 +526,7 @@ const searchableDates = b => [
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-                            <div className="relative  max-w-md">
+                                <div className="relative  max-w-md">
                                     <input
                                         type="text"
                                         placeholder="Search..."
@@ -817,558 +817,557 @@ const searchableDates = b => [
                                                 <div className="flex sm:flex-row flex-col">
                                                     <span className="min-w-[60px] font-italic text-black">Name:</span>
                                                     <span className="break-words whitespace-normal">{selectedItem.name || "N/A"}</span>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                >
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px] " >Name:</span>
-                                                    <span className="text-sm sm:text-base capitalize">{selectedItem.name || 'N/A'}</span>
-                                                </div>
-                                                {selectedItem.phone && (
-                                                    <div className="flex sm:flex-row flex-col">
-                                                        <span className="min-w-[60px] font-italic text-black">Phone:</span>
-                                                        <span className="break-words whitespace-normal">{selectedItem.countrycode || ""} {selectedItem.phone}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.guest?.email && (
-                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
-                                                        <span className="min-w-[60px] font-italic text-black">Email:</span>
-                                                        <span className="break-words whitespace-normal">{selectedItem.rawData.guest.email}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.guest?.idNumber && (
-                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
-                                                        <span className="min-w-[90px] font-italic text-black">ID Number:</span>
-                                                        <span className="break-words whitespace-normal">{selectedItem.rawData.guest.idNumber}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Booking Information */}
-                                        <div>
-                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
-                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18} />
-                                                </span>Booking Information</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In Date:</span>
-                                                    <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
-                                                </div>
-                                                <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                    style={{ backgroundColor: 'transparent' }}
-                                                >
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out Date:</span>
-                                                    <span className="text-sm sm:text-base">{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
-                                                </div>
-                                                {selectedItem.rawData?.checkInTime && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check In Time:</span>
-                                                        <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkInTime)}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.checkOutTime && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check Out Time:</span>
-                                                        <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkOutTime)}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.createdAt && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Created At:</span>
-                                                        <span className="text-sm sm:text-base">{formatDate(selectedItem.createdAt)}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Room Details */}
-                                        <div>
-                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
-                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18} />
-                                                </span> Room Details</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                {selectedItem.rawData?.room?.roomNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Room Number:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.room.roomNumber}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.roomType && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors" >
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Room Type:</span>
-                                                        <span className="text-sm sm:text-base capitalize">{selectedItem.roomType}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.room?.floor && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[50px]">Floor:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.room.floor}</span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.reservation?.occupancy && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Occupancy:</span>
-                                                        <span className="text-sm sm:text-base">
-                                                            Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, Children: {selectedItem.rawData.reservation.occupancy.children || 0}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Payment Information */}
-                                        <div>
-                                            <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
-                                                <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                    <GoDotFill size={18} />
-                                                </span> Payment Information
-                                            </h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                <div className="flex items-center p-2 rounded-lg transition-colors">
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[115px] sm:min-w-[130px]">Payment Status:</span>
-                                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
-                                                        {selectedItem.status}
-                                                    </span>
-                                                </div>
-                                                {selectedItem.rawData?.payment?.totalAmount !== undefined && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Total Amount:</span>
-                                                        <span className="text-sm sm:text-base font-semibold">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Refund Amount:</span>
-                                                        <span className="text-sm sm:text-base font-semibold text-red-600">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.refundAmount}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && selectedItem.rawData?.payment?.totalAmount !== undefined && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Net Amount:</span>
-                                                        <span className="text-sm sm:text-base font-semibold text-blue-600">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {(selectedItem.rawData.payment.totalAmount - selectedItem.rawData.payment.refundAmount).toFixed(2)}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                                {selectedItem.rawData?.payment?.method && (
-                                                    <div className="flex items-center p-2 rounded-lg transition-colors">
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[120px] sm:min-w-[140px]">Payment Method:</span>
-                                                        <span className="text-sm sm:text-base capitalize">{selectedItem.rawData.payment.method}</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Additional Information */}
-                                        {(selectedItem.rawData?.reservation?.specialRequests || selectedItem.rawData?.notes) && (
-                                            <div>
-                                                <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
-                                                    <span className="w-6 h-6 rounded-full flex items-center justify-center">
-                                                        <GoDotFill size={18} />
-                                                    </span> Additional Information
-                                                </h4>
-                                                <div className="grid grid-cols-1 md600:gap-2">
-                                                    {selectedItem.rawData?.reservation?.specialRequests && (
-                                                        <div className="flex items-start p-2 rounded-lg transition-colors">
-                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[6   0px] sm:min-w-[60px]">Special Requests:</span>
-                                                            <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.reservation.specialRequests}</span>
+                                                    <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                        <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px] " >Name:</span>
+                                                            <span className="text-sm sm:text-base capitalize">{selectedItem.name || 'N/A'}</span>
                                                         </div>
-                                                    )}
-                                                    {selectedItem.rawData?.notes && (
-                                                        <div className="flex items-start p-2 rounded-lg transition-colors">
-                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[50px] sm:min-w-[60px]">Notes:</span>
-                                                            <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.notes}</span>
-                                                        </div>
-                                                    )}
+                                                        {selectedItem.phone && (
+                                                            <div className="flex sm:flex-row flex-col">
+                                                                <span className="min-w-[60px] font-italic text-black">Phone:</span>
+                                                                <span className="break-words whitespace-normal">{selectedItem.countrycode || ""} {selectedItem.phone}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.guest?.email && (
+                                                            <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                                <span className="min-w-[60px] font-italic text-black">Email:</span>
+                                                                <span className="break-words whitespace-normal">{selectedItem.rawData.guest.email}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.guest?.idNumber && (
+                                                            <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                                <span className="min-w-[90px] font-italic text-black">ID Number:</span>
+                                                                <span className="break-words whitespace-normal">{selectedItem.rawData.guest.idNumber}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
+
+                                                {/* Booking Information */}
+                                                <div>
+                                                    <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                        <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                            <GoDotFill size={18} />
+                                                        </span>Booking Information</h4>
+                                                    <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                        <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check In Date:</span>
+                                                            <span className="text-sm sm:text-base">{selectedItem.checkIn ? formatDate(selectedItem.checkIn) : 'N/A'}</span>
+                                                        </div>
+                                                        <div className="flex items-center p-1 rounded-lg transition-colors"
+                                                            style={{ backgroundColor: 'transparent' }}
+                                                        >
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out Date:</span>
+                                                            <span className="text-sm sm:text-base">{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
+                                                        </div>
+                                                        {selectedItem.rawData?.checkInTime && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check In Time:</span>
+                                                                <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkInTime)}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.checkOutTime && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check Out Time:</span>
+                                                                <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkOutTime)}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.createdAt && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Created At:</span>
+                                                                <span className="text-sm sm:text-base">{formatDate(selectedItem.createdAt)}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Room Details */}
+                                                <div>
+                                                    <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                        <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                            <GoDotFill size={18} />
+                                                        </span> Room Details</h4>
+                                                    <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                        {selectedItem.rawData?.room?.roomNumber && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Room Number:</span>
+                                                                <span className="text-sm sm:text-base">{selectedItem.rawData.room.roomNumber}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.roomType && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors" >
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Room Type:</span>
+                                                                <span className="text-sm sm:text-base capitalize">{selectedItem.roomType}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.room?.floor && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[50px]">Floor:</span>
+                                                                <span className="text-sm sm:text-base">{selectedItem.rawData.room.floor}</span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.reservation?.occupancy && (
+                                                            <div className="flex items-center p-1 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[100px]">Occupancy:</span>
+                                                                <span className="text-sm sm:text-base">
+                                                                    Adults: {selectedItem.rawData.reservation.occupancy.adults || 0}, Children: {selectedItem.rawData.reservation.occupancy.children || 0}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Payment Information */}
+                                                <div>
+                                                    <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                        <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                            <GoDotFill size={18} />
+                                                        </span> Payment Information
+                                                    </h4>
+                                                    <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
+                                                        <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                            <span className="text-sm sm:text-base font-italic text-black min-w-[115px] sm:min-w-[130px]">Payment Status:</span>
+                                                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
+                                                                {selectedItem.status}
+                                                            </span>
+                                                        </div>
+                                                        {selectedItem.rawData?.payment?.totalAmount !== undefined && (
+                                                            <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Total Amount:</span>
+                                                                <span className="text-sm sm:text-base font-semibold">
+                                                                    {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && (
+                                                            <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Refund Amount:</span>
+                                                                <span className="text-sm sm:text-base font-semibold text-red-600">
+                                                                    {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.refundAmount}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.payment?.refundAmount !== undefined && selectedItem.rawData.payment.refundAmount > 0 && selectedItem.rawData?.payment?.totalAmount !== undefined && (
+                                                            <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Net Amount:</span>
+                                                                <span className="text-sm sm:text-base font-semibold text-blue-600">
+                                                                    {selectedItem.rawData.payment.currency || 'USD'} {(selectedItem.rawData.payment.totalAmount - selectedItem.rawData.payment.refundAmount).toFixed(2)}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        {selectedItem.rawData?.payment?.method && (
+                                                            <div className="flex items-center p-2 rounded-lg transition-colors">
+                                                                <span className="text-sm sm:text-base font-italic text-black min-w-[120px] sm:min-w-[140px]">Payment Method:</span>
+                                                                <span className="text-sm sm:text-base capitalize">{selectedItem.rawData.payment.method}</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Additional Information */}
+                                                {(selectedItem.rawData?.reservation?.specialRequests || selectedItem.rawData?.notes) && (
+                                                    <div>
+                                                        <h4 className="font-semibold text-black sm:text-lg mb-3 flex items-center gap-1">
+                                                            <span className="w-6 h-6 rounded-full flex items-center justify-center">
+                                                                <GoDotFill size={18} />
+                                                            </span> Additional Information
+                                                        </h4>
+                                                        <div className="grid grid-cols-1 md600:gap-2">
+                                                            {selectedItem.rawData?.reservation?.specialRequests && (
+                                                                <div className="flex items-start p-2 rounded-lg transition-colors">
+                                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[6   0px] sm:min-w-[60px]">Special Requests:</span>
+                                                                    <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.reservation.specialRequests}</span>
+                                                                </div>
+                                                            )}
+                                                            {selectedItem.rawData?.notes && (
+                                                                <div className="flex items-start p-2 rounded-lg transition-colors">
+                                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[50px] sm:min-w-[60px]">Notes:</span>
+                                                                    <span className="text-sm sm:text-base flex-1">{selectedItem.rawData.notes}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
                 )}
 
-                {/* Edit Booking Modal */}
-                {isEditModalOpen && itemToEdit && (
-                    <div className="fixed inset-0 z-50 overflow-y-auto">
-                        <div
-                            className="absolute inset-0 bg-black/50"
-                            onClick={handleEditModalClose}
-                        ></div>
-                        <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center sm:p-0">
-                            <div
-                                className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-3xl border"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {/* Modal Header */}
-                                <div className="px-4 py-4 sm:p-6">
-                                    <div className="flex items-center justify-between border-b pb-3 mb-4">
-                                        <h3 className="text-xl font-bold text-black">Edit Booking</h3>
-                                        <button
-                                            type="button"
-                                            onClick={handleEditModalClose}
-                                            className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                            {/* Edit Booking Modal */}
+                            {isEditModalOpen && itemToEdit && (
+                                <div className="fixed inset-0 z-50 overflow-y-auto">
+                                    <div
+                                        className="absolute inset-0 bg-black/50"
+                                        onClick={handleEditModalClose}
+                                    ></div>
+                                    <div className="flex min-h-full items-center justify-center p-2 md:p-4 text-center sm:p-0">
+                                        <div
+                                            className="relative transform overflow-hidden rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-[90%] sm:max-w-3xl border"
+                                            onClick={(e) => e.stopPropagation()}
                                         >
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
+                                            {/* Modal Header */}
+                                            <div className="px-4 py-4 sm:p-6">
+                                                <div className="flex items-center justify-between border-b pb-3 mb-4">
+                                                    <h3 className="text-xl font-bold text-black">Edit Booking</h3>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleEditModalClose}
+                                                        className="inline-flex items-center justify-center p-1 rounded-lg transition-colors"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
 
-                                    {/* Form */}
-                                    <form onSubmit={handleEditSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
-                                        {/* Guest Information */}
-                                        <div>
-                                            <h4 className="font-serif text-black text-lg mb-3">Guest Information:</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Full Name *</label>
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={editFormData.guest.fullName}
-                                                        onChange={(e) => handleEditFormChange('guest', 'fullName', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Phone *</label>
-                                                    <PhoneInput
-                                                        country={"in"}
-                                                        enableSearch={true}
-                                                        value={editFormData.guest.fullMobile || ''}
-                                                        onChange={(value, country) => {
-                                                            const nextValue = value || '';
-                                                            const dialCode = country?.dialCode || '';
-                                                            const mobileOnly = nextValue.slice(dialCode.length);
+                                                {/* Form */}
+                                                <form onSubmit={handleEditSubmit} className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
+                                                    {/* Guest Information */}
+                                                    <div>
+                                                        <h4 className="font-serif text-black text-lg mb-3">Guest Information:</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Full Name *</label>
+                                                                <input
+                                                                    type="text"
+                                                                    required
+                                                                    value={editFormData.guest.fullName}
+                                                                    onChange={(e) => handleEditFormChange('guest', 'fullName', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Phone *</label>
+                                                                <PhoneInput
+                                                                    country={"in"}
+                                                                    enableSearch={true}
+                                                                    value={editFormData.guest.fullMobile || ''}
+                                                                    onChange={(value, country) => {
+                                                                        const nextValue = value || '';
+                                                                        const dialCode = country?.dialCode || '';
+                                                                        const mobileOnly = nextValue.slice(dialCode.length);
 
-                                                            setEditFormData((prev) => ({
-                                                                ...prev,
-                                                                guest: {
-                                                                    ...prev.guest,
-                                                                    countrycode: dialCode ? `+${dialCode}` : '',
-                                                                    phone: mobileOnly,
-                                                                    fullMobile: nextValue,
-                                                                },
-                                                            }));
-                                                        }}
-                                                        placeholder="Enter mobile number"
-                                                        inputProps={{
-                                                            name: "mobile",
-                                                            required: true,
-                                                        }}
-                                                        containerStyle={{
-                                                            width: "100%",
-                                                        }}
-                                                        buttonStyle={{
-                                                            backgroundColor: "#f3f4f6",
-                                                            border: "1px solid #d1d5db",
-                                                            borderRadius: "4px",
-                                                            width: "50px",
-                                                        }}
-                                                        inputStyle={{
-                                                            width: "100%",
-                                                            backgroundColor: "#f3f4f6",
-                                                            border: "1px solid #d1d5db",
-                                                            borderRadius: "4px",
-                                                            paddingLeft: "55px",
-                                                            height: "42px",
-                                                        }}
-                                                        dropdownStyle={{
-                                                            width: "260px",
-                                                        }}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Email</label>
-                                                    <input
-                                                        type="email"
-                                                        value={editFormData.guest.email}
-                                                        onChange={(e) => handleEditFormChange('guest', 'email', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">ID Number</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.guest.idNumber}
-                                                        onChange={(e) => handleEditFormChange('guest', 'idNumber', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Address</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.guest.address}
-                                                        onChange={(e) => handleEditFormChange('guest', 'address', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                                                        setEditFormData((prev) => ({
+                                                                            ...prev,
+                                                                            guest: {
+                                                                                ...prev.guest,
+                                                                                countrycode: dialCode ? `+${dialCode}` : '',
+                                                                                phone: mobileOnly,
+                                                                                fullMobile: nextValue,
+                                                                            },
+                                                                        }));
+                                                                    }}
+                                                                    placeholder="Enter mobile number"
+                                                                    inputProps={{
+                                                                        name: "mobile",
+                                                                        required: true,
+                                                                    }}
+                                                                    containerStyle={{
+                                                                        width: "100%",
+                                                                    }}
+                                                                    buttonStyle={{
+                                                                        backgroundColor: "#f3f4f6",
+                                                                        border: "1px solid #d1d5db",
+                                                                        borderRadius: "4px",
+                                                                        width: "50px",
+                                                                    }}
+                                                                    inputStyle={{
+                                                                        width: "100%",
+                                                                        backgroundColor: "#f3f4f6",
+                                                                        border: "1px solid #d1d5db",
+                                                                        borderRadius: "4px",
+                                                                        paddingLeft: "55px",
+                                                                        height: "42px",
+                                                                    }}
+                                                                    dropdownStyle={{
+                                                                        width: "260px",
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Email</label>
+                                                                <input
+                                                                    type="email"
+                                                                    value={editFormData.guest.email}
+                                                                    onChange={(e) => handleEditFormChange('guest', 'email', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">ID Number</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editFormData.guest.idNumber}
+                                                                    onChange={(e) => handleEditFormChange('guest', 'idNumber', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Address</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editFormData.guest.address}
+                                                                    onChange={(e) => handleEditFormChange('guest', 'address', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                        {/* Reservation Information */}
-                                        <div>
-                                            <h4 className="font-serif text-black text-lg mb-3">Reservation Information:</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Check In Date *</label>
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        value={editFormData.reservation.checkInDate}
-                                                        onChange={(e) => handleEditFormChange('reservation', 'checkInDate', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Check Out Date *</label>
-                                                    <input
-                                                        type="date"
-                                                        required
-                                                        value={editFormData.reservation.checkOutDate}
-                                                        onChange={(e) => {
-                                                            const newCheckOutDate = e.target.value;
-                                                            handleEditFormChange('reservation', 'checkOutDate', newCheckOutDate);
-                                                            
-                                                            // Warn if checkout is before check-in
-                                                            if (newCheckOutDate && editFormData.reservation.checkInDate) {
-                                                                const checkIn = new Date(editFormData.reservation.checkInDate);
-                                                                const checkOut = new Date(newCheckOutDate);
-                                                                if (checkOut < checkIn) {
-                                                                    dispatch(setAlert({ 
-                                                                        text: 'Warning: Check-out date is before check-in date. Payment will be automatically set to Refunded if booking status is CheckedOut.', 
-                                                                        color: 'warning' 
-                                                                    }));
+                                                    {/* Reservation Information */}
+                                                    <div>
+                                                        <h4 className="font-serif text-black text-lg mb-3">Reservation Information:</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Check In Date *</label>
+                                                                <input
+                                                                    type="date"
+                                                                    required
+                                                                    value={editFormData.reservation.checkInDate}
+                                                                    onChange={(e) => handleEditFormChange('reservation', 'checkInDate', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Check Out Date *</label>
+                                                                <input
+                                                                    type="date"
+                                                                    required
+                                                                    value={editFormData.reservation.checkOutDate}
+                                                                    onChange={(e) => {
+                                                                        const newCheckOutDate = e.target.value;
+                                                                        handleEditFormChange('reservation', 'checkOutDate', newCheckOutDate);
+
+                                                                        // Warn if checkout is before check-in
+                                                                        if (newCheckOutDate && editFormData.reservation.checkInDate) {
+                                                                            const checkIn = new Date(editFormData.reservation.checkInDate);
+                                                                            const checkOut = new Date(newCheckOutDate);
+                                                                            if (checkOut < checkIn) {
+                                                                                dispatch(setAlert({
+                                                                                    text: 'Warning: Check-out date is before check-in date. Payment will be automatically set to Refunded if booking status is CheckedOut.',
+                                                                                    color: 'warning'
+                                                                                }));
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                                {editFormData.reservation.checkOutDate && editFormData.reservation.checkInDate &&
+                                                                    new Date(editFormData.reservation.checkOutDate) < new Date(editFormData.reservation.checkInDate) && (
+                                                                        <p className="text-xs text-yellow-600 mt-1">
+                                                                            ⚠️ Check-out is before check-in. Refund will be processed if status is CheckedOut.
+                                                                        </p>
+                                                                    )
                                                                 }
-                                                            }
-                                                        }}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                    {editFormData.reservation.checkOutDate && editFormData.reservation.checkInDate && 
-                                                        new Date(editFormData.reservation.checkOutDate) < new Date(editFormData.reservation.checkInDate) && (
-                                                            <p className="text-xs text-yellow-600 mt-1">
-                                                                ⚠️ Check-out is before check-in. Refund will be processed if status is CheckedOut.
-                                                            </p>
-                                                        )
-                                                    }
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Adults</label>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={editFormData.reservation.occupancy.adults}
-                                                        onChange={(e) => handleEditFormChange('occupancy', 'adults', parseInt(e.target.value) || 1)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Children</label>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        value={editFormData.reservation.occupancy.children}
-                                                        onChange={(e) => handleEditFormChange('occupancy', 'children', parseInt(e.target.value) || 0)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <label className="text-sm font-medium text-black mb-1">Special Requests</label>
-                                                    <textarea
-                                                        value={editFormData.reservation.specialRequests}
-                                                        onChange={(e) => handleEditFormChange('reservation', 'specialRequests', e.target.value)}
-                                                        rows="3"
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Payment Information */}
-                                        <div>
-                                            <h4 className="font-serif text-black text-lg mb-3">Payment Information:</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="relative" ref={paymentStatusRef}>
-                                                    <label className="text-sm font-medium text-black mb-1">Payment Status</label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
-                                                    >
-                                                        <span className={editFormData.payment.status ? 'text-black' : 'text-gray-400'}>
-                                                            {paymentStatusOptions.find((opt) => opt.value === editFormData.payment.status)?.label || 'Select payment status'}
-                                                        </span>
-                                                        <ChevronDown size={18} className="text-gray-600" />
-                                                    </button>
-                                                    {showPaymentStatusDropdown && (
-                                                        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
-                                                            {paymentStatusOptions.map((option) => (
-                                                                <div
-                                                                    key={option.value}
-                                                                    onClick={() => {
-                                                                        handleEditFormChange('payment', 'status', option.value);
-                                                                        setShowPaymentStatusDropdown(false);
-                                                                    }}
-                                                                    className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
-                                                                >
-                                                                    {option.label}
-                                                                </div>
-                                                            ))}
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Adults</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="1"
+                                                                    value={editFormData.reservation.occupancy.adults}
+                                                                    onChange={(e) => handleEditFormChange('occupancy', 'adults', parseInt(e.target.value) || 1)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Children</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={editFormData.reservation.occupancy.children}
+                                                                    onChange={(e) => handleEditFormChange('occupancy', 'children', parseInt(e.target.value) || 0)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div className="md:col-span-2">
+                                                                <label className="text-sm font-medium text-black mb-1">Special Requests</label>
+                                                                <textarea
+                                                                    value={editFormData.reservation.specialRequests}
+                                                                    onChange={(e) => handleEditFormChange('reservation', 'specialRequests', e.target.value)}
+                                                                    rows="3"
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Total Amount *</label>
-                                                    <input
-                                                        type="number"
-                                                        min="0"
-                                                        step="0.01"
-                                                        required
-                                                        value={editFormData.payment.totalAmount}
-                                                        onChange={(e) => handleEditFormChange('payment', 'totalAmount', parseFloat(e.target.value) || 0)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Currency</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.payment.currency}
-                                                        onChange={(e) => handleEditFormChange('payment', 'currency', e.target.value.toUpperCase())}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="text-sm font-medium text-black mb-1">Payment Method</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFormData.payment.method}
-                                                        onChange={(e) => handleEditFormChange('payment', 'method', e.target.value)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
+                                                    </div>
 
-                                        {/* Booking Status & Notes */}
-                                        <div>
-                                            <h4 className="font-serif text-black text-lg mb-3">Booking Details:</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="relative" ref={bookingStatusRef}>
-                                                    <label className="text-sm font-medium text-black mb-1">Booking Status</label>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowBookingStatusDropdown((prev) => !prev)}
-                                                        className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
-                                                    >
-                                                        <span className={editFormData.status ? 'text-black' : 'text-gray-400'}>
-                                                            {bookingStatusOptions.find((opt) => opt.value === editFormData.status)?.label || 'Select booking status'}
-                                                        </span>
-                                                        <ChevronDown size={18} className="text-gray-600" />
-                                                    </button>
-                                                    {showBookingStatusDropdown && (
-                                                        <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
-                                                            {bookingStatusOptions.map((option) => (
-                                                                <div
-                                                                    key={option.value}
-                                                                    onClick={() => {
-                                                                        handleEditFormChange(null, 'status', option.value);
-                                                                        setShowBookingStatusDropdown(false);
-                                                                    }}
-                                                                    className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
+                                                    {/* Payment Information */}
+                                                    <div>
+                                                        <h4 className="font-serif text-black text-lg mb-3">Payment Information:</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="relative" ref={paymentStatusRef}>
+                                                                <label className="text-sm font-medium text-black mb-1">Payment Status</label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
                                                                 >
-                                                                    {option.label}
-                                                                </div>
-                                                            ))}
+                                                                    <span className={editFormData.payment.status ? 'text-black' : 'text-gray-400'}>
+                                                                        {paymentStatusOptions.find((opt) => opt.value === editFormData.payment.status)?.label || 'Select payment status'}
+                                                                    </span>
+                                                                    <ChevronDown size={18} className="text-gray-600" />
+                                                                </button>
+                                                                {showPaymentStatusDropdown && (
+                                                                    <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
+                                                                        {paymentStatusOptions.map((option) => (
+                                                                            <div
+                                                                                key={option.value}
+                                                                                onClick={() => {
+                                                                                    handleEditFormChange('payment', 'status', option.value);
+                                                                                    setShowPaymentStatusDropdown(false);
+                                                                                }}
+                                                                                className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
+                                                                            >
+                                                                                {option.label}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Total Amount *</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    step="0.01"
+                                                                    required
+                                                                    value={editFormData.payment.totalAmount}
+                                                                    onChange={(e) => handleEditFormChange('payment', 'totalAmount', parseFloat(e.target.value) || 0)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Currency</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editFormData.payment.currency}
+                                                                    onChange={(e) => handleEditFormChange('payment', 'currency', e.target.value.toUpperCase())}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-sm font-medium text-black mb-1">Payment Method</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editFormData.payment.method}
+                                                                    onChange={(e) => handleEditFormChange('payment', 'method', e.target.value)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <label className="text-sm font-medium text-black mb-1">Notes</label>
-                                                    <textarea
-                                                        value={editFormData.notes}
-                                                        onChange={(e) => handleEditFormChange(null, 'notes', e.target.value)}
-                                                        rows="3"
-                                                        className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                                                    />
-                                                </div>
+                                                    </div>
+
+                                                    {/* Booking Status & Notes */}
+                                                    <div>
+                                                        <h4 className="font-serif text-black text-lg mb-3">Booking Details:</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="relative" ref={bookingStatusRef}>
+                                                                <label className="text-sm font-medium text-black mb-1">Booking Status</label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowBookingStatusDropdown((prev) => !prev)}
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-3 py-2 bg-[#1414140F] flex items-center justify-between"
+                                                                >
+                                                                    <span className={editFormData.status ? 'text-black' : 'text-gray-400'}>
+                                                                        {bookingStatusOptions.find((opt) => opt.value === editFormData.status)?.label || 'Select booking status'}
+                                                                    </span>
+                                                                    <ChevronDown size={18} className="text-gray-600" />
+                                                                </button>
+                                                                {showBookingStatusDropdown && (
+                                                                    <div className="absolute z-50 w-full bg-white border border-gray-200 rounded-[4px] shadow-lg  max-h-48 overflow-y-auto">
+                                                                        {bookingStatusOptions.map((option) => (
+                                                                            <div
+                                                                                key={option.value}
+                                                                                onClick={() => {
+                                                                                    handleEditFormChange(null, 'status', option.value);
+                                                                                    setShowBookingStatusDropdown(false);
+                                                                                }}
+                                                                                className="px-4 py-1 text-sm text-black cursor-pointer hover:bg-[#F7DF9C] transition-colors"
+                                                                            >
+                                                                                {option.label}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="md:col-span-2">
+                                                                <label className="text-sm font-medium text-black mb-1">Notes</label>
+                                                                <textarea
+                                                                    value={editFormData.notes}
+                                                                    onChange={(e) => handleEditFormChange(null, 'notes', e.target.value)}
+                                                                    rows="3"
+                                                                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Form Actions */}
+                                                    <div className="flex items-center justify-center gap-3 pt-4 border-t">
+                                                        <button
+                                                            type="button"
+                                                            onClick={handleEditModalClose}
+                                                            className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            disabled={loading}
+                                                            className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                                                        >
+                                                            {loading ? 'Updating...' : 'Update Booking'}
+                                                        </button>
+                                                    </div>
+                                                </form>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            )}
 
-                                        {/* Form Actions */}
-                                        <div className="flex items-center justify-center gap-3 pt-4 border-t">
+                            {/* Delete Modal */}
+                            {isDeleteModalOpen && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                                    <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
+                                    <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <h2 className="text-2xl font-semibold text-black">Delete Booking</h2>
+                                            <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <p className="text-gray-700 mb-8 text-center">
+                                            Are you sure you want to delete the booking for{' '}
+                                            <span className="font-semibold">{itemToDelete?.name || 'this guest'}</span>?
+                                        </p>
+                                        <div className="flex items-center justify-center gap-3">
                                             <button
                                                 type="button"
-                                                onClick={handleEditModalClose}
+                                                onClick={handleDeleteModalClose}
                                                 className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                                             >
                                                 Cancel
                                             </button>
                                             <button
-                                                type="submit"
-                                                disabled={loading}
+                                                type="button"
                                                 className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
+                                                onClick={handleDeleteConfirm}
                                             >
-                                                {loading ? 'Updating...' : 'Update Booking'}
+                                                Delete
                                             </button>
                                         </div>
-                                    </form>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
-                    </div>
-                )}
+                    </>
+                )
+                }
 
-                {/* Delete Modal */}
-                {isDeleteModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center">
-                        <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-                        <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-semibold text-black">Delete Booking</h2>
-                                <button className="text-gray-500 hover:text-gray-800" onClick={handleDeleteModalClose}>
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <p className="text-gray-700 mb-8 text-center">
-                                Are you sure you want to delete the booking for{' '}
-                                <span className="font-semibold">{itemToDelete?.name || 'this guest'}</span>?
-                            </p>
-                            <div className="flex items-center justify-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={handleDeleteModalClose}
-                                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
-                                    onClick={handleDeleteConfirm}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </>
-    )
-}
-
-export default AllBookings
+                export default AllBookings
