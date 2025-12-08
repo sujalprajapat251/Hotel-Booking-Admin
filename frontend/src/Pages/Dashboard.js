@@ -452,12 +452,12 @@ export const Dashboard = () => {
     <>
       <div className='bg-[#F0F3FB] px-4 md:px-8 py-6 h-full'>
 
-        <div className='sm:flex items-center justify-between'>
+        <div className='md:flex flex-wrap items-center justify-between'>
           <div>
             <p className='text-2xl font-semibold text-black'>Hi, Welcome back!</p>
             <p className='font-bold text-black'>Dashboard</p>
           </div>
-          <div className='flex items-center gap-4'>
+          <div className='flex flex-wrap md:flex-nowrap items-center justify-between sm:gap-4 gap-1 mt-3 sm:mt-0'>
             <div className='bg-white rounded-md shadow-sm'>
               <DatePicker
                 picker="month"
@@ -465,15 +465,15 @@ export const Dashboard = () => {
                 onChange={(date) => date && setSelectedDate(date)}
                 format="MMMM YYYY"
                 allowClear={false}
-                className='w-40 border-none'
+                className='sm:w-40 max-w-[140px] border-none p-2'
               />
             </div>
             <div className='text-end'>
-              <h2 className='font-bold md600:px-4 text-black'>Customer Ratings</h2>
+              <h2 className='font-bold md600:px-4 text-black text-sm sm:text-base'>Customer Ratings</h2>
               <div className='flex items-center md600:px-4 justify-end'>
                 <div className="flex">
                   {[...Array(5)].map((_, i) => {
-                    const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100;
+                    const filledPercent = Math.min(Math.max(averageRating - i, 0), 1) * 100; 
                     return (
                       <span key={i} className="relative">
                         <span className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]">★</span>
@@ -487,7 +487,7 @@ export const Dashboard = () => {
                     );
                   })}
                 </div>
-                <span className='ml-2 text-black'>{`${averageRating}/5`}</span>
+                <span className='ml-2 text-black sm:text-base text-sm'>{`${averageRating}/5`}</span>
               </div>
             </div>
           </div>

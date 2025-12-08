@@ -813,31 +813,27 @@ const searchableDates = b => [
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
                                                     <GoDotFill size={18} />
                                                 </span> Guest Information</h4>
-                                            <div className="grid grid-cols-1 md600:grid-cols-2 md600:gap-2">
-                                                <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                >
-                                                    <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]" >Name:</span>
-                                                    <span className="text-sm sm:text-base">{selectedItem.name || 'N/A'}</span>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                                                <div className="flex sm:flex-row flex-col">
+                                                    <span className="min-w-[60px] font-italic text-black">Name:</span>
+                                                    <span className="break-words whitespace-normal">{selectedItem.name || "N/A"}</span>
                                                 </div>
                                                 {selectedItem.phone && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                    >
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Phone:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.countrycode ? selectedItem.countrycode : ""} {selectedItem.phone}</span>
+                                                    <div className="flex sm:flex-row flex-col">
+                                                        <span className="min-w-[60px] font-italic text-black">Phone:</span>
+                                                        <span className="break-words whitespace-normal">{selectedItem.countrycode || ""} {selectedItem.phone}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                    >
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[60px]">Email:</span>
-                                                        <span className="text-sm sm:text-base break-words">{selectedItem.rawData.guest.email}</span>
+                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                        <span className="min-w-[60px] font-italic text-black">Email:</span>
+                                                        <span className="break-words whitespace-normal">{selectedItem.rawData.guest.email}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.idNumber && (
-                                                    <div className="flex items-center p-1 rounded-lg transition-colors"
-                                                    >
-                                                        <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">ID Number:</span>
-                                                        <span className="text-sm sm:text-base">{selectedItem.rawData.guest.idNumber}</span>
+                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                        <span className="min-w-[90px] font-italic text-black">ID Number:</span>
+                                                        <span className="break-words whitespace-normal">{selectedItem.rawData.guest.idNumber}</span>
                                                     </div>
                                                 )}
                                             </div>
