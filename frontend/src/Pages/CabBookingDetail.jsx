@@ -16,7 +16,6 @@ import {
   ChevronRight,
   ChevronDown,
   X,
-  ChevronDown,
 } from "lucide-react";
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
