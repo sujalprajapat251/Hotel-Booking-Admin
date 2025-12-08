@@ -14,12 +14,12 @@ const StaffTable = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {staff,loading} = useSelector((state) => state.staff)
+  const { staff, loading } = useSelector((state) => state.staff)
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -33,6 +33,7 @@ const StaffTable = () => {
     image: true,
     name: true,
     designation: true,
+    department: true,
     mobileno: true,
     email: true,
     gender: true,
@@ -67,7 +68,9 @@ const StaffTable = () => {
     staff?.mobileno?.toString().includes(searchTerm) ||
     staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (staff?.joiningdate && (formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(staff.joiningdate).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
-    staff?.address?.toLowerCase().includes(searchTerm.toLowerCase())
+    staff?.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    staff?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+
   );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -121,8 +124,11 @@ const StaffTable = () => {
         if (visibleColumns.designation) {
           row['Designation'] = staff.designation || '';
         }
+        if (visibleColumns.designation) {
+          row['Department'] = staff?.department?.name || '';
+        }
         if (visibleColumns.mobileno) {
-          const code = staff.countrycode || "+91";  
+          const code = staff.countrycode || "+91";
           row['Mobile No.'] = `${code} ${staff.mobileno}` || '';
         }
         if (visibleColumns.email) {
@@ -314,6 +320,9 @@ const StaffTable = () => {
                     {visibleColumns.designation && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Designation</th>
                     )}
+                    {visibleColumns.department && (
+                      <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Department</th>
+                    )}
                     {visibleColumns.mobileno && (
                       <th className="px-5 py-3 md600:py-4 lg:px-6 text-left text-sm font-bold text-[#755647]">Mobile No.</th>
                     )}
@@ -335,7 +344,7 @@ const StaffTable = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
-                {loading ? (
+                  {loading ? (
                     <tr>
                       <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
@@ -376,6 +385,9 @@ const StaffTable = () => {
                         )}
                         {visibleColumns.designation && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
+                        )}
+                          {visibleColumns.department && (
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.department?.name}</td>
                         )}
                         {visibleColumns.mobileno && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">

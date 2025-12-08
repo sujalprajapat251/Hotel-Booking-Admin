@@ -156,6 +156,7 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
                         <div className="text-sm font-medium">${m.product.price}.00</div>
+                        <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' :  m.status === 'Done' ? 'text-green-600' : 'text-gray-500'}`}>{m.status}</p>
                       </div>
                     </div>
                   ))}

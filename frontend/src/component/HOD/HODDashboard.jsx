@@ -133,7 +133,7 @@ const HODDashboard = () => {
         </div>
       </div>
 
-      <div className='mt-5 rounded-lg shadow-sm w-full'>
+      <div className='mt-5 rounded-lg w-full'>
         <div className='lg:flex gap-5 justify-between'>
           <div className='bg-white p-3 lg:p-5 rounded-xl lg:w-[32.33%] border-2'
             style={{

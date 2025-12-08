@@ -13,7 +13,7 @@ const hodSections = [
     key: 'main',
     items: [
       { icon: RxDashboard, label: 'Dashboard', path: '/driver/dashboard' },
-      { icon: LuContact, label: 'Profile', path: '/driver/profile' },
+      // { icon: LuContact, label: 'Profile', path: '/driver/profile' },
     ],
   },
 ];
