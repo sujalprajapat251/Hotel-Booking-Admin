@@ -284,11 +284,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <form
-        className="bg-white w-[70%] max-h-[90vh] rounded-lg overflow-y-auto shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide"
-        onSubmit={handleSubmit}
-      >
+        className="bg-white w-[90%] md:w-[80%] lg:w-[70%] rounded-lg  shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md "
+        onSubmit={handleSubmit}      >
         {/* HEADER */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-6 py-4">
+        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-3 sm:px-4 py-3 sm:py-4">
           <div>
             <h2 className="text-xl font-semibold text-black">Add New Guest</h2>
             {roomSummary && (
@@ -313,7 +312,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         <div className="flex border-b border-primary/40 bg-primary/20">
           <button
             type="button"
-            className={`flex-1 text-center py-3 font-medium transition ${
+            className={`flex-1 text-center py-3 px-3 font-medium transition ${
               activeTab === "personal"
                 ? "border-b-4 border-senary bg-white text-senary shadow-inner"
                 : "text-quinary hover:bg-primary/30"
@@ -325,7 +324,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
           <button
             type="button"
-            className={`flex-1 text-center py-3 font-medium transition ${
+            className={`flex-1 text-center py-3 px-3 font-medium transition ${
               activeTab === "reservation"
                 ? "border-b-4 border-senary bg-white text-senary shadow-inner"
                 : "text-quinary hover:bg-primary/30"
@@ -344,7 +343,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         )}
 
         {/* CONTENT */}
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-4 md:p-5 space-y-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
           {/* PERSONAL TAB */}
           {activeTab === "personal" && (
             <div>
@@ -524,7 +523,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               {/* Cab Booking Details - Show only if checkbox is checked */}
               {cabServiceEnabled && (
-                <div className="mt-4 p-4 border border-gray-200 rounded-2xl shadow-sm">
+                <div className="mt-4 p-3 sm:p-4 border border-gray-200 rounded-2xl shadow-sm">
                   <h4 className="text-md font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                     Cab Booking Details
                   </h4>
@@ -683,7 +682,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         </div>
 
         {/* FOOTER */}
-        <div className="flex justify-end gap-4 px-6 pb-6">
+        <div className="flex justify-between  sm:justify-center gap-4 px-3 pb-3">
           <button
             type="button"
             onClick={onClose}
@@ -697,7 +696,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
             disabled={creating || cabBookingLoading}
             className={`mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white`}
           >
-            {creating || cabBookingLoading ? "Saving..." : "Save Guest Details"}
+            {creating || cabBookingLoading ? "Saving..." : "Add Guest"}
           </button>
         </div>
       </form>

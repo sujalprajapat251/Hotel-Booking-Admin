@@ -138,9 +138,9 @@ function GuestDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white/95 w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md scrollbar-hide">
+      <div className="bg-white/95 w-full max-w-6xl rounded-2xl shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md">
         {/* HEADER */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-quaternary to-senary text-white rounded-t-2xl shadow-inner">
+        <div className="flex items-center justify-between px-3 sm:px-4 md:px-6 py-4 bg-gradient-to-r from-quaternary to-senary text-white rounded-t-2xl shadow-inner">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
             <span className="text-white text-xl font-semibold">
               Room {roomNumber} • Guest Details
@@ -179,9 +179,9 @@ function GuestDetailsModal({
         )}
 
         {/* BODY */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 p-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-5   p-3 sm:p-4 md:p-6 max-h-[50vh] overflow-y-auto scrollbar-hide">
           {/* GUEST INFORMATION */}
-          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+          <div className="border border-primary/40 rounded-lg p-3 sm:p-4 bg-white/50 shadow-sm">
             <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
               Guest Information
             </h3>
@@ -193,7 +193,7 @@ function GuestDetailsModal({
           </div>
 
           {/* RESERVATION DETAILS */}
-          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+          <div className="border border-primary/40 rounded-lg p-3 sm:p-4 bg-white/50 shadow-sm">
             <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
               Reservation Details
             </h3>
@@ -221,7 +221,7 @@ function GuestDetailsModal({
           </div>
 
           {/* ROOM DETAILS */}
-          <div className="border border-primary/40 rounded-lg p-4 bg-white/50 shadow-sm">
+          <div className="border border-primary/40 rounded-lg p-3 sm:p-4 bg-white/50 shadow-sm">
             <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
               Room Details
             </h3>
@@ -265,7 +265,7 @@ function GuestDetailsModal({
         </div>
 
         {/* FOOTER */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-6 py-4 border-t border-primary/40 bg-primary/10">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-primary/40 bg-primary/10">
           <span className="text-quinary text-sm">
             Last updated: {formatDateTime(lastUpdated)}
           </span>
