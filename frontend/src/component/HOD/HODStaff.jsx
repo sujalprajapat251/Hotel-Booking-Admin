@@ -337,15 +337,15 @@ const HODStaff = () => {
                                 alt={staff.name}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
                               />
-                              <span className="text-sm font-medium text-gray-800">{staff.name}</span>
+                              <span className="text-sm font-medium text-gray-800 capitalize">{staff.name}</span>
                             </div>
                           </td>
                         )}
                         {visibleColumns.designation && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{staff.designation}</td>
                         )}
                         {visibleColumns.department && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.department?.name}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{staff?.department?.name}</td>
                         )}
                         {visibleColumns.mobileno && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
@@ -364,7 +364,7 @@ const HODStaff = () => {
                           </td>
                         )}
                         {visibleColumns.gender && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.gender}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{staff.gender}</td>
                         )}
                         {visibleColumns.joiningDate && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.joiningdate ? formatDate(staff?.joiningdate) : ''}</td>
@@ -536,15 +536,15 @@ const HODStaff = () => {
                     <div className="space-y-3 overflow-y-auto">
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Name:</span>
-                        <span>{selectedItem.name}</span>
+                        <span className='capitalize'>{selectedItem.name}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Designation:</span>
-                        <span>{selectedItem.designation}</span>
+                        <span className='capitalize'>{selectedItem.designation}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Department:</span>
-                        <span>{selectedItem?.department?.name}</span>
+                        <span className='capitalize'>{selectedItem?.department?.name}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
@@ -556,7 +556,7 @@ const HODStaff = () => {
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Gender:</span>
-                        <span>{selectedItem.gender}</span>
+                        <span className='capitalize'>{selectedItem.gender}</span>
                       </div>
                       <div className="flex items-center gap-3 rounded-lg transition-colors">
                         <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>

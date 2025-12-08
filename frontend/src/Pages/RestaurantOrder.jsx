@@ -403,7 +403,7 @@ const RestaurantOrder = () => {
                               <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{rowNumber}</td>
                             )}
                           {visibleColumns.name && (
-                              <td className="px-5 py-2 md600:py-3 lg:px-6">
+                              <td className="px-5 py-2 md600:py-3 lg:px-6 capitalize">
                                 {order?.name || '—'}
                               </td>
                             )}
@@ -419,7 +419,7 @@ const RestaurantOrder = () => {
                               <td className="px-5 py-2 md600:py-3 lg:px-6">
                                 <div className="flex flex-col">
                                   <span className="text-sm font-medium text-gray-800">{itemCount} item{itemCount === 1 ? '' : 's'}</span>
-                                  <span className="text-xs text-gray-500 truncate max-w-[200px]">{itemPreview}</span>
+                                  <span className="text-xs text-gray-500 truncate max-w-[200px] capitalize">{itemPreview}</span>
                                 </div>
                               </td>
                             )}
@@ -560,7 +560,7 @@ const RestaurantOrder = () => {
                   <div className="space-y-2">
                     <div className='flex items-center gap-2'>
                       <span className="text-sm text-gray-600 min-w-[80px]">Name: </span>
-                      <span className="text-sm font-medium text-gray-800">{selectedOrder?.name || 'N/A'}</span>
+                      <span className="text-sm font-medium text-gray-800 capitalize">{selectedOrder?.name || 'N/A'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-gray-600 min-w-[80px]">Contact: </span>

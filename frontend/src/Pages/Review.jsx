@@ -360,7 +360,7 @@ const Review = () => {
 										)}
 
 										{visibleColumns.Type && (
-											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+											<td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
 												{item?.reviewType === "room" ? item?.roomId?.roomType?.roomType : item?.reviewType}
 											</td>
 										)}
@@ -388,7 +388,7 @@ const Review = () => {
 															})()}
 														</div>
 													)}
-													<span className="text-sm font-medium text-gray-800">{item.userId.name}</span>
+													<span className="text-sm font-medium text-gray-800 capitalize">{item.userId.name}</span>
 												</div>
 											</td>
 										)}

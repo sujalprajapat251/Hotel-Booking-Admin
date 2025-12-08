@@ -370,12 +370,12 @@ const StaffTable = () => {
                           </td>
                         )}
                         {visibleColumns.name && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6">
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 capitalize">
                             <span className="text-sm font-medium text-gray-800">{staff.name}</span>
                           </td>
                         )}
                         {visibleColumns.designation && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.designation}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{staff.designation}</td>
                         )}
                         {visibleColumns.mobileno && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
@@ -394,7 +394,7 @@ const StaffTable = () => {
                           </td>
                         )}
                         {visibleColumns.gender && (
-                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff.gender}</td>
+                          <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">{staff.gender}</td>
                         )}
                         {visibleColumns.joiningDate && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{staff?.joiningdate ? formatDate(staff?.joiningdate) : ''}</td>
@@ -568,11 +568,11 @@ const StaffTable = () => {
                   <div className="space-y-3 overflow-y-auto">
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Name:</span>
-                      <span>{selectedItem.name}</span>
+                      <span className='capitalize'>{selectedItem.name}</span>
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Designation:</span>
-                      <span>{selectedItem.designation}</span>
+                      <span className='capitalize'>{selectedItem.designation}</span>
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Mobile No.:</span>
@@ -584,11 +584,21 @@ const StaffTable = () => {
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Gender:</span>
-                      <span>{selectedItem.gender}</span>
+                      <span className='capitalize'>{selectedItem.gender}</span>
                     </div>
                     <div className="flex items-center gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Joining Date:</span>
-                      <span>{selectedItem.joiningdate?.split('T')[0]}</span>
+                      <span>
+                        {selectedItem.joiningdate
+                          ? (() => {
+                              const d = new Date(selectedItem.joiningdate);
+                              const day = String(d.getDate()).padStart(2, '0');
+                              const month = String(d.getMonth() + 1).padStart(2, '0');
+                              const year = d.getFullYear();
+                              return `${day}/${month}/${year}`;
+                            })()
+                          : ''}
+                      </span>
                     </div>
                     <div className="flex items-start gap-3 rounded-lg transition-colors">
                       <span className="font-semibold text-black min-w-[120px]">Address:</span>

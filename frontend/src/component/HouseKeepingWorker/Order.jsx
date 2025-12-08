@@ -457,7 +457,7 @@ const Order = () => {
                                                     </td>
                                                 )}
                                                 {visibleColumns.to && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 capitalize ">
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-sm font-medium text-gray-800">
                                                                 {orders.to}

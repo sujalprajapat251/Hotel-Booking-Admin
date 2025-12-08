@@ -289,7 +289,7 @@ const RoomType = () => {
                       <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                     )}
                     {visibleColumns.roomType && (
-                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                         <div className="flex items-center gap-2">
                           {item.roomType}
                         </div>

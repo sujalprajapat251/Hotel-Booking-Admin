@@ -5,8 +5,10 @@ import { fetchRoomTypes } from '../../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../../Redux/Slice/bookingSlice';
 import GuestModal from '../../component/GuestModel';
 import GuestDetailsModal from '../../component/GuestDetailsModal';
-import { ChevronDown,RefreshCw } from 'lucide-react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 import { IMAGE_URL } from '../../Utils/baseUrl';
+import { IoEyeSharp } from 'react-icons/io5';
+import SingleRoomModal from '../SingleRoomModal';
 
 const BookingDashboard = () => {
   const dispatch = useDispatch();
@@ -384,7 +386,7 @@ const BookingDashboard = () => {
     {
       title: 'TOTAL ROOMS',
       value: displayStats.total,
-      color: '#755647', 
+      color: '#755647',
       iconBg: '#876B56',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -396,7 +398,7 @@ const BookingDashboard = () => {
     {
       title: 'AVAILABLE',
       value: displayStats.available,
-      color: '#A3876A', 
+      color: '#A3876A',
       iconBg: '#B79982',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -407,7 +409,7 @@ const BookingDashboard = () => {
     {
       title: 'OCCUPIED',
       value: displayStats.occupied,
-      color: '#876B56', 
+      color: '#876B56',
       iconBg: '#A3876A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -419,7 +421,7 @@ const BookingDashboard = () => {
     {
       title: 'OCCUPANCY RATE',
       value: `${displayStats.occupancyRate}%`,
-      color: '#B79982', 
+      color: '#B79982',
       iconBg: '#E3C78A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -430,6 +432,8 @@ const BookingDashboard = () => {
       )
     }
   ];
+
+  const [viewId, setViewId] = useState(null);
 
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -869,7 +873,7 @@ const BookingDashboard = () => {
               };
 
               // RoomCard component for managing selected image state
-              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages }) => {
+              const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, setViewId }) => {
                 const [selectedImage, setSelectedImage] = useState(mainImage);
 
                 return (
@@ -904,6 +908,9 @@ const BookingDashboard = () => {
                             </div>
                           ) : null}
                         </div>
+                        <div className='absolute bottom-4 right-4 flex  gap-3 '>
+                          <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
+                        </div>
 
                         {/* Image Counter */}
                         {roomImages.length > 0 && (
@@ -915,14 +922,14 @@ const BookingDashboard = () => {
 
                       {/* Sub Images Thumbnails */}
                       {subImages.length > 0 && (
-                        <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100">
+                        <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100 overflow-x-auto scrollbar-hide">
                           {subImages.map((img, idx) => (
                             <button
                               key={idx}
                               onClick={() => setSelectedImage(img)}
                               className={`flex-shrink-0 w-16 h-16 rounded-md overflow-hidden border-2 transition-all ${selectedImage === img
-                                  ? 'border-senary shadow-md scale-105'
-                                  : 'border-gray-200 hover:border-gray-300'
+                                ? 'border-senary shadow-md scale-105'
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                             >
                               <img
@@ -935,11 +942,11 @@ const BookingDashboard = () => {
                               />
                             </button>
                           ))}
-                          {roomImages.length > 5 && (
+                          {/* {roomImages.length > 5 && (
                             <div className="flex-shrink-0 w-16 h-16 rounded-md bg-gray-200 flex items-center justify-center text-xs text-gray-600 font-medium">
                               +{roomImages.length - 5}
                             </div>
-                          )}
+                          )} */}
                         </div>
                       )}
                     </div>
@@ -1067,10 +1074,10 @@ const BookingDashboard = () => {
                           onClick={() => !isAddGuestDisabled && handleRoomAction(room)}
                           disabled={isAddGuestDisabled}
                           className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
-                              ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                              : isAddGuestAction
-                                ? 'bg-senary hover:bg-quinary hover:shadow-lg'
-                                : 'bg-quinary hover:bg-senary hover:shadow-lg'
+                            ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                            : isAddGuestAction
+                              ? 'bg-senary hover:bg-quinary hover:shadow-lg'
+                              : 'bg-quinary hover:bg-senary hover:shadow-lg'
                             }`}
                           title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
                         >
@@ -1127,6 +1134,7 @@ const BookingDashboard = () => {
                   mainImage={mainImage}
                   subImages={subImages}
                   roomImages={roomImages}
+                  setViewId={setViewId}
                 />
               );
             })}
@@ -1148,6 +1156,12 @@ const BookingDashboard = () => {
           onClose={handleDetailsClose}
           onCheckOut={() => handleBookingStatusChange('CheckedOut')}
           onCancelRoom={() => handleBookingStatusChange('Cancelled')}
+        />
+      )}
+      {viewId && (
+        <SingleRoomModal
+          id={viewId}
+          onClose={() => setViewId(null)}
         />
       )}
       {/* No Results Message */}

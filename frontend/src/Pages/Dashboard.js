@@ -286,31 +286,6 @@ export const Dashboard = () => {
     }
   ];
 
-  const [reviews, setReviews] = useState([
-    {
-      id: 1,
-      name: 'Alis Smith',
-      avatar: 'https://i.pravatar.cc/150?img=1',
-      time: 'a week ago',
-      rating: 3.5,
-      review: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam vel rutrum ex, at ornare mi. In quis scelerisque dui, eget rhoncus orci. Fusce et sodales ipsum. Nam id nunc euismod, aliquet arcu quis, mattis nisi.',
-      likes: 0,
-      dislikes: 0,
-      userLiked: null
-    },
-    {
-      id: 2,
-      name: 'John Dio',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-      time: 'a week ago',
-      rating: 2.5,
-      review: 'Nam quis ligula est. Nunc sed risus non turpis tristique tempor. Ut sollicitudin faucibus magna nec gravida. Suspendisse ullamcorper justo vel porta imperdiet. Nunc nec ipsum vel augue placerat faucibus.',
-      likes: 0,
-      dislikes: 0,
-      userLiked: null
-    }
-  ]);
-
   const renderStars = (rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
@@ -348,36 +323,6 @@ export const Dashboard = () => {
       }
     }
     return stars;
-  };
-
-  const handleLike = (reviewId) => {
-    setReviews(reviews.map(review => {
-      if (review.id === reviewId) {
-        if (review.userLiked === true) {
-          return { ...review, likes: review.likes - 1, userLiked: null };
-        } else if (review.userLiked === false) {
-          return { ...review, likes: review.likes + 1, dislikes: review.dislikes - 1, userLiked: true };
-        } else {
-          return { ...review, likes: review.likes + 1, userLiked: true };
-        }
-      }
-      return review;
-    }));
-  };
-
-  const handleDislike = (reviewId) => {
-    setReviews(reviews.map(review => {
-      if (review.id === reviewId) {
-        if (review.userLiked === false) {
-          return { ...review, dislikes: review.dislikes - 1, userLiked: null };
-        } else if (review.userLiked === true) {
-          return { ...review, likes: review.likes - 1, dislikes: review.dislikes + 1, userLiked: false };
-        } else {
-          return { ...review, dislikes: review.dislikes + 1, userLiked: false };
-        }
-      }
-      return review;
-    }));
   };
 
   const mergedRevenueData = getRevenueData?.breakdown?.map((item) => {
@@ -466,6 +411,10 @@ export const Dashboard = () => {
                 format="MMMM YYYY"
                 allowClear={false}
                 className='w-40 border-none'
+                disabledDate={(current) => {
+                  return current && current > dayjs().endOf("month");
+                }}
+                disabledTime={() => true}
               />
             </div>
             <div className='text-end'>
@@ -810,7 +759,7 @@ export const Dashboard = () => {
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm font-medium" style={{ color: '#876B56' }}>{index + 1}</td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-semibold" style={{ color: '#755647' }}>{booking.name}</span>
+                          <span className="text-sm font-semibold capitalize" style={{ color: '#755647' }}>{booking.name}</span>
                         </div>
                       </td>
                       <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 text-sm" style={{ color: '#876B56' }}>{booking.roomNo}</td>
@@ -828,7 +777,7 @@ export const Dashboard = () => {
                             {booking.countrycode ? booking.countrycode : ""} {booking.phone}
                         </div>
                       </td>
-                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4">
+                      <td className="px-3 py-2 md:px-4 md:py-3 xxl:px-6 2xl:py-4 capitalize">
                         <div className="flex items-center">
                           <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
                             backgroundColor: 'rgba(183, 153, 130, 0.2)',

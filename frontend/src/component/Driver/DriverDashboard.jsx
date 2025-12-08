@@ -260,19 +260,19 @@ const DriverDashboard = () => {
                         <td className="px-4 py-3 text-gray-800">
                           {(page - 1) * limit + idx + 1}
                         </td>
-                        <td className="px-4 py-3 text-gray-800 whitespace-nowrap">
+                        <td className="px-4 py-3 text-gray-800 whitespace-nowrap capitalize">
                           {guestName}
                         </td>
                         <td className="px-4 py-3 text-gray-800 whitespace-nowrap">
                           {roomNumber}
                         </td>
-                        <td className="px-4 py-3 text-gray-800">
+                        <td className="px-4 py-3 text-gray-800 capitalize">
                           <span className="inline-flex items-center gap-1 whitespace-nowrap">
                             <MapPin size={14} className="text-blue-600" />
                             {pickupLocation}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-800">
+                        <td className="px-4 py-3 text-gray-800 capitalize">
                           <span className="inline-flex items-center gap-1">
                             <MapPin size={14} className="text-red-600" />
                             {dropLocation}
@@ -299,7 +299,7 @@ const DriverDashboard = () => {
                               : "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-800 whitespace-nowrap">
+                        <td className="px-4 py-3 text-gray-800 whitespace-nowrap capitalize">
                           {vehicle}
                         </td>
                         <td className="px-4 py-3 font-medium text-gray-800">
@@ -417,7 +417,7 @@ const DriverDashboard = () => {
                       <span>Guest Information</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-10 text-[15px]">
-                      <div className="flex items-start gap-2">
+                      <div className="flex items-start gap-2 capitalize">
                         <span className="text-gray-600 min-w-[110px]">
                           Name:
                         </span>
@@ -501,7 +501,7 @@ const DriverDashboard = () => {
                         <span className="text-gray-600 min-w-[110px]">
                           Pickup Location:
                         </span>
-                        <span className="text-gray-900">
+                        <span className="text-gray-900 capitalize ">
                           {selectedBooking.pickUpLocation || "Airport"}
                         </span>
                       </div>
@@ -509,7 +509,7 @@ const DriverDashboard = () => {
                         <span className="text-gray-600 min-w-[110px]">
                           Drop Location:
                         </span>
-                        <span className="text-gray-900">
+                        <span className="text-gray-900 capitalize ">
                           {selectedBooking.dropLocation?.address || "Hotel"}
                         </span>
                       </div>
@@ -517,7 +517,7 @@ const DriverDashboard = () => {
                         <span className="text-gray-600 min-w-[110px]">
                           Vehicle:
                         </span>
-                        <span className="text-gray-900">
+                        <span className="text-gray-900 capitalize ">
                           {selectedBooking.assignedCab?.modelName
                             ? `${selectedBooking.assignedCab.modelName} (${selectedBooking.assignedCab.vehicleId})`
                             : "Not Assigned"}

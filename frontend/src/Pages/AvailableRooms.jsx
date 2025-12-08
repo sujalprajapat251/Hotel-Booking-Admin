@@ -57,7 +57,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
               navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
             }} />
             <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
-            <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-[#876B56]  text-[18px]" />
+            <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-red-500 text-[18px]" />
           </div>
           {/* Image Counter */}
           {roomImages.length > 0 && (
@@ -89,11 +89,11 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
                 />
               </button>
             ))}
-            {roomImages.length > 5 && (
+            {/* {roomImages.length > 5 && (
               <div className="flex-shrink-0 w-16 h-16 rounded-md bg-gray-200 flex items-center justify-center text-xs text-gray-600 font-medium">
                 +{roomImages.length - 5}
               </div>
-            )}
+            )} */}
           </div>
         )}
       </div>

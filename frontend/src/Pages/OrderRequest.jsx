@@ -461,7 +461,7 @@ const OrderRequest = () => {
                                                 {visibleColumns.workerName && (
                                                     <td className="px-5 py-2 md600:py-3 lg:px-6">
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-sm font-medium text-gray-800">
+                                                            <span className="text-sm font-medium text-gray-800 capitalize">
                                                                 {housekeeping.name}
                                                             </span>
                                                         </div>
@@ -516,7 +516,7 @@ const OrderRequest = () => {
                                                 )}
 
                                                 {visibleColumns.to && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6">
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 capitalize">
                                                         <div className="flex items-center gap-3">
                                                             <span className="text-sm font-medium text-gray-800">
                                                                 {housekeeping.to}
@@ -671,7 +671,7 @@ const OrderRequest = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Worker Name:</span>
-                                            <span className='text-gray-900'>{selectedItem.name}</span>
+                                            <span className='text-gray-900 capitalize'>{selectedItem.name}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Room No:</span>
@@ -683,7 +683,7 @@ const OrderRequest = () => {
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">To:</span>
-                                            <span className='text-gray-900'>{selectedItem.to}</span>
+                                            <span className='text-gray-900 capitalize'>{selectedItem.to}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="font-semibold text-gray-700 min-w-[120px]">Status:</span>

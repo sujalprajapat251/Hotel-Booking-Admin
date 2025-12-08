@@ -321,7 +321,7 @@ const Tasks = () => {
                                                     <td className="x-5 py-2 md600:py-3 lg:px-6">{tasks.roomNo}</td>
                                                 )}
                                                 {visibleColumns.roomType && (
-                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                                                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize ">
                                                         <div className="flex items-center">
                                                             <span className="inline-flex items-center justify-center w-24 h-8 rounded-md text-xs font-semibold border" style={{
                                                                 backgroundColor: 'rgba(183, 153, 130, 0.2)',

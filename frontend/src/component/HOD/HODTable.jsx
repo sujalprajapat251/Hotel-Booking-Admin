@@ -375,7 +375,7 @@ const HODTable = () => {
                         <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
                       )}
                       {visibleColumns.title && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6">
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 capitalize">
                           <div className="flex items-center gap-3">
                             <span className="text-sm font-medium text-gray-800">{about.title}</span>
                           </div>
@@ -389,7 +389,7 @@ const HODTable = () => {
                         </td>
                       )}
                       {visibleColumns.status && (
-                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
                           <div className="flex items-center gap-2">
                             <span className={`px-3 py-1 rounded-xl text-sm font-medium ${getStatusStyle(about.status)}`}>
                               {about.status ? "Available" : "Occupied"}

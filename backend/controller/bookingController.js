@@ -225,6 +225,13 @@ const createBooking = async (req, res) => {
 
         await refreshRoomStatus(roomId);
 
+        console.log("_____",roomId);
+
+        const populated = await booking.populate([
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus',populate: {path: 'roomType', select: 'roomType' } },
+            { path: 'createdBy', select: 'fullName email role' }
+        ]);
+
         const transport = nodemailer.createTransport({
             service: "Gmail",
             auth: {
@@ -257,7 +264,10 @@ const createBooking = async (req, res) => {
                       <td style="padding: 8px 0;"><b>Room Number:</b></td>
                       <td style="padding: 8px 0;">${room.roomNumber}</td>
                   </tr>
-                  
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Room Type:</b></td>
+                      <td style="padding: 8px 0;">${populated.room.roomType.roomType}</td>
+                  </tr>
                   <tr>
                       <td style="padding: 8px 0;"><b>Check-In Date:</b></td>
                       <td style="padding: 8px 0;">${reservationPayload.checkInDate.toLocaleDateString()}</td>
@@ -268,7 +278,7 @@ const createBooking = async (req, res) => {
                   </tr>
                   <tr>
                       <td style="padding: 8px 0;"><b>Total Amount:</b></td>
-                      <td style="padding: 8px 0;">₹${paymentPayload.totalAmount}</td>
+                      <td style="padding: 8px 0;">$${paymentPayload.totalAmount}</td>
                   </tr>
                   <tr>
                       <td style="padding: 8px 0;"><b>Payment Method:</b></td>
@@ -285,8 +295,8 @@ const createBooking = async (req, res) => {
               If you have any questions or need further support, feel free to reply to this email.
           </p>
 
-          <p style="font-size: 16px; margin-top: 25px;color:"#755647">Warm Regards,<br/>
-              <b>Hotel Management Team</b>
+          <p style="font-size: 16px; margin-top: 25px; ">Warm Regards,<br/>
+              <p style="color:#755647"><b>Hotel Management Team</b></p>
           </p>
       </div>
 
@@ -304,11 +314,6 @@ const createBooking = async (req, res) => {
             subject: "Your Booking Confirmation",
             html: emailHtml,
         });
-
-        const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus' },
-            { path: 'createdBy', select: 'fullName email role' }
-        ]);
 
         return res.status(201).json({
             success: true,
@@ -734,9 +739,94 @@ const bookRoomByType = async (req, res) => {
         });
         await refreshRoomStatus(availableRoom._id);
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus' },
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus',populate: {path: 'roomType', select: 'roomType' } },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
+
+        const transport = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const emailHtml = `
+  <div style="max-width: 600px; margin: 0 auto; font-family: Arial, sans-serif; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+      
+      <!-- Header -->
+      <div style="background: linear-gradient(90deg, #F7DF9C, #E3C78A); padding: 20px; text-align: center; color: #755647;">
+          <h2 style="margin: 0; font-size: 24px;">Booking Confirmation</h2>
+          <p style="margin: 5px 0 0;">Thank you for choosing our hotel!</p>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 25px; background-color: #ffffff;">
+          <p style="font-size: 16px;">Dear <b>${guestPayload.fullName}</b>,</p>
+
+          <p style="font-size: 15px; color: #333;">
+              We are pleased to confirm your booking. Below are your booking details:
+          </p>
+
+          <div style="margin-top: 20px; border: 1px solid #eee; border-radius: 8px; padding: 15px; background: #fafafa;">
+              <h3 style="margin: 0 0 10px; font-size: 18px; color: #755647;">Booking Details</h3>
+              <table style="width: 100%; font-size: 15px; color: #444; border-collapse: collapse;">
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Room Number:</b></td>
+                      <td style="padding: 8px 0;">${availableRoom.roomNumber}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Room Type:</b></td>
+                      <td style="padding: 8px 0;">${populated.room.roomType.roomType}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Check-In Date:</b></td>
+                      <td style="padding: 8px 0;">${reservationPayload.checkInDate.toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Check-Out Date:</b></td>
+                      <td style="padding: 8px 0;">${reservationPayload.checkOutDate.toLocaleDateString()}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Total Amount:</b></td>
+                      <td style="padding: 8px 0;">$${paymentPayload.totalAmount}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Payment Method:</b></td>
+                      <td style="padding: 8px 0; text-transform: capitalize;">${paymentMethod}</td>
+                  </tr>
+                  <tr>
+                      <td style="padding: 8px 0;"><b>Status:</b></td>
+                      <td style="padding: 8px 0;">${status}</td>
+                  </tr>
+              </table>
+          </div>
+
+          <p style="margin-top: 20px; font-size: 15px;">
+              If you have any questions or need further support, feel free to reply to this email.
+          </p>
+
+          <p style="font-size: 16px; margin-top: 25px; ">Warm Regards,<br/>
+              <p style="color:#755647"><b>Hotel Management Team</b></p>
+          </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="text-align: center; padding: 15px; background: #f2f2f2; font-size: 13px; color: #666;">
+          © ${new Date().getFullYear()} Your Hotel Name. All Rights Reserved.
+      </div>
+
+  </div>
+`;
+
+        await transport.sendMail({
+            from: process.env.EMAIL_USER,
+            to: guestPayload?.email,
+            subject: "Your Booking Confirmation",
+            html: emailHtml,
+        });
+
+
         return res.status(201).json({
             success: true,
             message: 'Booking created successfully',
