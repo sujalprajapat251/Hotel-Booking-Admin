@@ -931,7 +931,7 @@ const AllBookings = () => {
                                                     <div className="flex items-center p-2 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Total Amount:</span>
                                                         <span className="text-sm sm:text-base font-semibold">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.totalAmount}
+                                                            {selectedItem.rawData.payment.currency || ''} {selectedItem.rawData.payment.totalAmount}
                                                         </span>
                                                     </div>
                                                 )}
@@ -939,7 +939,7 @@ const AllBookings = () => {
                                                     <div className="flex items-center p-2 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Refund Amount:</span>
                                                         <span className="text-sm sm:text-base font-semibold text-red-600">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {selectedItem.rawData.payment.refundAmount}
+                                                            {selectedItem.rawData.payment.currency || ''} {selectedItem.rawData.payment.refundAmount}
                                                         </span>
                                                     </div>
                                                 )}
@@ -947,7 +947,7 @@ const AllBookings = () => {
                                                     <div className="flex items-center p-2 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[110px]">Net Amount:</span>
                                                         <span className="text-sm sm:text-base font-semibold text-blue-600">
-                                                            {selectedItem.rawData.payment.currency || 'USD'} {(selectedItem.rawData.payment.totalAmount - selectedItem.rawData.payment.refundAmount).toFixed(2)}
+                                                            {selectedItem.rawData.payment.currency || ''} {(selectedItem.rawData.payment.totalAmount - selectedItem.rawData.payment.refundAmount).toFixed(2)}
                                                         </span>
                                                     </div>
                                                 )}

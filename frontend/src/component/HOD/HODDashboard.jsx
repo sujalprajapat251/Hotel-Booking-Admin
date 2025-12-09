@@ -48,6 +48,9 @@ const HODDashboard = () => {
     }
   }, [dispatch, selectedDate]);
 
+  const disabledDate = (current) => {
+    return current && current > dayjs().endOf('month');
+  };
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
       <div className="mb-6 flex justify-between items-center">
@@ -56,6 +59,7 @@ const HODDashboard = () => {
           picker="month"
           value={selectedDate}
           onChange={(date) => setSelectedDate(date)}
+          disabledDate={disabledDate}
           allowClear={false}
           className="mt-4 md:mt-3"
           format="MMMM YYYY"

@@ -416,11 +416,7 @@ export const Dashboard = () => {
                 allowClear={false}
                 disabledDate={disabledDate}
                 className='sm:w-40 max-w-[140px] border-none p-2'
-                disabledDate={(current) => {
-                  return current && current > dayjs().endOf("month");
-                }}
-                disabledTime={() => true}
-              />
+              />h
             </div>
             <div className='text-end'>
               <h2 className='font-bold md600:px-4 text-black text-sm sm:text-base'>Customer Ratings</h2>
