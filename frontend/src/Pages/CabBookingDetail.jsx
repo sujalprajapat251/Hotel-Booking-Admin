@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { FiPlusCircle, FiEdit } from "react-icons/fi";
 import { IoEyeSharp } from "react-icons/io5";
@@ -85,7 +85,34 @@ const CabBookingDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [showPickupLocationDropdown, setShowPickupLocationDropdown] = useState(false);
+  const [showAssignedDriverDropdown, setShowAssignedDriverDropdown] = useState(false);
+  const [showAssignedCabDropdown, setShowAssignedCabDropdown] = useState(false);
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const pickupDropdownRef = useRef(null);
+  const assignedDriverDropdownRef = useRef(null);
+  const assignedCabDropdownRef = useRef(null);
+  const statusDropdownRef = useRef(null);
   const loading = useSelector((state) => state.cabBooking.loading);
+
+  // Close any open custom dropdown when clicking outside of them
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (!showPickupLocationDropdown && !showAssignedDriverDropdown && !showAssignedCabDropdown && !showStatusDropdown) return;
+      const target = e.target;
+      const insidePickup = pickupDropdownRef.current && pickupDropdownRef.current.contains(target);
+      const insideDriver = assignedDriverDropdownRef.current && assignedDriverDropdownRef.current.contains(target);
+      const insideCab = assignedCabDropdownRef.current && assignedCabDropdownRef.current.contains(target);
+      const insideStatus = statusDropdownRef.current && statusDropdownRef.current.contains(target);
+      if (!insidePickup && !insideDriver && !insideCab && !insideStatus) {
+        setShowPickupLocationDropdown(false);
+        setShowAssignedDriverDropdown(false);
+        setShowAssignedCabDropdown(false);
+        setShowStatusDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPickupLocationDropdown, showAssignedDriverDropdown, showAssignedCabDropdown, showStatusDropdown]);
 
   useEffect(() => {
     dispatch(getAllCabBookings());
@@ -473,7 +500,7 @@ const CabBookingDetail = () => {
                 <h3 className="text-xl font-semibold text-gray-900">Cab Booking Details</h3>
                 <button
                   onClick={closeView}
-                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:text-gray-950 transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -570,9 +597,9 @@ const CabBookingDetail = () => {
                       <span className="text-gray-900 capitalize">{selectedBooking.paymentStatus}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="text-gray-600 min-w-[130px]">Total Fare:</span>
+                      <span className="text-gray-600 min-w-[130px] md:min-w-[110px]">Total Fare:</span>
                       <span className="text-gray-900">
-                        {selectedBooking.fare === "--" ? "—" : `₹${selectedBooking.fare}`}
+                        {selectedBooking.fare === "--" ? "—" : `$${selectedBooking.fare}`}
                       </span>
                     </div>
                     <div className="flex items-start gap-2">
@@ -613,7 +640,7 @@ const CabBookingDetail = () => {
                     setEditBooking(null);
                     setEditBookingRaw(null);
                   }}
-                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded text-gray-600 hover:text-gray-800 hover:text-gray-950 transition-colors"
                   disabled={isUpdating}
                 >
                   <X size={20} />
@@ -693,10 +720,16 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Pickup Location</label>
-                      <div className="relative">
+                      <div ref={pickupDropdownRef} className="relative">
                         <button
                           type="button"
-                          onClick={() => !isUpdating && setShowPickupLocationDropdown(!showPickupLocationDropdown)}
+                          onClick={() => {
+                            if (isUpdating) return;
+                            setShowPickupLocationDropdown(prev => !prev);
+                            setShowAssignedDriverDropdown(false);
+                            setShowAssignedCabDropdown(false);
+                            setShowStatusDropdown(false);
+                          }}
                           disabled={isUpdating}
                           className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 flex items-center justify-between"
                         >
@@ -769,50 +802,128 @@ const CabBookingDetail = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Assigned Driver</label>
-                      <select
-                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
-                        value={editForm.assignedDriver || ""}
-                        onChange={e => setEditForm(f => ({ ...f, assignedDriver: e.target.value || null }))}
-                        disabled={isUpdating}
-                      >
-                        <option value="">Unassigned</option>
-                        {drivers && drivers.map((driver) => (
-                          <option key={driver._id} value={driver._id}>
-                            {driver.name} {driver.status === "Available" ? "(Available)" : `(${driver.status})`}
-                          </option>
-                        ))}
-                      </select>
+                      <div ref={assignedDriverDropdownRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isUpdating) return;
+                            setShowAssignedDriverDropdown(prev => !prev);
+                            setShowPickupLocationDropdown(false);
+                            setShowAssignedCabDropdown(false);
+                            setShowStatusDropdown(false);
+                          }}
+                          disabled={isUpdating}
+                          className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 flex items-center justify-between"
+                        >
+                          <span className="text-left">
+                            {(() => {
+                              const id = editForm.assignedDriver;
+                              if (!id) return 'Unassigned';
+                              const drv = drivers?.find(d => d._id === id);
+                              return drv ? `${drv.name} ${drv.status === 'Available' ? '(Available)' : `(${drv.status})`}` : 'Unassigned';
+                            })()}
+                          </span>
+                          <ChevronDown size={18} className="text-gray-600" />
+                        </button>
+                        {showAssignedDriverDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            <div
+                              onClick={() => { setEditForm(f => ({ ...f, assignedDriver: null })); setShowAssignedDriverDropdown(false); }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              Unassigned
+                            </div>
+                            {drivers && drivers.map((driver) => (
+                              <div
+                                key={driver._id}
+                                onClick={() => { setEditForm(f => ({ ...f, assignedDriver: driver._id })); setShowAssignedDriverDropdown(false); }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {driver.name} {driver.status === "Available" ? "(Available)" : `(${driver.status})`}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Assigned Cab</label>
-                      <select
-                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
-                        value={editForm.assignedCab || ""}
-                        onChange={e => setEditForm(f => ({ ...f, assignedCab: e.target.value || null }))}
-                        disabled={isUpdating}
-                      >
-                        <option value="">Unassigned</option>
-                        {cabs && cabs.map((cab) => (
-                          <option key={cab._id} value={cab._id}>
-                            {cab.vehicleId} - {cab.modelName} {cab.status === "Available" ? "(Available)" : `(${cab.status})`}
-                          </option>
-                        ))}
-                      </select>
+                      <div ref={assignedCabDropdownRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isUpdating) return;
+                            setShowAssignedCabDropdown(prev => !prev);
+                            setShowPickupLocationDropdown(false);
+                            setShowAssignedDriverDropdown(false);
+                            setShowStatusDropdown(false);
+                          }}
+                          disabled={isUpdating}
+                          className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 flex items-center justify-between"
+                        >
+                          <span className="text-left">
+                            {(() => {
+                              const id = editForm.assignedCab;
+                              if (!id) return 'Unassigned';
+                              const cb = cabs?.find(c => c._id === id);
+                              return cb ? `${cb.vehicleId} - ${cb.modelName} ${cb.status === 'Available' ? '(Available)' : `(${cb.status})`}` : 'Unassigned';
+                            })()}
+                          </span>
+                          <ChevronDown size={18} className="text-gray-600" />
+                        </button>
+                        {showAssignedCabDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            <div
+                              onClick={() => { setEditForm(f => ({ ...f, assignedCab: null })); setShowAssignedCabDropdown(false); }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              Unassigned
+                            </div>
+                            {cabs && cabs.map((cab) => (
+                              <div
+                                key={cab._id}
+                                onClick={() => { setEditForm(f => ({ ...f, assignedCab: cab._id })); setShowAssignedCabDropdown(false); }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {cab.vehicleId} - {cab.modelName} {cab.status === "Available" ? "(Available)" : `(${cab.status})`}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-sm font-medium text-gray-700">Status</label>
-                      <select
-                        className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60"
-                        value={editForm.status || "Pending"}
-                        onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
-                        disabled={isUpdating}
-                      >
-                        {statusFilterOptions.filter(s => s !== "All").map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
+                      <div ref={statusDropdownRef} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isUpdating) return;
+                            setShowStatusDropdown(prev => !prev);
+                            setShowPickupLocationDropdown(false);
+                            setShowAssignedDriverDropdown(false);
+                            setShowAssignedCabDropdown(false);
+                          }}
+                          disabled={isUpdating}
+                          className="w-full bg-[#F5F5F5] border border-gray-200 rounded-[4px] px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent disabled:opacity-60 flex items-center justify-between"
+                        >
+                          <span className="text-left">{editForm.status || 'Pending'}</span>
+                          <ChevronDown size={18} className="text-gray-600" />
+                        </button>
+                        {showStatusDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            {statusFilterOptions.filter(s => s !== "All").map((status) => (
+                              <div
+                                key={status}
+                                onClick={() => { setEditForm(f => ({ ...f, status })); setShowStatusDropdown(false); }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {status}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -863,7 +974,7 @@ const CabBookingDetail = () => {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
+                <div className="flex items-center justify-center pt-4 border-t border-gray-200">
                   <button
                     type="button"
                     onClick={() => {
@@ -872,14 +983,14 @@ const CabBookingDetail = () => {
                       setEditBooking(null);
                       setEditBookingRaw(null);
                     }}
-                    className="px-5 py-2.5 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                     disabled={isUpdating}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-md bg-[#D6B782] text-[#4A372B] hover:bg-[#c8a76f] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                     disabled={isUpdating}
                   >
                     {isUpdating ? (
