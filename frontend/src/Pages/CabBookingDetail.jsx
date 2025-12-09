@@ -872,14 +872,14 @@ const CabBookingDetail = () => {
                       setEditBooking(null);
                       setEditBookingRaw(null);
                     }}
-                    className="px-5 py-2.5 rounded-md bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="mv_user_cancel hover:bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A]"
                     disabled={isUpdating}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-md bg-[#D6B782] text-[#4A372B] hover:bg-[#c8a76f] font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm"
+                    className="mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white"
                     disabled={isUpdating}
                   >
                     {isUpdating ? (
