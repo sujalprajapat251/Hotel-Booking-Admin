@@ -367,10 +367,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <form
-        className="bg-white w-[90%] md:w-[80%] lg:w-[70%] rounded-lg  shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md "
+        className="bg-white w-[90%] md:w-[80%] lg:w-[70%] rounded-lg  shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md"
         onSubmit={handleSubmit}      >
         {/* HEADER */}
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-3 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-3 sm:px-4 py-3 sm:py-4 rounded-t-lg">
           <div>
             <h2 className="text-xl font-semibold text-black">Add New Guest</h2>
             {roomSummary && (
