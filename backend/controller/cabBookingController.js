@@ -3,6 +3,7 @@ const Booking = require("../models/bookingModel");
 const Cab = require("../models/cabModel");
 const Staff = require("../models/staffModel");
 const { findAvailableDriver, assignDriversToUnassignedBookings } = require("../utils/driverAssignment");
+const { emitUserNotification } = require("../socketManager/socketManager");
 
 // Create Cab Booking
 exports.createCabBooking = async (req, res) => {
@@ -214,6 +215,20 @@ exports.createCabBooking = async (req, res) => {
             }
         ]);
 
+        if (resolvedDriverId) {
+            await emitUserNotification({
+                userId: resolvedDriverId,
+                event: 'notify',
+                data: {
+                    type: 'cab_booking_assigned',
+                    bookingId: newCabBooking._id,
+                    message: `You have been assigned to a new cab booking for ${pickUpLocation.address || 'a location'}`,
+                    pickUpTime: newCabBooking.pickUpTime,
+                    pickUpLocation: newCabBooking.pickUpLocation
+                }
+            });
+        }
+
         res.status(201).json({
             success: true,
             message: "Cab booking created successfully",
@@ -370,6 +385,8 @@ exports.updateCabBooking = async (req, res) => {
             });
         }
 
+        const oldDriverId = cabBooking.assignedDriver;
+
         // Update fields if provided
         if (pickUpLocation !== undefined) {
             // Handle pickUpLocation as string (enum) or object
@@ -504,6 +521,20 @@ exports.updateCabBooking = async (req, res) => {
                 select: "name email mobileno"
             }
         ]);
+
+        if (cabBooking.assignedDriver && String(cabBooking.assignedDriver) !== String(oldDriverId)) {
+             await emitUserNotification({
+                userId: cabBooking.assignedDriver,
+                event: 'notify',
+                data: {
+                    type: 'cab_booking_assigned',
+                    bookingId: cabBooking._id,
+                    message: `You have been assigned to a new cab booking for ${cabBooking.pickUpLocation.address || 'a location'}`,
+                    pickUpTime: cabBooking.pickUpTime,
+                    pickUpLocation: cabBooking.pickUpLocation
+                }
+            });
+        }
 
         res.status(200).json({
             success: true,

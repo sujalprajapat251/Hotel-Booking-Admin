@@ -170,8 +170,8 @@ export default function SingleRoomModal({ id, onClose }) {
                                 <span className='md:text-xs text-[10px] text-gray-500'>{room?.currentBooking?.guest?.email}  / {room?.currentBooking?.guest?.countrycode ? room?.currentBooking?.guest?.countrycode : ""} {room?.currentBooking?.guest?.phone}</span>
                             </div>
                             <div>
-                                {room?.currentBooking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}
-                                <p className='md:text-xs text-[10px] text-gray-500'>{room?.currentBooking?.reservation?.checkInDate.split('T')[0]}  To {room?.currentBooking?.reservation?.checkOutDate.split('T')[0]}</p>
+                                {room?.currentBooking?.payment?.status === 'Paid' ? <p className='capitalize w-fit text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</p> : <p className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2 w-fit'>unpaid</p>}
+                                <p className='md:text-xs text-[10px] text-gray-500'>{room?.currentBooking?.reservation?.checkInDate.split('T')[0].split('-').reverse().join('/')}  To {room?.currentBooking?.reservation?.checkOutDate.split('T')[0].split('-').reverse().join('/')}</p>
                             </div>
                         </div>
                     </div>
@@ -187,8 +187,8 @@ export default function SingleRoomModal({ id, onClose }) {
                                     <span className='md:text-xs text-[10px] text-gray-500'>{booking?.guest?.email}  / {booking?.guest?.countrycode ? booking?.guest?.countrycode : ""} {booking?.guest?.phone}</span>
                                 </div>
                                 <div>
-                                    {booking?.payment?.status === 'Paid' ? <span className='capitalize text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</span> : <span className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2'>unpaid</span>}
-                                    <p className='md:text-xs text-[10px] text-gray-500 mt-1'>{booking?.reservation?.checkInDate.split('T')[0]}  To {booking?.reservation?.checkOutDate.split('T')[0]}</p>
+                                    {booking?.payment?.status === 'Paid' ?  <p className='capitalize w-fit text-green-800 text-xs bg-green-800/20 px-2 py-1 ms-auto rounded mb-2'>Paid</p> : <p className='capitalize text-red-800 text-xs bg-red-800/20 px-2 py-1 ms-auto rounded mb-2 w-fit'>unpaid</p>}
+                                    <p className='md:text-xs text-[10px] text-gray-500 mt-1'>{booking?.reservation?.checkInDate.split('T')[0].split('-').reverse().join('/')}  To {booking?.reservation?.checkOutDate.split('T')[0].split('-').reverse().join('/')}</p>
                                 </div>
                             </div>
                             )

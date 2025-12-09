@@ -36,6 +36,8 @@ const DriverDashboard = () => {
   const { cabBookings, loading, isError, message } = useSelector(
     (state) => state.cabBooking
   );
+  const notifications = useSelector((state) => state.notifications?.items || []);
+  const lastProcessedNotificationId = React.useRef(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
@@ -49,6 +51,20 @@ const DriverDashboard = () => {
       dispatch(getAllCabBookings());
     }
   }, [dispatch, user]);
+
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const latest = notifications[0];
+      if (
+        latest.type === 'cab_booking_assigned' &&
+        latest._id !== lastProcessedNotificationId.current &&
+        !latest.seen
+      ) {
+        lastProcessedNotificationId.current = latest._id;
+        dispatch(getAllCabBookings());
+      }
+    }
+  }, [notifications, dispatch]);
 
   if (!user || user.designation !== "Driver") return <div>Unauthorized</div>;
 

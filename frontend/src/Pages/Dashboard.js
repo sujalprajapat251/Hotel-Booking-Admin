@@ -393,6 +393,10 @@ export const Dashboard = () => {
     navigate(route);
   }
 
+  const disabledDate = (current) => {
+    return current && current > dayjs().endOf('month');
+  };
+
   return (
     <>
       <div className='bg-[#F0F3FB] px-4 md:px-8 py-6 h-full'>
@@ -410,6 +414,7 @@ export const Dashboard = () => {
                 onChange={(date) => date && setSelectedDate(date)}
                 format="MMMM YYYY"
                 allowClear={false}
+                disabledDate={disabledDate}
                 className='sm:w-40 max-w-[140px] border-none p-2'
                 disabledDate={(current) => {
                   return current && current > dayjs().endOf("month");
@@ -513,7 +518,7 @@ export const Dashboard = () => {
           </div>
         </div>
 
-        <div className='mt-5 rounded-lg shadow-sm w-full'>
+        <div className='mt-5 rounded-lg w-full'>
           <div className='lg:flex gap-5 justify-between'>
             <div className='bg-white p-4 lg:p-5 rounded-xl lg:w-[32.33%] border-2' style={{
               borderColor: '#E3C78A',

@@ -152,14 +152,14 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">Qty: {m.qty}</div>
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
-                        <div className="text-sm font-medium">${m?.product?.price}.00</div>
+                        <div className="text-sm font-medium">${m?.product?.price * m.qty}.00</div>
                       </div>
                       {m.status === "Done" ?(
                         <div className="flex justify-end gap-3" onClick={()=>handleserved(m)}>
                           <button className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Served</button>
                         </div>
                       ):
-                      <p className="ms-auto text-gray-500 text-sm text-end">{m.status}</p>
+                      <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' : 'text-green-600'}`}>{m.status}</p>
                     }
 
                     </div>

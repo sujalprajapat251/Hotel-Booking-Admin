@@ -1,5 +1,6 @@
 const Staff = require("../models/staffModel");
 const CabBooking = require("../models/cabBookingModel");
+const { emitUserNotification } = require("../socketManager/socketManager");
 
 const ACTIVE_BOOKING_STATUSES = ["Pending", "Confirmed", "Assigned", "InProgress"];
 
@@ -57,6 +58,17 @@ const reassignBookingsForDriver = async (driverId) => {
 
         if (replacementDriver) {
             booking.assignedDriver = replacementDriver._id;
+            await emitUserNotification({
+                userId: replacementDriver._id,
+                event: 'notify',
+                data: {
+                    type: 'cab_booking_assigned',
+                    bookingId: booking._id,
+                    message: `You have been reassigned to a cab booking for ${booking.pickUpLocation.address || 'a location'}`,
+                    pickUpTime: booking.pickUpTime,
+                    pickUpLocation: booking.pickUpLocation
+                }
+            });
         } else {
             booking.assignedDriver = null;
         }
@@ -89,6 +101,17 @@ const assignDriversToUnassignedBookings = async () => {
                 booking.status = "Assigned";
             }
             await booking.save();
+            await emitUserNotification({
+                userId: driver._id,
+                event: 'notify',
+                data: {
+                    type: 'cab_booking_assigned',
+                    bookingId: booking._id,
+                    message: `You have been assigned to a new cab booking for ${booking.pickUpLocation.address || 'a location'}`,
+                    pickUpTime: booking.pickUpTime,
+                    pickUpLocation: booking.pickUpLocation
+                }
+            });
             assignedCount++;
         }
     }
