@@ -979,7 +979,7 @@ const DriverDetails = () => {
                   <p className="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
                 )}
               </div>
-              <div className="flex items-center justify-center pt-4 border-t border-gray-200">
+              <div className="flex items-center justify-center pt-3 border-t border-gray-200">
                 <button
                   type="button"
                   onClick={handleDriverModalCancel}
