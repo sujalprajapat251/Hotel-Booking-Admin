@@ -171,6 +171,9 @@ const DriverDashboard = () => {
   return (
     <>
       <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
+        <section className="py-5">
+          <h1 className="text-2xl font-semibold text-black">Dashboard</h1>
+        </section>
         <div className="bg-white rounded-lg shadow-md">
           <div className="md600:flex items-center justify-between p-3 border-b border-gray-200 gap-4">
             <div className="flex flex-col md:flex-row md:items-center gap-3 flex-1">
@@ -348,9 +351,9 @@ const DriverDashboard = () => {
                               <button
                                 onClick={() => handleStatusUpdate(booking._id)}
                                 disabled={updatingStatusId === booking._id}
-                                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 ${
+                                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap ${
                                   nextStatus === "InProgress"
-                                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                                    ? "bg-[#C49A6C] hover:bg-[#A67F55] text-white"
                                     : "bg-green-500 text-white hover:bg-green-600"
                                 }`}
                                 title={`Update to ${nextStatus}`}
