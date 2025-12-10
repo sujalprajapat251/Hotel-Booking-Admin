@@ -212,9 +212,9 @@ const FAQPage = () => {
       </div>
 
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-auto">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Add Faqs</h2>
               <button onClick={handleAddModalClose} className="text-gray-500 hover:text-gray-800">
@@ -279,9 +279,9 @@ const FAQPage = () => {
       )}
 
       {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setIsEditModalOpen(false)}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-4">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-auto">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Edit Faqs</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="text-gray-500 hover:text-gray-800">
@@ -324,9 +324,9 @@ const FAQPage = () => {
       )}
 
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-3">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Faqs</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">

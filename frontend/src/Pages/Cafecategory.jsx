@@ -395,9 +395,9 @@ const Cafecategory = () => {
 
       {/* Add & Edit Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
-          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-3">
+          <div className="relative w-full max-w-lg rounded-md bg-white p-6 shadow-xl mx-auto">
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
               <h2 className="text-2xl font-semibold text-black">
                 {isEditMode ? 'Edit Cafe Category' : 'Add Cafe Category'}
@@ -447,9 +447,9 @@ const Cafecategory = () => {
 
       {/* Delete Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-auto">
             <div className="flex items-start justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Cafe Category</h2>
               <button onClick={handleDeleteModalClose} className="text-gray-500 hover:text-gray-800">
