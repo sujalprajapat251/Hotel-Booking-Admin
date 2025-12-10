@@ -30,6 +30,7 @@ const RoomType = () => {
   const { items: features, loading: featuresLoading } = useSelector((state) => state.features);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,6 +55,33 @@ const RoomType = () => {
     image: true,
     actions: true,
   });
+
+  const getImageFileName = (path = '') => {
+    if (!path) return '';
+    const segments = path.split(/[/\\]/);
+    const fileName = segments[segments.length - 1] || '';
+    return fileName.replace(/^\d+-/, '');
+  };
+
+  const getSelectedImagesLabel = () => {
+    const selectedFiles = Array.isArray(formik.values.images) ? formik.values.images : [];
+    const selectedNames = selectedFiles
+      .map((file) => (file && file.name ? file.name : ''))
+      .filter(Boolean);
+
+    if (selectedNames.length) {
+      return selectedNames.join(', ');
+    }
+
+    if (isEditMode && existingImages.length) {
+      const existingNames = existingImages
+        .map((img) => getImageFileName(img))
+        .filter(Boolean);
+      if (existingNames.length) return existingNames.join(', ');
+    }
+
+    return 'Choose file';
+  };
 
   const quillModules = useMemo(() => ({
     toolbar: [
@@ -156,6 +184,7 @@ const RoomType = () => {
         });
         setEditingId(null);
         setIsAddModalOpen(false);
+        setIsEditMode(false);
       } catch (err) {
         console.error(err);
       }
@@ -221,6 +250,7 @@ const RoomType = () => {
   };
 
   const handleEdit = (item) => {
+    setIsEditMode(true);
     const roomTypeId = item._id || item.id;
     setEditingId(roomTypeId);
     setIsAddModalOpen(true);
@@ -264,6 +294,7 @@ const RoomType = () => {
   const handleAddModalClose = () => {
     setIsAddModalOpen(false);
     setEditingId(null);
+    setIsEditMode(false);
     formik.resetForm();
     setImagePreview([]);
     setExistingImages([]);
@@ -280,6 +311,7 @@ const RoomType = () => {
 
   const handleOpenAddModal = () => {
     setEditingId(null);
+    setIsEditMode(false);
     formik.resetForm();
     setImagePreview([]);
     setExistingImages([]);
@@ -603,7 +635,7 @@ const RoomType = () => {
                     {visibleColumns.actions && (
                       <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                         <div className="mv_table_action flex">
-                          <div onClick={() => handleViewClick(item)}><IoEyeSharp className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleViewClick(item)}><IoEyeSharp className="text-quaternary text-[18px]" /></div>
                           <div onClick={() => handleEdit(item)}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
                           <div onClick={() => handleDelete(item._id || item.id)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
                         </div>
@@ -795,111 +827,8 @@ const RoomType = () => {
                     )}
                   </div>
                 </div>
-                {/* Row 5: Features */}
-                <div>
-                  <label className="text-sm font-medium text-black mb-1">
-                    Features (Select Multiple)
-                    {editingId && (
-                      <span className="text-gray-500 text-xs ml-2">(Features for this room type)</span>
-                    )}
-                  </label>
-                  <div className="border border-gray-300 rounded-[4px] p-4 max-h-44 overflow-y-auto bg-gray-50">
-                    {featuresLoading ? (
-                      <div className="text-gray-400 text-sm">Loading features...</div>
-                    ) : features?.length === 0 ? (
-                      <div className="text-gray-400 text-sm">
-                        {editingId ? 'No features available for this room type.' : 'No features available.'}
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {features.map((feature) => {
-                          const featureId = feature._id || feature.id;
-                          const isChecked = formik.values.features.includes(featureId);
-                          return (
-                            <label key={featureId} className="flex items-center space-x-2 cursor-pointer hover:bg-[#F7DF9C]/20 p-2 rounded">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => {
-                                  if (isChecked) {
-                                    formik.setFieldValue('features', formik.values.features.filter((x) => x !== featureId));
-                                  } else {
-                                    formik.setFieldValue('features', [...formik.values.features, featureId]);
-                                  }
-                                }}
-                                className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
-                              />
-                              <span className="text-gray-700">{feature.feature}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                  {/* Optionally add validation error */}
-                  {formik.touched.features && formik.errors.features && (
-                    <p className="text-sm text-red-500">{formik.errors.features}</p>
-                  )}
-                </div>
-                {/* Row 6: Images */}
-                <div>
-                  <label htmlFor="images" className="text-sm font-medium text-black mb-1">Images</label>
-                  <input
-                    id="images"
-                    name="images"
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                  />
-                  {(existingImages.length > 0 || imagePreview.length > 0) && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {/* Existing Images */}
-                      {existingImages.map((src, idx) => (
-                        <div key={`existing-${idx}`} className="relative group">
-                          <img 
-                            src={src} 
-                            alt={`Existing ${idx + 1}`} 
-                            className="h-20 w-20 object-cover rounded-md border-2 border-gray-300" 
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx, true)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
-                            title="Remove image"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                      {/* New Image Previews */}
-                      {imagePreview.map((src, idx) => (
-                        <div key={`new-${idx}`} className="relative group">
-                          <img 
-                            src={src} 
-                            alt={`Preview ${idx + 1}`} 
-                            className="h-20 w-20 object-cover rounded-md border-2 border-blue-300" 
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveImage(idx, false)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
-                            title="Remove image"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {/* Row 7: Bed Config */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Main Bed Type Dropdown */}
                   <div className="flex flex-col mb-2 relative" ref={mainBedTypeRef}>
                     <label htmlFor="bedMainType" className="text-sm font-medium text-black mb-1">Main Bed Type</label>
@@ -960,6 +889,10 @@ const RoomType = () => {
                       <p className="text-sm text-red-500">{formik.errors.bedMainCount}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Row 7: Bed Config */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Child Bed Type Dropdown */}
                   <div className="flex flex-col mb-2 relative" ref={childBedTypeRef}>
                     <label htmlFor="bedChildType" className="text-sm font-medium text-black mb-1">Child Bed Type (Optional)</label>
@@ -1020,6 +953,117 @@ const RoomType = () => {
                       <p className="text-sm text-red-500">{formik.errors.bedChildCount}</p>
                     )}
                   </div>
+                </div>
+
+                {/* Row 5: Features */}
+                <div>
+                  <label className="text-sm font-medium text-black mb-1">
+                    Features (Select Multiple)
+                    {editingId && (
+                      <span className="text-gray-500 text-xs ml-2">(Features for this room type)</span>
+                    )}
+                  </label>
+                  <div className="border border-gray-300 rounded-[4px] p-4 max-h-44 overflow-y-auto bg-gray-50">
+                    {featuresLoading ? (
+                      <div className="text-gray-400 text-sm">Loading features...</div>
+                    ) : features?.length === 0 ? (
+                      <div className="text-gray-400 text-sm">
+                        {editingId ? 'No features available for this room type.' : 'No features available.'}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {features.map((feature) => {
+                          const featureId = feature._id || feature.id;
+                          const isChecked = formik.values.features.includes(featureId);
+                          return (
+                            <label key={featureId} className="flex items-center space-x-2 cursor-pointer hover:bg-[#F7DF9C]/20 p-2 rounded">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={() => {
+                                  if (isChecked) {
+                                    formik.setFieldValue('features', formik.values.features.filter((x) => x !== featureId));
+                                  } else {
+                                    formik.setFieldValue('features', [...formik.values.features, featureId]);
+                                  }
+                                }}
+                                className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
+                              />
+                              <span className="text-gray-700">{feature.feature}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  {/* Optionally add validation error */}
+                  {formik.touched.features && formik.errors.features && (
+                    <p className="text-sm text-red-500">{formik.errors.features}</p>
+                  )}
+                </div>
+
+                {/* Row 6: Images */}
+                <div>
+                  <label htmlFor="images" className="text-sm font-medium text-black mb-1">Images</label>
+                  <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-200 px-2 py-2 text-gray-500 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#B79982]">
+                    <span className="truncate">
+                      {getSelectedImagesLabel()}
+                    </span>
+                    <span className="rounded-[4px] bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-4 py-1 text-black text-sm">Browse</span>
+                    <input
+                      id="images"
+                      name="images"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
+                    />
+                  </label>
+                  {(existingImages.length > 0 || imagePreview.length > 0) && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {/* Existing Images */}
+                      {existingImages.map((src, idx) => (
+                        <div key={`existing-${idx}`} className="relative group">
+                          <img
+                            src={src}
+                            alt={`Existing ${idx + 1}`}
+                            className="h-20 w-20 object-cover rounded-md border-2 border-gray-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx, true)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                            title="Remove image"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                      {/* New Image Previews */}
+                      {imagePreview.map((src, idx) => (
+                        <div key={`new-${idx}`} className="relative group">
+                          <img
+                            src={src}
+                            alt={`Preview ${idx + 1}`}
+                            className="h-20 w-20 object-cover rounded-md border-2 border-blue-300"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx, false)}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+                            title="Remove image"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </form>
             </div>
