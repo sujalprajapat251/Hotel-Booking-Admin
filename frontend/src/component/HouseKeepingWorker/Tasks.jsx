@@ -232,7 +232,7 @@ const Tasks = () => {
                                         </button>
 
                                         {showColumnDropdown && (
-                                            <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
+                                            <div className="absolute right-0 top-full mt-2 w-56 md:w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999] sm:right-0 [@media(max-width:375px)]:left-1/4 [@media(max-width:375px)]:-translate-x-1/2">
                                                 <div className="px-3 py-2 border-b border-gray-200">
                                                     <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                                                 </div>
