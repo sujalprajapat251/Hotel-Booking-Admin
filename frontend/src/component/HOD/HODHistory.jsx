@@ -208,6 +208,28 @@ const HODHistory = () => {
     return () => { s.disconnect(); };
   }, [dispatch]);
 
+  // Prevent background scrolling when modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+
+    if (isModalOpen) {
+      const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.overflow = 'hidden';
+      if (scrollBarWidth > 0) {
+        document.body.style.paddingRight = `${scrollBarWidth}px`;
+      }
+    } else {
+      document.body.style.overflow = originalOverflow || '';
+      document.body.style.paddingRight = originalPaddingRight || '';
+    }
+
+    return () => {
+      document.body.style.overflow = originalOverflow || '';
+      document.body.style.paddingRight = originalPaddingRight || '';
+    };
+  }, [isModalOpen]);
+
   useEffect(() => {
     if (totalPages > 0 && currentPage > totalPages) {
       setCurrentPage(totalPages);

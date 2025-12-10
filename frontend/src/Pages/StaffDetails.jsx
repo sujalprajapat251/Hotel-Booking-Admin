@@ -197,14 +197,18 @@ const StaffTable = () => {
     dispatch(getAllStaff());
   }, [dispatch]);
 
-  // Prevent background (body) scrolling when modal is open and restore on close
+  // Prevent background (body) scrolling when any modal is open and restore on close
   useEffect(() => {
-    if (isModalOpen) {
+    const shouldLock = isModalOpen || isDeleteModalOpen;
+
+    if (shouldLock) {
+      // Save current scroll position only when locking
       scrollPosition.current = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.body.style.position = 'fixed';
       document.body.style.top = `-${scrollPosition.current}px`;
       document.body.style.width = '100%';
     } else {
+      // Restore scroll position when no modal is open
       const top = document.body.style.top;
       document.body.style.position = '';
       document.body.style.top = '';
@@ -220,7 +224,7 @@ const StaffTable = () => {
       document.body.style.top = '';
       document.body.style.width = '';
     };
-  }, [isModalOpen]);
+  }, [isModalOpen, isDeleteModalOpen]);
 
   return (
     <>

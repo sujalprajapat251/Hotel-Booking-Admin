@@ -414,7 +414,7 @@ export const Dashboard = () => {
                 onChange={(date) => date && setSelectedDate(date)}
                 format="MMMM YYYY"
                 allowClear={false}
-                disabledDate={disabledDate}
+                // disabledDate={disabledDate}
                 className='sm:w-40 max-w-[140px] border-none p-2'
               />h
             </div>

@@ -135,7 +135,6 @@ indexRoutes.delete('/bookings/:id', auth, deleteBooking);
 indexRoutes.post('/bookRoomByType', auth, bookRoomByType);
 indexRoutes.post('/booking/paymentintent', createBookingPaymentIntent);
 
-
 // Housekeeping Route
 indexRoutes.get('/getallhousekeepingroom', auth, getDirtyRooms);
 indexRoutes.post('/assign', auth, assignWorker);
