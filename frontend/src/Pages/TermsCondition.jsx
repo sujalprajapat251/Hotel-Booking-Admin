@@ -34,6 +34,19 @@ const TermsTable = () => {
     dispatch(getAllTerms());
   }, [dispatch]);
 
+  // Prevent background scrolling when add/edit/delete modals are open
+  useEffect(() => {
+    const anyModalOpen = isAddModalOpen || isDeleteModalOpen;
+    if (anyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAddModalOpen, isDeleteModalOpen]);
+
   const filteredTerms = (terms ?? []).filter(
     (item) =>
       item?.title?.toLowerCase().includes(search.toLowerCase()) ||
