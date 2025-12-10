@@ -636,7 +636,7 @@ const AllHouseKeeping = () => {
                         ></div>
 
                         <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                            <div className="relative transform overflow-visible rounded-md bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <div className="relative transform overflow-visible rounded-md bg-white text-left shadow-xl transition-all sm:my-8  w-full sm:max-w-lg">
                                 {/* Modal Header */}
                                 <div className="px-4 py-4 sm:p-6">
                                     <div className="flex items-center justify-between pb-3 mb-4 border-b border-gray-200">
