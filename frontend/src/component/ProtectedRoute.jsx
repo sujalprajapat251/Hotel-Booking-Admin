@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       return <Navigate to="/driver/dashboard" replace />
     }
     else {
-      return <Navigate to="/booking-dashboard" replace />;
+      return <Navigate to="/rooms/available" replace />;
     }
 
   }
@@ -46,7 +46,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (!allowedRoles.includes(userRole)) {
     // If user is receptionist (user role), redirect to booking dashboard
     if (userRole === "receptionist") {
-      return <Navigate to="/booking-dashboard" replace />;
+      return <Navigate to="/rooms/available" replace />;
     }
     if (userRole === 'Waiter') {
       return <Navigate to="/waiter/dashboard" replace />
