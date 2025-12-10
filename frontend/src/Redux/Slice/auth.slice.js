@@ -126,8 +126,8 @@ export const logoutUser = createAsyncThunk(
         try {
             const response = await axios.post(`${BASE_URL}/logout/${id}`);
             if (response.status === 200) {
-                sessionStorage.removeItem('userId');
-                sessionStorage.removeItem('token');
+                localStorage.removeItem('userId');
+                localStorage.removeItem('token');
                 localStorage.removeItem("persist:root");
                 localStorage.clear();
                 
@@ -138,8 +138,8 @@ export const logoutUser = createAsyncThunk(
                 return response.data;
             }
         } catch (error) {
-            sessionStorage.removeItem('userId');
-            sessionStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('token');
             localStorage.clear();
             return rejectWithValue(error.response?.data || { message: 'Logout failed' });
         }

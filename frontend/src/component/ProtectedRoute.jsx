@@ -6,9 +6,8 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const authState = useSelector((state) => state.auth);
   const user = authState?.user || null;
   const isAuthenticated = authState?.isAuthenticated || false;
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated || !user) {
+  const token = localStorage.getItem("token");
+  if (!token) {
     return <Navigate to="/" replace />;
   }
 
@@ -19,24 +18,24 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
       return <Navigate to="/dashboard" replace />;
     }
     else if (userRole === 'Waiter') {
-      return <Navigate to="/waiter/dashboard" replace />
+      return <Navigate to="/waiter/dashboard" replace />;
     }
     else if (userRole === 'Chef') {
-      return <Navigate to="/chef/dashboard" replace />
+      return <Navigate to="/chef/dashboard" replace />;
     }
     else if (userRole === 'Worker') {
-      return <Navigate to="/worker/task" replace />
+      return <Navigate to="/worker/task" replace />;
     }
     else if (userRole === 'Head of Department') {
-      return <Navigate to="/hod/dashboard" replace />
+      return <Navigate to="/hod/dashboard" replace />;
     }
     else if (userRole === 'Accountant') {
-      return <Navigate to="/accountant/dashboard" replace />
+      return <Navigate to="/accountant/dashboard" replace />;
     }
     else if (userRole === 'Driver') {
-      return <Navigate to="/driver/dashboard" replace />
+      return <Navigate to="/driver/dashboard" replace />;
     }
-    else {
+    else if (userRole === 'receptionist') {
       return <Navigate to="/rooms/available" replace />;
     }
 
