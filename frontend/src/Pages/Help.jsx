@@ -28,6 +28,19 @@ const FAQPage = () => {
     item.faqAnswer?.toLowerCase().includes(searchQuery?.toLowerCase())
   );
 
+  // Prevent background scrolling when any modal is open
+  useEffect(() => {
+    const anyModalOpen = isAddModalOpen || isEditModalOpen || isDeleteModalOpen;
+    if (anyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isAddModalOpen, isEditModalOpen, isDeleteModalOpen]);
+
   const formik = useFormik({
     initialValues: {
       faqQuestion: '',
