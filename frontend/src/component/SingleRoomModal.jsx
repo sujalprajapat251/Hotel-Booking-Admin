@@ -7,7 +7,7 @@ export default function SingleRoomModal({ id, onClose }) {
     const room = useSelector((state) => state.rooms.selectedRoom)
     const [selectedImage, setSelectedImage] = useState(null);
     useEffect(() => {
-        setSelectedImage(room?.images?.[0])
+        setSelectedImage(room?.roomType?.images?.[0])
 
     }, [room])
     const getImageUrl = (imagePath) => {
@@ -67,7 +67,7 @@ export default function SingleRoomModal({ id, onClose }) {
                                 <img
                                     src={getImageUrl(selectedImage)}
                                     alt={`Room ${room?.roomNumber}`}
-                                    className="w-full h-full object-cover aspect-square"
+                                    className="w-full h-full object-cover aspect-square rounded-[4px]"
                                     onError={(e) => {
                                         e.target.src = 'https://via.placeholder.com/400x300?text=No+Image';
                                     }}
@@ -79,9 +79,9 @@ export default function SingleRoomModal({ id, onClose }) {
                                     </svg>
                                 </div>
                             )}
-                            {room?.images?.length > 0 && (
+                            {room?.roomType?.images?.length > 0 && (
                                 <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100 justify-start overflow-auto">
-                                    {room?.images?.map((img, idx) => (
+                                    {room?.roomType?.images?.map((img, idx) => (
                                         <button
                                             key={idx}
                                             onClick={() => setSelectedImage(img)}

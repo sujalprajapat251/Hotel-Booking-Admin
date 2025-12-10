@@ -215,7 +215,7 @@ indexRoutes.delete('/deletecab/:id', auth, adminOnly, deleteCab);
 // Driver routes - Drivers are now created/managed through staff with designation "Driver"
 // To create a driver, use /createstaff with designation: "Driver"
 // To get all drivers, use /getalldriver (uses staffController.getAllDrivers)
-indexRoutes.get('/getalldriver', getAllDrivers); // Returns all staff with designation "Driver"
+indexRoutes.get('/getalldriver', auth,getAllDrivers); // Returns all staff with designation "Driver"
 // To get/update/delete a driver, use staff routes with the driver's ID:
 // GET /getstaff/:id - to get driver details
 // PUT /updatestaff/:id - to update driver
