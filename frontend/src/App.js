@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { configureStore } from './Redux/Store';
 import { SnackbarProvider } from 'notistack';
-import { Route, Routes, Navigate, Outlet } from 'react-router-dom';
+import { Route, Routes, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Alert from './Pages/Alert';
 import { Dashboard } from './Pages/Dashboard';
 import Rooms from './Pages/Rooms';
@@ -71,6 +71,13 @@ import DriverLayout from './component/Driver/Layout';
 
 const { store, persistor } = configureStore();
 function App() {
+  const location = useLocation();
+  const token = localStorage.getItem('token');
+
+  if (!token && location.pathname !== '/') {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <>
       <Provider store={store}>

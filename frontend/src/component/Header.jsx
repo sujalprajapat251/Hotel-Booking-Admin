@@ -100,7 +100,7 @@ const Header = ({ onMenuClick }) => {
         }
       });
     } catch {}
-    navigate('/');
+    navigate('/',{replace:true});
   }
 
   const [notifi, setNotifi] = useState(false);
