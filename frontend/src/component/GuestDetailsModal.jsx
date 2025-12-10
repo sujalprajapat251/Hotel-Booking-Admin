@@ -184,7 +184,7 @@ function GuestDetailsModal({
               Room Details
             </h3>
             <InfoItem label="Floor" value={activeRoom?.floor ?? '—'} />
-            
+
             <InfoItem label="Room Type" value={activeRoom.roomType.roomType || activeRoom.roomType.name || '—'} />
             <InfoItem
               label="Bed Configuration"
@@ -222,8 +222,8 @@ function GuestDetailsModal({
               onClick={handleCheckOut}
               disabled={actionDisabled}
               className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
-                  ? "bg-quaternary/40 cursor-not-allowed"
-                  : "bg-green-600 hover:bg-green-700 shadow-lg"
+                ? "bg-quaternary/40 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 shadow-lg"
                 }`}
             >
               {loading ? "Processing..." : "Check Out"}
@@ -232,8 +232,8 @@ function GuestDetailsModal({
               onClick={handleCancelRoom}
               disabled={actionDisabled}
               className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
-                  ? "bg-quaternary/40 cursor-not-allowed"
-                  : "bg-red-500 hover:bg-red-600 shadow-lg"
+                ? "bg-quaternary/40 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600 shadow-lg"
                 }`}
             >
               {loading ? "Please wait..." : "Cancel Room"}
@@ -259,7 +259,7 @@ function InfoItem({ label, value, textColor = "text-senary", badgeColor }) {
 
   return (
     <div className="mb-4">
-      <p className="text-xs font-semibold uppercase text-quinary/70">{label}</p>
+      <p className="text-xs font-semibold capitalize text-quinary/70">{label}</p>
 
       {badgeColor ? (
         <span
