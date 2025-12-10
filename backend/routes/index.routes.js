@@ -123,7 +123,6 @@ indexRoutes.get('/rooms/pagination', getRoomsWithPagination);
 indexRoutes.get('/rooms/:id', getRoomById);
 indexRoutes.put('/rooms/:id', auth, adminOnly, upload.array('images', 10), updateRoom);
 indexRoutes.delete('/rooms/:id', auth, adminOnly, deleteRoom);
-indexRoutes.post('/autoUpdateRoomBeds', autoUpdateRoomBeds);
 indexRoutes.post('/rooms/refresh-status', refreshAllRoomsStatus);
 
 // booking routes

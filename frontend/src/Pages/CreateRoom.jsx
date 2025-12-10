@@ -12,7 +12,6 @@ import { IMAGE_URL } from '../Utils/baseUrl';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
 const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
 const defaultMainBedType = 'Queen';
 const defaultChildBedType = 'Single';
@@ -133,47 +132,12 @@ const CreateRoom = () => {
       roomNumber: editingItem?.roomNumber || '',
       roomType: roomTypeId,
       floor: editingItem?.floor !== undefined && editingItem?.floor !== null ? String(editingItem.floor) : '',
-      price: {
-        base: editingItem?.price?.base !== undefined && editingItem?.price?.base !== null ? String(editingItem.price.base) : '',
-        weekend:
-          editingItem?.price?.weekend !== undefined && editingItem?.price?.weekend !== null
-            ? String(editingItem.price.weekend)
-            : ''
-      },
-      capacity: {
-        adults:
-          editingItem?.capacity?.adults !== undefined && editingItem?.capacity?.adults !== null
-            ? String(editingItem.capacity.adults)
-            : '',
-        children:
-          editingItem?.capacity?.children !== undefined && editingItem?.capacity?.children !== null
-            ? String(editingItem.capacity.children)
-            : ''
-      },
-      features: normalizeFeaturesToIds(editingItem?.features),
-      bed: {
-        mainBed: {
-          type: editingItem?.bed?.mainBed?.type || defaultMainBedType,
-          count:
-            editingItem?.bed?.mainBed?.count !== undefined && editingItem?.bed?.mainBed?.count !== null
-              ? String(editingItem.bed.mainBed.count)
-              : ''
-        },
-        childBed: {
-          type: editingItem?.bed?.childBed?.type || defaultChildBedType,
-          count:
-            editingItem?.bed?.childBed?.count !== undefined && editingItem?.bed?.childBed?.count !== null
-              ? String(editingItem.bed.childBed.count)
-              : ''
-        }
-      },
       viewType: editingItem?.viewType || '',
       status: editingItem?.status || 'Available',
       isSmokingAllowed: Boolean(editingItem?.isSmokingAllowed),
       isPetFriendly: Boolean(editingItem?.isPetFriendly),
       maintenanceNotes: editingItem?.maintenanceNotes || '',
-      description: editingItem?.description || '',
-      images: []
+      description: editingItem?.description || ''
     };
   }, [editingItem]);
 
@@ -187,49 +151,9 @@ const CreateRoom = () => {
           .integer('Floor must be a whole number')
           .min(0, 'Floor cannot be negative')
           .required('Floor is required'),
-        price: Yup.object({
-          base: Yup.number()
-            .typeError('Base price must be a number')
-            .min(0, 'Base price cannot be negative')
-            .required('Base price is required'),
-        }),
-        capacity: Yup.object({
-          adults: Yup.number()
-            .typeError('Adults capacity must be a number')
-            .min(1, 'At least one adult is required')
-            .required('Adults capacity is required'),
-          children: Yup.number()
-            .typeError('Children capacity must be a number')
-            .min(0, 'Children cannot be negative')
-            .notRequired()
-            .nullable()
-            .transform((value, originalValue) => (originalValue === '' ? null : value))
-        }),
-        bed: Yup.object({
-          mainBed: Yup.object({
-            type: Yup.string().required('Main bed type is required'),
-            count: Yup.number()
-              .typeError('Main bed count must be a number')
-              .min(1, 'Main bed count must be at least 1')
-              .required('Main bed count is required')
-          }),
-          childBed: Yup.object({
-            type: Yup.string().required('Child bed type is required'),
-            count: Yup.number()
-              .typeError('Child bed count must be a number')
-              .min(1, 'Child bed count must be at least 1')
-              .required('Child bed count is required')
-          })
-        }),
         viewType: Yup.string().required('View type is required'),
         status: Yup.string().required('Status is required'),
         description: Yup.string().notRequired(),
-        images: Yup.array().test('required', 'At least one image is required', function (value) {
-          if (isEditMode) {
-            return existingImages.length > 0 || Boolean(value && value.length);
-          }
-          return Boolean(value && value.length);
-        })
       }),
     [isEditMode, existingImages.length]
   );
@@ -244,48 +168,22 @@ const CreateRoom = () => {
         roomNumber: values.roomNumber,
         roomType: values.roomType,
         floor: Number(values.floor),
-        price: {
-          base: Number(values.price.base),
-          weekend: Number(values.price.weekend)
-        },
-        capacity: {
-          adults: Number(values.capacity.adults),
-          children: values.capacity.children === '' || values.capacity.children === null ? 0 : Number(values.capacity.children)
-        },
-        features: values.features || [],
-        bed: {
-          mainBed: {
-            type: values.bed.mainBed.type,
-            count: Number(values.bed.mainBed.count)
-          },
-          childBed: {
-            type: values.bed.childBed.type,
-            count: Number(values.bed.childBed.count)
-          }
-        },
         viewType: values.viewType,
         status: values.status,
         isSmokingAllowed: values.isSmokingAllowed,
         isPetFriendly: values.isPetFriendly,
         maintenanceNotes: values.maintenanceNotes,
-        description: values.description || '',
-        images: values.images || [],
-        imagesToKeep: existingImages
+        description: values.description || ''
       };
 
       try {
         if (isEditMode && editingItem) {
           const id = editingItem._id || editingItem.id;
-          if (!payload.images.length) {
-            delete payload.images;
-          }
           const result = await dispatch(updateRoom({ id, roomData: payload }));
           if (updateRoom.fulfilled.match(result)) {
             dispatch(setAlert({ text: 'Room updated successfully..!', color: 'success' }));
             setIsEditMode(false);
             setEditingItem(null);
-            setExistingImages([]);
-            setImagePreviews([]);
             resetForm();
             navigate('/rooms/available');
           }
@@ -293,7 +191,6 @@ const CreateRoom = () => {
           const result = await dispatch(createRoom(payload));
           if (createRoom.fulfilled.match(result)) {
             dispatch(setAlert({ text: 'Room created successfully..!', color: 'success' }));
-            setImagePreviews([]);
             resetForm();
             navigate('/rooms/available');
           }
@@ -482,225 +379,6 @@ const CreateRoom = () => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="price.base" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Base Price <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="price.base"
-                    name="price.base"
-                    value={formik.values.price.base}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Enter base price"
-                    min="0"
-                    step="0.01"
-                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                      formik.touched.price?.base && formik.errors.price?.base ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {formik.touched.price?.base && formik.errors.price?.base && (
-                    <p className="text-red-500 text-sm mt-1">{formik.errors.price.base}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="capacity.adults" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Adults <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="capacity.adults"
-                    name="capacity.adults"
-                    value={formik.values.capacity.adults}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Enter adults"
-                    min="1"
-                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                      formik.touched.capacity?.adults && formik.errors.capacity?.adults ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {formik.touched.capacity?.adults && formik.errors.capacity?.adults && (
-                    <p className="text-red-500 text-sm mt-1">{formik.errors.capacity.adults}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="capacity.children" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Children
-                  </label>
-                  <input
-                    type="number"
-                    id="capacity.children"
-                    name="capacity.children"
-                    value={formik.values.capacity.children}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Enter children"
-                    min="0"
-                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                      formik.touched.capacity?.children && formik.errors.capacity?.children
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    }`}
-                  />
-                  {formik.touched.capacity?.children && formik.errors.capacity?.children && (
-                    <p className="text-red-500 text-sm mt-1">{formik.errors.capacity.children}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Features (Select Multiple)
-                  {!formik.values.roomType && (
-                    <span className="text-gray-500 text-sm ml-2">(Please select a room type first)</span>
-                  )}
-                </label>
-                <div className="border border-gray-300 rounded-[4px] p-4 max-h-48 overflow-y-auto bg-gray-50">
-                  {!formik.values.roomType ? (
-                    <p className="text-gray-500 text-sm">Please select a room type to view available features.</p>
-                  ) : filteredFeatures.length === 0 ? (
-                    <p className="text-gray-500 text-sm">No features available for this room type.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {filteredFeatures.map((feature) => {
-                        const featureId = feature.id || feature._id;
-                        return (
-                          <label key={featureId} className="flex items-center space-x-2 cursor-pointer hover:bg-[#F7DF9C]/20 p-2 rounded">
-                            <input
-                              type="checkbox"
-                              checked={(formik.values.features || []).includes(featureId)}
-                              onChange={() => toggleFeatureSelection(featureId)}
-                              className="w-4 h-4 text-[#B79982] focus:ring-[#B79982] border-gray-300 rounded"
-                            />
-                            <span className="text-gray-700">{feature.feature}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800">Main Bed</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative" ref={mainBedTypeRef}>
-                    <label htmlFor="bed.mainBed.type" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Main Bed Type <span className="text-red-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowMainBedTypeDropdown((prev) => !prev)}
-                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                    >
-                      <span className="text-gray-800">{formik.values.bed.mainBed.type}</span>
-                      <ChevronDown size={18} className="text-gray-600" />
-                    </button>
-                    {showMainBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
-                        {bedTypes.map((type) => (
-                          <div
-                            key={type}
-                            onClick={() => {
-                              formik.setFieldValue('bed.mainBed.type', type);
-                              setShowMainBedTypeDropdown(false);
-                            }}
-                            className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                          >
-                            {type}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor="bed.mainBed.count" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Main Bed Count <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      id="bed.mainBed.count"
-                      name="bed.mainBed.count"
-                      value={formik.values.bed.mainBed.count}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter main bed"
-                      min="1"
-                      className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                        formik.touched.bed?.mainBed?.count && formik.errors.bed?.mainBed?.count
-                          ? 'border-red-500'
-                          : 'border-gray-300'
-                      }`}
-                    />
-                    {formik.touched.bed?.mainBed?.count && formik.errors.bed?.mainBed?.count && (
-                      <p className="text-red-500 text-sm mt-1">{formik.errors.bed.mainBed.count}</p>
-                    )}
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-semibold text-gray-800 mt-4">Child Bed</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="relative" ref={childBedTypeRef}>
-                    <label htmlFor="bed.childBed.type" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Child Bed Type <span className="text-red-500">*</span>
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowChildBedTypeDropdown((prev) => !prev)}
-                      className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-[4px] flex items-center justify-between focus:outline-none focus:ring-2 focus:ring-[#B79982]"
-                    >
-                      <span className="text-gray-800">{formik.values.bed.childBed.type}</span>
-                      <ChevronDown size={18} className="text-gray-600" />
-                    </button>
-                    {showChildBedTypeDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg">
-                        {bedTypes.map((type) => (
-                          <div
-                            key={type}
-                            onClick={() => {
-                              formik.setFieldValue('bed.childBed.type', type);
-                              setShowChildBedTypeDropdown(false);
-                            }}
-                            className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                          >
-                            {type}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor="bed.childBed.count" className="block text-sm font-semibold text-gray-700 mb-2">
-                      Child Bed Count <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      id="bed.childBed.count"
-                      name="bed.childBed.count"
-                      value={formik.values.bed.childBed.count}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="Enter child bed"
-                      min="1"
-                      className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                        formik.touched.bed?.childBed?.count && formik.errors.bed?.childBed?.count
-                          ? 'border-red-500'
-                          : 'border-gray-300'
-                      }`}
-                    />
-                    {formik.touched.bed?.childBed?.count && formik.errors.bed?.childBed?.count && (
-                      <p className="text-red-500 text-sm mt-1">{formik.errors.bed.childBed.count}</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
               <div>
                 <label htmlFor="viewType" className="block text-sm font-semibold text-gray-700 mb-2">
                   View Type <span className="text-red-500">*</span>
@@ -759,77 +437,6 @@ const CreateRoom = () => {
                 )}
               </div>
 
-              <div>
-                <label htmlFor="images" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Room Images {isEditMode ? '(optional)' : <span className="text-red-500">*</span>}
-                </label>
-                <label className="flex w-full cursor-pointer items-center justify-between rounded-[4px] border border-gray-300 px-3 py-2 text-gray-500 bg-gray-100">
-                  <span className="truncate text-sm">
-                    {imagePreviews.length > 0
-                      ? `${imagePreviews.length} file${imagePreviews.length > 1 ? 's' : ''} selected`
-                      : 'Choose file'}
-                  </span>
-                  <span className="rounded-[4px] bg-[#F5DEB3] hover:bg-[#EDD5A8] px-6 py-1 text-gray-800 text-sm font-medium transition-colors ml-2">
-                    Browse
-                  </span>
-                  <input
-                    type="file"
-                    id="images"
-                    name="images"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    onBlur={() => formik.setFieldTouched('images', true)}
-                    className="hidden"
-                  />
-                </label>
-                {formik.touched.images && formik.errors.images && (
-                  <p className="text-red-500 text-sm mt-1">{formik.errors.images}</p>
-                )}
-
-                {existingImages.length > 0 && (
-                  <div className="mt-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Existing Images</p>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {existingImages.map((imagePath, index) => (
-                        <div key={`${imagePath}-${index}`} className="relative group">
-                          <img
-                            src={getImageUrl(imagePath)}
-                            alt={`Room existing ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border-2 border-gray-200"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveExistingImage(index)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                            aria-label={`Remove existing image ${index + 1}`}
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">Remove any image you no longer need, then upload replacements below.</p>
-                  </div>
-                )}
-
-                {imagePreviews.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {imagePreviews.map((preview, index) => (
-                      <div key={index} className="relative">
-                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-32 object-cover rounded-lg border-2 border-gray-300" />
-                        <button
-                          type="button"
-                          onClick={() => removeNewImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
               {/* Checkboxes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

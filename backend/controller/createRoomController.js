@@ -13,12 +13,7 @@ const formatRoom = (doc) => ({
   roomNumber: doc.roomNumber,
   roomType: doc.roomType,
   floor: doc.floor,
-  price: doc.price,
-  capacity: doc.capacity,
-  features: doc.features,
-  bed: doc.bed,
   viewType: doc.viewType,
-  images: doc.images,
   status: doc.status,
   isSmokingAllowed: doc.isSmokingAllowed,
   isPetFriendly: doc.isPetFriendly,
@@ -46,39 +41,11 @@ const formatBooking = (doc) => ({
 
 const createRoom = async (req, res) => {
   try {
-    let imagePaths = [];
-    let price, capacity, features, bed;
-
-    if (typeof req.body.price === 'string') {
-      price = JSON.parse(req.body.price);
-    } else {
-      price = req.body.price;
-    }
-
-    if (typeof req.body.capacity === 'string') {
-      capacity = JSON.parse(req.body.capacity);
-    } else {
-      capacity = req.body.capacity;
-    }
-
-    if (typeof req.body.features === 'string') {
-      features = JSON.parse(req.body.features);
-    } else {
-      features = req.body.features;
-    }
-
-    if (typeof req.body.bed === 'string') {
-      bed = JSON.parse(req.body.bed);
-    } else {
-      bed = req.body.bed;
-    }
-
     const {
       roomNumber,
       roomType,
       floor,
       viewType,
-      images,
       status,
       maintenanceNotes,
       description
@@ -101,17 +68,6 @@ const createRoom = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Floor is required' });
     }
 
-    if (!capacity || !capacity.adults) {
-      return res.status(400).json({ success: false, message: 'Capacity (adults) is required' });
-    }
-
-    if (!bed || !bed.mainBed || !bed.mainBed.type || !bed.mainBed.count) {
-      return res.status(400).json({ success: false, message: 'Bed information (mainBed type and count) is required' });
-    }
-    if (!bed.childBed || !bed.childBed.type || !bed.childBed.count) {
-      return res.status(400).json({ success: false, message: 'Bed information (childBed type and count) is required' });
-    }
-
     if (!viewType || !viewType.trim()) {
       return res.status(400).json({ success: false, message: 'View type is required' });
     }
@@ -128,13 +84,6 @@ const createRoom = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Room type not found' });
     }
 
-    // Verify features exist if provided
-    if (features && features.length > 0) {
-      const featuresExist = await Feature.find({ _id: { $in: features } });
-      if (featuresExist.length !== features.length) {
-        return res.status(404).json({ success: false, message: 'One or more features not found' });
-      }
-    }
 
     if (req.files && req.files.length > 0) {
       // Upload each file to S3
@@ -142,34 +91,13 @@ const createRoom = async (req, res) => {
         const uploadedUrl = await uploadToS3(file, 'uploads/image');
         imagePaths.push(uploadedUrl);
       }
-    } else if (images && Array.isArray(images)) {
-      imagePaths = images;
     }
 
     const roomData = {
       roomNumber: roomNumber.trim(),
       roomType,
       floor: parseInt(floor),
-      price: {
-        base: parseFloat(price.base),
-      },
-      capacity: {
-        adults: parseInt(capacity.adults),
-        children: parseInt(capacity.children || 0)
-      },
-      features: features || [],
-      bed: {
-        mainBed: {
-          type: bed.mainBed.type,
-          count: parseInt(bed.mainBed.count)
-        },
-        childBed: {
-          type: bed.childBed.type,
-          count: parseInt(bed.childBed.count)
-        }
-      },
       viewType: viewType.trim(),
-      images: imagePaths,
       status: status || 'Available',
       isSmokingAllowed: isSmokingAllowed || false,
       isPetFriendly: isPetFriendly || false,
@@ -188,8 +116,7 @@ const createRoom = async (req, res) => {
           path: 'features',
           select: 'feature'
         }
-      })
-      .populate('features', 'feature');
+      });
 
     return res.status(201).json({
       success: true,
@@ -213,7 +140,6 @@ const getRooms = async (req, res) => {
           select: 'feature'
         }
       })
-      .populate('features', 'feature')
       .sort({ createdAt: -1 });
 
     res.json({
@@ -446,7 +372,6 @@ const getRoomsWithPagination = async (req, res) => {
           select: 'feature'
         }
       })
-      .populate('features', 'feature')
       .collation({ locale: 'en', numericOrdering: true }) 
       .sort({ floor: 1, roomNumber: 1 })                  
       .skip((page - 1) * limit)
@@ -519,8 +444,7 @@ const getRoomById = async (req, res) => {
           path: 'features',
           select: 'feature'
         }
-      })
-      .populate('features', 'feature');
+      });
 
     if (!doc) {
       return res.status(404).json({ success: false, message: 'Room not found' });
@@ -562,39 +486,11 @@ const getRoomById = async (req, res) => {
 const updateRoom = async (req, res) => {
   try {
     const { id } = req.params;
-    // Parse JSON strings from FormData
-    let price, capacity, features, bed;
-
-    if (typeof req.body.price === 'string') {
-      price = JSON.parse(req.body.price);
-    } else {
-      price = req.body.price;
-    }
-
-    if (typeof req.body.capacity === 'string') {
-      capacity = JSON.parse(req.body.capacity);
-    } else {
-      capacity = req.body.capacity;
-    }
-
-    if (typeof req.body.features === 'string') {
-      features = JSON.parse(req.body.features);
-    } else {
-      features = req.body.features;
-    }
-
-    if (typeof req.body.bed === 'string') {
-      bed = JSON.parse(req.body.bed);
-    } else {
-      bed = req.body.bed;
-    }
-
     const {
       roomNumber,
       roomType,
       floor,
       viewType,
-      images,
       status,
       maintenanceNotes,
       description
@@ -629,76 +525,11 @@ const updateRoom = async (req, res) => {
       }
     }
 
-    // Verify features exist if being updated
-    if (features && features.length > 0) {
-      const featuresExist = await Feature.find({ _id: { $in: features } });
-      if (featuresExist.length !== features.length) {
-        return res.status(404).json({ success: false, message: 'One or more features not found' });
-      }
-    }
-
-    let imagesToKeep = [];
-    if (images && Array.isArray(images)) {
-      imagesToKeep = images;
-    } else if (typeof images === 'string') {
-      try {
-        imagesToKeep = JSON.parse(images);
-      } catch {
-        imagesToKeep = [];
-      }
-    } else {
-      imagesToKeep = existingRoom.images || [];
-    }
-
-    let imagePaths = imagesToKeep;
-
-    // Handle new uploads (req.files)
-    if (req.files && req.files.length > 0) {
-      // Upload new images, append to imagePaths
-      const uploadedImages = [];
-      for (const file of req.files) {
-        const uploadedUrl = await uploadToS3(file, 'uploads/image');
-        uploadedImages.push(uploadedUrl);
-      }
-      imagePaths = [...imagesToKeep, ...uploadedImages];
-    }
-
-    // Delete from S3 only images that are in existingRoom.images and NOT in the new imagePaths
-    const toRemove = (existingRoom.images || []).filter(oldImg => !imagePaths.includes(oldImg));
-    for (const oldImg of toRemove) {
-      await deleteFromS3(oldImg);
-    }
-
     const updateData = {};
     if (roomNumber) updateData.roomNumber = roomNumber.trim();
     if (roomType) updateData.roomType = roomType;
     if (floor !== undefined) updateData.floor = parseInt(floor);
-    if (price) {
-      updateData.price = {
-        base: parseFloat(price.base)
-      };
-    }
-    if (capacity) {
-      updateData.capacity = {
-        adults: parseInt(capacity.adults),
-        children: parseInt(capacity.children || 0)
-      };
-    }
-    if (features) updateData.features = features;
-    if (bed) {
-      updateData.bed = {
-        mainBed: {
-          type: bed.mainBed.type,
-          count: parseInt(bed.mainBed.count)
-        },
-        childBed: {
-          type: bed.childBed.type,
-          count: parseInt(bed.childBed.count)
-        }
-      };
-    }
     if (viewType) updateData.viewType = viewType.trim();
-    updateData.images = imagePaths;
     if (status) updateData.status = status;
     if (isSmokingAllowed !== undefined) updateData.isSmokingAllowed = isSmokingAllowed;
     if (isPetFriendly !== undefined) updateData.isPetFriendly = isPetFriendly;
@@ -712,8 +543,7 @@ const updateRoom = async (req, res) => {
           path: 'features',
           select: 'feature'
         }
-      })
-      .populate('features', 'feature');
+      });
 
     res.json({
       success: true,
@@ -735,12 +565,6 @@ const deleteRoom = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Room not found' });
     }
 
-    if (room.images && room.images.length > 0) {
-      for (const img of room.images) {
-        await deleteFromS3(img);
-      }
-    }
-
     await Room.findByIdAndDelete(id);
 
     res.json({
@@ -755,75 +579,6 @@ const deleteRoom = async (req, res) => {
   }
 };
 
-const bedRules = {
-  "deluxe": [
-    { mainBed: { type: "Single", count: 1 }, childBed: { type: "Single", count: 1 } },
-    { mainBed: { type: "Single", count: 2 }, childBed: { type: "Single", count: 1 } },
-    { mainBed: { type: "Double", count: 1 }, childBed: { type: "Single", count: 1 } },
-    { mainBed: { type: "Double", count: 2 }, childBed: { type: "Single", count: 1 } },
-  ],
-
-  "Super Deluxe Room": [
-    {
-      mainBed: { type: "Queen", count: 1 },
-      childBed: { type: "Single", count: 1 }
-    }
-  ],
-
-  "premium": [
-    { mainBed: { type: "King", count: 1 }, childBed: { type: "Single", count: 1 } },
-    {
-      mainBed: { type: "Twin", count: 2 },
-      childBed: { type: "Double", count: 1 }
-    }
-  ]
-};
-
-const autoUpdateRoomBeds = async (req, res) => {
-  try {
-    const rooms = await Room.find({}).populate("roomType");
-
-    let updated = [];
-
-    for (let room of rooms) {
-      const typeName = room.roomType.roomType; 
-
-      if (!bedRules[typeName]) continue;
-
-      // choose random rule if multiple
-      const ruleSet = bedRules[typeName];
-      const selectedRule = ruleSet[Math.floor(Math.random() * ruleSet.length)];
-
-      await Room.updateOne(
-        { _id: room._id },
-        {
-          $set: {
-            bed: selectedRule,
-            capacity: {
-              adults: selectedRule.mainBed.count === 2 ? 2 : 1,
-              children: selectedRule.childBed.count
-            }
-          }
-        }
-      );
-
-      updated.push({
-        roomNumber: room.roomNumber,
-        roomType: typeName,
-        bed: selectedRule
-      });
-    }
-
-    res.status(200).json({
-      message: "Updated all rooms successfully!",
-      updatedCount: updated.length,
-      updatedRooms: updated
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
 // Utility controller: refresh status for all rooms
 const refreshAllRoomsStatus = async (req, res) => {
@@ -846,7 +601,6 @@ module.exports = {
   getRoomById,
   updateRoom,
   deleteRoom,
-  autoUpdateRoomBeds,
   refreshAllRoomsStatus
 };
 

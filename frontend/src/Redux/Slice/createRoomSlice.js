@@ -65,10 +65,6 @@ export const createRoom = createAsyncThunk(
       formData.append('roomNumber', roomData.roomNumber);
       formData.append('roomType', roomData.roomType);
       formData.append('floor', roomData.floor);
-      formData.append('price', JSON.stringify(roomData.price));
-      formData.append('capacity', JSON.stringify(roomData.capacity));
-      formData.append('features', JSON.stringify(roomData.features || []));
-      formData.append('bed', JSON.stringify(roomData.bed));
       formData.append('viewType', roomData.viewType);
       formData.append('status', roomData.status || 'Available');
       formData.append('isSmokingAllowed', String(roomData.isSmokingAllowed || false));
@@ -109,10 +105,6 @@ export const updateRoom = createAsyncThunk(
       if (roomData.roomNumber) formData.append('roomNumber', roomData.roomNumber);
       if (roomData.roomType) formData.append('roomType', roomData.roomType);
       if (roomData.floor !== undefined) formData.append('floor', roomData.floor);
-      if (roomData.price) formData.append('price', JSON.stringify(roomData.price));
-      if (roomData.capacity) formData.append('capacity', JSON.stringify(roomData.capacity));
-      if (roomData.features) formData.append('features', JSON.stringify(roomData.features));
-      if (roomData.bed) formData.append('bed', JSON.stringify(roomData.bed));
       if (roomData.viewType) formData.append('viewType', roomData.viewType);
       if (roomData.status) formData.append('status', roomData.status);
       if (roomData.isSmokingAllowed !== undefined) formData.append('isSmokingAllowed', String(roomData.isSmokingAllowed));
