@@ -462,13 +462,13 @@ const DriverDetails = () => {
           </div>
 
           <div className="flex items-center gap-1 justify-end mt-2">
-            <button
+            {/* <button
               className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
               title="Add Driver"
               onClick={handleOpenAddModal}
             >
               <FiPlusCircle size={20} />
-            </button>
+            </button> */}
             <div className="relative">
               <button
                 className="p-2 text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors"
@@ -654,7 +654,7 @@ const DriverDetails = () => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-center appearance-none bg-white cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>

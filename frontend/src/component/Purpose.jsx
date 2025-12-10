@@ -35,11 +35,11 @@ const CenterLabel = ({ totalGuests, activeData }) => {
                 {activeData ? activeData.value : totalGuests}
             </div>
 
-            {activeData && (
+            {/* {activeData && (
                 <div className="text-[12px] text-[#A3876A] mt-1 font-medium">
                     ({activeData.percent}%)
                 </div>
-            )}
+            )} */}
         </div>
     );
 };
