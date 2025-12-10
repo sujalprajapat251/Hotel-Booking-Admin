@@ -14,7 +14,7 @@ const CustomTooltip = ({ active, payload }) => {
                 className="px-4 py-2 rounded-lg shadow-lg text-white text-sm font-medium whitespace-nowrap border border-white/30"
                 style={{ backgroundColor: data.payload.color }}
             >
-                {data.name}: {data.value} guests
+                {data.name}: ${data.value}
             </div>
         );
     }
@@ -29,17 +29,12 @@ const CenterLabel = ({ totalGuests, activeData }) => {
             </div>
 
             <div
-                className="text-[24px] font-bold leading-none transition-colors duration-300"
+                className="text-[24px] font-bold leading-none transition-colors duration-300 flex items-center justify-center gap-1"
                 style={{ color: activeData ? activeData.color : "#755647" }}
             >
+                <span className="text-[19px] font-medium">$</span>
                 {activeData ? activeData.value : totalGuests}
             </div>
-
-            {/* {activeData && (
-                <div className="text-[12px] text-[#A3876A] mt-1 font-medium">
-                    ({activeData.percent}%)
-                </div>
-            )} */}
         </div>
     );
 };
@@ -225,7 +220,7 @@ export default function CustomActiveShapePieChart({ isAnimationActive = true }) 
 
                         <div className="text-right">
                             <span className="text-[18px] font-bold text-[#755647] mr-2">
-                                {entry.value}
+                                ${entry.value}
                             </span>
                             <span className="text-[13px] text-[#A3876A] font-medium">
                                 ({entry.percent}%)

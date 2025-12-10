@@ -104,7 +104,7 @@ const HotelOccupancyDashboard = () => {
                                 borderRadius: '8px',
                                 padding: '8px 12px'
                             }}
-                            formatter={(value) => [`${value}`, 'Revenue']}
+                            formatter={(value) => [`$${value}`, 'Revenue']}
                         />
                         <Area
                             type="monotone"

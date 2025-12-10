@@ -32,7 +32,7 @@ const CustomTooltip = ({ active, payload }) => {
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
       }}>
         <p style={{ margin: 0, fontWeight: 'bold', color: '#fff', fontSize: '12px' }}>
-          {payload[0].payload.name}: {payload[0].value}
+          {payload[0].payload.name}: ${payload[0].value}
         </p>
       </div>
     );

@@ -32,13 +32,14 @@ const StackedBarChart = () => {
 
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
+            <YAxis tickFormatter={(value) => `$${value}`} />
+            <Tooltip
+              formatter={(value) => [`$${value}`, "Revenue"]}
+            />
             <Legend />
             <Bar dataKey="revenue" name="Revenue" fill="#876B56">
-              <LabelList dataKey="revenue" position="top" fill="#876B56" fontWeight="700" />
+              <LabelList dataKey="revenue" position="top" fill="#876B56" fontWeight="700" formatter={(value) => `$${value}`} />
             </Bar>
-
           </BarChart>
         </ResponsiveContainer>
       </div>
