@@ -8,6 +8,7 @@ import notification from "../Images/notification.png"
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../Utils/baseUrl';
 import { fetchNotifications, receiveNotification, markNotificationSeen, clearAllNotifications, resetNotifications } from '../Redux/Slice/notifications.slice';
+import { logoutUser } from '../Redux/Slice/auth.slice';
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -88,8 +89,9 @@ const Header = ({ onMenuClick }) => {
 
   const handleLogout = () => {
     dispatch(resetNotifications());
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('userId');
+    dispatch(logoutUser(localStorage.getItem('userId')));
     try {
       const keys = Object.keys(localStorage);
       keys.forEach((k) => {

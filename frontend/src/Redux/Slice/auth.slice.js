@@ -128,9 +128,13 @@ export const logoutUser = createAsyncThunk(
             if (response.status === 200) {
                 sessionStorage.removeItem('userId');
                 sessionStorage.removeItem('token');
+                localStorage.removeItem("persist:root");
                 localStorage.clear();
                 
                 dispatch(setAlert({ text: response.data.message, color: 'success' }));
+                if(window.persistor) {
+                    window.persistor.purge();
+                }
                 return response.data;
             }
         } catch (error) {
