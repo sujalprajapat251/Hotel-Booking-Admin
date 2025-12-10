@@ -8,6 +8,7 @@ import notification from "../Images/notification.png"
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../Utils/baseUrl';
 import { fetchNotifications, receiveNotification, markNotificationSeen, clearAllNotifications, resetNotifications } from '../Redux/Slice/notifications.slice';
+import { logoutUser } from '../Redux/Slice/auth.slice';
 const Header = ({ onMenuClick }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
@@ -88,8 +89,9 @@ const Header = ({ onMenuClick }) => {
 
   const handleLogout = () => {
     dispatch(resetNotifications());
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('userId');
+    dispatch(logoutUser(localStorage.getItem('userId')));
     try {
       const keys = Object.keys(localStorage);
       keys.forEach((k) => {
@@ -265,7 +267,7 @@ const Header = ({ onMenuClick }) => {
 
       {/* Logout Modal */}
       {logoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={() => setLogoutModalOpen(false)}></div>
           <div className="relative w-[90%] max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-center justify-between mb-6">

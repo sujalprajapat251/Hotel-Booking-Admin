@@ -286,7 +286,7 @@ const StaffTable = () => {
                                 type="checkbox"
                                 checked={visibleColumns[column]}
                                 onChange={() => toggleColumn(column)}
-                                className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded focus:ring-[#B79982] focus:ring-2"
+                                className="w-4 h-4 text-[#876B56] bg-gray-100 border-gray-300 rounded "
                               />
                               <span className="ml-2 text-sm text-gray-700 capitalize">
                                 {column === 'joiningDate' ? 'Joining Date' : column}
@@ -361,7 +361,7 @@ const StaffTable = () => {
                     currentData.map((staff, index) => (
                       <tr
                         key={index}
-                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                        className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200 text-nowrap"
                       >
                         {visibleColumns.No && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
@@ -417,8 +417,8 @@ const StaffTable = () => {
                         )}
                         {visibleColumns.address && (
                           <td className="px-5 py-2 md600:py-3 lg:px-6">
-                            <div className="flex items-center gap-2 text-sm text-gray-700">
-                              <MapPin size={16} className='text-orange-600' />
+                            <div className="flex items-center gap-2 text-sm text-gray-700 ">
+                              <MapPin size={16} className='text-orange-600 ' />
                               {staff.address}
                             </div>
                           </td>

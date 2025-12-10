@@ -400,6 +400,14 @@ exports.getUserById = async (req, res) => {
     }
 };
 
-
+exports.logout = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        await User.findByIdAndUpdate(userId);
+        return res.status(200).json({ status: 200, message: "Logout successfully..!" });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: error.message });
+    }
+};
 
 

@@ -1237,7 +1237,7 @@ const AvailableRooms = () => {
       {deleteModalOpen && roomToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50" onClick={closeDeleteModal}></div>
-          <div className="relative w-full max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
+          <div className="relative w-[90%] max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items- justify-between mb-6">
               <h2 className="text-2xl font-semibold text-black">Delete Room {roomToDelete.roomNumber}?</h2>
               <button onClick={closeDeleteModal} className="text-gray-500 hover:text-gray-800">
