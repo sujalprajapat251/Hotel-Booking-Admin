@@ -22,11 +22,6 @@ const RoomSchema = mongoose.Schema({
             type: Number,
             required: true,
             min: 0
-        },
-        weekend: {
-            type: Number,
-            required: true,
-            min: 0
         }
     },
     capacity: {
@@ -113,6 +108,11 @@ const RoomSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "staff",
         default: null
+    },
+    description: {
+        type: String,
+        default: '',
+        trim: true
     }
 }, {
     timestamps: true,

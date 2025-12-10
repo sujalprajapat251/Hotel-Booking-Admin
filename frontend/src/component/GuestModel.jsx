@@ -28,6 +28,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const paymentStatusRef = useRef(null);
   const paymentMethodRef = useRef(null);
   const { cabs } = useSelector((state) => state.cab || { cabs: [] });
+  console.log(room);
+  // Prefer room type price, then room base price, fallback 0
+  const roomPrice = room?.roomType?.price ?? room?.price?.base ?? 0;
+
   const [formState, setFormState] = useState({
     fullName: "",
     email: "",
@@ -42,7 +46,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     paymentStatus: "Pending",
     paymentMethod: "Cash",
     paymentIntentId: "",
-    totalAmount: room?.price?.base || "",
+    totalAmount: roomPrice || "",
     notes: "",
     // Cab booking fields
     pickUpLocation: "Airport",
@@ -76,7 +80,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
     // If no exact match, find cabs with equal or higher capacity
     if (!isNaN(capacityNumber)) {
-      const suitableCabs = cabs
+      const suitableCabs = cabs 
         .filter(cab => {
           if (cab.seatingCapacity === "10+") return true;
           const cabCapacity = parseInt(cab.seatingCapacity);
@@ -126,7 +130,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   // Recalculate totalAmount whenever stay dates or price changes
   useEffect(() => {
     const nights = getNights(formState.checkInDate, formState.checkOutDate);
-    const pricePerNight = room?.price?.base || 0;
+    const pricePerNight = roomPrice;
     const roomTotal = nights * pricePerNight;
     const cabCharge = cabServiceEnabled && formState.estimatedFare ? parseFloat(formState.estimatedFare) : 0;
     const total = roomTotal + cabCharge;
@@ -147,9 +151,9 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       type: room.roomType?.roomType || "Room",
       bed,
       capacity,
-      price: room?.price?.base,
+      price: roomPrice,
     };
-  }, [room]);
+  }, [room, roomPrice]);
 
 
   useEffect(() => {
@@ -725,7 +729,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-[#FFFAEB]">
                 <h4 className="font-semibold text-md mb-2 text-senary">Booking Summary</h4>
                 <div className="flex flex-col gap-1 text-sm">
-                  <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * (room?.price?.base || 0)}</b></span>
+                  <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * roomPrice}</b></span>
                   <span>Cab Charges: <b>${cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0}</b></span>
                   <span className="border-t border-quinary/20 pt-1 mt-1">Total Amount: <b>${formState.totalAmount}</b></span>
                 </div>

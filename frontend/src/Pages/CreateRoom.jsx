@@ -9,6 +9,8 @@ import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchFeatures } from '../Redux/Slice/featuresSlice';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { IMAGE_URL } from '../Utils/baseUrl';
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 
 const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
 const statusOptions = ['Available', 'Occupied', 'Maintenance', 'Reserved'];
@@ -61,6 +63,31 @@ const CreateRoom = () => {
   const childBedTypeRef = useRef(null);
   const statusRef = useRef(null);
   const roomTypeWatchRef = useRef(null);
+
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ script: 'sub' }, { script: 'super' }],
+      [{ indent: '-1' }, { indent: '+1' }],
+      [{ direction: 'rtl' }],
+      [{ size: ['small', false, 'large', 'huge'] }],
+      [{ color: [] }, { background: [] }],
+      [{ font: [] }],
+      [{ align: [] }],
+      ['link', 'blockquote', 'code-block'],
+      ['clean']
+    ],
+  }), []);
+
+  const quillFormats = useMemo(() => ([
+    'header', 'font', 'size',
+    'bold', 'italic', 'underline', 'strike', 'blockquote',
+    'list', 'bullet', 'indent',
+    'link', 'color', 'background',
+    'align', 'script', 'code-block'
+  ]), []);
 
   useEffect(() => {
     dispatch(fetchRoomTypes());
@@ -145,6 +172,7 @@ const CreateRoom = () => {
       isSmokingAllowed: Boolean(editingItem?.isSmokingAllowed),
       isPetFriendly: Boolean(editingItem?.isPetFriendly),
       maintenanceNotes: editingItem?.maintenanceNotes || '',
+      description: editingItem?.description || '',
       images: []
     };
   }, [editingItem]);
@@ -164,10 +192,6 @@ const CreateRoom = () => {
             .typeError('Base price must be a number')
             .min(0, 'Base price cannot be negative')
             .required('Base price is required'),
-          weekend: Yup.number()
-            .typeError('Weekend price must be a number')
-            .min(0, 'Weekend price cannot be negative')
-            .required('Weekend price is required')
         }),
         capacity: Yup.object({
           adults: Yup.number()
@@ -199,6 +223,7 @@ const CreateRoom = () => {
         }),
         viewType: Yup.string().required('View type is required'),
         status: Yup.string().required('Status is required'),
+        description: Yup.string().notRequired(),
         images: Yup.array().test('required', 'At least one image is required', function (value) {
           if (isEditMode) {
             return existingImages.length > 0 || Boolean(value && value.length);
@@ -243,6 +268,7 @@ const CreateRoom = () => {
         isSmokingAllowed: values.isSmokingAllowed,
         isPetFriendly: values.isPetFriendly,
         maintenanceNotes: values.maintenanceNotes,
+        description: values.description || '',
         images: values.images || [],
         imagesToKeep: existingImages
       };
@@ -477,28 +503,6 @@ const CreateRoom = () => {
                   />
                   {formik.touched.price?.base && formik.errors.price?.base && (
                     <p className="text-red-500 text-sm mt-1">{formik.errors.price.base}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="price.weekend" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Weekend Price <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    id="price.weekend"
-                    name="price.weekend"
-                    value={formik.values.price.weekend}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    placeholder="Enter weekend price"
-                    min="0"
-                    step="0.01"
-                    className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${
-                      formik.touched.price?.weekend && formik.errors.price?.weekend ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  />
-                  {formik.touched.price?.weekend && formik.errors.price?.weekend && (
-                    <p className="text-red-500 text-sm mt-1">{formik.errors.price.weekend}</p>
                   )}
                 </div>
               </div>
@@ -866,6 +870,27 @@ const CreateRoom = () => {
                   rows="3"
                   className="w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] resize-none border-gray-300"
                 />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Description
+                </label>
+                <div className={`w-full border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.description && formik.errors.description ? 'border-red-500' : 'border-gray-300'}`}>
+                  <ReactQuill
+                    className="custom-quill"
+                    placeholder="Enter Description"
+                    value={formik.values.description}
+                    onChange={(val) => formik.setFieldValue('description', val)}
+                    onBlur={() => formik.setFieldTouched('description', true)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                  />
+                </div>
+                {formik.touched.description && formik.errors.description && (
+                  <p className="text-red-500 text-sm mt-1">{formik.errors.description}</p>
+                )}
               </div>
 
               {error && (

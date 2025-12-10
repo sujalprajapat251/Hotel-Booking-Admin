@@ -74,6 +74,7 @@ export const createRoom = createAsyncThunk(
       formData.append('isSmokingAllowed', String(roomData.isSmokingAllowed || false));
       formData.append('isPetFriendly', String(roomData.isPetFriendly || false));
       formData.append('maintenanceNotes', roomData.maintenanceNotes || '');
+      formData.append('description', roomData.description || '');
 
       // Append images if provided
       if (roomData.images && roomData.images.length > 0) {
@@ -117,6 +118,7 @@ export const updateRoom = createAsyncThunk(
       if (roomData.isSmokingAllowed !== undefined) formData.append('isSmokingAllowed', String(roomData.isSmokingAllowed));
       if (roomData.isPetFriendly !== undefined) formData.append('isPetFriendly', String(roomData.isPetFriendly));
       if (roomData.maintenanceNotes !== undefined) formData.append('maintenanceNotes', roomData.maintenanceNotes);
+      if (roomData.description !== undefined) formData.append('description', roomData.description || '');
       if (roomData.imagesToKeep) formData.append('images', JSON.stringify(roomData.imagesToKeep));
 
       // Append images if provided

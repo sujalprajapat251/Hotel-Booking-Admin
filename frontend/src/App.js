@@ -84,19 +84,28 @@ function App() {
               <Route path='/' element={<LoginPage />} />
               <Route element={<Layout />}>
                 {/* Receptionist/User only route - Booking Dashboard */}
-                <Route
+                {/* <Route
                   path='/booking-dashboard'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist']}>
                       <BookingDashboard />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 <Route
                   path='/allbookings'
                   element={
                     <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
                       <AllBookings />
+                    </ProtectedRoute>
+                  }
+                />
+                {/* Available Rooms - accessible to both admin and receptionist */}
+                <Route
+                  path='/rooms/available'
+                  element={
+                    <ProtectedRoute allowedRoles={['receptionist', 'admin']}>
+                      <AvailableRooms />
                     </ProtectedRoute>
                   }
                 />
@@ -119,7 +128,6 @@ function App() {
                 >
                   <Route index element={<Navigate to="/rooms/create" replace />} />
                   <Route path='create' element={<CreateRoom />} />
-                  <Route path='available' element={<AvailableRooms />} />
                   <Route path='features' element={<RoomFeatures />} />
                   <Route path='room-type' element={<RoomType />} />
                 </Route>
@@ -144,20 +152,6 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path='/rooms'
-                  element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                      <Rooms />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="/rooms/create" replace />} />
-                  <Route path='create' element={<CreateRoom />} />
-                  <Route path='available' element={<AvailableRooms />} />
-                  <Route path='features' element={<RoomFeatures />} />
-                  <Route path='room-type' element={<RoomType />} />
-                </Route>
                 <Route
                   path='/cafe'
                   element={

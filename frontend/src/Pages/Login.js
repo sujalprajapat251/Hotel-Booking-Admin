@@ -71,7 +71,7 @@ const LoginPage = () => {
                             navigate("/driver/dashboard")
                         }
                         else {
-                            navigate("/booking-dashboard");
+                            navigate("/rooms/available");
                         }
                     }
                 })

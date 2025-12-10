@@ -133,7 +133,7 @@ const receptionistSections = [
     title: null,
     key: 'main',
     items: [
-      { icon: RxDashboard, label: 'Booking Dashboard', path: '/booking-dashboard' },
+      { icon: RxDashboard, label: 'Booking Dashboard', path: '/rooms/available' },
       { icon: VscChecklist , label: 'Bookings', path: '/allbookings' },
       { icon: MdCleaningServices, label: 'Cleanings', path: '/housekeeping' },
       { icon: HiInboxArrowDown , label: 'Order Request', path: '/orderrequest' },

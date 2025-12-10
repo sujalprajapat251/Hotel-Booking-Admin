@@ -51,13 +51,29 @@ export const getRoomTypeById = createAsyncThunk(
 
 export const createRoomType = createAsyncThunk(
   'roomtypes/create',
-  async ({ roomType }, { rejectWithValue, dispatch }) => {
+  async ({ roomType, description, price, availableRooms, capacityAdults, capacityChildren, features, images, bed }, { rejectWithValue, dispatch }) => {
     try {
       const token = await localStorage.getItem("token");
-      const response = await axios.post(`${BASE_URL}/roomtypes`, { roomType },
+      const formData = new FormData();
+      formData.append('roomType', roomType);
+      formData.append('description', description || '');
+      formData.append('price', price);
+      formData.append('availableRooms', availableRooms);
+      if (capacityAdults !== undefined) formData.append('capacityAdults', capacityAdults);
+      if (capacityChildren !== undefined) formData.append('capacityChildren', capacityChildren);
+      if (features !== undefined) formData.append('features', JSON.stringify(features));
+      if (bed !== undefined) formData.append('bed', JSON.stringify(bed));
+      if (images?.length) {
+        images.forEach((img) => {
+          if (img) formData.append('images', img);
+        });
+      }
+
+      const response = await axios.post(`${BASE_URL}/roomtypes`, formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
           }
         }
       );
@@ -71,13 +87,33 @@ export const createRoomType = createAsyncThunk(
 
 export const updateRoomType = createAsyncThunk(
   'roomtypes/update',
-  async ({ id, roomType }, { rejectWithValue, dispatch }) => {
+  async ({ id, roomType, description, price, availableRooms, capacityAdults, capacityChildren, features, images, existingImages, bed }, { rejectWithValue, dispatch }) => {
     try {
       const token = await localStorage.getItem("token");
-      const response = await axios.put(`${BASE_URL}/roomtypes/${id}`, { roomType },
+      const formData = new FormData();
+      if (roomType !== undefined) formData.append('roomType', roomType);
+      if (description !== undefined) formData.append('description', description);
+      if (price !== undefined) formData.append('price', price);
+      if (availableRooms !== undefined) formData.append('availableRooms', availableRooms);
+      if (capacityAdults !== undefined) formData.append('capacityAdults', capacityAdults);
+      if (capacityChildren !== undefined) formData.append('capacityChildren', capacityChildren);
+      if (features !== undefined) formData.append('features', JSON.stringify(features));
+      if (bed !== undefined) formData.append('bed', JSON.stringify(bed));
+      // Send existing images that should be kept
+      if (existingImages !== undefined && Array.isArray(existingImages)) {
+        formData.append('existingImages', JSON.stringify(existingImages));
+      }
+      if (images?.length) {
+        images.forEach((img) => {
+          if (img) formData.append('images', img);
+        });
+      }
+
+      const response = await axios.put(`${BASE_URL}/roomtypes/${id}`, formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
           }
         }
       );

@@ -81,12 +81,22 @@ const HotelOccupancyDashboard = () => {
                             tickLine={false}
                             tick={{ fill: colors.quaternary, fontSize: 12 }}
                         />
-                        <YAxis
+                                     <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: colors.quaternary, fontSize: 12 }}
-                            tickFormatter={(value) => `${value}`}
+                            tick={{ fill: colors.quaternary, fontSize: 11 }}
+                            tickFormatter={(value) => {
+                                if (value >= 1_000_000_000) {
+                                    return (value / 1_000_000_000) + "B"; // Billions
+                                } else if (value >= 1_000_000) {
+                                    return (value / 1_000_000) + "M"; // Millions
+                                } else if (value >= 1_000) {
+                                    return (value / 1_000) + "K"; // Thousands
+                                }
+                                return value;
+                            }}
                         />
+ 
                         <Tooltip
                             contentStyle={{
                                 backgroundColor: 'white',

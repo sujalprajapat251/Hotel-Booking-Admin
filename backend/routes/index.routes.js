@@ -102,10 +102,10 @@ indexRoutes.put('/updatefaq/:id', auth, adminOnly, updateFAQ);
 indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 
 // room type routes
-indexRoutes.post('/roomtypes', auth, adminOnly, createRoomType);
+indexRoutes.post('/roomtypes', auth, adminOnly, upload.array("images", 10), createRoomType);
 indexRoutes.get('/roomtypes', getRoomTypes);
 indexRoutes.get('/roomtypes/:id', auth, adminOnly, getRoomTypeById);
-indexRoutes.put('/roomtypes/:id', auth, adminOnly, updateRoomType);
+indexRoutes.put('/roomtypes/:id', auth, adminOnly, upload.array("images", 10), updateRoomType);
 indexRoutes.delete('/roomtypes/:id', auth, adminOnly, deleteRoomType);
 
 // feature routes

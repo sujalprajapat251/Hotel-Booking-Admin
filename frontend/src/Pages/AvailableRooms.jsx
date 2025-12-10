@@ -12,7 +12,7 @@ import { IoEyeSharp } from 'react-icons/io5';
 import SingleRoomModal from '../component/SingleRoomModal';
 import { useNavigate } from 'react-router-dom';
 import { RiDeleteBinLine } from 'react-icons/ri';
-const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete, navigate, setViewId, handleRoomAction, checkInStr, todayStr }) => {
+const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete, navigate, setViewId, handleRoomAction, checkInStr, todayStr, userRole }) => {
   const [selectedImage, setSelectedImage] = useState(mainImage);
   // Custom logic for Guest Details vs Add Guest
   const showGuestDetails =
@@ -52,13 +52,20 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
 
 
           </div>
-          <div className='absolute bottom-4 right-4 flex  gap-3 '>
-            <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
-              navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
-            }} />
-            <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
-            <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-red-500 text-[18px]" />
-          </div>
+          {userRole === 'admin' && (
+            <div className='absolute bottom-4 right-4 flex  gap-3 '>
+              <FiEdit className="text-white hover:text-[#6777ef] text-[18px] transition-colors cursor-pointer" onClick={() => {
+                navigate('/rooms/create', { state: { mode: 'edit', roomData: room } });
+              }} />
+              <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
+              <RiDeleteBinLine onClick={() => onDelete(room)} className="text-white hover:text-red-500 text-[18px]" />
+            </div>
+          )}
+          {userRole !== 'admin' && (
+            <div className='absolute bottom-4 right-4 flex  gap-3 '>
+              <IoEyeSharp className='text-[18px] text-white hover:text-[#876B56] transition-colors cursor-pointer' onClick={() => { setViewId(room._id || room.id); }} />
+            </div>
+          )}
           {/* Image Counter */}
           {roomImages.length > 0 && (
             <div className="absolute bottom-3 left-3 bg-black/60 text-white px-2 py-1 rounded-md text-xs font-medium">
@@ -128,11 +135,11 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
             <span>
               {room.status === 'Occupied' ? (
                 <>
-                  {room.capacity?.adults || 0} Adults, {room.capacity?.children || 0} Children
+                  {room.roomType?.capacity?.adults || 0} Adults, {room.roomType?.capacity?.children || 0} Children
                 </>
               ) : (
                 <>
-                  {room.capacity?.adults || 0} Adults (Max: {maxCapacity})
+                  {room.roomType?.capacity?.adults || 0} Adults (Max: {maxCapacity})
                 </>
               )}
             </span>
@@ -188,9 +195,12 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
                   typeof feature === 'object' && feature.feature
                     ? feature.feature
                     : feature;
+                const featureId = typeof feature === 'object' && (feature._id || feature.id) 
+                  ? (feature._id || feature.id) 
+                  : idx;
                 return (
                   <span
-                    key={idx}
+                    key={featureId}
                     className="px-2.5 py-1 rounded-full bg-secondary text-senary font-medium"
                     title={label}
                   >
@@ -217,50 +227,54 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
       </div>
 
       {/* Action Buttons */}
-      <div className="px-2 pb-2 space-y-3">
-          <button
-            onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
-            disabled={isAddGuestDisabled}
-            className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
-              ? 'bg-gray-400 cursor-not-allowed opacity-60'
-              : isAddGuestAction
-                ? 'bg-senary hover:bg-quinary hover:shadow-lg'
-                : 'bg-quinary hover:bg-senary hover:shadow-lg'
-              }`}
-            title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
-          >
-            {showGuestDetails ? (
-              <div className='flex items-center gap-2'>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
-                </svg>
-                Guest Details
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="8.5" cy="7" r="4"></circle>
-                  <line x1="20" y1="8" x2="20" y2="14"></line>
-                  <line x1="23" y1="11" x2="17" y2="11"></line>
-                </svg>
-                <span>Add Guest</span>
-                {isDirty && (
-                  <span className="text-xs bg-red-500 px-2 py-0.5 rounded-full ml-1">
-                    Dirty
-                  </span>
-                )}
-              </div>
-            )}
-          </button>
-      </div>
+      {(userRole === 'admin' || userRole === 'receptionist') && (
+        <div className="px-2 pb-2 space-y-3">
+            <button
+              onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
+              disabled={isAddGuestDisabled}
+              className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
+                ? 'bg-gray-400 cursor-not-allowed opacity-60'
+                : isAddGuestAction
+                  ? 'bg-senary hover:bg-quinary hover:shadow-lg'
+                  : 'bg-quinary hover:bg-senary hover:shadow-lg'
+                }`}
+              title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
+            >
+              {showGuestDetails ? (
+                <div className='flex items-center gap-2'>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  Guest Details
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                  </svg>
+                  <span>Add Guest</span>
+                  {isDirty && (
+                    <span className="text-xs bg-red-500 px-2 py-0.5 rounded-full ml-1">
+                      Dirty
+                    </span>
+                  )}
+                </div>
+              )}
+            </button>
+        </div>
+      )}
     </div>
   );
 };
 const AvailableRooms = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth?.user);
+  const userRole = user?.designation || '';
 
   const [statusTypeDropdown, setStatusTypeDropdown] = useState(false);
   const statusTypeRef = useRef(null);
@@ -1072,7 +1086,7 @@ const AvailableRooms = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredRooms.map((room) => {
               // Handle images for each room
-              const roomImages = room.images || [];
+              const roomImages = room.roomType.images || [];
               const mainImage = roomImages[0] || null;
               const subImages = roomImages;
               const getStatusConfig = (status) => {
@@ -1121,18 +1135,19 @@ const AvailableRooms = () => {
               };
 
               const statusConfig = getStatusConfig(room.status);
-              const maxCapacity = (room.capacity?.adults || 0) + (room.capacity?.children || 0);
+              const maxCapacity = (room.roomType?.capacity?.adults || 0) + (room.roomType?.capacity?.children || 0);
               const currentOccupancy = room.status === 'Occupied' ? maxCapacity : 0;
               const isClean = room.status !== 'Maintenance' && !room.maintenanceNotes?.toLowerCase().includes('dirty');
               const roomTypeName = room.roomType?.roomType || 'N/A';
-              const bedType = room.bed?.mainBed?.type || 'N/A';
-              const price = room.price?.base || 0;
+              const bedType = room.roomType.bed?.mainBed?.type || 'N/A';
+              // Prefer room type price when available, fall back to room base price
+              const price = room.roomType?.price;
               const isAddGuestAction = room.status !== 'Occupied' && room.status !== 'Reserved';
               const isDirty = room.cleanStatus === 'Dirty';
               const isAddGuestDisabled = isAddGuestAction && isDirty;
 
               // Get amenities from features
-              const amenities = room.features || [];
+              const amenities = room.roomType?.features || [];
               // Utility to get date in YYYY-MM-DD
               const getDateString = (date) => {
                 if (!date) return null;
@@ -1187,6 +1202,7 @@ const AvailableRooms = () => {
                   handleRoomAction={handleRoomAction}
                   checkInStr={checkInStr}
                   todayStr={todayStr}
+                  userRole={userRole}
                 />
               );
             })}

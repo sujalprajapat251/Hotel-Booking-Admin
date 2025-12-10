@@ -23,6 +23,7 @@ const formatRoom = (doc) => ({
   isSmokingAllowed: doc.isSmokingAllowed,
   isPetFriendly: doc.isPetFriendly,
   maintenanceNotes: doc.maintenanceNotes,
+  description: doc.description,
   cleanStatus: doc.cleanStatus,
   cleanassign: doc.cleanassign,
   createdAt: doc.createdAt,
@@ -79,7 +80,8 @@ const createRoom = async (req, res) => {
       viewType,
       images,
       status,
-      maintenanceNotes
+      maintenanceNotes,
+      description
     } = req.body;
 
     // Parse boolean values from FormData (they come as strings)
@@ -97,10 +99,6 @@ const createRoom = async (req, res) => {
 
     if (floor === undefined || floor === null) {
       return res.status(400).json({ success: false, message: 'Floor is required' });
-    }
-
-    if (!price || !price.base || !price.weekend) {
-      return res.status(400).json({ success: false, message: 'Price (base and weekend) is required' });
     }
 
     if (!capacity || !capacity.adults) {
@@ -154,7 +152,6 @@ const createRoom = async (req, res) => {
       floor: parseInt(floor),
       price: {
         base: parseFloat(price.base),
-        weekend: parseFloat(price.weekend)
       },
       capacity: {
         adults: parseInt(capacity.adults),
@@ -178,12 +175,20 @@ const createRoom = async (req, res) => {
       isPetFriendly: isPetFriendly || false,
       maintenanceNotes: maintenanceNotes || '',
       cleanStatus: 'Clean',
+      description: description || '',
       cleanassign: null,
     };
 
     const created = await Room.create(roomData);
     const populated = await Room.findById(created._id)
-      .populate('roomType', 'roomType')
+      .populate({
+        path: 'roomType',
+        select: 'roomType description price bed capacity features images',
+        populate: {
+          path: 'features',
+          select: 'feature'
+        }
+      })
       .populate('features', 'feature');
 
     return res.status(201).json({
@@ -200,7 +205,14 @@ const createRoom = async (req, res) => {
 const getRooms = async (req, res) => {
   try {
     const list = await Room.find()
-      .populate('roomType', 'roomType')
+      .populate({
+        path: 'roomType',
+        select: 'roomType description price features',
+        populate: {
+          path: 'features',
+          select: 'feature'
+        }
+      })
       .populate('features', 'feature')
       .sort({ createdAt: -1 });
 
@@ -426,7 +438,14 @@ const getRoomsWithPagination = async (req, res) => {
 
     // Fetch paginated rooms with sorting
     const rooms = await Room.find(query)
-      .populate('roomType', 'roomType')
+      .populate({
+        path: 'roomType',
+        select: 'roomType description price bed mainBed childBed capacity features images',
+        populate: {
+          path: 'features',
+          select: 'feature'
+        }
+      })
       .populate('features', 'feature')
       .collation({ locale: 'en', numericOrdering: true }) 
       .sort({ floor: 1, roomNumber: 1 })                  
@@ -493,7 +512,14 @@ const getRoomById = async (req, res) => {
   try {
     const { id } = req.params;
     const doc = await Room.findById(id)
-      .populate('roomType', 'roomType')
+      .populate({
+        path: 'roomType',
+        select: 'roomType description price bed capacity features images',
+        populate: {
+          path: 'features',
+          select: 'feature'
+        }
+      })
       .populate('features', 'feature');
 
     if (!doc) {
@@ -570,7 +596,8 @@ const updateRoom = async (req, res) => {
       viewType,
       images,
       status,
-      maintenanceNotes
+      maintenanceNotes,
+      description
     } = req.body;
 
     // Parse boolean values from FormData (they come as strings)
@@ -648,8 +675,7 @@ const updateRoom = async (req, res) => {
     if (floor !== undefined) updateData.floor = parseInt(floor);
     if (price) {
       updateData.price = {
-        base: parseFloat(price.base),
-        weekend: parseFloat(price.weekend)
+        base: parseFloat(price.base)
       };
     }
     if (capacity) {
@@ -677,8 +703,16 @@ const updateRoom = async (req, res) => {
     if (isSmokingAllowed !== undefined) updateData.isSmokingAllowed = isSmokingAllowed;
     if (isPetFriendly !== undefined) updateData.isPetFriendly = isPetFriendly;
     if (maintenanceNotes !== undefined) updateData.maintenanceNotes = maintenanceNotes;
+    if (description !== undefined) updateData.description = description;
     const updated = await Room.findByIdAndUpdate(id, updateData, { new: true })
-      .populate('roomType', 'roomType')
+      .populate({
+        path: 'roomType',
+        select: 'roomType description price bed capacity features images',
+        populate: {
+          path: 'features',
+          select: 'feature'
+        }
+      })
       .populate('features', 'feature');
 
     res.json({
