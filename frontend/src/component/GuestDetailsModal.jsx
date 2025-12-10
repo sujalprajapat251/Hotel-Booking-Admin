@@ -74,47 +74,6 @@ function GuestDetailsModal({
   const payment = booking?.payment || {};
   const roomNumber = activeRoom?.roomNumber || booking?.roomNumber || "—";
   const bookingStatus = booking?.status || activeRoom?.status || "Unknown";
-  const housekeepingStatus = activeRoom?.status || "Unknown";
-
-  const occupancyText = reservation?.occupancy
-    ? `${reservation.occupancy.adults ?? 0} Adults${
-        reservation.occupancy.children
-          ? `, ${reservation.occupancy.children} Children`
-          : ""
-      }`
-    : activeRoom?.capacity
-    ? `${activeRoom.capacity.adults ?? 0} Adults${
-        activeRoom.capacity.children
-          ? `, ${activeRoom.capacity.children} Children`
-          : ""
-      }`
-    : "—";
-
-  const roomType =
-    activeRoom?.roomType?.roomType ||
-    activeRoom?.roomType?.name ||
-    activeRoom?.roomType ||
-    "—";
-
-  const bedConfiguration = activeRoom?.bed?.mainBed?.type
-    ? `${activeRoom.bed.mainBed.type} Bed`
-    : activeRoom?.bed?.type || "—";
-
-  const amenitiesSource = Array.isArray(activeRoom?.features)
-    ? activeRoom.features
-    : Array.isArray(activeRoom?.amenities)
-    ? activeRoom.amenities
-    : [];
-
-  const amenities = amenitiesSource
-    .map((item) => {
-      if (typeof item === "string") return item;
-      if (item?.feature) return item.feature;
-      if (item?.name) return item.name;
-      return null;
-    })
-    .filter(Boolean);
-
   const lastUpdated = booking?.updatedAt || activeRoom?.updatedAt;
   const actionDisabled = !booking || loading;
 
@@ -146,9 +105,8 @@ function GuestDetailsModal({
               Room {roomNumber} • Guest Details
             </span>
             <span
-              className={`px-3 py-1 text-sm rounded-md ${
-                STATUS_BADGE_MAP[bookingStatus] || "bg-primary/40 text-senary"
-              }`}
+              className={`px-3 py-1 text-sm rounded-md ${STATUS_BADGE_MAP[bookingStatus] || "bg-primary/40 text-senary"
+                }`}
             >
               {bookingStatus}
             </span>
@@ -158,8 +116,8 @@ function GuestDetailsModal({
               </span>
             )}
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-white text-3xl leading-none hover:text-gray-200 transition-colors"
           >
             ×
@@ -225,42 +183,31 @@ function GuestDetailsModal({
             <h3 className="text-lg font-semibold mb-3 border-l-4 border-senary pl-2 text-senary">
               Room Details
             </h3>
-            <InfoItem label="Room Type" value={roomType} />
-            <InfoItem label="Bed Configuration" value={bedConfiguration} />
-            <InfoItem label="Current Occupancy" value={occupancyText} />
+            <InfoItem label="Floor" value={activeRoom?.floor ?? '—'} />
+            
+            <InfoItem label="Room Type" value={activeRoom.roomType.roomType || activeRoom.roomType.name || '—'} />
             <InfoItem
-              label="Room Rate"
+              label="Bed Configuration"
               value={
-                activeRoom?.price?.base
-                  ? `${formatCurrency(activeRoom.price.base, payment.currency)}/night`
-                  : formatCurrency(payment.totalAmount, payment.currency)
+                activeRoom.roomType.bed
+                  ? (
+                    [
+                      activeRoom.roomType.bed.mainBed && activeRoom.roomType.bed.mainBed.type
+                        ? `Main: ${activeRoom.roomType.bed.mainBed.type} (${activeRoom.roomType.bed.mainBed.count})`
+                        : null,
+                      activeRoom.roomType.bed.childBed && activeRoom.roomType.bed.childBed.type
+                        ? `Child: ${activeRoom.roomType.bed.childBed.type} (${activeRoom.roomType.bed.childBed.count})`
+                        : null
+                    ]
+                      .filter(Boolean)
+                      .join(', ') + " Bed"
+                  )
+                  : (activeRoom.roomType.bed?.type || '—')
               }
-              textColor="text-quaternary"
             />
-            <InfoItem label="Floor" value={activeRoom?.floor} />
-            <InfoItem
-              label="Housekeeping Status"
-              value={housekeepingStatus}
-              badgeColor={
-                STATUS_BADGE_MAP[housekeepingStatus] || "bg-primary/40 text-senary"
-              }
-            />
-
-            {!!amenities.length && (
-              <>
-                <h4 className="mt-4 mb-2 font-semibold text-lg text-senary">Room Amenities</h4>
-                <div className="flex flex-wrap gap-2">
-                  {amenities.map((amenity) => (
-                    <span
-                      key={amenity}
-                      className="px-3 py-1 bg-primary/40 text-senary rounded-md text-sm"
-                    >
-                      {amenity}
-                    </span>
-                  ))}
-                </div>
-              </>
-            )}
+            <InfoItem label="Capacity" value={`Adults: ${activeRoom.roomType.capacity?.adults ?? 0}, Children: ${activeRoom.roomType.capacity?.children ?? 0}`} />
+            <InfoItem label="Base Price/Night" value={formatCurrency(activeRoom.roomType.price, payment.currency)} />
+            <InfoItem label="Status" value={activeRoom?.status} badgeColor={STATUS_BADGE_MAP[activeRoom?.status] || "bg-primary text-senary"} />
           </div>
         </div>
 
@@ -274,27 +221,25 @@ function GuestDetailsModal({
             <button
               onClick={handleCheckOut}
               disabled={actionDisabled}
-              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${
-                actionDisabled 
-                  ? "bg-quaternary/40 cursor-not-allowed" 
+              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
+                  ? "bg-quaternary/40 cursor-not-allowed"
                   : "bg-green-600 hover:bg-green-700 shadow-lg"
-              }`}
+                }`}
             >
               {loading ? "Processing..." : "Check Out"}
             </button>
             <button
               onClick={handleCancelRoom}
               disabled={actionDisabled}
-              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${
-                actionDisabled 
-                  ? "bg-quaternary/40 cursor-not-allowed" 
+              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
+                  ? "bg-quaternary/40 cursor-not-allowed"
                   : "bg-red-500 hover:bg-red-600 shadow-lg"
-              }`}
+                }`}
             >
               {loading ? "Please wait..." : "Cancel Room"}
             </button>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="px-5 py-2 bg-secondary/40 text-quinary hover:bg-secondary/60 rounded-lg transition shadow-sm"
             >
               Close

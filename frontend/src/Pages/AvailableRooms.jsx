@@ -5,7 +5,7 @@ import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
 import GuestDetailsModal from '../component/GuestDetailsModal';
-import { ChevronDown,RefreshCw } from 'lucide-react';
+import { ChevronDown, RefreshCw } from 'lucide-react';
 import { IMAGE_URL } from '../Utils/baseUrl';
 import { FiEdit } from 'react-icons/fi';
 import { IoEyeSharp } from 'react-icons/io5';
@@ -195,8 +195,8 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
                   typeof feature === 'object' && feature.feature
                     ? feature.feature
                     : feature;
-                const featureId = typeof feature === 'object' && (feature._id || feature.id) 
-                  ? (feature._id || feature.id) 
+                const featureId = typeof feature === 'object' && (feature._id || feature.id)
+                  ? (feature._id || feature.id)
                   : idx;
                 return (
                   <span
@@ -229,42 +229,42 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
       {/* Action Buttons */}
       {(userRole === 'admin' || userRole === 'receptionist') && (
         <div className="px-2 pb-2 space-y-3">
-            <button
-              onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
-              disabled={isAddGuestDisabled}
-              className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
-                ? 'bg-gray-400 cursor-not-allowed opacity-60'
-                : isAddGuestAction
-                  ? 'bg-senary hover:bg-quinary hover:shadow-lg'
-                  : 'bg-quinary hover:bg-senary hover:shadow-lg'
-                }`}
-              title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
-            >
-              {showGuestDetails ? (
-                <div className='flex items-center gap-2'>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  Guest Details
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="23" y1="11" x2="17" y2="11"></line>
-                  </svg>
-                  <span>Add Guest</span>
-                  {isDirty && (
-                    <span className="text-xs bg-red-500 px-2 py-0.5 rounded-full ml-1">
-                      Dirty
-                    </span>
-                  )}
-                </div>
-              )}
-            </button>
+          <button
+            onClick={() => !isAddGuestDisabled && handleRoomAction(room, showGuestDetails)}
+            disabled={isAddGuestDisabled}
+            className={`w-full py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2 transition-all duration-200 shadow-md ${isAddGuestDisabled
+              ? 'bg-gray-400 cursor-not-allowed opacity-60'
+              : isAddGuestAction
+                ? 'bg-senary hover:bg-quinary hover:shadow-lg'
+                : 'bg-quinary hover:bg-senary hover:shadow-lg'
+              }`}
+            title={isAddGuestDisabled ? 'Room is dirty and needs cleaning before adding a guest' : ''}
+          >
+            {showGuestDetails ? (
+              <div className='flex items-center gap-2'>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                Guest Details
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <line x1="20" y1="8" x2="20" y2="14"></line>
+                  <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                <span>Add Guest</span>
+                {isDirty && (
+                  <span className="text-xs bg-red-500 px-2 py-0.5 rounded-full ml-1">
+                    Dirty
+                  </span>
+                )}
+              </div>
+            )}
+          </button>
         </div>
       )}
     </div>
@@ -684,7 +684,7 @@ const AvailableRooms = () => {
     {
       title: 'TOTAL ROOMS',
       value: displayStats.total,
-      color: '#755647', 
+      color: '#755647',
       iconBg: '#876B56',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -696,7 +696,7 @@ const AvailableRooms = () => {
     {
       title: 'AVAILABLE',
       value: displayStats.available,
-      color: '#A3876A', 
+      color: '#A3876A',
       iconBg: '#B79982',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -707,7 +707,7 @@ const AvailableRooms = () => {
     {
       title: 'OCCUPIED',
       value: displayStats.occupied,
-      color: '#876B56', 
+      color: '#876B56',
       iconBg: '#A3876A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -719,7 +719,7 @@ const AvailableRooms = () => {
     {
       title: 'OCCUPANCY RATE',
       value: `${displayStats.occupancyRate}%`,
-      color: '#B79982', 
+      color: '#B79982',
       iconBg: '#E3C78A',
       icon: (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1074,9 +1074,9 @@ const AvailableRooms = () => {
       {loading && (
         <div className="mt-6 bg-white rounded-lg shadow-md p-8 text-center text-quinary text-sm">
           <div className="flex flex-col items-center justify-center text-gray-500">
-                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
-                      <p className="text-lg font-medium">Loading...</p>
-                    </div>
+            <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+            <p className="text-lg font-medium">Loading...</p>
+          </div>
         </div>
       )}
 
@@ -1153,7 +1153,7 @@ const AvailableRooms = () => {
                 if (!date) return null;
                 const d = new Date(date);
                 return d.toISOString().slice(0, 10);
-              };  
+              };
 
               const todayStr = getDateString(new Date());
               // Use backend-provided currentBooking instead of getBookingForRoom
