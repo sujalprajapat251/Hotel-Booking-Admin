@@ -1327,7 +1327,7 @@ const AllBookings = () => {
 
                 {/* Delete Modal */}
                 {isDeleteModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
                         <div className="absolute inset-0 bg-black/50" onClick={handleDeleteModalClose}></div>
                         <div className="relative w-[90%] max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
                             <div className="flex items-center justify-between mb-6">

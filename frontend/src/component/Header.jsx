@@ -15,6 +15,19 @@ const Header = ({ onMenuClick }) => {
   const dispatch = useDispatch();
   const [imageUrl, setImageUrl] = useState(userImg);
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const bodyOverflowRef = useRef('');
+
+  useEffect(() => {
+    if (logoutModalOpen) {
+      bodyOverflowRef.current = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = bodyOverflowRef.current || '';
+    }
+    return () => {
+      document.body.style.overflow = bodyOverflowRef.current || '';
+    };
+  }, [logoutModalOpen]);
 
   const { currentUser, loading, success, message } = useSelector(
     (state) => state.staff
@@ -252,7 +265,7 @@ const Header = ({ onMenuClick }) => {
 
       {/* Logout Modal */}
       {logoutModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setLogoutModalOpen(false)}></div>
           <div className="relative w-[90%] max-w-md rounded-md bg-white p-6 shadow-xl mx-5">
             <div className="flex items-center justify-between mb-6">
