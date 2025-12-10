@@ -139,7 +139,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
                 </>
               ) : (
                 <>
-                  {room.roomType?.capacity?.adults || 0} Adults (Max: {maxCapacity})
+                   {room.roomType?.capacity?.adults || 0} Adults {room.roomType?.capacity?.children || 0} Children (Max: {maxCapacity})
                 </>
               )}
             </span>
