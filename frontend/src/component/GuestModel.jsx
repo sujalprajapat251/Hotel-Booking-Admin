@@ -4,9 +4,11 @@ import dayjs from "dayjs";
 import { useDispatch, useSelector } from "react-redux";
 import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookingSlice";
 import { createCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
+import * as Yup from "yup";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { ChevronDown } from "lucide-react";
+import { getAllCabs } from "../Redux/Slice/cab.slice";
 // Helper to calculate number of nights
 function getNights(checkIn, checkOut) {
   if (!checkIn || !checkOut) return 0;
@@ -27,12 +29,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
   const [showPickUpDropdown, setShowPickUpDropdown] = useState(false);
   const [showSeatingDropdown, setShowSeatingDropdown] = useState(false);
+  const [errors, setErrors] = useState({});
   const paymentStatusRef = useRef(null);
   const paymentMethodRef = useRef(null);
   const pickUpRef = useRef(null);
   const seatingRef = useRef(null);
   const { cabs } = useSelector((state) => state.cab || { cabs: [] });
-  console.log(room);
   // Prefer room type price, then room base price, fallback 0
   const roomPrice = room?.roomType?.price ?? room?.price?.base ?? 0;
 
@@ -66,7 +68,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   // Fetch cabs on component mount
   useEffect(() => {
     dispatch(getAllCabBookings());
+    dispatch(getAllCabs());
   }, [dispatch]);
+
+
 
   // Helper function to get perKmCharge based on seating capacity
   const getPerKmCharge = (seatingCapacity) => {
@@ -111,6 +116,23 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const CAB_FARE_RATE = useMemo(() => {
     return getPerKmCharge(formState.preferredSeatingCapacity);
   }, [formState.preferredSeatingCapacity, cabs]);
+  // Seating options derived from cab data; fallback to defaults
+  const seatingOptions = useMemo(() => {
+    const available = (cabs || [])
+      .filter((cab) => cab?.seatingCapacity && cab.status === "Available")
+      .map((cab) => String(cab.seatingCapacity));
+
+      
+      
+      // Ensure uniqueness
+      const unique = Array.from(new Set(available));
+      // Sort numerically, keeping "10+" at the end
+      return unique.sort((a, b) => {
+        const aVal = a === "10+" ? 999 : parseInt(a, 10);
+        const bVal = b === "10+" ? 999 : parseInt(b, 10);
+        return aVal - bVal;
+      });
+    }, [cabs]);
   const inputClasses =
     "w-full border border-tertiary/40 rounded-lg p-2 bg-white/95 text-senary placeholder:text-quinary/60 focus:outline-none focus:ring-2 focus:ring-quaternary/40 focus:border-quaternary/60 transition";
   const textareaClasses = `${inputClasses} h-24`;
@@ -263,9 +285,82 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     }));
   };
 
+  const validationSchema = useMemo(() => {
+    const baseSchema = {
+      fullName: Yup.string().trim().required("Full name is required"),
+      email: Yup.string().trim().email("Enter a valid email").nullable(),
+      address: Yup.string().trim().required("Address is required"),
+      checkInDate: Yup.string().required("Check-in date is required"),
+      checkOutDate: Yup.string().required("Check-out date is required"),
+      totalAmount: Yup.number().min(0, "Total cannot be negative").required("Total amount is required"),
+    };
+
+    if (cabServiceEnabled) {
+      return Yup.object().shape({
+        ...baseSchema,
+        pickUpLocation: Yup.string().required("Pick-up location is required"),
+        pickUpTime: Yup.string().required("Pick-up time is required"),
+        preferredSeatingCapacity: Yup.string().required("Seating capacity is required"),
+      });
+    }
+    return Yup.object().shape(baseSchema);
+  }, [cabServiceEnabled]);
+
+  const validateForm = async () => {
+    try {
+      await validationSchema.validate(formState, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (validationErr) {
+      const nextErrors = {};
+      if (validationErr.inner && validationErr.inner.length) {
+        validationErr.inner.forEach((err) => {
+          if (err.path && !nextErrors[err.path]) {
+            nextErrors[err.path] = err.message;
+          }
+        });
+      } else if (validationErr.path) {
+        nextErrors[validationErr.path] = validationErr.message;
+      }
+      setErrors(nextErrors);
+
+      // Switch tab to the section that needs attention
+      const reservationFields = ["checkInDate", "checkOutDate", "pickUpLocation", "pickUpTime", "preferredSeatingCapacity", "totalAmount"];
+      const hasReservationError = Object.keys(nextErrors).some((key) => reservationFields.includes(key));
+      setActiveTab(hasReservationError ? "reservation" : "personal");
+      return false;
+    }
+  };
+
+  // Validate cab fields only when the service is enabled
+  const validateCabFields = () => {
+    if (!cabServiceEnabled) return true; // optional service, skip validation
+
+    if (!formState.pickUpLocation) {
+      alert("Please select a pick-up location for cab service");
+      setActiveTab("reservation");
+      return false;
+    }
+    if (!formState.pickUpTime) {
+      alert("Please select a pick-up time for cab service");
+      setActiveTab("reservation");
+      return false;
+    }
+    if (!formState.preferredSeatingCapacity) {
+      alert("Please select a seating capacity for cab service");
+      setActiveTab("reservation");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!room?.id) return;
+
+    // Form-level validation (Formik/Yup style)
+    const isFormValid = await validateForm();
+    if (!isFormValid) return;
 
     if (!formState.countrycode || !formState.mobile) {
       alert("Please enter a valid mobile number with country code");
@@ -273,24 +368,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       return;
     }
 
-    // Validate cab booking fields if cab service is enabled
-    if (cabServiceEnabled) {
-      if (!formState.pickUpLocation) {
-        alert("Please select a pick-up location for cab service");
-        setActiveTab("reservation");
-        return;
-      }
-      if (!formState.pickUpTime) {
-        alert("Please select a pick-up time for cab service");
-        setActiveTab("reservation");
-        return;
-      }
-      if (!formState.preferredSeatingCapacity) {
-        alert("Please select a seating capacity for cab service");
-        setActiveTab("reservation");
-        return;
-      }
-    }
+    // Validate cab booking fields only when the optional cab service is enabled
+    if (!validateCabFields()) return;
 
     try {
       // Only create booking intent for Card or Bank Transfer
@@ -438,10 +517,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   type="text"
                   className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                   placeholder="Enter full name"
-                  required
                   value={formState.fullName}
                   onChange={handleChange("fullName")}
                 />
+                {errors.fullName && <p className="text-xs text-red-600 mt-1">{errors.fullName}</p>}
               </div>
 
               <div className="mb-4">
@@ -453,6 +532,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   value={formState.email}
                   onChange={handleChange("email")}
                 />
+                {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -519,10 +599,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <textarea
                   className="w-full text-black px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300"
                   placeholder="Enter address"
-                  required
                   value={formState.address}
                   onChange={handleChange("address")}
                 ></textarea>
+                {errors.address && <p className="text-xs text-red-600 mt-1">{errors.address}</p>}
               </div>
             </div>
           )}
@@ -569,6 +649,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       popupClassName="guest-range-dropdown"
                     />
                   </ConfigProvider>
+                  {errors.checkInDate && <p className="text-xs text-red-600 mt-1">{errors.checkInDate}</p>}
+                  {errors.checkOutDate && !errors.checkInDate && <p className="text-xs text-red-600 mt-1">{errors.checkOutDate}</p>}
                 </div>
               </div>
 
@@ -680,6 +762,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                           </div>
                         )}
                       </div>
+                      {errors.pickUpLocation && <p className="text-xs text-red-600 mt-1">{errors.pickUpLocation}</p>}
                     </div>
 
                     <div>
@@ -691,6 +774,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         value={formState.pickUpTime}
                         onChange={handleChange("pickUpTime")}
                       />
+                      {errors.pickUpTime && <p className="text-xs text-red-600 mt-1">{errors.pickUpTime}</p>}
                     </div>
                   </div>
 
@@ -710,7 +794,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         </button>
                         {showSeatingDropdown && (
                           <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                            {['4','5','6','7','8','9','10+'].map((val) => (
+                            {seatingOptions.map((val) => (
                               <div
                                 key={val}
                                 onClick={() => {
@@ -728,6 +812,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <p className="text-xs text-gray-600 mt-1">
                         A cab with matching or higher capacity will be automatically assigned
                       </p>
+                      {errors.preferredSeatingCapacity && <p className="text-xs text-red-600 mt-1">{errors.preferredSeatingCapacity}</p>}
                     </div>
                   </div>
 
@@ -858,11 +943,11 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     type="number"
                     className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                     placeholder="0.00"
-                    required
                     min="0"
                     value={formState.totalAmount}
                     readOnly
                   />
+                  {errors.totalAmount && <p className="text-xs text-red-600 mt-1">{errors.totalAmount}</p>}
                 </div>
               </div>
 

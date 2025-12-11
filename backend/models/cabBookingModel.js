@@ -14,7 +14,7 @@ const cabBookingSchema = new mongoose.Schema({
     },
     preferredSeatingCapacity: {
         type: String,
-        enum: ["4", "5", "6", "7", "8", "9", "10+"],
+        enum: ["4", "5", "6", "7", "8", "9", "10","12","17","24"],
         required: false
     },
     dropLocation: {
