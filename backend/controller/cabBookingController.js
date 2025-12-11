@@ -5,6 +5,12 @@ const Staff = require("../models/staffModel");
 const { findAvailableDriver, assignDriversToUnassignedBookings } = require("../utils/driverAssignment");
 const { emitUserNotification } = require("../socketManager/socketManager");
 
+const PICKUP_DISTANCE_MAP = {
+    "Airport": 30,
+    "Railway Station": 15,
+    "Bus Station": 20
+};
+
 // Create Cab Booking
 exports.createCabBooking = async (req, res) => {
     try {
@@ -172,6 +178,10 @@ exports.createCabBooking = async (req, res) => {
             zipCode: ""
         };
 
+        const resolvedEstimatedDistance = PICKUP_DISTANCE_MAP[pickUpLocation] !== undefined
+            ? PICKUP_DISTANCE_MAP[pickUpLocation]
+            : (estimatedDistance ?? null);
+
         // Determine status based on assignment
         let bookingStatus = "Pending";
         if (resolvedCabId && resolvedDriverId) {
@@ -188,7 +198,7 @@ exports.createCabBooking = async (req, res) => {
             assignedDriver: resolvedDriverId || null,
             bookingDate: bookingDate ? new Date(bookingDate) : new Date(),
             pickUpTime: new Date(pickUpTime),
-            estimatedDistance: estimatedDistance || null,
+            estimatedDistance: resolvedEstimatedDistance,
             estimatedFare: estimatedFare || null,
             specialInstructions: specialInstructions || "",
             notes: notes || "",
@@ -406,6 +416,11 @@ exports.updateCabBooking = async (req, res) => {
                     }
                 }
             }
+        }
+
+        const mappedDistance = PICKUP_DISTANCE_MAP[cabBooking.pickUpLocation];
+        if (mappedDistance !== undefined) {
+            cabBooking.estimatedDistance = mappedDistance;
         }
 
         if (dropLocation) {

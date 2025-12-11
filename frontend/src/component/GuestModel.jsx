@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createBooking, createBookingPaymentIntent } from "../Redux/Slice/bookingSlice";
 import { createCabBooking, getAllCabBookings } from "../Redux/Slice/cabBookingSlice";
 import * as Yup from "yup";
+import { useFormik } from "formik";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { ChevronDown } from "lucide-react";
@@ -29,7 +30,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
   const [showPickUpDropdown, setShowPickUpDropdown] = useState(false);
   const [showSeatingDropdown, setShowSeatingDropdown] = useState(false);
-  const [errors, setErrors] = useState({});
   const paymentStatusRef = useRef(null);
   const paymentMethodRef = useRef(null);
   const pickUpRef = useRef(null);
@@ -37,32 +37,150 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const { cabs } = useSelector((state) => state.cab || { cabs: [] });
   // Prefer room type price, then room base price, fallback 0
   const roomPrice = room?.roomType?.price ?? room?.price?.base ?? 0;
+  const validationSchema = useMemo(() => {
+    const baseSchema = {
+      fullName: Yup.string().trim().required("Full name is required"),
+      email: Yup.string().trim().email("Enter a valid email").required("Email is required"),
+      countrycode: Yup.string().trim().required("Country code is required"),
+      mobile: Yup.string().trim().required("Phone number is required"),
+      address: Yup.string().trim().required("Address is required"),
+      checkInDate: Yup.string().required("Check-in date is required"),
+      checkOutDate: Yup.string().required("Check-out date is required"),
+      paymentStatus: Yup.string().required("Payment status is required"),
+      paymentMethod: Yup.string().required("Payment method is required"),
+      totalAmount: Yup.number().min(0, "Total cannot be negative").required("Total amount is required"),
+      idNumber: Yup.string().trim().required("ID number is required"),
+    };
 
-  const [formState, setFormState] = useState({
-    fullName: "",
-    email: "",
-    // phone fields (similar to StaffForm)
-    countrycode: "+91",
-    mobile: "",
-    fullMobile: "",
-    idNumber: "",
-    address: "",
-    checkInDate: "",
-    checkOutDate: "",
-    paymentStatus: "Pending",
-    paymentMethod: "Cash",
-    paymentIntentId: "",
-    totalAmount: roomPrice || "",
-    notes: "",
-    // Cab booking fields
-    pickUpLocation: "Airport",
-    pickUpTime: "",
-    bookingDate: "",
-    preferredSeatingCapacity: "4",
-    estimatedDistance: "",
-    estimatedFare: "",
-    specialInstructions: "",
-    cabNotes: "",
+    if (cabServiceEnabled) {
+      return Yup.object().shape({
+        ...baseSchema,
+        pickUpLocation: Yup.string().required("Pick-up location is required"),
+        pickUpTime: Yup.string().required("Pick-up time is required"),
+        preferredSeatingCapacity: Yup.string().required("Seating capacity is required"),
+      });
+    }
+    return Yup.object().shape(baseSchema);
+  }, [cabServiceEnabled]);
+
+  const {
+    values: formState,
+    errors,
+    setFieldValue,
+    setValues,
+    handleSubmit,
+    setFieldTouched,
+    validateForm,
+  } = useFormik({
+    initialValues: {
+      fullName: "",
+      email: "",
+      countrycode: "+91",
+      mobile: "",
+      fullMobile: "",
+      idNumber: "",
+      address: "",
+      checkInDate: "",
+      checkOutDate: "",
+      paymentStatus: "Pending",
+      paymentMethod: "Cash",
+      paymentIntentId: "",
+      totalAmount: roomPrice || "",
+      notes: "",
+      pickUpLocation: "Airport",
+      pickUpTime: "",
+      bookingDate: "",
+      preferredSeatingCapacity: "4",
+      estimatedDistance: "",
+      estimatedFare: "",
+      specialInstructions: "",
+      cabNotes: "",
+    },
+    validationSchema,
+    validateOnBlur: true,
+    validateOnChange: false,
+    enableReinitialize: false,
+    onSubmit: async (submittedValues, helpers) => {
+      if (!room?.id) return;
+
+      // Ensure phone exists
+      if (!submittedValues.countrycode || !submittedValues.mobile) {
+        helpers.setFieldError("mobile", "Please enter a valid mobile number with country code");
+        setActiveTab("personal");
+        return;
+      }
+
+      try {
+        // Only create booking intent for Card or Bank Transfer
+        let paymentIntentId = "";
+        const paymentMethod = (submittedValues.paymentMethod || "").toLowerCase();
+        if (paymentMethod === "card" || paymentMethod === "bank transfer" || paymentMethod === "bank_transfer") {
+          const paymentIntent = await dispatch(
+            createBookingPaymentIntent({ totalAmount: submittedValues.totalAmount, currency: "usd" })
+          ).unwrap();
+          if (!paymentIntent) {
+            throw new Error("Failed to create payment intent.");
+          }
+          paymentIntentId = paymentIntent;
+        }
+
+        const payload = {
+          roomId: room.id,
+          guest: {
+            fullName: submittedValues.fullName,
+            email: submittedValues.email,
+            countrycode: submittedValues.countrycode,
+            phone: submittedValues.mobile,
+            idNumber: submittedValues.idNumber,
+            address: submittedValues.address,
+          },
+          reservation: {
+            checkInDate: submittedValues.checkInDate,
+            checkOutDate: submittedValues.checkOutDate,
+            occupancy: {
+              adults: room?.capacity?.adults || 1,
+              children: room?.capacity?.children || 0,
+            },
+          },
+          payment: {
+            paymentIntentId: paymentIntentId,
+            status: submittedValues.paymentStatus,
+            totalAmount: Number(submittedValues.totalAmount || room?.price?.base || 0),
+            method: submittedValues.paymentMethod,
+          },
+          status: "Confirmed",
+          notes: submittedValues.notes,
+        };
+
+        const bookingResult = await dispatch(createBooking(payload)).unwrap();
+
+        if (cabServiceEnabled) {
+          const bookingId = bookingResult?.id || bookingResult?._id;
+          if (!bookingId) {
+            throw new Error("Failed to get booking ID for cab booking");
+          }
+          const cabBookingPayload = {
+            bookingId,
+            pickUpLocation: submittedValues.pickUpLocation,
+            pickUpTime: submittedValues.pickUpTime,
+            bookingDate: submittedValues.bookingDate || submittedValues.checkInDate || new Date().toISOString().split("T")[0],
+            preferredSeatingCapacity: submittedValues.preferredSeatingCapacity || "4",
+            estimatedDistance: submittedValues.estimatedDistance ? Number(submittedValues.estimatedDistance) : null,
+            estimatedFare: submittedValues.estimatedFare ? Number(submittedValues.estimatedFare) : null,
+            specialInstructions: submittedValues.specialInstructions || "",
+            notes: submittedValues.cabNotes || "",
+          };
+          await dispatch(createCabBooking(cabBookingPayload)).unwrap();
+        }
+        if (onBooked) {
+          onBooked(room);
+        }
+        onClose();
+      } catch (err) {
+        console.error("Error creating booking or cab booking:", err);
+        setActiveTab("personal");
+      }
+    },
   });
 
   // Fetch cabs on component mount
@@ -112,6 +230,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     return firstAvailableCab?.perKmCharge || 20;
   };
 
+  const PICKUP_DISTANCE_MAP = {
+    Airport: "30",
+    "Railway Station": "15",
+    "Bus Station": "20",
+  };
+
   // Get current CAB_FARE_RATE based on selected seating capacity
   const CAB_FARE_RATE = useMemo(() => {
     return getPerKmCharge(formState.preferredSeatingCapacity);
@@ -137,21 +261,33 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     "w-full border border-tertiary/40 rounded-lg p-2 bg-white/95 text-senary placeholder:text-quinary/60 focus:outline-none focus:ring-2 focus:ring-quaternary/40 focus:border-quaternary/60 transition";
   const textareaClasses = `${inputClasses} h-24`;
 
+  // Auto-set estimated distance based on static pick-up location mapping
+  useEffect(() => {
+    if (!cabServiceEnabled) return;
+    const mappedDistance = PICKUP_DISTANCE_MAP[formState.pickUpLocation];
+    if (mappedDistance !== undefined && `${formState.estimatedDistance}` !== `${mappedDistance}`) {
+      setValues((prev) => ({
+        ...prev,
+        estimatedDistance: mappedDistance,
+      }));
+    }
+  }, [formState.pickUpLocation, cabServiceEnabled, PICKUP_DISTANCE_MAP, setValues, formState.estimatedDistance]);
+
   // Automatically update estimated fare when distance changes
   useEffect(() => {
     if (cabServiceEnabled && formState.estimatedDistance) {
       const fare = parseFloat(formState.estimatedDistance) * CAB_FARE_RATE;
-      setFormState((prev) => ({
+      setValues((prev) => ({
         ...prev,
         estimatedFare: fare ? fare.toFixed(2) : "",
       }));
     } else if (!formState.estimatedDistance) {
-      setFormState((prev) => ({
+      setValues((prev) => ({
         ...prev,
         estimatedFare: "",
       }));
     }
-  }, [formState.estimatedDistance, cabServiceEnabled, CAB_FARE_RATE]);
+  }, [formState.estimatedDistance, cabServiceEnabled, CAB_FARE_RATE, setValues, formState.preferredSeatingCapacity]);
 
   // Recalculate totalAmount whenever stay dates or price changes
   useEffect(() => {
@@ -160,11 +296,11 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     const roomTotal = nights * pricePerNight;
     const cabCharge = cabServiceEnabled && formState.estimatedFare ? parseFloat(formState.estimatedFare) : 0;
     const total = roomTotal + cabCharge;
-    setFormState((prev) => ({
+    setValues((prev) => ({
       ...prev,
       totalAmount: total > 0 ? total : "",
     }));
-  }, [formState.checkInDate, formState.checkOutDate, room, formState.estimatedFare, cabServiceEnabled]);
+  }, [formState.checkInDate, formState.checkOutDate, room, formState.estimatedFare, cabServiceEnabled, roomPrice, setValues]);
 
 
   const roomSummary = useMemo(() => {
@@ -205,13 +341,13 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   // Auto-set booking date and pick-up time when check-in date changes (if cab service is enabled)
   useEffect(() => {
     if (cabServiceEnabled && formState.checkInDate) {
-      setFormState((prev) => ({
+      setValues((prev) => ({
         ...prev,
         bookingDate: prev.bookingDate || prev.checkInDate,
         pickUpTime: prev.pickUpTime || (prev.checkInDate ? `${prev.checkInDate}T10:00` : ""),
       }));
     }
-  }, [formState.checkInDate, cabServiceEnabled]);
+  }, [formState.checkInDate, cabServiceEnabled, setValues]);
 
   useEffect(() => {
     const scrollY = window.scrollY;
@@ -234,13 +370,25 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     return [start, end];
   }, [formState.checkInDate, formState.checkOutDate]);
 
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    const validationErrors = await validateForm();
+    if (validationErrors && Object.keys(validationErrors).length > 0) {
+      const reservationFields = ["checkInDate", "checkOutDate", "pickUpLocation", "pickUpTime", "preferredSeatingCapacity", "totalAmount"];
+      const hasReservationError = Object.keys(validationErrors).some((key) => reservationFields.includes(key));
+      setActiveTab(hasReservationError ? "reservation" : "personal");
+      return;
+    }
+    handleSubmit(event);
+  };
+
   const handleChange = (field) => (event) => {
     const { value, type, checked } = event.target;
     if (type === "checkbox") {
       setCabServiceEnabled(checked);
       // Reset cab booking fields when unchecked
       if (!checked) {
-        setFormState((prev) => ({
+        setValues((prev) => ({
           ...prev,
           pickUpLocation: "Airport",
           pickUpTime: "",
@@ -253,23 +401,20 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         }));
       } else {
         // Auto-set booking date and pick-up time when enabling cab service
-        setFormState((prev) => ({
+        setValues((prev) => ({
           ...prev,
           bookingDate: prev.bookingDate || prev.checkInDate || "",
           pickUpTime: prev.pickUpTime || (prev.checkInDate ? `${prev.checkInDate}T10:00` : ""),
         }));
       }
     } else {
-      setFormState((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      setFieldValue(field, value);
     }
   };
 
   const handleDateRangeChange = (dates) => {
     if (!dates || dates.length === 0) {
-      setFormState((prev) => ({
+      setValues((prev) => ({
         ...prev,
         checkInDate: "",
         checkOutDate: "",
@@ -278,176 +423,18 @@ const GuestModal = ({ onClose, room, onBooked }) => {
     }
 
     const [start, end] = dates;
-    setFormState((prev) => ({
+    setValues((prev) => ({
       ...prev,
       checkInDate: start ? start.format("YYYY-MM-DD") : "",
       checkOutDate: end ? end.format("YYYY-MM-DD") : "",
     }));
   };
 
-  const validationSchema = useMemo(() => {
-    const baseSchema = {
-      fullName: Yup.string().trim().required("Full name is required"),
-      email: Yup.string().trim().email("Enter a valid email").nullable(),
-      address: Yup.string().trim().required("Address is required"),
-      checkInDate: Yup.string().required("Check-in date is required"),
-      checkOutDate: Yup.string().required("Check-out date is required"),
-      totalAmount: Yup.number().min(0, "Total cannot be negative").required("Total amount is required"),
-    };
-
-    if (cabServiceEnabled) {
-      return Yup.object().shape({
-        ...baseSchema,
-        pickUpLocation: Yup.string().required("Pick-up location is required"),
-        pickUpTime: Yup.string().required("Pick-up time is required"),
-        preferredSeatingCapacity: Yup.string().required("Seating capacity is required"),
-      });
-    }
-    return Yup.object().shape(baseSchema);
-  }, [cabServiceEnabled]);
-
-  const validateForm = async () => {
-    try {
-      await validationSchema.validate(formState, { abortEarly: false });
-      setErrors({});
-      return true;
-    } catch (validationErr) {
-      const nextErrors = {};
-      if (validationErr.inner && validationErr.inner.length) {
-        validationErr.inner.forEach((err) => {
-          if (err.path && !nextErrors[err.path]) {
-            nextErrors[err.path] = err.message;
-          }
-        });
-      } else if (validationErr.path) {
-        nextErrors[validationErr.path] = validationErr.message;
-      }
-      setErrors(nextErrors);
-
-      // Switch tab to the section that needs attention
-      const reservationFields = ["checkInDate", "checkOutDate", "pickUpLocation", "pickUpTime", "preferredSeatingCapacity", "totalAmount"];
-      const hasReservationError = Object.keys(nextErrors).some((key) => reservationFields.includes(key));
-      setActiveTab(hasReservationError ? "reservation" : "personal");
-      return false;
-    }
-  };
-
-  // Validate cab fields only when the service is enabled
-  const validateCabFields = () => {
-    if (!cabServiceEnabled) return true; // optional service, skip validation
-
-    if (!formState.pickUpLocation) {
-      alert("Please select a pick-up location for cab service");
-      setActiveTab("reservation");
-      return false;
-    }
-    if (!formState.pickUpTime) {
-      alert("Please select a pick-up time for cab service");
-      setActiveTab("reservation");
-      return false;
-    }
-    if (!formState.preferredSeatingCapacity) {
-      alert("Please select a seating capacity for cab service");
-      setActiveTab("reservation");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!room?.id) return;
-
-    // Form-level validation (Formik/Yup style)
-    const isFormValid = await validateForm();
-    if (!isFormValid) return;
-
-    if (!formState.countrycode || !formState.mobile) {
-      alert("Please enter a valid mobile number with country code");
-      setActiveTab("personal");
-      return;
-    }
-
-    // Validate cab booking fields only when the optional cab service is enabled
-    if (!validateCabFields()) return;
-
-    try {
-      // Only create booking intent for Card or Bank Transfer
-      let paymentIntentId = "";
-      const paymentMethod = (formState.paymentMethod || '').toLowerCase();
-      if (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') {
-        const paymentIntent = await dispatch(createBookingPaymentIntent({ totalAmount: formState.totalAmount, currency: "usd" })).unwrap();
-        if (!paymentIntent) {
-          throw new Error("Failed to create payment intent.");
-        }
-        paymentIntentId = paymentIntent;
-      }
-
-      const payload = {
-        roomId: room.id,
-        guest: {
-          fullName: formState.fullName,
-          email: formState.email,
-          countrycode: formState.countrycode,
-          phone: formState.mobile,
-          idNumber: formState.idNumber,
-          address: formState.address,
-        },
-        reservation: {
-          checkInDate: formState.checkInDate,
-          checkOutDate: formState.checkOutDate,
-          occupancy: {
-            adults: room?.capacity?.adults || 1,
-            children: room?.capacity?.children || 0,
-          },
-        },
-        payment: {
-          paymentIntentId: paymentIntentId,
-          status: formState.paymentStatus,
-          totalAmount: Number(formState.totalAmount || room?.price?.base || 0),
-          method: formState.paymentMethod,
-        },
-        status: "Confirmed",
-        notes: formState.notes,
-      };
-
-      const bookingResult = await dispatch(createBooking(payload)).unwrap();
-
-      // Cab booking logic unchanged
-      if (cabServiceEnabled) {
-        const bookingId = bookingResult?.id || bookingResult?._id;
-        if (!bookingId) {
-          console.error("Booking ID not found in result:", bookingResult);
-          throw new Error("Failed to get booking ID for cab booking");
-        }
-        const cabBookingPayload = {
-          bookingId,
-          pickUpLocation: formState.pickUpLocation,
-          pickUpTime: formState.pickUpTime,
-          bookingDate: formState.bookingDate || formState.checkInDate || new Date().toISOString().split('T')[0],
-          preferredSeatingCapacity: formState.preferredSeatingCapacity || "4",
-          estimatedDistance: formState.estimatedDistance ? Number(formState.estimatedDistance) : null,
-          estimatedFare: formState.estimatedFare ? Number(formState.estimatedFare) : null,
-          specialInstructions: formState.specialInstructions || "",
-          notes: formState.cabNotes || "",
-        };
-        await dispatch(createCabBooking(cabBookingPayload)).unwrap();
-      }
-      if (onBooked) {
-        onBooked(room);
-      }
-      onClose();
-    } catch (err) {
-      console.error("Error creating booking or cab booking:", err);
-      setActiveTab("personal");
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
       <form
         className="bg-white w-[90%] md:w-[80%] lg:w-[70%] rounded-lg  shadow-[0_25px_60px_rgba(117,86,71,0.25)] border border-primary/40 backdrop-blur-md"
-        onSubmit={handleSubmit}      >
+        onSubmit={handleFormSubmit}      >
         {/* HEADER */}
         <div className="flex items-center justify-between bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] px-3 sm:px-4 py-3 sm:py-4 rounded-t-lg">
           <div>
@@ -547,12 +534,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       const dialCode = country?.dialCode || "";
                       const mobileOnly = nextValue.slice(dialCode.length);
 
-                      setFormState((prev) => ({
-                        ...prev,
-                        countrycode: dialCode ? `+${dialCode}` : "",
-                        mobile: mobileOnly,
-                        fullMobile: nextValue,
-                      }));
+                    setValues((prev) => ({
+                      ...prev,
+                      countrycode: dialCode ? `+${dialCode}` : "",
+                      mobile: mobileOnly,
+                      fullMobile: nextValue,
+                    }));
                     }}
                     placeholder="Enter mobile number"
                     inputProps={{
@@ -580,6 +567,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       width: "260px",
                     }}
                   />
+                  {errors.mobile && <p className="text-xs text-red-600 mt-1">{errors.mobile}</p>}
                 </div>
 
                 <div>
@@ -591,6 +579,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     value={formState.idNumber}
                     onChange={handleChange("idNumber")}
                   />
+                  {errors.idNumber && <p className="text-xs text-red-600 mt-1">{errors.idNumber}</p>}
                 </div>
               </div>
 
@@ -672,7 +661,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                         <div
                           onClick={() => {
-                            setFormState((prev) => ({ ...prev, paymentStatus: 'Pending' }));
+                            setFieldValue("paymentStatus", "Pending");
                             setShowPaymentStatusDropdown(false);
                           }}
                           className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -681,7 +670,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         </div>
                         <div
                           onClick={() => {
-                            setFormState((prev) => ({ ...prev, paymentStatus: 'Paid' }));
+                            setFieldValue("paymentStatus", "Paid");
                             setShowPaymentStatusDropdown(false);
                           }}
                           className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -734,7 +723,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                           <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                             <div
                               onClick={() => {
-                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Airport' }));
+                                setFieldValue("pickUpLocation", "Airport");
                                 setShowPickUpDropdown(false);
                               }}
                               className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -743,7 +732,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                             </div>
                             <div
                               onClick={() => {
-                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Railway Station' }));
+                                setFieldValue("pickUpLocation", "Railway Station");
                                 setShowPickUpDropdown(false);
                               }}
                               className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -752,7 +741,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                             </div>
                             <div
                               onClick={() => {
-                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Bus Station' }));
+                                setFieldValue("pickUpLocation", "Bus Station");
                                 setShowPickUpDropdown(false);
                               }}
                               className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -798,7 +787,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                               <div
                                 key={val}
                                 onClick={() => {
-                                  setFormState((prev) => ({ ...prev, preferredSeatingCapacity: val }));
+                                  setFieldValue("preferredSeatingCapacity", val);
                                   setShowSeatingDropdown(false);
                                 }}
                                 className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -836,7 +825,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         min="0"
                         step="0.1"
                         value={formState.estimatedDistance}
-                        onChange={handleChange("estimatedDistance")}
+                        readOnly
                       />
                     </div>
                   </div>
@@ -907,7 +896,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                         <div
                           onClick={() => {
-                            setFormState((prev) => ({ ...prev, paymentMethod: 'Cash' }));
+                            setFieldValue("paymentMethod", "Cash");
                             setShowPaymentMethodDropdown(false);
                           }}
                           className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -916,7 +905,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         </div>
                         <div
                           onClick={() => {
-                            setFormState((prev) => ({ ...prev, paymentMethod: 'Card' }));
+                            setFieldValue("paymentMethod", "Card");
                             setShowPaymentMethodDropdown(false);
                           }}
                           className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -925,7 +914,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                         </div>
                         <div
                           onClick={() => {
-                            setFormState((prev) => ({ ...prev, paymentMethod: 'Bank Transfer' }));
+                            setFieldValue("paymentMethod", "Bank Transfer");
                             setShowPaymentMethodDropdown(false);
                           }}
                           className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
@@ -947,7 +936,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     value={formState.totalAmount}
                     readOnly
                   />
-                  {errors.totalAmount && <p className="text-xs text-red-600 mt-1">{errors.totalAmount}</p>}
                 </div>
               </div>
 
