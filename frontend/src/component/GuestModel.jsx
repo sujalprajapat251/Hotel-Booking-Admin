@@ -873,7 +873,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                 <div className="flex flex-col gap-1 text-sm">
                   <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * roomPrice}</b></span>
                   <span>Cab Charges: <b>${cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0}</b></span>
-                  <span className="border-t border-quinary/20 pt-1 mt-1">Total Amount: <b>${formState.totalAmount}</b></span>
+                  <span className="border-t border-quinary/20 pt-1 mt-1">Total Amount: <b>${getNights(formState.checkInDate, formState.checkOutDate) * roomPrice + Number(cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0)}</b></span>
                 </div>
               </div>
 
@@ -933,7 +933,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                     className="w-full text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6]"
                     placeholder="0.00"
                     min="0"
-                    value={formState.totalAmount}
+                    value={getNights(formState.checkInDate, formState.checkOutDate) * roomPrice + Number(cabServiceEnabled && formState.estimatedFare ? formState.estimatedFare : 0)}
                     readOnly
                   />
                 </div>
