@@ -25,8 +25,12 @@ const GuestModal = ({ onClose, room, onBooked }) => {
   const [cabServiceEnabled, setCabServiceEnabled] = useState(false);
   const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
   const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
+  const [showPickUpDropdown, setShowPickUpDropdown] = useState(false);
+  const [showSeatingDropdown, setShowSeatingDropdown] = useState(false);
   const paymentStatusRef = useRef(null);
   const paymentMethodRef = useRef(null);
+  const pickUpRef = useRef(null);
+  const seatingRef = useRef(null);
   const { cabs } = useSelector((state) => state.cab || { cabs: [] });
   console.log(room);
   // Prefer room type price, then room base price, fallback 0
@@ -164,19 +168,11 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
         setShowPaymentMethodDropdown(false);
       }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
-        setShowPaymentStatusDropdown(false);
+      if (pickUpRef.current && !pickUpRef.current.contains(event.target)) {
+        setShowPickUpDropdown(false);
       }
-      if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
-        setShowPaymentMethodDropdown(false);
+      if (seatingRef.current && !seatingRef.current.contains(event.target)) {
+        setShowSeatingDropdown(false);
       }
     };
 
@@ -579,15 +575,40 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
-                  <select
-                    className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
-                    value={formState.paymentStatus}
-                    onChange={handleChange("paymentStatus")}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Paid">Paid</option>
-                    {/* <option value="Partial">Partial</option> */}
-                  </select>
+                  <div className="relative" ref={paymentStatusRef}>
+                    <button
+                      type="button"
+                      className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                      onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
+                    >
+                      <span className={formState.paymentStatus ? 'text-gray-800' : 'text-gray-400'}>
+                        {formState.paymentStatus || 'Select payment status'}
+                      </span>
+                      <ChevronDown size={18} className="text-gray-600 ml-2" />
+                    </button>
+                    {showPaymentStatusDropdown && (
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                        <div
+                          onClick={() => {
+                            setFormState((prev) => ({ ...prev, paymentStatus: 'Pending' }));
+                            setShowPaymentStatusDropdown(false);
+                          }}
+                          className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                        >
+                          Pending
+                        </div>
+                        <div
+                          onClick={() => {
+                            setFormState((prev) => ({ ...prev, paymentStatus: 'Paid' }));
+                            setShowPaymentStatusDropdown(false);
+                          }}
+                          className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                        >
+                          Paid
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -616,16 +637,49 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Pick-up Location*</label>
-                      <select
-                        className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
-                        required={cabServiceEnabled}
-                        value={formState.pickUpLocation}
-                        onChange={handleChange("pickUpLocation")}
-                      >
-                        <option value="Airport">Airport</option>
-                        <option value="Railway Station">Railway Station</option>
-                        <option value="Bus Station">Bus Station</option>
-                      </select>
+                      <div className="relative" ref={pickUpRef}>
+                        <button
+                          type="button"
+                          className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                          onClick={() => setShowPickUpDropdown((prev) => !prev)}
+                        >
+                          <span className={formState.pickUpLocation ? 'text-gray-800' : 'text-gray-400'}>
+                            {formState.pickUpLocation || 'Select pick-up location'}
+                          </span>
+                          <ChevronDown size={18} className="text-gray-600 ml-2" />
+                        </button>
+                        {showPickUpDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            <div
+                              onClick={() => {
+                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Airport' }));
+                                setShowPickUpDropdown(false);
+                              }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              Airport
+                            </div>
+                            <div
+                              onClick={() => {
+                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Railway Station' }));
+                                setShowPickUpDropdown(false);
+                              }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              Railway Station
+                            </div>
+                            <div
+                              onClick={() => {
+                                setFormState((prev) => ({ ...prev, pickUpLocation: 'Bus Station' }));
+                                setShowPickUpDropdown(false);
+                              }}
+                              className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                            >
+                              Bus Station
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div>
@@ -643,20 +697,34 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Seating Capacity*</label>
-                      <select
-                        className="w-full text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6]"
-                        required={cabServiceEnabled}
-                        value={formState.preferredSeatingCapacity}
-                        onChange={handleChange("preferredSeatingCapacity")}
-                      >
-                        <option value="4">4 Seater</option>
-                        <option value="5">5 Seater</option>
-                        <option value="6">6 Seater</option>
-                        <option value="7">7 Seater</option>
-                        <option value="8">8 Seater</option>
-                        <option value="9">9 Seater</option>
-                        <option value="10+">10+ Seater</option>
-                      </select>
+                      <div className="relative" ref={seatingRef}>
+                        <button
+                          type="button"
+                          className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                          onClick={() => setShowSeatingDropdown((prev) => !prev)}
+                        >
+                          <span className={formState.preferredSeatingCapacity ? 'text-gray-800' : 'text-gray-400'}>
+                            {formState.preferredSeatingCapacity ? `${formState.preferredSeatingCapacity} Seater` : 'Select seating capacity'}
+                          </span>
+                          <ChevronDown size={18} className="text-gray-600 ml-2" />
+                        </button>
+                        {showSeatingDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
+                            {['4','5','6','7','8','9','10+'].map((val) => (
+                              <div
+                                key={val}
+                                onClick={() => {
+                                  setFormState((prev) => ({ ...prev, preferredSeatingCapacity: val }));
+                                  setShowSeatingDropdown(false);
+                                }}
+                                className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                              >
+                                {val === '10+' ? '10+ Seater' : `${val} Seater`}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-600 mt-1">
                         A cab with matching or higher capacity will be automatically assigned
                       </p>
@@ -751,7 +819,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <ChevronDown size={18} className="text-gray-600 ml-2" />
                     </button>
                     {showPaymentMethodDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto mt-1">
+                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                         <div
                           onClick={() => {
                             setFormState((prev) => ({ ...prev, paymentMethod: 'Cash' }));
