@@ -654,7 +654,7 @@ const DriverDetails = () => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm text-center appearance-none bg-white cursor-pointer"
+                className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm text-center appearance-none bg-white cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>

@@ -211,6 +211,16 @@ const CabsDetails = () => {
     }
   };
 
+  useEffect(() => {
+    if (isAddModalOpen || isDeleteModalOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [isAddModalOpen, isDeleteModalOpen]);
+
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
       <section className="py-5">
@@ -448,7 +458,7 @@ const CabsDetails = () => {
                   setItemsPerPage(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>

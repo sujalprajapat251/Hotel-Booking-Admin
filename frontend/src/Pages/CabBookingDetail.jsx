@@ -1084,7 +1084,7 @@ const CabBookingDetail = () => {
               <select
                 value={limit}
                 onChange={(e) => handleLimitChange(e)}
-                className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
+                className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>

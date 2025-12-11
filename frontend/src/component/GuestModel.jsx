@@ -578,7 +578,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="relative" ref={paymentStatusRef}>
                     <button
                       type="button"
-                      className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                      className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
                       onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
                     >
                       <span className={formState.paymentStatus ? 'text-gray-800' : 'text-gray-400'}>
@@ -613,7 +613,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               </div>
 
               {/* Cab Service Checkbox */}
-              <div className="mt-4 p-4 w-full text-black border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300">
+              <div className="mt-4 px-4 py-3 w-full text-black border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] border-gray-300">
                 <label className="flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -629,7 +629,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
               {/* Cab Booking Details - Show only if checkbox is checked */}
               {cabServiceEnabled && (
-                <div className="mt-4 p-3 sm:p-4 border border-gray-200 rounded-2xl shadow-sm">
+                <div className="mt-4 p-3 sm:p-4 border border-gray-200 rounded-md shadow-sm">
                   <h4 className="text-md font-semibold border-l-4 border-senary pl-2 mb-4 text-senary">
                     Cab Booking Details
                   </h4>
@@ -640,7 +640,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <div className="relative" ref={pickUpRef}>
                         <button
                           type="button"
-                          className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                          className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
                           onClick={() => setShowPickUpDropdown((prev) => !prev)}
                         >
                           <span className={formState.pickUpLocation ? 'text-gray-800' : 'text-gray-400'}>
@@ -700,7 +700,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       <div className="relative" ref={seatingRef}>
                         <button
                           type="button"
-                          className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                          className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
                           onClick={() => setShowSeatingDropdown((prev) => !prev)}
                         >
                           <span className={formState.preferredSeatingCapacity ? 'text-gray-800' : 'text-gray-400'}>
@@ -794,7 +794,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
               )}
 
               {/* Booking Summary */}
-              <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-[#FFFAEB]">
+              <div className="mt-4 p-4 rounded-md border border-primary/20 bg-[#FFFAEB]">
                 <h4 className="font-semibold text-md mb-2 text-senary">Booking Summary</h4>
                 <div className="flex flex-col gap-1 text-sm">
                   <span>Room Total: <b>${getNights(formState.checkInDate, formState.checkOutDate) * roomPrice}</b></span>
@@ -810,7 +810,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   <div className="relative">
                     <button
                       type="button"
-                      className="w-full text-left text-black rounded-[4px] border border-gray-200 p-3 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                      className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
                       onClick={() => setShowPaymentMethodDropdown((prev) => !prev)}
                     >
                       <span className={formState.paymentMethod ? 'text-gray-800' : 'text-gray-400'}>
