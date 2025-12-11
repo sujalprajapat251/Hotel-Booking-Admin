@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { X, Eye, EyeOff, Edit2, ChevronDown } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserById, updatestaff } from '../Redux/Slice/staff.slice';
 import { changePassword } from '../Redux/Slice/auth.slice';
@@ -19,6 +19,7 @@ const Profile = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [genderDropdown, setGenderDropdown] = useState(false);
 
   const { currentUser, loading, success, message } = useSelector(
     (state) => state.staff
@@ -353,17 +354,40 @@ const Profile = () => {
               <label className="block text-sm text-gray-500 mb-2">Gender</label>
 
               {isEditMode ? (
-                <select
-                  name="gender"
-                  value={form.gender}
-                  onChange={handleInputChange}
-                  className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
-                >
-                  <option value="">Select Gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                <div className="relative">
+                  <button type="button"
+                    className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
+                    onClick={() => setGenderDropdown((prev) => !prev)}
+                  >
+                    <span className={form.gender ? "text-gray-800" : "text-gray-400"}>
+                      {form.gender || "Select payment status"}
+                    </span>
+                    <ChevronDown size={18} className="text-gray-600 ml-2" />
+                  </button>
+
+                  {genderDropdown && (
+                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto mt-1">
+                      <div
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, gender: "male" }));
+                          setGenderDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Male
+                      </div>
+                      <div
+                        onClick={() => {
+                          setForm((prev) => ({ ...prev, gender: "female" }));
+                          setGenderDropdown(false);
+                        }}
+                        className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
+                      >
+                        Female
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <p className="text-base text-gray-900 capitalize">
                   {currentUser?.gender || 'No Gender'}
