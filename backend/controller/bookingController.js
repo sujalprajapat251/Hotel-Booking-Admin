@@ -82,7 +82,10 @@ const refreshRoomStatus = async (roomId) => {
     if (!roomId) return;
 
     const now = new Date();
-    // Find the most relevant ongoing booking
+    // Normalize to start of today for date comparison
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    // Find the most relevant ongoing booking (check-in date <= now and check-out date > now)
     const ongoingBooking = await Booking.findOne({
         room: roomId,
         status: { $in: ACTIVE_BOOKING_STATUSES },
@@ -91,21 +94,40 @@ const refreshRoomStatus = async (roomId) => {
     }).sort({ 'reservation.checkInDate': 1 });
 
     let nextStatus = 'Available';
+    
     if (ongoingBooking) {
         if (ongoingBooking.status === 'CheckedIn') {
             nextStatus = 'Occupied';
         } else if (['Pending', 'Confirmed'].includes(ongoingBooking.status)) {
             nextStatus = 'Reserved';
         }
-    }
-
-    // If not in any ongoing booking, check if there is a future booking
-    if (!ongoingBooking) {
-        const futureBooking = await Booking.findOne({
+    } else {
+        // Check if there's a booking with check-in date matching today
+        const todayCheckInBooking = await Booking.findOne({
             room: roomId,
             status: { $in: ACTIVE_BOOKING_STATUSES },
-            'reservation.checkInDate': { $gt: now }
+            'reservation.checkInDate': { $gte: todayStart, $lte: todayEnd },
+            'reservation.checkOutDate': { $gt: now }
         }).sort({ 'reservation.checkInDate': 1 });
+
+        if (todayCheckInBooking) {
+            // If check-in date is today, mark room as Reserved
+            if (todayCheckInBooking.status === 'CheckedIn') {
+                nextStatus = 'Occupied';
+            } else if (['Pending', 'Confirmed'].includes(todayCheckInBooking.status)) {
+                nextStatus = 'Reserved';
+            }
+        } else {
+            // Check if there is a future booking (check-in date > now)
+            const futureBooking = await Booking.findOne({
+                room: roomId,
+                status: { $in: ACTIVE_BOOKING_STATUSES },
+                'reservation.checkInDate': { $gt: now }
+            }).sort({ 'reservation.checkInDate': 1 });
+            
+            // Fu   ture bookings don't change status to Reserved, keep as Available
+            // Only today's check-in or ongoing bookings change status
+        }
     }
 
     await Room.findByIdAndUpdate(roomId, { status: nextStatus });
@@ -845,5 +867,6 @@ module.exports = {
     updateBooking,
     deleteBooking,
     bookRoomByType,
-    createBookingPaymentIntent, 
+    createBookingPaymentIntent,
+    refreshRoomStatus
 };

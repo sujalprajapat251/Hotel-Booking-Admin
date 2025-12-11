@@ -153,6 +153,18 @@ export const deleteRoom = createAsyncThunk(
   }
 );
 
+export const refreshRoomStatuses = createAsyncThunk(
+  'rooms/refreshStatuses',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/rooms/refresh-status`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(buildError(error));
+    }
+  }
+);
+
 const initialState = {
   items: [],
   floors: [],
@@ -275,6 +287,16 @@ const roomsSlice = createSlice({
       .addCase(deleteRoom.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(refreshRoomStatuses.pending, (state) => {
+        // Don't set loading to true to avoid blocking UI
+      })
+      .addCase(refreshRoomStatuses.fulfilled, (state) => {
+        // Status refreshed successfully
+      })
+      .addCase(refreshRoomStatuses.rejected, (state, action) => {
+        // Silently fail - don't show error to user
+        console.error('Failed to refresh room statuses:', action.payload);
       });
   }
 });

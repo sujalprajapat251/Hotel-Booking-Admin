@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { deleteRoom, fetchRoomsPaginated } from '../Redux/Slice/createRoomSlice';
+import { deleteRoom, fetchRoomsPaginated, refreshRoomStatuses } from '../Redux/Slice/createRoomSlice';
 import { fetchRoomTypes } from '../Redux/Slice/roomtypesSlice';
 import { fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice';
 import GuestModal from '../component/GuestModel';
@@ -428,6 +428,11 @@ const AvailableRooms = () => {
 
   useEffect(() => {
     dispatch(fetchBookings());
+  }, [dispatch]);
+
+  // Refresh room statuses on component mount to ensure today's check-in dates are reflected
+  useEffect(() => {
+    dispatch(refreshRoomStatuses());
   }, [dispatch]);
 
   // Filter rooms based on filter criteria
