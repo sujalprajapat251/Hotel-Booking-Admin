@@ -104,7 +104,7 @@ indexRoutes.delete('/deletetfaq/:id', auth, adminOnly, deleteFAQ);
 // room type routes
 indexRoutes.post('/roomtypes', auth, adminOnly, upload.array("images", 10), createRoomType);
 indexRoutes.get('/roomtypes', getRoomTypes);
-indexRoutes.get('/roomtypes/:id', auth, adminOnly, getRoomTypeById);
+indexRoutes.get('/roomtypes/:id', getRoomTypeById);
 indexRoutes.put('/roomtypes/:id', auth, adminOnly, upload.array("images", 10), updateRoomType);
 indexRoutes.delete('/roomtypes/:id', auth, adminOnly, deleteRoomType);
 
