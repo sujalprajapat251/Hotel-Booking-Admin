@@ -75,7 +75,7 @@ const StackedBarChart = () => {
 
   const [hiddenBars, setHiddenBars] = useState({
     booked: false,
-    canceled: false,
+    cancelled: false,
   });
 
   const handleLegendClick = useCallback((key) => {
@@ -89,7 +89,7 @@ const StackedBarChart = () => {
     let list = apiData.map((item) => ({
       date: formatDayLabel(item.day),
       booked: item.booked,
-      canceled: item.canceled,
+      cancelled: item.cancelled,
     }));
 
     if (list.length > 7) {
@@ -100,7 +100,7 @@ const StackedBarChart = () => {
   }, [apiData]);
 
   const bookedColor = "#876B56";
-  const canceledColor = "#F7DF9C";
+  const cancelledColor = "#F7DF9C";
 
   const dynamicBarSize = chartData.length <= 3 ? 40 : chartData.length <= 5 ? 28 : 20;  
 
@@ -137,13 +137,13 @@ const StackedBarChart = () => {
             </Bar>
 
             <Bar
-              dataKey="canceled"
+              dataKey="cancelled"
               stackId="a"
-              name="Canceled"
-              fill={canceledColor}
-              opacity={hiddenBars.canceled ? 0.12 : 1}
+              name="Cancelled"
+              fill={cancelledColor}
+              opacity={hiddenBars.cancelled ? 0.12 : 1}
             >
-              <LabelList dataKey="canceled" position="center" fill="#876B56" fontWeight="700" />
+              <LabelList dataKey="cancelled" position="center" fill="#876B56" fontWeight="700" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>

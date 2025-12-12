@@ -288,7 +288,7 @@ exports.reservationDaywise = async (req, res) => {
                             ]
                         }
                     },
-                    canceled: {
+                    cancelled: {
                         $sum: {
                             $cond: [
                                 { $eq: ["$status", "Cancelled"] },
@@ -310,7 +310,7 @@ exports.reservationDaywise = async (req, res) => {
             return {
                 day: dayName,
                 booked: r.booked,
-                canceled: r.canceled
+                cancelled: r.cancelled
             };
         });
 
