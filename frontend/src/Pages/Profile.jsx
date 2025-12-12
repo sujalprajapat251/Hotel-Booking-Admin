@@ -366,7 +366,7 @@ const Profile = () => {
                   </button>
 
                   {genderDropdown && (
-                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto mt-1">
+                    <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
                       <div
                         onClick={() => {
                           setForm((prev) => ({ ...prev, gender: "male" }));
