@@ -79,19 +79,11 @@ function GuestDetailsModal({
 
   const handleCheckOut = () => {
     if (actionDisabled || !onCheckOut) return;
-    const confirmed = window.confirm(
-      "Mark this booking as checked out? This will free up the room."
-    );
-    if (!confirmed) return;
     onCheckOut();
   };
 
   const handleCancelRoom = () => {
     if (actionDisabled || !onCancelRoom) return;
-    const confirmed = window.confirm(
-      "Cancel this booking and return the room to inventory?"
-    );
-    if (!confirmed) return;
     onCancelRoom();
   };
 
