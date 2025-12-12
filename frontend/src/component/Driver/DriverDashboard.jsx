@@ -168,6 +168,18 @@ const DriverDashboard = () => {
     return ["Pending", "Confirmed", "Assigned", "InProgress"].includes(status);
   };
 
+  // Add helper function
+  const isPickupToday = (pickupDate) => {
+    if (!pickupDate) return false;
+    const today = new Date();
+    const pickup = new Date(pickupDate);
+    return (
+      pickup.getDate() === today.getDate() &&
+      pickup.getMonth() === today.getMonth() &&
+      pickup.getFullYear() === today.getFullYear()
+    );
+  };
+
   return (
     <>
       <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -270,7 +282,8 @@ const DriverDashboard = () => {
                     const status = booking.status || "Pending";
                     const nextStatus = getNextStatus(status);
                     const canUpdate = canUpdateStatus(status);
-
+                    const showStartTripButton =
+                      nextStatus === "InProgress" && isPickupToday(booking.bookingDate);
                     return (
                       <tr
                         key={booking._id}
@@ -348,36 +361,38 @@ const DriverDashboard = () => {
                               </button>
                             </div>
                             {canUpdate && (
-                              <button
-                                onClick={() => handleStatusUpdate(booking._id)}
-                                disabled={updatingStatusId === booking._id}
-                                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap ${
-                                  nextStatus === "InProgress"
-                                    ? "bg-[#C49A6C] hover:bg-[#A67F55] text-white"
-                                    : "bg-green-500 text-white hover:bg-green-600"
-                                }`}
-                                title={`Update to ${nextStatus}`}
-                              >
-                                {updatingStatusId === booking._id ? (
-                                  <>
-                                    <RefreshCw
-                                      size={14}
-                                      className="animate-spin"
-                                    />
-                                    Updating...
-                                  </>
-                                ) : nextStatus === "InProgress" ? (
-                                  <>
-                                    <PlayCircle size={14} />
-                                    Start Trip
-                                  </>
-                                ) : (
-                                  <>
-                                    <CheckCircle2 size={14} />
-                                    Complete
-                                  </>
-                                )}
-                              </button>
+                              (showStartTripButton || nextStatus !== "InProgress") && (
+                                <button
+                                  onClick={() => handleStatusUpdate(booking._id)}
+                                  disabled={updatingStatusId === booking._id}
+                                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 whitespace-nowrap ${
+                                    nextStatus === "InProgress"
+                                      ? "bg-[#C49A6C] hover:bg-[#A67F55] text-white"
+                                      : "bg-green-500 text-white hover:bg-green-600"
+                                  }`}
+                                  title={`Update to ${nextStatus}`}
+                                >
+                                  {updatingStatusId === booking._id ? (
+                                    <>
+                                      <RefreshCw
+                                        size={14}
+                                        className="animate-spin"
+                                      />
+                                      Updating...
+                                    </>
+                                  ) : nextStatus === "InProgress" ? (
+                                    <>
+                                      <PlayCircle size={14} />
+                                      Start Trip
+                                    </>
+                                  ) : (
+                                    <>
+                                      <CheckCircle2 size={14} />
+                                      Complete
+                                    </>
+                                  )}
+                                </button>
+                              )
                             )}
                           </div>
                         </td>

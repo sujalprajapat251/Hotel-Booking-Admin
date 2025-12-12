@@ -499,7 +499,7 @@ const AllHouseKeeping = () => {
                                                             {housekeeping.status === "Completed" ? (
                                                                 <div
                                                                     onClick={() => handleApprove(housekeeping?.id)}
-                                                                    title="Delete Booking"
+                                                                    title="Approve"
                                                                 >
                                                                     <FiCheckCircle className="text-[#43b82c] text-[18px]" />
                                                                 </div>
