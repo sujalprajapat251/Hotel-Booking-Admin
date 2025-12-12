@@ -592,7 +592,7 @@ const AllHouseKeeping = () => {
                                 {/* Modal Header */}
                                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6" >
                                     <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-4">
-                                        <h3 className="text-lg font-semibold text-black">Booking Details</h3>
+                                        <h3 className="text-lg font-semibold text-black">Housekeeping Details</h3>
                                         <button
                                             type="button"
                                             onClick={handleCloseModal}
@@ -615,7 +615,7 @@ const AllHouseKeeping = () => {
                                             <span className='text-gray-900 capitalize'>{selectedItem.roomType}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Payment Status:</span>
+                                            <span className="font-semibold text-gray-700 min-w-[120px]" >Status:</span>
                                             <span className={`inline-flex items-center justify-center px-3 py-1 rounded-lg text-xs font-semibold ${getStatusStyle(selectedItem.status)}`}>
                                                 {selectedItem.status}
                                             </span>
