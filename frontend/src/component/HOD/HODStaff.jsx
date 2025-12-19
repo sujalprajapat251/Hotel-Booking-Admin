@@ -321,7 +321,7 @@ const HODStaff = () => {
                       </td>
                     </tr>
                   ) : currentData?.length > 0 ? (
-                    currentData.map((staff, index) => (
+                    currentData.reverse().map((staff, index) => (
                       <tr
                         key={index}
                         className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
@@ -386,11 +386,11 @@ const HODStaff = () => {
                               >
                                 <FiEdit className="text-[#6777ef] text-[18px]" />
                               </div>
-                              <div
+                              {/* <div
                                 onClick={() => handleDeleteClick(staff)}
                               >
                                 <RiDeleteBinLine className="text-[#ff5200] text-[18px]" />
-                              </div>
+                              </div> */}
                             </div>
                           </td>
                         )}

@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { createStaff, updateStaff } from '../../Redux/Slice/staff.slice';
 import { getAllDepartment } from '../../Redux/Slice/department.slice';
 import PhoneInput from "react-phone-input-2";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 import 'react-phone-input-2/lib/style.css';
 import { parsePhoneNumberFromString } from "libphonenumber-js";
 
@@ -16,7 +17,7 @@ const StaffForm = () => {
   const dispatch = useDispatch();
   const isEditMode = location?.state?.mode === 'edit';
   const staffData = location?.state?.staff || null;
-  const pageTitle = isEditMode ? 'Edit New HOD Staff' : 'Add New HOD Staff';
+  const pageTitle = isEditMode ? 'Edit New Cafe Staff' : 'Add New Cafe Staff';
 
   const departments = useSelector((state) => state.department.departments);
 
@@ -54,6 +55,12 @@ const StaffForm = () => {
     { code: '+33', country: 'France' },
     { code: '+61', country: 'Australia' }
   ];
+
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const togglePasswordVisibility = () => {
+    setShowPassword((prev) => !prev);
+  };
 
   // Validation Schema
   const validationSchema = Yup.object({
@@ -506,16 +513,19 @@ const StaffForm = () => {
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         Password {isEditMode ? '(Leave blank to keep current password)' : '*'}
                       </label>
-                      <input
-                        type="password"
-                        name="password"
-                        value={formik.values.password}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        placeholder={isEditMode ? 'Enter new password (optional)' : 'Enter password'}
-                        className={`w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982] ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-gray-300'
-                          }`}
-                      />
+                      <div className="input-field flex items-center w-full px-4 py-2 border bg-gray-100 rounded-[4px] focus:outline-none focus:ring-2 focus:ring-[#B79982]">
+                        <input
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          value={formik.values.password}
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          placeholder={isEditMode ? 'Enter new password (optional)' : 'Enter password'}
+                          className={`bg-transparent focus-visible:outline-none w-full ${formik.touched.password && formik.errors.password ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                        <span className="text-gray-400 ms-auto" onClick={togglePasswordVisibility}>{showPassword ? <IoMdEye /> : <IoMdEyeOff />}</span>
+                      </div>
                       {formik.touched.password && formik.errors.password && (
                         <div className="text-red-500 text-xs mt-1">{formik.errors.password}</div>
                       )}

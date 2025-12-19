@@ -301,8 +301,12 @@ export default function Dashboard() {
 
                                             {/* {selected?.description && ( */}
                                             <div className="pb-1 border-b border-gray-100">
-                                                <span className="text-gray-600 block mb-1 text-[14px]">Description</span>
-                                                <p className="text-[#755647] text-xs">{selected?.description}</p>
+                                                <span className={`text-gray-600 block mb-1 text-[14px] pb-1 ${
+                                                    selected?.description ? "border-b border-gray-100" : ""
+                                                }`}>Description</span>
+                                                {selected?.description && (
+                                                    <p className="mt-2 text-[#755647] text-xs">{selected.description}</p>
+                                                )}
                                             </div>
                                             {/* )} */}
                                         </div>

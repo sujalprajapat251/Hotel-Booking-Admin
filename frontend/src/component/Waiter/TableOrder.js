@@ -248,37 +248,41 @@ export default function TableOrder() {
                     </div>
 
                     <div className=" flex flex-wrap items-stretch gap-0 sm:gap-0 mt-5">
-                        {filteredItems?.map((item, idx) => (
-                            <div key={idx} className="w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 xl:w-1/4 p-1.5 sm:p-3 flex mb-3">
-                                <div
-                                    className={`p-2 sm:p-4 w-full min-h-[120px] bg-white rounded-md hover:shadow-xl cursor-pointer 
-                                        ${item.available === false ? "opacity-40" : "opacity-100"}`}
-                                >
-                                    <img
-                                        src={`${item.image}`}
-                                        alt={item.name}
-                                        className="w-16 sm:w-16 md:w-20 lg:w-24 aspect-square mx-auto rounded-full relative bottom-6 sm:bottom-8 md:bottom-10 shadow-xl"
-                                    />
+                        {filteredItems && filteredItems.length === 0 ? (
+                            <div className="w-full p-8 sm:p-6 xl:p-14 text-center text-gray-500">No Items Found</div>
+                        ) : (
+                            filteredItems?.map((item, idx) => (
+                                <div key={idx} className="w-1/2 sm:w-1/2 md:w-1/2 lg:w-1/2 xl:w-1/4 p-1.5 sm:p-3 flex mb-3">
+                                    <div
+                                        className={`p-2 sm:p-4 w-full min-h-[120px] bg-white rounded-md hover:shadow-xl cursor-pointer 
+                                            ${item.available === false ? "opacity-40" : "opacity-100"}`}
+                                    >
+                                        <img
+                                            src={`${item.image}`}
+                                            alt={item.name}
+                                            className="w-16 sm:w-16 md:w-20 lg:w-24 aspect-square mx-auto rounded-full relative bottom-6 sm:bottom-8 md:bottom-10 shadow-xl"
+                                        />
 
-                                    <div className="flex flex-col">
-                                        <div className="mt-[-20px] sm:mt-[-25px] md:mt-[-30px] flex justify-between">
-                                            <h3 className="font-semibold text-xs sm:text-sm md:text-base truncate pr-1">{item.name}</h3>
-                                        </div>
+                                        <div className="flex flex-col">
+                                            <div className="mt-[-20px] sm:mt-[-25px] md:mt-[-30px] flex justify-between">
+                                                <h3 className="font-semibold text-xs sm:text-sm md:text-base truncate pr-1">{item.name}</h3>
+                                            </div>
 
-                                        <div className="flex justify-between items-center h-full mt-4 sm:mt-2">
-                                            <p
-                                                className="px-2 sm:px-3 py-1 bg-quinary text-white rounded-xl text-xs sm:text-sm cursor-pointer"
-                                                onClick={() => item.available === false ? null : handleAdd(item)}
-                                            >
-                                                + Add
-                                            </p>
+                                            <div className="flex justify-between items-center h-full mt-4 sm:mt-2">
+                                                <p
+                                                    className="px-2 sm:px-3 py-1 bg-quinary text-white rounded-xl text-xs sm:text-sm cursor-pointer"
+                                                    onClick={() => item.available === false ? null : handleAdd(item)}
+                                                >
+                                                    + Add
+                                                </p>
 
-                                            <p className="text-quinary text-xs sm:text-sm">${item.price}</p>
+                                                <p className="text-quinary text-xs sm:text-sm">${item.price}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
 

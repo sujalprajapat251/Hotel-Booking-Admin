@@ -53,6 +53,7 @@ export default function Dashboard() {
     }, 0);
   };
   const total = calculateItemsTotal(menu?.items);
+  const hasOrder = (menu?.items?.length || 0) > 0;
   const handleChnage = (ele) => {
     // setMenu(ele?.lastUnpaidOrder)
     setMenu(ele);
@@ -113,9 +114,9 @@ export default function Dashboard() {
                     className={`flex items-center justify-between border rounded p-4 bg-white shadow-sm cursor-pointer transition-transform duration-200 ${activeTableId === (o.id || o._id) ? "scale-[103%] shadow-md" : "hover:scale-[1.01]"}`} 
                     onClick={() => { handleChnage(o) }}>
                       <div className='w-full'>
-                        <div className='flex justify-between items-center flex-wrap'>
-                        <div className="font-semibold">{title}</div>
-                        <div className="font-semibold text-xs ms-auto text-gray-500">#{o._id}</div>
+                        <div className='flex justify-between items-center flex-wrap gap-1 sm:gap-0'>
+                        <div className="font-semibold text-[14px] sm:text-base">{title}</div>
+                        <div className="font-semibold text-xs ms-auto text-gray-500 break-all sm:break-normal">#{o._id}</div>
 
                         </div>
                         <div className="text-xs text-gray-500">{o?.name || ''}</div>
@@ -173,7 +174,13 @@ export default function Dashboard() {
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Pay</button>
+                <button
+                  onClick={() => { if (hasOrder) setIsModalOpen(true); }}
+                  disabled={!hasOrder}
+                  className={`px-4 py-2 rounded text-sm ${hasOrder ? 'bg-green-700 text-white hover:bg-green-800' : 'bg-gray-300 text-gray-600 cursor-not-allowed'}`}
+                >
+                  Pay
+                </button>
               </div>
             </div>
           </main>
