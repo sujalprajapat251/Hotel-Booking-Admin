@@ -476,7 +476,7 @@ const AvailableRooms = () => {
       }
 
       // Bed Size filter
-      if (filters.bedSize !== 'All Bed Sizes' && room.bed?.mainBed?.type !== filters.bedSize) {
+      if (filters.bedSize !== 'All Bed Sizes' && room.roomType?.bed?.mainBed?.type !== filters.bedSize) {
         return false;
       }
 
@@ -988,6 +988,7 @@ const AvailableRooms = () => {
               <div className="relative">
                 <input
                   type="date"
+                  // min={new Date().toISOString().split("T")[0]}
                   value={filters.checkInFrom}
                   onChange={(e) => handleFilterChange('checkInFrom', e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982]"

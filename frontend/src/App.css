@@ -50,13 +50,13 @@ body{
 }
 
 .guest-range-picker .ant-picker-input > input {
-  color: #f7df9c;
+  color: #755647;
   font-weight: 500;
   font-size: 14px;
 }
 
 .guest-range-picker .ant-picker-suffix {
-  color: #f7df9c;
+  color: #755647;
 }
 
 .guest-range-dropdown .ant-picker-panel-container {

@@ -616,8 +616,8 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       components: {
                         DatePicker: {
                           colorBgContainer: "#755647",
-                          colorText: "#F7DF9C",
-                          colorTextPlaceholder: "#E3C78A",
+                          colorText: "#755647",
+                          colorTextPlaceholder: "#755647",
                           colorTextDisabled: "#B79982",
                           cellActiveWithRangeBg: "#A3876A",
                           cellRangeBg: "#876B56",

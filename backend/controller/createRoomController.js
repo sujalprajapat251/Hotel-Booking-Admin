@@ -223,7 +223,20 @@ const getRoomsWithPagination = async (req, res) => {
 
     // Bed Size filter
     if (bedSize && bedSize !== 'All Bed Sizes') {
-      query['bed.mainBed.type'] = bedSize;
+      const matchingRoomTypes = await RoomType.find({ 'bed.mainBed.type': bedSize }).select('_id');
+      const roomTypeIds = matchingRoomTypes.map(rt => rt._id);
+      
+      if (query.roomType) {
+        // If roomType filter is already set, intersect with bedSize matches
+        // If the already selected roomType isn't in the bedSize matches, force empty result
+        const currentRoomTypeId = query.roomType;
+        const isMatch = roomTypeIds.some(id => id.equals(currentRoomTypeId));
+        if (!isMatch) {
+           query.roomType = new Types.ObjectId(); // invalid ID to ensure no match
+        }
+      } else {
+         query.roomType = { $in: roomTypeIds };
+      }
     }
 
     // Search by roomNumber or floor
