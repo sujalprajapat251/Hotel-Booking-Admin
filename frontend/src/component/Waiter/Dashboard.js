@@ -43,10 +43,12 @@ export default function Dashboard() {
   }, [orders]);
 
   const calculateItemsTotal = (items = []) => {
-    return items.reduce((sum, item) => {
-      if (!item || !item.product || !item.product.price) return sum;
-      return sum + item.product.price * (item.qty || 1);
-    }, 0);
+    return items
+      .filter(item => item.status !== "Reject by chef")
+      .reduce((sum, item) => {
+        if (!item || !item.product || !item.product.price) return sum;
+        return sum + item.product.price * (item.qty || 1);
+      }, 0);
   };
   const total = calculateItemsTotal(menu?.items);
   const handleChnage = (ele) => {
@@ -159,7 +161,7 @@ export default function Dashboard() {
                           <button className="px-4 py-2 rounded text-sm bg-green-700 text-white hover:bg-green-800">Served</button>
                         </div>
                       ):
-                      <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' : 'text-green-600'}`}>{m.status}</p>
+                      <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' : m.status === 'Reject by chef'?'text-red-500' :'text-green-600'}`}>{m.status}</p>
                     }
 
                     </div>

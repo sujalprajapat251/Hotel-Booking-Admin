@@ -46,12 +46,14 @@ export default function Dashboard() {
     }
   }, [orders])
 
-  const calculateItemsTotal = (items = []) => {
-    return items.reduce((sum, item) => {
+const calculateItemsTotal = (items = []) => {
+  return items
+    .filter(item => item.status !== "Reject by chef")
+    .reduce((sum, item) => {
       if (!item || !item.product || !item.product.price) return sum;
       return sum + item.product.price * (item.qty || 1);
     }, 0);
-  };
+};
   const total = calculateItemsTotal(menu?.items);
   const hasOrder = (menu?.items?.length || 0) > 0;
   const handleChnage = (ele) => {
@@ -157,7 +159,7 @@ export default function Dashboard() {
                           <div className="text-sm text-gray-500">description : {m.description || '--'} </div>
                         </div>
                         <div className="text-sm font-medium">${m.product.price}.00</div>
-                        <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' :  m.status === 'Done' ? 'text-green-600' : 'text-gray-500'}`}>{m.status}</p>
+                        <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' :  m.status === 'Done' ? 'text-green-600' : m.status === 'Reject by chef' ? 'text-red-400' : 'text-gray-500'}`}>{m.status}</p>
                       </div>
                     </div>
                   ))}

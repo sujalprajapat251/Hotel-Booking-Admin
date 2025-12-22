@@ -52,6 +52,30 @@ export const updateCafeItemStatus = createAsyncThunk(
     }
 );
 
+// Reject item status
+export const rejectCafeItemStatus = createAsyncThunk(
+    'chef/rejectCafeItemStatus',
+    async (data, { dispatch, rejectWithValue }) => {
+        try {
+            const token = await localStorage.getItem("token");
+            const response = await axios.post(`${BASE_URL}/CafeItemStatus`,{
+                orderId : data?.orderId,
+                itemId : data?.itemId,
+                status: 'Reject by chef'
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            }
+            );
+            return response.data.data;
+        } catch (error) {
+            return handleErrors(error, dispatch, rejectWithValue);
+        }
+    }
+);
+
 // get current login user details
 
 
@@ -128,6 +152,29 @@ const chefSlice = createSlice({
                 state.success = false;
                 state.isError = true;
                 state.message = action.payload?.message || 'Failed to update order status';
+            })
+            // Handle rejected cafe item status
+            .addCase(rejectCafeItemStatus.fulfilled, (state, action) => {
+                const updatedOrder = action.payload;
+                state.orderData = state.orderData.map(item => {
+                    if (item.orderId === updatedOrder._id) {
+                        const updatedItem = updatedOrder.items.find(updatedItem => updatedItem._id === item._id);
+                        if (updatedItem) {
+                            return {
+                                ...item,
+                                ...updatedItem,
+                                status: updatedItem.status
+                            };
+                        }
+                    }
+                    return item;
+                });
+            })
+            .addCase(rejectCafeItemStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.success = false;
+                state.isError = true;
+                state.message = action.payload?.message || 'Failed to reject order';
             });
     },
 });

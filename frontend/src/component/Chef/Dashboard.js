@@ -2,7 +2,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SOCKET_URL } from '../../Utils/baseUrl';
-import { getCafeOrderStatus, updateCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
+import { getCafeOrderStatus, updateCafeItemStatus, rejectCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
 import { getUserById } from '../../Redux/Slice/staff.slice';
 import { io } from 'socket.io-client';
@@ -100,6 +100,24 @@ export default function Dashboard() {
         }
     }
 
+    // Handle reject order
+    const handleRejectOrder = async (order) => {
+        if (!order || order.status === 'Reject by chef' || order.status === 'Done') return;
+        try {
+            let orderData = {
+                orderId: order.orderId,
+                itemId: order._id
+            };
+            const result = await dispatch(rejectCafeItemStatus(orderData));
+            if (rejectCafeItemStatus.fulfilled.match(result)) {
+                setSelected(null);
+                dispatch(setAlert({ text: 'Order rejected successfully', color: 'success' }));
+            }
+        } catch (error) {
+            dispatch(setAlert({ text: 'Failed to reject order', color: 'error' }));
+        }
+    }
+
     const getButtonText = (order) => {
         if (!order) return "Accept";
 
@@ -159,7 +177,7 @@ export default function Dashboard() {
                 <div className='flex flex-col lg:flex-row gap-5'>
                     <div className="w-full xl:w-1/3 max-h-screen p-5">
                         <div className='overflow-hidden'>
-                      
+
                             <div className="overflow-x-auto overflow-y-auto lg:p-0 max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-220px)] scrollbar-thin scrollbar-thumb-[#B79982] scrollbar-track-[#F7DF9C]/20 hover:scrollbar-thumb-[#876B56]">
                                 <ul className="space-y-2 p-3 ">
                                     {data
@@ -176,7 +194,7 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                     ) : (
-                                        data.filter(item => item.status !== "Done" && item.status !== "Served").map((item, index) => (
+                                        data.filter(item => item.status !== "Done" && item.status !== "Served" && item.status !== "Reject by chef").map((item, index) => (
                                             <li
                                                 key={index}
                                                 onClick={() => {
@@ -249,8 +267,16 @@ export default function Dashboard() {
                             </div>
 
                             <div className="flex-1 p-4 overflow-y-auto">
-                                {selected ? (
+                                {selected && selected.status !== "Reject by chef" ? (
                                     <div className="space-y-5">
+                                        <button
+                                            className='text-red-500 text-right px-3 py-1 rounded hover:bg-red-50 font-semibold'
+                                            style={{ float: 'right' }}
+                                            onClick={() => handleRejectOrder(selected)}
+                                            disabled={!selected || isOrderPreparedByAnotherChef(selected) || selected.status === 'Done' || selected.status === 'Rejected by chef'}
+                                        >
+                                            Reject
+                                        </button>
                                         <div className="text-center">
                                             <h3 className={`text-xl font-bold ${isOrderPreparedByAnotherChef(selected) ? "text-gray-500" : "text-gray-800"}`}>{selected?.product?.name}</h3>
                                         </div>
@@ -301,9 +327,8 @@ export default function Dashboard() {
 
                                             {/* {selected?.description && ( */}
                                             <div className="pb-1 border-b border-gray-100">
-                                                <span className={`text-gray-600 block mb-1 text-[14px] pb-1 ${
-                                                    selected?.description ? "border-b border-gray-100" : ""
-                                                }`}>Description</span>
+                                                <span className={`text-gray-600 block mb-1 text-[14px] pb-1 ${selected?.description ? "border-b border-gray-100" : ""
+                                                    }`}>Description</span>
                                                 {selected?.description && (
                                                     <p className="mt-2 text-[#755647] text-xs">{selected.description}</p>
                                                 )}

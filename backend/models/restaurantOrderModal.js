@@ -22,7 +22,7 @@ const restaurantOrderSchema = new mongoose.Schema({
             },
             status: {
                 type: String,
-                enum: ['Pending', 'Preparing', 'Done', 'Served'],
+                enum: ['Pending', 'Preparing', 'Done', 'Served','Reject by chef'],
                 default: 'Pending'
             },
             preparedBy: {

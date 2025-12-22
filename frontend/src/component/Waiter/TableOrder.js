@@ -155,10 +155,12 @@ export default function TableOrder() {
 
     // Helper function to calculate items total
     const calculateItemsTotal = (items = []) => {
-        return items.reduce((sum, item) => {
-            if (!item || !item.product || !item.product.price) return sum;
-            return sum + item.product.price * (item.qty || 1);
-        }, 0);
+        return items
+            .filter(item => item.status !== "Reject by chef")
+            .reduce((sum, item) => {
+                if (!item || !item.product || !item.product.price) return sum;
+                return sum + item.product.price * (item.qty || 1);
+            }, 0);
     };
 
     // Final calculation
@@ -318,6 +320,11 @@ export default function TableOrder() {
                                                         >
                                                             Cancel
                                                         </button>
+                                                    )}
+                                                    {oi.status === 'Reject by chef' &&(
+                                                        <span  className="text-red-500 text-xs sm:text-sm px-1 sm:px-2">
+                                                            {oi.status}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>

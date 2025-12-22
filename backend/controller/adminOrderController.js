@@ -675,11 +675,41 @@ exports.UpdateOrderItemStatus = async (req, res) => {
             });
         }
 
+        // Handle direct 'Rejected by chef' status from frontend
+        if (req.body.status === "Reject by chef") {
+            item.status = "Reject by chef";
+            await order.save();
+            // Optionally, you may send notifications here (e.g., accountant, waiter, etc)
+            const populatedOrder = await Model.findById(orderId)
+                .populate("table")
+                .populate("room")
+                .populate("items.product");
+            if (name === 'cafe') {
+                const tables = await cafeTable.findById(populatedOrder.table?._id);
+                emitCafeTableStatusChanged(tables?._id || req.params.id, tables);
+                emitCafeOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
+            } else if (name === 'bar') {
+                const tables = await barTable.findById(populatedOrder.table?._id);
+                emitBarTableStatusChanged(tables?._id || req.params.id, tables);
+                emitBarOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
+            } else if (name === 'restaurant' || name === 'restro') {
+                const tables = await restroTable.findById(populatedOrder.table?._id);
+                emitRestaurantTableStatusChanged(tables?._id || req.params.id, tables);
+                emitRestaurantOrderChanged(populatedOrder.table?._id || populatedOrder.table, populatedOrder);
+            }
+            return res.status(200).json({
+                status: 200,
+                message: `Status updated: ${item.status}`,
+                data: populatedOrder
+            });
+        }
+        
         const steps = {
             "Pending": "Preparing",
             "Preparing": "Done",
             "Done": "Served",
-            "Served": "Served"
+            "Served": "Served",
+            "Reject by chef": "Reject by chef"
         };
 
         const currentStatus = item.status;
