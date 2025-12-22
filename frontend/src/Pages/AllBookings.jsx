@@ -813,25 +813,25 @@ const AllBookings = () => {
                                                 <span className="w-6 h-6 rounded-full flex items-center justify-center">
                                                     <GoDotFill size={18} />
                                                 </span> Guest Information</h4>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                                                <div className="flex sm:flex-row flex-col">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
+                                                <div className="flex xs:flex-row flex-col sm:col-span-2 md:col-span-1">
                                                     <span className="min-w-[60px] font-italic text-black">Name:</span>
                                                     <span className="break-words whitespace-normal capitalize">{selectedItem.name || "N/A"}</span>
                                                 </div>
                                                 {selectedItem.phone && (
-                                                    <div className="flex sm:flex-row flex-col">
+                                                    <div className="flex xs:flex-row flex-col">
                                                         <span className="min-w-[60px] font-italic text-black">Phone:</span>
                                                         <span className="break-words whitespace-normal">{selectedItem.countrycode || ""} {selectedItem.phone}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.email && (
-                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                    <div className="flex xs:flex-row flex-col sm:col-span-2">
                                                         <span className="min-w-[60px] font-italic text-black">Email:</span>
                                                         <span className="break-words whitespace-normal">{selectedItem.rawData.guest.email}</span>
                                                     </div>
                                                 )}
                                                 {selectedItem.rawData?.guest?.idNumber && (
-                                                    <div className="flex sm:flex-row flex-col sm:col-span-2">
+                                                    <div className="flex xs:flex-row flex-col sm:col-span-2">
                                                         <span className="min-w-[90px] font-italic text-black">ID Number:</span>
                                                         <span className="break-words whitespace-normal">{selectedItem.rawData.guest.idNumber}</span>
                                                     </div>
