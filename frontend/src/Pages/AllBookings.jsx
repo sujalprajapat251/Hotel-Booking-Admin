@@ -154,8 +154,6 @@ const AllBookings = () => {
     const paymentStatusOptions = [
         { value: 'Pending', label: 'Pending' },
         { value: 'Paid', label: 'Paid' },
-        { value: 'Partial', label: 'Partial' },
-        { value: 'Refunded', label: 'Refunded' },
     ];
 
     const bookingStatusOptions = [
@@ -859,12 +857,12 @@ const AllBookings = () => {
                                                     <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[90px]">Check Out Date:</span>
                                                     <span className="text-sm sm:text-base">{selectedItem.checkOut ? formatDate(selectedItem.checkOut) : 'N/A'}</span>
                                                 </div>
-                                                {selectedItem.rawData?.checkInTime && (
+                                                {/* {selectedItem.rawData?.checkInTime && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check In Time:</span>
                                                         <span className="text-sm sm:text-base">{formatDateTime(selectedItem.rawData.checkInTime)}</span>
                                                     </div>
-                                                )}
+                                                )} */}
                                                 {selectedItem.rawData?.checkOutTime && (
                                                     <div className="flex items-center p-1 rounded-lg transition-colors">
                                                         <span className="text-sm sm:text-base font-italic text-black min-w-[100px] sm:min-w-[120px]">Check Out Time:</span>

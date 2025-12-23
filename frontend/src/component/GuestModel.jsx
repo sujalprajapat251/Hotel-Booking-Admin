@@ -49,7 +49,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       paymentStatus: Yup.string().required("Payment status is required"),
       paymentMethod: Yup.string().required("Payment method is required"),
       totalAmount: Yup.number().min(0, "Total cannot be negative").required("Total amount is required"),
-      idNumber: Yup.string().trim().required("ID number is required"),
+      idNumber: Yup.string().trim().required("ID number is required").max(15, "ID number must be at most 15 characters").matches(/^[a-zA-Z0-9]*$/, "ID number must contain only letters and numbers"),
     };
 
     if (cabServiceEnabled) {
