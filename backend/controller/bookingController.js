@@ -54,7 +54,7 @@ const normalizeReservationPayload = (payload = {}) => ({
 const normalizePaymentPayload = (payload = {}) => ({
     status: payload.paymentStatus
         || (payload.payment?.status)
-        || (payload.status && ['Pending', 'Paid', 'Partial'].includes(payload.status) ? payload.status : undefined)
+        || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined)
         || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
     currency: payload.currency || 'USD',
@@ -515,7 +515,7 @@ const updateBooking = async (req, res) => {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
             }
             // Only update payment status if it's explicitly provided and valid
-            if (paymentPayload.status && ['Pending', 'Paid', 'Partial'].includes(paymentPayload.status)) {
+            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
                 booking.payment.status = paymentPayload.status;
             }
             if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;

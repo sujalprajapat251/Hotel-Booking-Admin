@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { X, Eye, EyeOff, Edit2, ChevronDown } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserById, updatestaff } from '../Redux/Slice/staff.slice';
@@ -20,6 +20,7 @@ const Profile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [genderDropdown, setGenderDropdown] = useState(false);
+  const genderRef = useRef(null);
 
   const { currentUser, loading, success, message } = useSelector(
     (state) => state.staff
@@ -93,6 +94,26 @@ const Profile = () => {
       });
     }
   }, [currentUser]);
+
+  // Close gender dropdown when clicking outside or pressing Escape
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (genderDropdown && genderRef.current && !genderRef.current.contains(e.target)) {
+        setGenderDropdown(false);
+      }
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setGenderDropdown(false);
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [genderDropdown]);
 
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
@@ -354,7 +375,7 @@ const Profile = () => {
               <label className="block text-sm text-gray-500 mb-2">Gender</label>
 
               {isEditMode ? (
-                <div className="relative">
+                <div className="relative" ref={genderRef}>
                   <button type="button"
                     className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
                     onClick={() => setGenderDropdown((prev) => !prev)}

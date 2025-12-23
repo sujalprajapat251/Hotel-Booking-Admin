@@ -245,17 +245,20 @@ const AllBookings = () => {
     }, []);
 
     const handleRefresh = () => {
-        setPage(1);
+        // setPage(1);
+        // dispatch(fetchBookings({ page: 1, limit }));
         dispatch(fetchBookings({ page: 1, limit }));
+        setSearchQuery("");
+        setPage(1);
     };
 
     const handleDownloadExcel = () => {
         try {
-            if (booking.length === 0) {
+            if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
                 return;
             }
-            const excelData = booking.map((bookingItem, index) => {
+            const excelData = filteredBookings.map((bookingItem, index) => {
                 const row = {};
 
                 if (visibleColumns.No) {

@@ -71,6 +71,7 @@ const PaymentSchema = new mongoose.Schema(
         "Pending",
         "Paid",
         "Partial",
+        "Refunded",
       ],
       default: "Pending",
     },
