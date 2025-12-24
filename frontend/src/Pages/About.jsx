@@ -457,7 +457,7 @@ const About = () => {
                     <div className="flex items-start gap-3">
                       <span className="font-semibold text-gray-700 min-w-[120px]">Description:</span>
                       <div
-                        className="text-gray-900"
+                        className="text-gray-900 max-h-40 overflow-y-auto prose prose-sm max-w-none"
                         dangerouslySetInnerHTML={{ __html: selectedItem.description || '' }}
                       />
                     </div>
