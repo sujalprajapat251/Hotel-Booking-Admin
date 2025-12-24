@@ -164,7 +164,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
               )}
             </div>
             <div className="space-y-1.5 pt-2 border-t border-gray-200">
-              <div className="flex items-center gap-2 text-xs text-tertiary">
+              <div className="flex items-center gap-2 text-xs text-senary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -173,7 +173,7 @@ const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, pric
                 </svg>
                 Check-in: {checkInLabel}
               </div>
-              <div className="flex items-center gap-2 text-xs text-tertiary">
+              <div className="flex items-center gap-2 text-xs text-senary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
