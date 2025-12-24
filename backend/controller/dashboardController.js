@@ -76,7 +76,7 @@ exports.dashboard = async (req, res) => {
     // ---------------- 1. NEW BOOKINGS ----------------
     const newBookings = await RoomBooking.countDocuments({ createdAt: { $gte: start, $lte: end } });
     const prevBookings = await RoomBooking.countDocuments({ createdAt: { $gte: prevStart, $lte: prevEnd } });
-    const bookingTrend = await lineTrend(RoomBooking, { createdAt: { $gte: start, $lte: end } });
+    const bookingTrend = await lineTrend(RoomBooking, { createdAt: { $gte: start, $lte: end } }); 
 
     // ---------------- 2. ROOM PIE ----------------
     const roomTypes = await RoomType.find();
@@ -329,7 +329,6 @@ exports.reservationDaywise = async (req, res) => {
 };
 
 // Order Summary
-
 async function getOrderSummary(model, itemCollection, matchQuery = {}) {
     return model.aggregate([
         { $match: { payment: "Paid", ...matchQuery } },  // no from filter

@@ -594,7 +594,7 @@ const RoomType = () => {
                     )}
                     {visibleColumns.price && (
                       <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                        {item.price !== undefined ? item.price : '-'}
+                        ${item.price !== undefined ? item.price : '-'}
                       </td>
                     )}
                     {visibleColumns.availableRooms && (
