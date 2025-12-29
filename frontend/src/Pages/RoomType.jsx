@@ -55,6 +55,7 @@ const RoomType = () => {
     image: true,
     actions: true,
   });
+  const quillRef = useRef(null);
 
   const getImageFileName = (path = '') => {
     if (!path) return '';
@@ -84,20 +85,47 @@ const RoomType = () => {
   };
 
   const quillModules = useMemo(() => ({
-    toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ list: 'ordered' }, { list: 'bullet' }],
-      [{ script: 'sub' }, { script: 'super' }],
-      [{ indent: '-1' }, { indent: '+1' }],
-      [{ direction: 'rtl' }],
-      [{ size: ['small', false, 'large', 'huge'] }],
-      [{ color: [] }, { background: [] }],
-      [{ font: [] }],
-      [{ align: [] }],
-      ['link', 'blockquote', 'code-block'],
-      ['clean']
-    ],
+    toolbar: {
+      container: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ script: 'sub' }, { script: 'super' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        [{ direction: 'rtl' }],
+        [{ size: ['small', false, 'large', 'huge'] }],
+        [{ color: [] }, { background: [] }],
+        [{ font: [] }],
+        [{ align: [] }],
+        ['link', 'blockquote', 'code-block'],
+        ['clean']
+      ],
+      handlers: {
+        link: function (value) {
+          const quill = this.quill;
+          if (value) {
+            const range = quill.getSelection();
+            if (range) {
+              const tooltip = quill.theme?.tooltip;
+              if (tooltip && tooltip.root) {
+                tooltip.edit('link');
+                tooltip.root.style.position = 'absolute';
+                tooltip.root.style.left = '50%';
+                tooltip.root.style.top = '50%';
+                tooltip.root.style.transform = 'translate(-50%, -50%)';
+                tooltip.root.style.right = 'auto';
+                tooltip.root.style.margin = '0';
+                if (tooltip.textbox) {
+                  tooltip.textbox.setAttribute('placeholder', '');
+                }
+              }
+            }
+          } else {
+            quill.format('link', false);
+          }
+        }
+      }
+    }
   }), []);
 
   const quillFormats = useMemo(() => ([
@@ -107,6 +135,42 @@ const RoomType = () => {
     'link', 'color', 'background',
     'align', 'script', 'code-block'
   ]), []);
+
+  useEffect(() => {
+    if (quillRef.current && typeof quillRef.current.getEditor === 'function') {
+      const editor = quillRef.current.getEditor();
+      const tooltip = editor?.theme?.tooltip;
+      if (tooltip && tooltip.root) {
+        if (tooltip.textbox) {
+          tooltip.textbox.setAttribute('placeholder', '');
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const centerTooltip = () => {
+      const el = document.querySelector('.custom-quill .ql-tooltip');
+      if (el) {
+        el.style.position = 'absolute';
+        el.style.left = '50%';
+        el.style.top = '50%';
+        el.style.transform = 'translate(-50%, -50%)';
+        el.style.right = 'auto';
+        el.style.margin = '0';
+      }
+    };
+    centerTooltip();
+    const el = document.querySelector('.custom-quill .ql-tooltip');
+    if (!el) return;
+    const observer = new MutationObserver(centerTooltip);
+    observer.observe(el, { attributes: true, attributeFilter: ['style', 'class', 'data-mode'] });
+    window.addEventListener('resize', centerTooltip);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', centerTooltip);
+    };
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -710,6 +774,26 @@ const RoomType = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/50" onClick={handleAddModalClose}></div>
           <div className="relative w-full max-w-[1000px] rounded-md bg-white p-0 shadow-xl mx-3 flex flex-col max-h-[94vh] h-full">
+            <style>
+              {`
+                .custom-quill {
+                  position: relative;
+                }
+                .custom-quill .ql-container {
+                  position: relative;
+                }
+                .custom-quill .ql-tooltip {
+                  position: absolute !important;
+                  left: 50% !important;
+                  top: 50% !important;
+                  transform: translate(-50%, -50%);
+                  z-index: 10000;
+                }
+                .custom-quill .ql-tooltip[data-mode="link"]::before {
+                  content: '' !important;
+                }
+              `}
+            </style>
             {/* Modal Header */}
             <div className="flex items-start justify-between p-8 pb-4">
               <h2 className="text-2xl font-semibold text-black">
@@ -752,6 +836,7 @@ const RoomType = () => {
                     onBlur={() => formik.setFieldTouched('description', true)}
                     modules={quillModules}
                     formats={quillFormats}
+                    ref={quillRef}
                   />
                   {formik.touched.description && formik.errors.description && (
                     <p className="text-sm text-red-500 mt-2">{formik.errors.description}</p>
