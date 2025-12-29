@@ -851,7 +851,7 @@ const RoomType = () => {
                       <p className="text-sm text-red-500 mt-1">{formik.errors.bedMainType}</p>
                     )}
                     {showMainBedTypeDropdown && (
-                      <div className="absolute z-[60] w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1 top-full">
+                      <div className="absolute z-[60] w-full bg-white border border-gray-300 rounded-[4px] shadow-lg top-full">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
@@ -915,7 +915,7 @@ const RoomType = () => {
                       <p className="text-sm text-red-500 mt-1">{formik.errors.bedChildType}</p>
                     )}
                     {showChildBedTypeDropdown && (
-                      <div className="absolute z-[60] w-full bg-white border border-gray-300 rounded-[4px] shadow-lg mt-1 top-full">
+                      <div className="absolute z-[60] w-full bg-white border border-gray-300 rounded-[4px] shadow-lg top-full">
                         {bedTypes.map((type) => (
                           <div
                             key={type}
