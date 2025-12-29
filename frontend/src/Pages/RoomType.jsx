@@ -588,7 +588,11 @@ const RoomType = () => {
                       <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                         <div
                             className="description"
-                            dangerouslySetInnerHTML={{ __html: item.description.slice(0, 50) + '...' }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: (item.description && item.description.replace(/<[^>]+>/g, '').trim()) 
+                              ? item.description.slice(0, 50) + '...' 
+                              : 'no description' 
+                          }}
                           />
                       </td>
                     )}
