@@ -4,7 +4,7 @@ const STATUS_BADGE_MAP = {
   Confirmed: "bg-primary/40 text-senary",
   CheckedIn: "bg-green-100 text-green-700",
   CheckedOut: "bg-tertiary/40 text-senary",
-  Cancelled: "bg-red-100 text-red-700",
+  // Cancelled: "bg-red-100 text-red-700",
   Pending: "bg-secondary/60 text-senary",
   Reserved: "bg-quaternary/40 text-white",
   Occupied: "bg-senary/80 text-primary",
@@ -14,7 +14,7 @@ const PAYMENT_BADGE_MAP = {
   Paid: "bg-green-100 text-green-700",
   Pending: "bg-secondary/60 text-senary",
   Overdue: "bg-red-100 text-red-700",
-  Refunded: "bg-tertiary/40 text-senary",
+  // Refunded: "bg-tertiary/40 text-senary",
 };
 
 const formatDateTime = (value) => {
@@ -220,7 +220,7 @@ function GuestDetailsModal({
             >
               {loading ? "Processing..." : "Check Out"}
             </button>
-            <button
+            {/* <button
               onClick={handleCancelRoom}
               disabled={actionDisabled}
               className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
@@ -229,7 +229,7 @@ function GuestDetailsModal({
                 }`}
             >
               {loading ? "Please wait..." : "Cancel Room"}
-            </button>
+            </button> */}
             <button
               onClick={onClose}
               className="px-5 py-2 bg-secondary/40 text-quinary hover:bg-secondary/60 rounded-lg transition shadow-sm"

@@ -161,7 +161,7 @@ const AllBookings = () => {
         { value: 'Confirmed', label: 'Confirmed' },
         { value: 'CheckedIn', label: 'Checked In' },
         { value: 'CheckedOut', label: 'Checked Out' },
-        { value: 'Cancelled', label: 'Cancelled' },
+        // { value: 'Cancelled', label: 'Cancelled' },
         { value: 'NoShow', label: 'No Show' },
     ];
 
