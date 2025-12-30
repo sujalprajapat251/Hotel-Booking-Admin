@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import '../Style/Sujal.css';
 import { FaWrench } from 'react-icons/fa';
 import { FiEdit } from 'react-icons/fi';
@@ -66,7 +66,7 @@ export const Dashboard = () => {
     }
   }, [items]);
 
-  const getStatusStyle = (status) => {
+  const getStatusStyle = useCallback((status) => {
     switch (status) {
       case 'Paid':
         return 'border border-green-500 text-green-600 bg-green-50';
@@ -77,23 +77,27 @@ export const Dashboard = () => {
       default:
         return 'border border-gray-500 text-gray-600 bg-gray-50';
     }
-  };
+  }, []);
 
-  const roomData = {
-    occupied: getRoomAvailability?.occupied || 0,
-    reserved: getRoomAvailability?.reserved || 0,
-    available: getRoomAvailability?.available || 0,
-    notReady: getRoomAvailability?.notReady || 0
-  };
+  const { roomData, percentages } = useMemo(() => {
+    const roomData = {
+      occupied: getRoomAvailability?.occupied || 0,
+      reserved: getRoomAvailability?.reserved || 0,
+      available: getRoomAvailability?.available || 0,
+      notReady: getRoomAvailability?.notReady || 0
+    };
 
-  const totalRooms = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
+    const totalRooms = roomData.occupied + roomData.reserved + roomData.available + roomData.notReady;
 
-  const percentages = {
-    occupied: totalRooms > 0 ? (roomData.occupied / totalRooms) * 100 : 0,
-    reserved: totalRooms > 0 ? (roomData.reserved / totalRooms) * 100 : 0,
-    available: totalRooms > 0 ? (roomData.available / totalRooms) * 100 : 0,
-    notReady: totalRooms > 0 ? (roomData.notReady / totalRooms) * 100 : 0
-  };
+    const percentages = {
+      occupied: totalRooms > 0 ? (roomData.occupied / totalRooms) * 100 : 0,
+      reserved: totalRooms > 0 ? (roomData.reserved / totalRooms) * 100 : 0,
+      available: totalRooms > 0 ? (roomData.available / totalRooms) * 100 : 0,
+      notReady: totalRooms > 0 ? (roomData.notReady / totalRooms) * 100 : 0
+    };
+
+    return { roomData, percentages };
+  }, [getRoomAvailability]);
 
   const colors = {
     primary: '#F4D9A6',
@@ -102,7 +106,7 @@ export const Dashboard = () => {
     senary: '#755647',
   };
 
-  const stats = [
+  const stats = useMemo(() => [
     {
       label: 'Occupied',
       value: roomData.occupied,
@@ -123,9 +127,9 @@ export const Dashboard = () => {
       value: roomData.notReady,
       color: colors.senary
     }
-  ];
+  ], [roomData, colors]);
 
-  const quickAccessItems = [
+  const quickAccessItems = useMemo(() => [
     {
       title: "Room Management",
       icon: <MdBusiness className="text-3xl" />,
@@ -194,13 +198,13 @@ export const Dashboard = () => {
       description: "Oversee restaurant orders, table requests, and kitchen workflow",
       path: "/restaurant/restaurantorder"
     },
-  ];
+  ], []);
 
-  const serviceSummary = [
+  const serviceSummary = useMemo(() => [
     { label: "PENDING", count: getServicerequests?.counts?.pending || 0, color: "text-yellow-600" },
     { label: "IN PROGRESS", count: getServicerequests?.counts?.inProgress || 0, color: "text-blue-600" },
     { label: "COMPLETED", count: getServicerequests?.counts?.completed || 0, color: "text-green-600" },
-  ];
+  ], [getServicerequests]);
 
   const statusConfig = {
     Pending: {
@@ -225,7 +229,7 @@ export const Dashboard = () => {
     }
   };
 
-  const formatTimeAgo = (dateString) => {
+  const formatTimeAgo = useCallback((dateString) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
@@ -239,9 +243,9 @@ export const Dashboard = () => {
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     return `${days}d ago`;
-  };
+  }, []);
 
-  const recentRequests = ([...(getServicerequests?.latestRequests || [])])
+  const recentRequests = useMemo(() => ([...(getServicerequests?.latestRequests || [])])
     .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 3).map((req) => {
       const normalizedStatus = req.cleanStatus.replace(/[-\s]/g, "");
       const config = statusConfig[normalizedStatus] || statusConfig["Pending"];
@@ -257,9 +261,9 @@ export const Dashboard = () => {
         bgColor: config.bgColor,
         statusColor: config.statusColor
       };
-    });
+    }), [getServicerequests, statusConfig, formatTimeAgo]);
 
-  const revenueItems = [
+  const revenueItems = useMemo(() => [
     {
       name: 'Room Bookings',
       icon: <IoBedOutline className="w-6 h-6" />,
@@ -284,9 +288,9 @@ export const Dashboard = () => {
       bgColor: '#B79982',
       iconColor: '#FAF7F2',
     }
-  ];
+  ], []);
 
-  const renderStars = (rating) => {
+  const renderStars = useCallback((rating) => {
     const stars = [];
     for (let i = 1; i <= 5; i++) {
       if (i <= Math.floor(rating)) {
@@ -323,9 +327,9 @@ export const Dashboard = () => {
       }
     }
     return stars;
-  };
+  }, []);
 
-  const mergedRevenueData = getRevenueData?.breakdown?.map((item) => {
+  const mergedRevenueData = useMemo(() => getRevenueData?.breakdown?.map((item) => {
     const match = revenueItems.find(ui => ui.name === item.name);
 
     return {
@@ -333,14 +337,14 @@ export const Dashboard = () => {
       ...match,
       isPositive: Number(item.trend) >= 0
     };
-  });
+  }), [getRevenueData, revenueItems]);
 
   useEffect(() => {
     dispatch(fetchBookings());
   }, [dispatch]);
 
   const getReview = useSelector((state) => state.review.reviews);
-  const calculateRatingBreakdown = (reviews) => {
+  const calculateRatingBreakdown = useCallback((reviews) => {
     const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
     reviews.forEach(review => {
@@ -357,45 +361,48 @@ export const Dashboard = () => {
       { stars: 2, count: breakdown[2] },
       { stars: 1, count: breakdown[1] },
     ];
-  };
+  }, []);
 
-  const ratingBreakdown = calculateRatingBreakdown(getReview);
-  const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
+  const ratingBreakdown = useMemo(() => calculateRatingBreakdown(getReview), [getReview, calculateRatingBreakdown]);
+  const totalReviews = useMemo(() => ratingBreakdown.reduce((a, b) => a + b.count, 0), [ratingBreakdown]);
 
-  const calculateAverage = (reviews) => {
+  const calculateAverage = useCallback((reviews) => {
     if (reviews.length === 0) return 0;
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return (sum / reviews.length).toFixed(1);
-  };
+  }, []);
 
-  const averageRating = calculateAverage(getReview);
+  const averageRating = useMemo(() => calculateAverage(getReview), [getReview, calculateAverage]);
 
-  const formatNumber = (num) => {
+  const formatNumber = useCallback((num) => {
     if (!num) return "0";
     return num.toLocaleString("en-IN");
-  };
+  }, []);
 
   useEffect(() => {
     const yearMonth = selectedDate.format("YYYY-MM");
 
-    dispatch(getAllReview());
     dispatch(getAllRevenue(yearMonth));
     dispatch(getAllDashboard(yearMonth));
-    dispatch(getAllRoomAvailability());
     dispatch(getAllReservation(yearMonth));
     dispatch(getAllOrdersummery(yearMonth));
-    dispatch(getAllServicerequests());
     dispatch(getAllBookingtrends(yearMonth));
     dispatch(getAllOccupancyrate(yearMonth));
   }, [dispatch, selectedDate]);
 
-  const handleNavigateQuickAccess = (route) => {
-    navigate(route);
-  }
+  useEffect(() => {
+    dispatch(getAllReview());
+    dispatch(getAllRoomAvailability());
+    dispatch(getAllServicerequests());
+  }, [dispatch]);
 
-  const disabledDate = (current) => {
+  const handleNavigateQuickAccess = useCallback((route) => {
+    navigate(route);
+  }, [navigate]);
+
+  const disabledDate = useCallback((current) => {
     return current && current > dayjs().endOf('month');
-  };
+  }, []);
 
   return (
     <>
@@ -652,9 +659,9 @@ export const Dashboard = () => {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold" style={{ color: '#755647' }}>Recent Requests</h3>
                 <button className="text-sm font-medium transition-colors cursor-pointer" style={{ color: '#876B56' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
-                  onClick={() => (navigate('/housekeeping'))}
+                  onMouseEnter={useCallback((e) => e.currentTarget.style.color = '#755647', [])}
+                  onMouseLeave={useCallback((e) => e.currentTarget.style.color = '#876B56', [])}
+                  onClick={useCallback(() => (navigate('/housekeeping')), [navigate])}
                 >
                   View All
                 </button>
@@ -881,8 +888,8 @@ export const Dashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold" style={{ color: '#755647' }}>Customer Review</h2>
               <Link to="/review" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
+                onMouseEnter={useCallback((e) => e.currentTarget.style.color = '#755647', [])}
+                onMouseLeave={useCallback((e) => e.currentTarget.style.color = '#876B56', [])}
               >
                 View All
               </Link>
@@ -941,8 +948,8 @@ export const Dashboard = () => {
 
             <div className="text-center mt-6 pt-4 border-t" style={{ borderColor: '#E3C78A' }}>
               <Link to="/review" className="text-sm font-medium hover:underline transition-colors" style={{ color: '#876B56' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#755647'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#876B56'}
+                onMouseEnter={useCallback((e) => e.currentTarget.style.color = '#755647', [])}
+                onMouseLeave={useCallback((e) => e.currentTarget.style.color = '#876B56', [])}
               >
                 View all Customer Reviews
               </Link>

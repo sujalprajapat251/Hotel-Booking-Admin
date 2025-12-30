@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiFillStar } from "react-icons/ai";
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import * as XLSX from 'xlsx';
@@ -35,40 +35,54 @@ const Review = () => {
 		CreatedAt: true,
 	});
 	const dropdownRef = useRef(null);
+	const fetchedRef = useRef(false);
 
 	const { reviews, loading } = useSelector((state) => state.review);
 
 
-	const formatDate = (dateString) => {
+	const formatDate = useCallback((dateString) => {
 		if (!dateString) return '';
 		const date = new Date(dateString);
 		const day = date.getDate().toString().padStart(2, '0');
 		const month = (date.getMonth() + 1).toString().padStart(2, '0');
 		const year = date.getFullYear();
 		return `${day}/${month}/${year}`;
-	};
+	}, []);
 
 	// Add filtering logic search functionallty
-	const filteredBookings = reviews.filter(staff =>
-		staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff?.roomId?.roomType?.roomType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
-		(staff?.createdAt && (formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase())))
-	);
+	const filteredBookings = useMemo(() => {
+		return reviews.filter(staff =>
+			staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff?.roomId?.roomType?.roomType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			(staff?.createdAt && (formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase())))
+		);
+	}, [reviews, searchQuery, formatDate]);
 
-	const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-	const startIndex = (currentPage - 1) * itemsPerPage;
-	const endIndex = startIndex + itemsPerPage;
-	const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
+	const paginationData = useMemo(() => {
+		const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+		const startIndex = (currentPage - 1) * itemsPerPage;
+		const endIndex = startIndex + itemsPerPage;
+		const paginatedBookings = filteredBookings.slice(startIndex, endIndex);
 
-	const toggleColumn = (column) => {
+		return {
+			totalPages,
+			startIndex,
+			endIndex,
+			paginatedBookings
+		};
+	}, [filteredBookings, currentPage, itemsPerPage]);
+
+	const { totalPages, startIndex, endIndex, paginatedBookings } = paginationData;
+
+	const toggleColumn = useCallback((column) => {
 		setVisibleColumns(prev => ({
 			...prev,
 			[column]: !prev[column]
 		}));
-	};
+	}, []);
 
 	useEffect(() => {
 		const handleClickOutside = (event) => {
@@ -83,7 +97,7 @@ const Review = () => {
 
 
 	// Calculate rating breakdown from actual review data
-	const calculateRatingBreakdown = (reviews) => {
+	const ratingStats = useMemo(() => {
 		const breakdown = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
 		reviews.forEach(review => {
@@ -93,27 +107,24 @@ const Review = () => {
 			}
 		});
 
-		return [
+		const ratingBreakdown = [
 			{ stars: 5, count: breakdown[5] },
 			{ stars: 4, count: breakdown[4] },
 			{ stars: 3, count: breakdown[3] },
 			{ stars: 2, count: breakdown[2] },
 			{ stars: 1, count: breakdown[1] },
 		];
-	};
 
-	const ratingBreakdown = calculateRatingBreakdown(reviews);
-	const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
+		const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
+		const averageRating = reviews.length === 0 ? 0 : 
+			(reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length).toFixed(1);
 
-	const calculateAverage = (reviews) => {
-		if (reviews.length === 0) return 0;
-		const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-		return (sum / reviews.length).toFixed(1);
-	};
+		return { ratingBreakdown, totalReviews, averageRating };
+	}, [reviews]);
 
-	const averageRating = calculateAverage(reviews);
+	const { ratingBreakdown, totalReviews, averageRating } = ratingStats;
 
-	const renderStars = (count) => {
+	const renderStars = useCallback((count) => {
 		return (
 			<div className="flex items-center gap-1 text-[#F6A623]">
 				{Array.from({ length: 5 }).map((_, i) => (
@@ -123,11 +134,10 @@ const Review = () => {
 				))}
 			</div>
 		);
-	};
+	}, []);
 
-	const handleDownloadExcel = () => {
+	const handleDownloadExcel = useCallback(() => {
 		try {
-			// Check if there's data to export
 			if (filteredBookings.length === 0) {
 				dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
 				return;
@@ -135,26 +145,16 @@ const Review = () => {
 			// Prepare data for Excel
 			const excelData = filteredBookings.map((item, index) => {
 				const row = {};
-
-				if (visibleColumns.No) {
-					row['No.'] = startIndex + index + 1; // Use correct numbering
-				}
+				if (visibleColumns.No) row['No.'] = startIndex + index + 1;
 				if (visibleColumns.Type) {
 					row['Type'] = item?.reviewType === "room" ? item?.roomId?.roomType?.roomType : item?.reviewType || '';
 				}
-				if (visibleColumns.User) {
-					row['Reviewer'] = item.userId.name || '';
-				}
+				if (visibleColumns.User) row['Reviewer'] = item.userId.name || '';
 				if (visibleColumns.Title) {
 					row['ReviewText'] = item.title || '';
-				}
-				if (visibleColumns.Title) {
 					row['ReviewTitle'] = item.comment || '';
 				}
-				if (visibleColumns.CreatedAt) {
-					row['Date'] = formatDate(item.createdAt) || '';
-				}
-
+				if (visibleColumns.CreatedAt) row['Date'] = formatDate(item.createdAt) || '';
 				return row;
 			});
 
@@ -179,16 +179,19 @@ const Review = () => {
 			console.error('Export error:', error);
 			dispatch(setAlert({ text: "Export failed! Please try again.", color: 'error' }));
 		}
-	};
+	}, [filteredBookings, visibleColumns, startIndex, formatDate, dispatch]);
 
-	const handleRefresh = () => {
+	const handleRefresh = useCallback(() => {
 		dispatch(getAllReview());
 		setSearchQuery("");
 		setCurrentPage(1);
-	};
+	}, [dispatch]);
 
 	useEffect(() => {
-		dispatch(getAllReview());
+		if (!fetchedRef.current) {
+			dispatch(getAllReview());
+			fetchedRef.current = true;
+		}
 	}, [dispatch]);
 
 	return (

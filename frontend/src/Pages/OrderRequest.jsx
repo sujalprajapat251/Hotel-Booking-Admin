@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { FiCheckCircle, FiEdit } from 'react-icons/fi';
 import { ChevronDown, ChevronLeft, ChevronRight, Download, Filter, RefreshCw, Search } from 'lucide-react';
@@ -103,8 +103,12 @@ const OrderRequest = () => {
             params.search = debouncedSearch;
         }
 
-        dispatch(fetchAllOrderRequesr(params));
+        // dispatch(fetchAllOrderRequesr(params));
     }, [dispatch, page, limit, debouncedSearch]);
+
+    useEffect(() => {
+        dispatch(fetchAllOrderRequesr());
+    }, [dispatch]);
 
     useEffect(() => {
         if (items && items.length > 0) {
@@ -131,14 +135,15 @@ const OrderRequest = () => {
         }
     }, [items]);
 
-    const handleAssignWorkerClose = () => {
+    const handleAssignWorkerClose = useCallback(() => {
         setIsAssignWorkerModalOpen(false);
         setSelectedorderRequest(null);
         setSelectedWorker({ name: '', id: '' });
         setIsWorkerDropdownOpen(false);
-    };
+    }, []);
 
-    const handleAssignWorkerSubmit = async () => {
+    const handleAssignWorkerSubmit = useCallback(async () => {
+        if (creating) return;
         const workerId = selectedWorker.id;
         const orderId = selectedorderRequest?.id;
 
@@ -162,15 +167,15 @@ const OrderRequest = () => {
         } catch (error) {
             console.error('Failed to assign worker:', error);
         }
-    };
+    }, [dispatch, selectedWorker, selectedorderRequest, handleAssignWorkerClose, creating]);
 
-    const handleAssignWorkerClick = (housekeeping) => {
+    const handleAssignWorkerClick = useCallback((housekeeping) => {
         setSelectedorderRequest(housekeeping);
 
         const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
         setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
         setIsAssignWorkerModalOpen(true);
-    };
+    }, [housekeepingStaff]);
 
     const workerDropdownRef = useRef(null);
 
@@ -185,7 +190,7 @@ const OrderRequest = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const getStatusStyle = (status) => {
+    const getStatusStyle = useCallback((status) => {
         switch (status) {
             case 'Paid':
                 return 'border border-green-500 text-green-600 bg-green-50';
@@ -196,14 +201,14 @@ const OrderRequest = () => {
             default:
                 return 'border border-gray-500 text-gray-600 bg-gray-50';
         }
-    };
+    }, []);
 
-    const toggleColumn = (column) => {
+    const toggleColumn = useCallback((column) => {
         setVisibleColumns(prev => ({
             ...prev,
             [column]: !prev[column]
         }));
-    };
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -216,15 +221,17 @@ const OrderRequest = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
+        if (!loading) {
+            dispatch(fetchAllOrderRequesr());
+        }
         setSearchTerm("");
         setDebouncedSearch("");
         setPage(1);
         setCurrentPage(1);
-        dispatch(fetchAllOrderRequesr({ page: 1, limit }));
-    };
+    }, [dispatch, loading]);
 
-    const handleDownloadExcel = () => {
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -284,46 +291,61 @@ const OrderRequest = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [visibleColumns, page, limit, dispatch]);
 
-    const handleViewClick = (bookingItem) => {
+    const handleViewClick = useCallback((bookingItem) => {
         setSelectedItem(bookingItem);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedItem(null);
-    };
+    }, []);
 
-    const filteredBookings = orderRequestRooms.filter((item) => {
-        const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
+    const filteredBookings = useMemo(() => {
+        return orderRequestRooms.filter((item) => {
+            const searchLower = searchTerm.trim().toLowerCase();
+            if (!searchLower) return true;
 
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.to?.toLowerCase().includes(searchLower) ||
-            item.roomType?.toLowerCase().includes(searchLower) ||
-            item.status?.toLowerCase().includes(searchLower) ||
-            item.roomNo?.toString().includes(searchLower) ||
-            item.floor?.toString().includes(searchLower) ||
-            item.itemName?.toString().includes(searchLower) ||
-            item.itemCount?.toString().includes(searchLower)
-        );
-    });
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.to?.toLowerCase().includes(searchLower) ||
+                item.roomType?.toLowerCase().includes(searchLower) ||
+                item.status?.toLowerCase().includes(searchLower) ||
+                item.roomNo?.toString().includes(searchLower) ||
+                item.floor?.toString().includes(searchLower) ||
+                item.itemName?.toString().includes(searchLower) ||
+                item.itemCount?.toString().includes(searchLower)
+            );
+        });
+    }, [orderRequestRooms, searchTerm]);
 
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
+    const paginationData = useMemo(() => {
+        const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentData = filteredBookings.slice(startIndex, endIndex);
 
-    const handleApprove = (id) => {
-        dispatch(approveCleaningRoom(id));
+        return {
+            totalPages,
+            startIndex,
+            endIndex,
+            currentData
+        };
+    }, [filteredBookings, itemsPerPage, currentPage]);
 
-        setTimeout(() => {
-            dispatch(fetchAllOrderRequesr());
-        }, 3000);
-    };
+    const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+    const handleApprove = useCallback((id) => {
+        if (!loading) {
+            dispatch(approveCleaningRoom(id));
+
+            setTimeout(() => {
+                dispatch(fetchAllOrderRequesr());
+            }, 3000);
+        }
+    }, [dispatch, loading]);
 
     return (
         <>
@@ -345,7 +367,7 @@ const OrderRequest = () => {
                                         type="text"
                                         placeholder="Search..."
                                         value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onChange={useCallback((e) => setSearchTerm(e.target.value), [])}
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
                                     />
                                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -602,10 +624,10 @@ const OrderRequest = () => {
                                 <div className="relative">
                                     <select
                                         value={itemsPerPage}
-                                        onChange={(e) => {
+                                        onChange={useCallback((e) => {
                                             setItemsPerPage(Number(e.target.value));
                                             setCurrentPage(1);
-                                        }}
+                                        }, [])}
                                         className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
                                     >
                                         <option value={5}>5</option>
@@ -618,19 +640,19 @@ const OrderRequest = () => {
 
                             <div className="flex items-center gap-1 sm:gap-3  md600:gap-2 md:gap-3">
                                 <span className="text-sm text-gray-600">
-                                    {startIndex + 1} - {Math.min(endIndex, setOrderRequestRooms.length)} of {setOrderRequestRooms.length}
+                                    {startIndex + 1} - {Math.min(endIndex, filteredBookings.length)} of {filteredBookings.length}
                                 </span>
 
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        onClick={useCallback(() => setCurrentPage(prev => Math.max(prev - 1, 1)), [])}
                                         disabled={currentPage === 1}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        onClick={useCallback(() => setCurrentPage(prev => Math.min(prev + 1, totalPages)), [totalPages])}
                                         disabled={currentPage === totalPages}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
