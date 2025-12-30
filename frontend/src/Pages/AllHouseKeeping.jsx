@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { fetchBookings } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { FaEllipsisV } from 'react-icons/fa';
@@ -14,8 +14,8 @@ import { getAllStaff } from '../Redux/Slice/staff.slice.js';
 import axios from 'axios';
 import { SOCKET_URL } from '../Utils/baseUrl.js';
 import { io } from 'socket.io-client';
-const AllHouseKeeping = () => {
 
+const AllHouseKeeping = () => {
     const dispatch = useDispatch();
     const { creating } = useSelector((state) => state.housekeeping);
 
@@ -31,95 +31,11 @@ const AllHouseKeeping = () => {
 
     const [housekeepingStaff, setHousekeepingStaff] = useState([]);
 
-    useEffect(() => {
-        dispatch(fetchFreeWorker());
-    }, [dispatch]);
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
-        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
-        s.on('connect', () => { console.log('socket connected', s.id); });
-        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
-        s.on('error', (err) => { console.error('socket error', err?.message || err); });
-        const refresh = () => {
-            dispatch(fetchFreeWorker());
-        };
-        s.on('worker_asignee_changed', refresh);
-        return () => {
-            s.disconnect();
-        };
-    }, [dispatch]);
-    const { freeWorkers } = useSelector((state) => state.housekeeping);
-
-    useEffect(() => {
-        if (freeWorkers && freeWorkers.length > 0) {
-            const filteredStaff = freeWorkers.filter(
-                (member) => member.department?.name === "Housekeeping"
-            );
-
-            const names = filteredStaff?.map((member) => member?.name);
-
-            setHousekeepingStaff(filteredStaff);
-        } else {
-            setHousekeepingStaff([]);
-        }
-    }, [freeWorkers]);
-
     const [isWorkerDropdownOpen, setIsWorkerDropdownOpen] = useState(false);
     const [isAssignWorkerModalOpen, setIsAssignWorkerModalOpen] = useState(false);
     const [selectedHousekeeping, setSelectedHousekeeping] = useState(null);
     const [roomId, setRoomId] = useState('');
-
-    // Change this state from string to object
     const [selectedWorker, setSelectedWorker] = useState({ name: '', id: '' });
-
-    const handleAssignWorkerClose = () => {
-        setIsAssignWorkerModalOpen(false);
-        setSelectedHousekeeping(null);
-        setSelectedWorker({ name: '', id: '' });
-        setIsWorkerDropdownOpen(false);
-    };
-
-    const handleAssignWorkerSubmit = async () => {
-        const roomId = selectedHousekeeping?.id;
-        const workerId = selectedWorker.id;
-
-        try {
-            // Dispatch the API call
-            await dispatch(assignWorkerToRoom({
-                roomId,
-                workerId
-            })).unwrap();
-            dispatch(fetchFreeWorker());
-            dispatch(fetchAllhousekeepingrooms());
-            dispatch(fetchFreeWorker())
-
-            handleAssignWorkerClose();
-        } catch (error) {
-            console.error('Failed to assign worker:', error);
-        }
-    };
-
-    const handleAssignWorkerClick = (housekeeping) => {
-        setSelectedHousekeeping(housekeeping);
-
-        const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
-        setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
-        setIsAssignWorkerModalOpen(true);
-    };
-
-    const workerDropdownRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target)) {
-                setIsWorkerDropdownOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     // Pagination state for API calls
     const [page, setPage] = useState(1);
@@ -138,12 +54,257 @@ const AllHouseKeeping = () => {
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         workerName: true,
-        // date: true,
         status: true,
         roomNo: true,
         roomType: true,
         actions: true
     });
+
+    const workerDropdownRef = useRef(null);
+
+    const { freeWorkers } = useSelector((state) => state.housekeeping);
+
+    // Memoize filtered housekeeping staff
+    const filteredHousekeepingStaff = useMemo(() => {
+        if (freeWorkers && freeWorkers.length > 0) {
+            return freeWorkers.filter(
+                (member) => member.department?.name === "Housekeeping"
+            );
+        }
+        return [];
+    }, [freeWorkers]);
+
+    useEffect(() => {
+        setHousekeepingStaff(filteredHousekeepingStaff);
+    }, [filteredHousekeepingStaff]);
+
+    // Memoize formatted housekeeping rooms data
+    const formattedHousekeepingRooms = useMemo(() => {
+        if (items && items.length > 0) {
+            return items.map((item, index) => ({
+                id: item._id || item.id || index,
+                name: item.cleanassign?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
+                status: item.cleanStatus || 'Pending',
+                roomNo: item.roomNumber || 'N/A',
+                roomType: item.roomType?.roomType || 'N/A',
+                createdAt: item.createdAt || item.reservation?.checkInDate,
+                rawData: item
+            }));
+        }
+        return [];
+    }, [items]);
+
+    useEffect(() => {
+        setHousekeepingRooms(formattedHousekeepingRooms);
+    }, [formattedHousekeepingRooms]);
+
+    // Memoize getStatusStyle function
+    const getStatusStyle = useCallback((status) => {
+        switch (status) {
+            case 'Paid':
+                return 'border border-green-500 text-green-600 bg-green-50';
+            case 'Unpaid':
+                return 'border border-red-500 text-red-600 bg-red-50';
+            case 'Pending':
+                return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
+            default:
+                return 'border border-gray-500 text-gray-600 bg-gray-50';
+        }
+    }, []);
+
+    // Memoize formatDate function
+    const formatDate = useCallback((dateString) => {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        const day = date.getDate().toString().padStart(2, '0');
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    }, []);
+
+    // Memoize toIsoDate function
+    const toIsoDate = useCallback((dateInput) => {
+        if (!dateInput) return '';
+        const date = new Date(dateInput);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toISOString().split('T')[0];
+    }, []);
+
+    // Memoize filtered bookings
+    const filteredBookings = useMemo(() => {
+        return housekeepingRooms.filter((item) => {
+            const searchLower = searchTerm.trim().toLowerCase();
+            if (!searchLower) return true;
+
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.roomType?.toLowerCase().includes(searchLower) ||
+                item.status?.toLowerCase().includes(searchLower) ||
+                item.roomNo?.toString().includes(searchLower)
+            );
+        });
+    }, [housekeepingRooms, searchTerm]);
+
+    // Memoize pagination data
+    const paginationData = useMemo(() => {
+        const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentData = filteredBookings.slice(startIndex, endIndex);
+
+        return { totalPages, startIndex, endIndex, currentData };
+    }, [filteredBookings, currentPage, itemsPerPage]);
+
+    const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+    // Memoize visible columns count
+    const visibleColumnsCount = useMemo(() => {
+        return Object.values(visibleColumns).filter(Boolean).length;
+    }, [visibleColumns]);
+
+    // Memoized handlers with useCallback
+    const handleAssignWorkerClose = useCallback(() => {
+        setIsAssignWorkerModalOpen(false);
+        setSelectedHousekeeping(null);
+        setSelectedWorker({ name: '', id: '' });
+        setIsWorkerDropdownOpen(false);
+    }, []);
+
+    const handleAssignWorkerSubmit = useCallback(async () => {
+        const roomId = selectedHousekeeping?.id;
+        const workerId = selectedWorker.id;
+
+        try {
+            await dispatch(assignWorkerToRoom({
+                roomId,
+                workerId
+            })).unwrap();
+            dispatch(fetchFreeWorker());
+            dispatch(fetchAllhousekeepingrooms());
+            dispatch(fetchFreeWorker());
+
+            handleAssignWorkerClose();
+        } catch (error) {
+            console.error('Failed to assign worker:', error);
+        }
+    }, [selectedHousekeeping, selectedWorker, dispatch, handleAssignWorkerClose]);
+
+    const handleAssignWorkerClick = useCallback((housekeeping) => {
+        // Fetch free workers when edit button is clicked
+        dispatch(fetchFreeWorker());
+        
+        setSelectedHousekeeping(housekeeping);
+
+        const currentWorker = housekeepingStaff.find(staff => staff.name === housekeeping.name);
+        setSelectedWorker(currentWorker ? { name: currentWorker.name, id: currentWorker._id } : { name: '', id: '' });
+        setIsAssignWorkerModalOpen(true);
+    }, [housekeepingStaff, dispatch]);
+
+    const toggleColumn = useCallback((column) => {
+        setVisibleColumns(prev => ({
+            ...prev,
+            [column]: !prev[column]
+        }));
+    }, []);
+
+    const handleRefresh = useCallback(() => {
+        setSearchTerm("");
+        setDebouncedSearch("");
+        setPage(1);
+        setCurrentPage(1);
+        dispatch(fetchAllhousekeepingrooms({ page: 1, limit }));
+    }, [dispatch, limit]);
+
+    const handleDownloadExcel = useCallback(() => {
+        try {
+            if (housekeepingRooms.length === 0) {
+                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
+                return;
+            }
+
+            const excelData = housekeepingRooms.map((bookingItem, index) => {
+                const row = {};
+
+                if (visibleColumns.No) {
+                    row['No.'] = ((page - 1) * limit) + index + 1;
+                }
+                if (visibleColumns.workerName) {
+                    row['Worker Name'] = bookingItem.name || '';
+                }
+                if (visibleColumns.status) {
+                    row['Status'] = bookingItem.status || '';
+                }
+                if (visibleColumns.roomType) {
+                    row['Room Type'] = bookingItem.roomType || '';
+                }
+                return row;
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
+
+            const maxWidth = 20;
+            const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
+            worksheet['!cols'] = wscols;
+
+            const date = new Date();
+            const fileName = `Bookings_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
+
+            XLSX.writeFile(workbook, fileName);
+            dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+        } catch (error) {
+            dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+        }
+    }, [housekeepingRooms, visibleColumns, page, limit, dispatch]);
+
+    const handleViewClick = useCallback((bookingItem) => {
+        setSelectedItem(bookingItem);
+        setIsModalOpen(true);
+    }, []);
+
+    const handleCloseModal = useCallback(() => {
+        setIsModalOpen(false);
+        setSelectedItem(null);
+    }, []);
+
+    const handlePageChange = useCallback((newPage) => {
+        setPage(newPage);
+        setCurrentPage(newPage);
+    }, []);
+
+    const handleItemsPerPageChange = useCallback((newLimit) => {
+        setLimit(newLimit);
+        setItemsPerPage(newLimit);
+        setPage(1);
+        setCurrentPage(1);
+    }, []);
+
+    const handleApprove = useCallback((id) => {
+        dispatch(approveCleaningRoom(id));
+
+        setTimeout(() => {
+            dispatch(fetchAllhousekeepingrooms());
+        }, 3000);
+    }, [dispatch]);
+
+    const handlePreviousPage = useCallback(() => {
+        setCurrentPage(prev => Math.max(prev - 1, 1));
+    }, []);
+
+    const handleNextPage = useCallback(() => {
+        setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    }, [totalPages]);
+
+    const handleItemsPerPageSelect = useCallback((e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+    }, []);
+
+    const handleWorkerSelect = useCallback((staff) => {
+        setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
+        setIsWorkerDropdownOpen(false);
+    }, []);
 
     // Debounce search term
     useEffect(() => {
@@ -170,43 +331,37 @@ const AllHouseKeeping = () => {
         dispatch(fetchAllhousekeepingrooms(params));
     }, [dispatch, page, limit, debouncedSearch]);
 
+    // Remove the default fetchFreeWorker call - only fetch when edit button is clicked
+    // useEffect(() => {
+    //     dispatch(fetchFreeWorker());
+    // }, [dispatch]);
+
     useEffect(() => {
-        if (items && items.length > 0) {
-            const formattedData = items?.map((item, index) => ({
-                id: item._id || item.id || index,
-                name: item.cleanassign?.name || (typeof item.cleanassign === 'string' ? item.cleanassign : 'N/A'),
-                status: item.cleanStatus || 'Pending',
-                roomNo: item.roomNumber || 'N/A',
-                roomType: item.roomType?.roomType || 'N/A',
-                createdAt: item.createdAt || item.reservation?.checkInDate,
-                rawData: item
-            }));
-            // console
-            setHousekeepingRooms(formattedData);
-        } else {
-            setHousekeepingRooms([]);
-        }
-    }, [items]);
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
+        s.on('connect', () => { console.log('socket connected', s.id); });
+        s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
+        s.on('error', (err) => { console.error('socket error', err?.message || err); });
+        const refresh = () => {
+            dispatch(fetchFreeWorker());
+        };
+        s.on('worker_asignee_changed', refresh);
+        return () => {
+            s.disconnect();
+        };
+    }, [dispatch]);
 
-    const getStatusStyle = (status) => {
-        switch (status) {
-            case 'Paid':
-                return 'border border-green-500 text-green-600 bg-green-50';
-            case 'Unpaid':
-                return 'border border-red-500 text-red-600 bg-red-50';
-            case 'Pending':
-                return 'border border-yellow-500 text-yellow-600 bg-yellow-50';
-            default:
-                return 'border border-gray-500 text-gray-600 bg-gray-50';
-        }
-    };
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (workerDropdownRef.current && !workerDropdownRef.current.contains(event.target)) {
+                setIsWorkerDropdownOpen(false);
+            }
+        };
 
-    const toggleColumn = (column) => {
-        setVisibleColumns(prev => ({
-            ...prev,
-            [column]: !prev[column]
-        }));
-    };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -218,127 +373,6 @@ const AllHouseKeeping = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const handleRefresh = () => {
-        setSearchTerm("");
-        setDebouncedSearch("");
-        setPage(1);
-        setCurrentPage(1);
-        dispatch(fetchAllhousekeepingrooms({ page: 1, limit }));
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        const day = date.getDate().toString().padStart(2, '0');
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}/${month}/${year}`;
-    };
-
-    const handleDownloadExcel = () => {
-        try {
-            if (housekeepingRooms.length === 0) {
-                dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
-                return;
-            }
-            // Prepare data for Excel
-            const excelData = housekeepingRooms?.map((bookingItem, index) => {
-                const row = {};
-
-                if (visibleColumns.No) {
-                    row['No.'] = ((page - 1) * limit) + index + 1;
-                }
-                if (visibleColumns.workerName) {
-                    row['Worker Name'] = bookingItem.workerName || '';
-                }
-                if (visibleColumns.status) {
-                    row['Status'] = bookingItem.status || '';
-                }
-                if (visibleColumns.roomType) {
-                    row['Room Type'] = bookingItem.roomType || '';
-                }
-                return row;
-            });
-
-            // Create a new workbook
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Bookings');
-
-            // Auto-size columns
-            const maxWidth = 20;
-            const wscols = Object.keys(excelData[0] || {})?.map(() => ({ wch: maxWidth }));
-            worksheet['!cols'] = wscols;
-
-            // Generate file name with current date
-            const date = new Date();
-            const fileName = `Bookings_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
-
-            // Download the file
-            XLSX.writeFile(workbook, fileName);
-            dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
-        } catch (error) {
-            dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
-        }
-    };
-
-    const handleViewClick = (bookingItem) => {
-        setSelectedItem(bookingItem);
-        setIsModalOpen(true);
-    };
-
-    const handleCloseModal = () => {
-        setIsModalOpen(false);
-        setSelectedItem(null);
-    };
-
-    // Pagination handlers
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-        setCurrentPage(newPage);
-    };
-
-    const handleItemsPerPageChange = (newLimit) => {
-        setLimit(newLimit);
-        setItemsPerPage(newLimit);
-        setPage(1);
-        setCurrentPage(1);
-    };
-
-    const toIsoDate = (dateInput) => {
-        if (!dateInput) return '';
-        const date = new Date(dateInput);
-        if (Number.isNaN(date.getTime())) return '';
-        return date.toISOString().split('T')[0];
-    };
-
-    // Filter bookings based on search term// Filter based on search term
-    const filteredBookings = housekeepingRooms.filter((item) => {
-        const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
-
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.roomType?.toLowerCase().includes(searchLower) ||
-            item.status?.toLowerCase().includes(searchLower) ||
-            item.roomNo?.toString().includes(searchLower)
-        );
-    });
-
-    // Correct pagination on filtered data
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
-
-    const handleApprove = (id) => {
-        dispatch(approveCleaningRoom(id));
-
-        setTimeout(() => {
-            dispatch(fetchAllhousekeepingrooms());
-        }, 3000);
-    };
 
     return (
         <>
@@ -352,7 +386,6 @@ const AllHouseKeeping = () => {
                         {/* Header */}
                         <div className="md600:flex items-center justify-between p-3 border-b border-gray-200">
                             <div className='flex gap-2 md:gap-5 sm:justify-between'>
-
                                 {/* Search Bar */}
                                 <div className="relative max-w-md">
                                     <input
@@ -384,7 +417,7 @@ const AllHouseKeeping = () => {
                                                     <h3 className="text-sm font-semibold text-gray-700">Show/Hide Column</h3>
                                                 </div>
                                                 <div className="max-h-64 overflow-y-auto">
-                                                    {Object.keys(visibleColumns)?.map((column) => (
+                                                    {Object.keys(visibleColumns).map((column) => (
                                                         <label
                                                             key={column}
                                                             className="flex items-center px-4 py-2 hover:bg-gray-50 cursor-pointer"
@@ -442,7 +475,7 @@ const AllHouseKeeping = () => {
                                 <tbody className="divide-y divide-gray-200">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td colSpan={visibleColumnsCount} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                                     <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
                                                     <p className="text-lg font-medium">Loading...</p>
@@ -450,7 +483,7 @@ const AllHouseKeeping = () => {
                                             </td>
                                         </tr>
                                     ) : currentData.length > 0 ? (
-                                        currentData?.map((housekeeping, index) => (
+                                        currentData.map((housekeeping, index) => (
                                             <tr
                                                 key={housekeeping.id}
                                                 className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
@@ -517,7 +550,7 @@ const AllHouseKeeping = () => {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                                            <td colSpan={visibleColumnsCount} className="px-6 py-12 text-center">
                                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                                     <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
@@ -539,10 +572,7 @@ const AllHouseKeeping = () => {
                                 <div className="relative">
                                     <select
                                         value={itemsPerPage}
-                                        onChange={(e) => {
-                                            setItemsPerPage(Number(e.target.value));
-                                            setCurrentPage(1);
-                                        }}
+                                        onChange={handleItemsPerPageSelect}
                                         className="px-1 sm:px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#B79982] appearance-none bg-white cursor-pointer"
                                     >
                                         <option value={5}>5</option>
@@ -560,14 +590,14 @@ const AllHouseKeeping = () => {
 
                                 <div className="flex items-center gap-1">
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                        onClick={handlePreviousPage}
                                         disabled={currentPage === 1}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <ChevronLeft size={20} />
                                     </button>
                                     <button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                        onClick={handleNextPage}
                                         disabled={currentPage === totalPages}
                                         className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -680,10 +710,7 @@ const AllHouseKeeping = () => {
                                                         return (
                                                             <div
                                                                 key={staff?._id || staff?.id}
-                                                                onClick={() => {
-                                                                    setSelectedWorker({ name: staff?.name || '', id: staff?._id || staff?.id || '' });
-                                                                    setIsWorkerDropdownOpen(false);
-                                                                }}
+                                                                onClick={() => handleWorkerSelect(staff)}
                                                                 className={`px-4 py-2 text-sm cursor-pointer transition-colors ${isSelected ? 'bg-[#F7DF9C] text-black font-medium' : 'text-black hover:bg-[#F7DF9C]'
                                                                     }`}
                                                             >
