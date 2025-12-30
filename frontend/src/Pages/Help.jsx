@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Plus, Minus, Search } from "lucide-react";
 import { Filter, RefreshCw, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 import { useFormik } from 'formik';
@@ -23,10 +23,17 @@ const FAQPage = () => {
   const [selectedFaqId, setSelectedFaqId] = useState(null);
   const dropdownRef = useRef(null);
 
-  const filteredFaqs = faqs.filter((item) =>
-    item.faqQuestion?.toLowerCase().includes(searchQuery?.toLowerCase()) ||
-    item.faqAnswer?.toLowerCase().includes(searchQuery?.toLowerCase())
-  );
+  const faqsList = useMemo(() => (Array.isArray(faqs) ? faqs : []), [faqs]);
+
+  const filteredFaqs = useMemo(() => {
+    const q = (searchQuery || '').trim().toLowerCase();
+    if (!q) return faqsList;
+    return faqsList.filter((item) => {
+      const question = (item?.faqQuestion || '').toString().toLowerCase();
+      const answer = (item?.faqAnswer || '').toString().toLowerCase();
+      return question.includes(q) || answer.includes(q);
+    });
+  }, [faqsList, searchQuery]);
 
   // Prevent background scrolling when any modal is open
   useEffect(() => {
@@ -105,10 +112,10 @@ const FAQPage = () => {
     dispatch(getAllFaqs());
   }, [dispatch]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllFaqs());
     setSearchQuery("");
-  };
+  }, [dispatch]);
 
   return (
     <>

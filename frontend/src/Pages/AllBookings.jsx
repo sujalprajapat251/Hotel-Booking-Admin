@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { deleteBooking, fetchBookings, updateBooking } from '../Redux/Slice/bookingSlice.js';
 import { useDispatch, useSelector } from 'react-redux';
 import { FiEdit } from 'react-icons/fi';
@@ -91,49 +91,51 @@ const AllBookings = () => {
     };
 
     const [searchQuery, setSearchQuery] = useState("");
-    const filteredBookings = booking.filter(b => {
+    const filteredBookings = useMemo(() => {
+        const q = (searchQuery || '').toString().toLowerCase().trim();
+        if (!q) return booking;
         const normalized = str => (str ?? '').toString().toLowerCase().trim();
 
-        // Helper to include both raw and formatted date string
-        const searchableDates = b => [
-            b.checkIn,
-            formatDate(b.checkIn),
-            b.checkOut,
-            formatDate(b.checkOut),
-            b.createdAt,
-            formatDate(b.createdAt),
-            b.rawData?.reservation?.checkInDate,
-            formatDate(b.rawData?.reservation?.checkInDate),
-            b.rawData?.reservation?.checkOutDate,
-            formatDate(b.rawData?.reservation?.checkOutDate),
-            b.rawData?.createdAt,
-            formatDate(b.rawData?.createdAt),
-            b.rawData?.updatedAt,
-            formatDate(b.rawData?.updatedAt)
-        ];
-        const valuesToSearch = [
-            b.name,
-            b.roomNumber,
-            b.status,
-            b.phone,
-            b.countrycode,
-            b.roomType,
-            b.rawData?.guest?.email,
-            b.rawData?.guest?.idNumber,
-            b.rawData?.guest?.address,
-            b.rawData?.notes,
-            b.rawData?.reservation?.occupancy?.adults?.toString(),
-            b.rawData?.reservation?.occupancy?.children?.toString(),
-            b.rawData?.room?.floor?.toString(),
-            b.rawData?.payment?.totalAmount?.toString(),
-            b.rawData?.payment?.currency,
-            b.rawData?.payment?.method,
-            ...searchableDates(b)  // <-- Add all date strings here!
-        ];
-        return valuesToSearch.some(field =>
-            normalized(field).includes(normalized(searchQuery))
-        );
-    });
+        return booking.filter(b => {
+            // Helper to include both raw and formatted date string
+            const searchableDates = b => [
+                b.checkIn,
+                formatDate(b.checkIn),
+                b.checkOut,
+                formatDate(b.checkOut),
+                b.createdAt,
+                formatDate(b.createdAt),
+                b.rawData?.reservation?.checkInDate,
+                formatDate(b.rawData?.reservation?.checkInDate),
+                b.rawData?.reservation?.checkOutDate,
+                formatDate(b.rawData?.reservation?.checkOutDate),
+                b.rawData?.createdAt,
+                formatDate(b.rawData?.createdAt),
+                b.rawData?.updatedAt,
+                formatDate(b.rawData?.updatedAt)
+            ];
+            const valuesToSearch = [
+                b.name,
+                b.roomNumber,
+                b.status,
+                b.phone,
+                b.countrycode,
+                b.roomType,
+                b.rawData?.guest?.email,
+                b.rawData?.guest?.idNumber,
+                b.rawData?.guest?.address,
+                b.rawData?.notes,
+                b.rawData?.reservation?.occupancy?.adults?.toString(),
+                b.rawData?.reservation?.occupancy?.children?.toString(),
+                b.rawData?.room?.floor?.toString(),
+                b.rawData?.payment?.totalAmount?.toString(),
+                b.rawData?.payment?.currency,
+                b.rawData?.payment?.method,
+                ...searchableDates(b)  // <-- Add all date strings here!
+            ];
+            return valuesToSearch.some(field => normalized(field).includes(normalized(q)));
+        });
+    }, [booking, searchQuery]);
     const [visibleColumns, setVisibleColumns] = useState({
         No: true,
         name: true,
@@ -197,13 +199,13 @@ const AllBookings = () => {
 
 
     const totalBookings = totalCount || 0;
-    const totalPages = reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1;
-    const currentPageValue = reduxCurrentPage || page || 1;
-    const serialOffset = (currentPageValue - 1) * limit;
+    const totalPages = useMemo(() => reduxTotalPages || Math.ceil((totalBookings || 0) / limit) || 1, [reduxTotalPages, totalBookings, limit]);
+    const currentPageValue = useMemo(() => reduxCurrentPage || page || 1, [reduxCurrentPage, page]);
+    const serialOffset = useMemo(() => (currentPageValue - 1) * limit, [currentPageValue, limit]);
     // Replace currentData with filteredBookings
-    const currentData = filteredBookings;
-    const displayStart = totalBookings === 0 ? 0 : serialOffset + 1;
-    const displayEnd = totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings);
+    const currentData = useMemo(() => filteredBookings, [filteredBookings]);
+    const displayStart = useMemo(() => (totalBookings === 0 ? 0 : serialOffset + 1), [totalBookings, serialOffset]);
+    const displayEnd = useMemo(() => (totalBookings === 0 ? 0 : Math.min(serialOffset + currentData.length, totalBookings)), [totalBookings, serialOffset, currentData]);
 
     const getStatusStyle = (status) => {
         switch (status) {
@@ -242,15 +244,15 @@ const AllBookings = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         // setPage(1);
         // dispatch(fetchBookings({ page: 1, limit }));
         dispatch(fetchBookings({ page: 1, limit }));
         setSearchQuery("");
         setPage(1);
-    };
+    }, [dispatch, limit]);
 
-    const handleDownloadExcel = () => {
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -304,7 +306,7 @@ const AllBookings = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [filteredBookings, visibleColumns, currentPageValue, limit, dispatch]);
 
     const handleViewClick = (bookingItem) => {
         setSelectedItem(bookingItem);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import "../Style/vaidik.css"
 import { IoEyeSharp } from 'react-icons/io5';
@@ -76,28 +76,37 @@ const Contact = () => {
     setSelectedItem(null);
   };
 
-  const filteredBookings = contact.filter((item) => {
+  const contactList = useMemo(() => (Array.isArray(contact) ? contact : []), [contact]);
+
+  const filteredBookings = useMemo(() => {
     const searchLower = searchTerm.trim().toLowerCase();
-    if (!searchLower) return true;
+    if (!searchLower) return contactList;
 
-    const mobileValue = Array.isArray(item.mobileno)
-      ? item.mobileno.join(' ').toLowerCase()
-      : item.mobileno?.toString().toLowerCase() ?? '';
+    return contactList.filter((item) => {
+      const name = (item?.name || '').toString().toLowerCase();
+      const email = (item?.email || '').toString().toLowerCase();
+      const mobileValue = Array.isArray(item.mobileno)
+        ? item.mobileno.join(' ').toLowerCase()
+        : (item.mobileno?.toString().toLowerCase() ?? '');
+      const message = (item?.message || '').toString().toLowerCase();
 
-    return (
-      item.name?.toLowerCase().includes(searchLower) ||
-      item.email?.toLowerCase().includes(searchLower) ||
-      mobileValue.includes(searchLower) ||
-      item.message?.toLowerCase().includes(searchLower)
-    );
-  });
+      return (
+        name.includes(searchLower) ||
+        email.includes(searchLower) ||
+        mobileValue.includes(searchLower) ||
+        message.includes(searchLower)
+      );
+    });
+  }, [contactList, searchTerm]);
 
-  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredBookings.slice(startIndex, endIndex);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredBookings.length / itemsPerPage)), [filteredBookings.length, itemsPerPage]);
 
-  const handleDownloadExcel = () => {
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+
+  const currentData = useMemo(() => filteredBookings.slice(startIndex, endIndex), [filteredBookings, startIndex, endIndex]);
+
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredBookings.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -148,13 +157,13 @@ const Contact = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredBookings, visibleColumns, dispatch]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllContact());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">

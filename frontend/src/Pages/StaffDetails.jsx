@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, MapPin, Phone, Mail } from 'lucide-react';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -61,22 +61,28 @@ const StaffTable = () => {
     return `${day}/${month}/${year}`;
   };
 
-  const filteredData = staff.filter(staff =>
-    staff?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.gender?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.mobileno?.toString().includes(searchTerm) ||
-    staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (staff?.joiningdate && (formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(staff.joiningdate).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
-    staff?.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.department?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredData = useMemo(() => {
+    const list = staff ?? [];
+    const q = (searchTerm || '').toLowerCase().trim();
+    if (!q) return list;
+    return list.filter((s) => {
+      return (
+        (s?.name || '').toLowerCase().includes(q) ||
+        (s?.gender || '').toLowerCase().includes(q) ||
+        (s?.email || '').toLowerCase().includes(q) ||
+        (s?.mobileno || '').toString().includes(q) ||
+        (s?.designation || '').toLowerCase().includes(q) ||
+        (s?.joiningdate && (formatDate(s.joiningdate).toLowerCase().includes(q) || formatDate(s.joiningdate).replace(/\//g, "-").toLowerCase().includes(q))) ||
+        (s?.address || '').toLowerCase().includes(q) ||
+        (s?.department?.name || '').toLowerCase().includes(q)
+      );
+    });
+  }, [staff, searchTerm]);
 
-  );
-
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const totalPages = useMemo(() => Math.ceil(filteredData.length / itemsPerPage), [filteredData.length, itemsPerPage]);
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+  const currentData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
   const toggleColumn = (column) => {
     setVisibleColumns(prev => ({
@@ -96,13 +102,13 @@ const StaffTable = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllStaff());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredData.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -168,7 +174,7 @@ const StaffTable = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredData, visibleColumns, dispatch]);
 
   const handleDeleteClick = (staffItem) => {
     setItemToDelete(staffItem);

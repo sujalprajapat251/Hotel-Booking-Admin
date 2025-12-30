@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import "../Style/vaidik.css"
 import { RiDeleteBinLine } from "react-icons/ri";
@@ -65,22 +65,28 @@ const About = () => {
     setSelectedItem(null);
   };
 
-  const aboutList = Array.isArray(about) ? about : [];
-  const filteredAbout = aboutList.filter(
-    (item) =>
-      item?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item?.description?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const aboutList = useMemo(() => (Array.isArray(about) ? about : []), [about]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredAbout.length / itemsPerPage));
+  const filteredAbout = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return aboutList;
+    return aboutList.filter((item) => {
+      const title = (item?.title || '').toString().toLowerCase();
+      const desc = (item?.description || '').toString().toLowerCase();
+      return title.includes(term) || desc.includes(term);
+    });
+  }, [aboutList, searchTerm]);
+
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(filteredAbout.length / itemsPerPage)), [filteredAbout.length, itemsPerPage]);
 
   useEffect(() => {
-    setCurrentPage(prev => Math.min(prev, totalPages));
+    setCurrentPage((prev) => Math.min(prev, totalPages));
   }, [totalPages]);
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredAbout.slice(startIndex, endIndex);
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+
+  const currentData = useMemo(() => filteredAbout.slice(startIndex, endIndex), [filteredAbout, startIndex, endIndex]);
 
   const handleEditClick = (item) => {
     navigate('/about/addabout', { state: { mode: 'edit', about: item } });
@@ -125,7 +131,7 @@ const About = () => {
     return tempElement.textContent || tempElement.innerText || '';
   };
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredAbout.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -169,13 +175,13 @@ const About = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredAbout, visibleColumns, startIndex, dispatch]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllAbout());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
