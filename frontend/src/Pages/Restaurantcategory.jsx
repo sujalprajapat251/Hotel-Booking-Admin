@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
@@ -32,12 +32,12 @@ const Restaurantcategory = () => {
     actions: true,
   });
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,24 +91,24 @@ const Restaurantcategory = () => {
     }
   });
 
-  const handleAddModalClose = () => {
+  const handleAddModalClose = useCallback(() => {
     setIsAddModalOpen(false);
     setIsEditMode(false);
     setEditingItem(null);
     formik.resetForm();
-  };
+  }, []);
 
-  const handleDeleteClick = (item) => {
+  const handleDeleteClick = useCallback((item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose = useCallback(() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (itemToDelete) {
       dispatch(deleteRestaurantcategory(itemToDelete._id))
         .then(() => {
@@ -116,27 +116,40 @@ const Restaurantcategory = () => {
         });
     }
     handleDeleteModalClose();
-  };
+  }, [dispatch, itemToDelete]);
 
-  const filtereRestaurantcategory = restaurantcategory.filter((item) => {
+  const filtereRestaurantcategory = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+
+    return restaurantcategory.filter(item =>
       item.name?.toLowerCase().includes(searchLower)
     );
-  });
+  }, [restaurantcategory, searchTerm]);
 
-  const totalPages = Math.ceil(filtereRestaurantcategory.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filtereRestaurantcategory.slice(startIndex, endIndex);
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filtereRestaurantcategory.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
 
-  const handleRefresh = () => {
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData: filtereRestaurantcategory.slice(startIndex, endIndex),
+    };
+  }, [filtereRestaurantcategory, currentPage, itemsPerPage]);
+
+  const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+
+  const handleRefresh = useCallback(() => {
     dispatch(getAllRestaurantcategory());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
+  
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filtereRestaurantcategory.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -175,11 +188,13 @@ const Restaurantcategory = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filtereRestaurantcategory, dispatch]);
+  
 
   useEffect(() => {
     dispatch(getAllRestaurantcategory());
   }, [dispatch])
+
 
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -333,11 +348,11 @@ const Restaurantcategory = () => {
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
-                        <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <p className="text-lg font-medium">No Restaurant Category available</p>
-                        <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                      </svg>
+                      <p className="text-lg font-medium">No Restaurant Category available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>

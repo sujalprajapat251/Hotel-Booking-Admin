@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
@@ -32,12 +32,12 @@ const Barcategory = () => {
     actions: true,
   });
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -91,24 +91,24 @@ const Barcategory = () => {
     }
   });
 
-  const handleAddModalClose = () => {
+  const handleAddModalClose = useCallback(() => {
     setIsAddModalOpen(false);
     setIsEditMode(false);
     setEditingItem(null);
     formik.resetForm();
-  };
+  }, []);
 
-  const handleDeleteClick = (item) => {
+  const handleDeleteClick = useCallback((item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose = useCallback(() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (itemToDelete) {
       dispatch(deleteBarcategory(itemToDelete._id))
         .then(() => {
@@ -116,27 +116,36 @@ const Barcategory = () => {
         });
     }
     handleDeleteModalClose();
-  };
+  }, [dispatch, itemToDelete]);
 
-  const filtereBarcategory = barcategory.filter((item) => {
+  const filtereBarcategory = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    return barcategory.filter(item =>
       item.name?.toLowerCase().includes(searchLower)
     );
-  });
+  }, [barcategory, searchTerm]);
 
-  const totalPages = Math.ceil(filtereBarcategory.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filtereBarcategory.slice(startIndex, endIndex);
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filtereBarcategory.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
 
-  const handleRefresh = () => {
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData: filtereBarcategory.slice(startIndex, endIndex),
+    };
+  }, [filtereBarcategory, currentPage, itemsPerPage]);
+  const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+  const handleRefresh = useCallback(() => {
     dispatch(getAllBarcategory());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filtereBarcategory.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -175,7 +184,7 @@ const Barcategory = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filtereBarcategory, dispatch]);
 
   useEffect(() => {
     dispatch(getAllBarcategory());

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, Phone, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import * as XLSX from 'xlsx';
@@ -47,31 +47,29 @@ const CafeOrderList = () => {
 
   const {cafeListOrder,loading} = useSelector((state) => state.vieworder);
 
-  const getOrderItemCount = (order) => {
+  const getOrderItemCount = useCallback((order) => {
     if (!order?.items?.length) return 0;
-    return order.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
-  };
-
-  const getOrderTotalAmount = (order) => {
+    return order.items.length;
+  }, []);
+  
+  const getOrderTotalAmount = useCallback((order) => {
     if (!order?.items?.length) return 0;
     return order.items.reduce((sum, item) => {
       const price = item?.product?.price || 0;
       const qty = item?.qty || 1;
       return sum + price * qty;
     }, 0);
-  };
-
-  const getItemPreview = (order) => {
+  }, []);
+  
+  const getItemPreview = useCallback((order) => {
     if (!order?.items?.length) return 'No items added';
-    const names = order.items
-      .map((item) => item?.product?.name)
-      .filter(Boolean);
-    if (!names.length) return 'No items added';
+    const names = order.items.map(i => i?.product?.name).filter(Boolean);
     if (names.length <= 2) return names.join(', ');
     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-  };
+  }, []);
+  
 
-  const getStatusStyle = (status) => {
+  const getStatusStyle = useCallback((status) => {
     switch (status) {
       case 'Paid':
         return 'border border-green-500 text-green-600 bg-green-50';
@@ -82,18 +80,18 @@ const CafeOrderList = () => {
       default:
         return 'border border-gray-500 text-gray-600 bg-gray-50';
     }
-  };
+  },[]);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
-  };
+  },[]);
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = useCallback((dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -102,70 +100,82 @@ const CafeOrderList = () => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  };
+  },[formatDate]);
 
-  const handleViewOrder = (order) => {
+  const handleViewOrder = useCallback((order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
+  }, []);
+  
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedOrder(null);
-  };
+  }, []);
+  
 
-  const filteredOrderHistory = cafeListOrder.filter((order) => {
-    if (!searchQuery.trim()) return true;
-
+  const filteredOrderHistory = useMemo(() => {
+    if (!searchQuery.trim()) return cafeListOrder;
+  
     const query = searchQuery.toLowerCase().trim();
-    const name = (order?.name || '').toLowerCase();
-    const contact = (order?.contact || '').toLowerCase();
-    const fromSource = (order?.from || '').toLowerCase();
-    const payment = (order?.payment || '').toLowerCase();
-    const paymentMethod = (order?.paymentMethod || '').toLowerCase();
-    const itemNames = order?.items
-      ?.map((item) => (item?.product?.name || '').toLowerCase())
-      .join(' ') || '';
-    let formattedDate = '';
-    if (order?.createdAt) {
-      const formatted = formatDate(order.createdAt);
-      formattedDate = (formatted ? formatted.toLowerCase() : '');
-      if (formattedDate && !formattedDate.includes(query)) {
-        const dashed = formatted.replace(/\//g, "-").toLowerCase();
-        formattedDate += ` ${dashed}`;
-      }
-    }
-    const amountValue = getOrderTotalAmount(order);
-    const amount = amountValue.toString().toLowerCase();
-    const amountWithCurrency = `$${amountValue}`.toLowerCase();
+  
+    return cafeListOrder.filter((order) => {
+      const name = (order?.name || '').toLowerCase();
+      const contact = (order?.contact || '').toLowerCase();
+      const fromSource = (order?.from || '').toLowerCase();
+      const payment = (order?.payment || '').toLowerCase();
+      const paymentMethod = (order?.paymentMethod || '').toLowerCase();
+      const itemNames =
+        order?.items?.map(i => i?.product?.name?.toLowerCase()).join(' ') || '';
+  
+      const formattedDate = order?.createdAt
+        ? formatDate(order.createdAt).toLowerCase()
+        : '';
+  
+      const amount = getOrderTotalAmount(order).toString();
+  
+      return (
+        name.includes(query) ||
+        contact.includes(query) ||
+        fromSource.includes(query) ||
+        payment.includes(query) ||
+        paymentMethod.includes(query) ||
+        itemNames.includes(query) ||
+        formattedDate.includes(query) ||
+        amount.includes(query)
+      );
+    });
+  }, [cafeListOrder, searchQuery, getOrderTotalAmount]);
+  
 
-    return name.includes(query) ||
-      contact.includes(query) ||
-      fromSource.includes(query) ||
-      payment.includes(query) ||
-      paymentMethod.includes(query) ||
-      itemNames.includes(query) ||
-      formattedDate.includes(query) ||
-      amount.includes(query) ||
-      amountWithCurrency.includes(query);
-  });
+  const pagination = useMemo(() => {
+    const totalItems = filteredOrderHistory.length;
+    const totalPages = Math.max(Math.ceil(totalItems / itemsPerPage), 1);
+    const safePage = Math.min(currentPage, totalPages);
+  
+    const startIndex = totalItems === 0 ? 0 : (safePage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+  
+    return {
+      totalItems,
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData: filteredOrderHistory.slice(startIndex, endIndex),
+      paginationStart: totalItems === 0 ? 0 : startIndex + 1,
+      paginationEnd: totalItems === 0 ? 0 : Math.min(endIndex, totalItems),
+    };
+  }, [filteredOrderHistory, currentPage, itemsPerPage]);
+  
+  const { totalItems, totalPages, startIndex, currentData, paginationStart, paginationEnd} = pagination;
+  
 
-  const totalItems = filteredOrderHistory.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginationTotalPages = Math.max(totalPages, 1);
-  const safeCurrentPage = Math.min(currentPage, paginationTotalPages);
-  const startIndex = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredOrderHistory.slice(startIndex, endIndex);
-  const paginationStart = totalItems === 0 ? 0 : startIndex + 1;
-  const paginationEnd = totalItems === 0 ? 0 : Math.min(endIndex, totalItems);
-
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -213,7 +223,7 @@ const CafeOrderList = () => {
     }
   }, [currentPage, totalPages]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredOrderHistory.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -269,13 +279,14 @@ const CafeOrderList = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  },[filteredOrderHistory,dispatch]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllCafeOrder());
     setSearchQuery("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
+  
 
   return (
     <>
@@ -521,8 +532,8 @@ const CafeOrderList = () => {
                     <ChevronLeft size={20} />
                   </button>
                   <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, paginationTotalPages))}
-                    disabled={currentPage === paginationTotalPages || totalItems === 0}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages || totalItems === 0}
                     className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronRight size={20} />
