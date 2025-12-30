@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -41,14 +41,14 @@ const Blog = () => {
         date: true,
         actions: true,
     });
-    const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
+    const visibleColumnCount = useMemo(() => Object.values(visibleColumns).filter(Boolean).length || 1, [visibleColumns]);
 
-    const toggleColumn = (column) => {
+    const toggleColumn = useCallback((column) => {
         setVisibleColumns(prev => ({
             ...prev,
             [column]: !prev[column]
         }));
-    };
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -78,15 +78,15 @@ const Blog = () => {
         dispatch(getAllBlog());
     }, [dispatch]);
 
-    const handleViewClick = (item) => {
+    const handleViewClick = useCallback((item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedItem(null);
-    };
+    }, []);
 
     const validationSchema = useMemo(() => (
         Yup.object({
@@ -115,7 +115,8 @@ const Blog = () => {
             image: null,
         },
         validationSchema,
-        onSubmit: async (values, { resetForm }) => {
+        onSubmit: useCallback(async (values, { resetForm }) => {
+            if (loading) return;
             try {
                 if (isEditMode && editingItem) {
                     const payload = {
@@ -145,28 +146,28 @@ const Blog = () => {
             } catch (error) {
                 console.error('Error creating blog:', error);
             }
-        },
+        }, [dispatch, isEditMode, editingItem, loading]),
     });
 
-    const handleAddModalClose = () => {
+    const handleAddModalClose = useCallback(() => {
         setIsAddModalOpen(false);
         setIsEditMode(false);
         setEditingItem(null);
         formik.resetForm();
-    };
+    }, [formik]);
 
-    const handleDeleteClick = (item) => {
+    const handleDeleteClick = useCallback((item) => {
         setItemToDelete(item);
         setIsDeleteModalOpen(true);
-    };
+    }, []);
 
-    const handleDeleteModalClose = () => {
+    const handleDeleteModalClose = useCallback(() => {
         setItemToDelete(null);
         setIsDeleteModalOpen(false);
-    };
+    }, []);
 
-    const handleDeleteConfirm = async () => {
-        if (!itemToDelete) return;
+    const handleDeleteConfirm = useCallback(async () => {
+        if (!itemToDelete || loading) return;
 
         try {
             const result = await dispatch(deleteBlog({ id: itemToDelete._id || itemToDelete.id }));
@@ -180,9 +181,9 @@ const Blog = () => {
         } finally {
             handleDeleteModalClose();
         }
-    };
+    }, [dispatch, itemToDelete, handleDeleteModalClose, loading]);
 
-    const getStatusColor = (status) => {
+    const getStatusColor = useCallback((status) => {
         switch (status) {
             case 'Paid':
                 return '#4EB045';
@@ -193,9 +194,9 @@ const Blog = () => {
             default:
                 return '#gray';
         }
-    };
+    }, []);
 
-    const formatDate = (dateInput) => {
+    const formatDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
@@ -203,54 +204,67 @@ const Blog = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-    };
+    }, []);
 
-    const toIsoDate = (dateInput) => {
+    const toIsoDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
         return date.toISOString().split('T')[0];
-    };
+    }, []);
 
-    const stripHtmlTags = (htmlString = '') => {
+    const stripHtmlTags = useCallback((htmlString = '') => {
         if (!htmlString) return '';
         const tempElement = document.createElement('div');
         tempElement.innerHTML = htmlString;
         return tempElement.textContent || tempElement.innerText || '';
-    };
+    }, []);
 
     // Filter bookings based on search term
-    const filteredBookings = blog.filter((item) => {
-        const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
+    const filteredBookings = useMemo(() => {
+        return blog.filter((item) => {
+            const searchLower = searchTerm.trim().toLowerCase();
+            if (!searchLower) return true;
 
-        const formattedDate = formatDate(item.date).toLowerCase();
-        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
-        const isoDate = toIsoDate(item.date).toLowerCase();
-        const plainDescription = stripHtmlTags(item.description).toLowerCase();
-        const countValue = item.count !== undefined && item.count !== null ? item.count.toString().toLowerCase() : '';
+            const formattedDate = formatDate(item.date).toLowerCase();
+            const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+            const isoDate = toIsoDate(item.date).toLowerCase();
+            const plainDescription = stripHtmlTags(item.description).toLowerCase();
+            const countValue = item.count !== undefined && item.count !== null ? item.count.toString().toLowerCase() : '';
 
-        return (
-            item.title?.toLowerCase().includes(searchLower) ||
-            item.subtitle?.toLowerCase().includes(searchLower) ||
-            plainDescription.includes(searchLower) ||
-            item.date?.toLowerCase().includes(searchLower) ||
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.tag?.toLowerCase().includes(searchLower) ||
-            countValue.includes(searchLower) ||
-            (item?.createdAt && (formatDate(item.createdAt).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(item.createdAt).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
-            formattedDate.includes(searchLower) ||
-            isoCreatedAt.includes(searchLower) ||
-            isoDate.includes(searchLower)
-        );
-    });
+            return (
+                item.title?.toLowerCase().includes(searchLower) ||
+                item.subtitle?.toLowerCase().includes(searchLower) ||
+                plainDescription.includes(searchLower) ||
+                item.date?.toLowerCase().includes(searchLower) ||
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.tag?.toLowerCase().includes(searchLower) ||
+                countValue.includes(searchLower) ||
+                (item?.createdAt && (formatDate(item.createdAt).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(item.createdAt).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
+                formattedDate.includes(searchLower) ||
+                isoCreatedAt.includes(searchLower) ||
+                isoDate.includes(searchLower)
+            );
+        });
+    }, [blog, searchTerm, formatDate, toIsoDate, stripHtmlTags]);
 
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
+    const paginationData = useMemo(() => {
+        const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const currentData = filteredBookings.slice(startIndex, endIndex);
 
-    const handleDownloadExcel = () => {
+        return {
+            totalPages,
+            startIndex,
+            endIndex,
+            currentData
+        };
+    }, [filteredBookings, itemsPerPage, currentPage]);
+
+    const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -304,13 +318,15 @@ const Blog = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [filteredBookings, visibleColumns, startIndex, stripHtmlTags, dispatch]);
 
-    const handleRefresh = () => {
-        dispatch(getAllBlog());
+    const handleRefresh = useCallback(() => {
+        if (!loading) {
+            dispatch(getAllBlog());
+        }
         setSearchTerm("");
         setCurrentPage(1);
-    };
+    }, [dispatch, loading]);
 
 
     return (
@@ -334,7 +350,7 @@ const Blog = () => {
                                 type="text"
                                 placeholder="Search..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={useCallback((e) => setSearchTerm(e.target.value), [])}
                                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#B79982] focus:border-transparent"
                             />
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -581,14 +597,14 @@ const Blog = () => {
 
                         <div className="flex items-center gap-1">
                             <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                onClick={useCallback(() => setCurrentPage(prev => Math.max(prev - 1, 1)), [])}
                                 disabled={currentPage === 1}
                                 className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <ChevronLeft size={20} />
                             </button>
                             <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                onClick={useCallback(() => setCurrentPage(prev => Math.min(prev + 1, totalPages)), [totalPages])}
                                 disabled={currentPage === totalPages}
                                 className="text-gray-600 hover:text-[#876B56] hover:bg-[#F7DF9C]/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
