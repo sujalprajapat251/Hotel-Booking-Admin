@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
-import { useState } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { SOCKET_URL } from '../../Utils/baseUrl';
 import { getCafeOrderStatus, updateCafeItemStatus, rejectCafeItemStatus, setPreparingOrder, clearPreparingOrder } from '../../Redux/Slice/Chef.slice';
@@ -14,6 +13,23 @@ export default function Dashboard() {
     const preparingOrder = useSelector((state) => state.chef.preparingOrder);
     const currentUser = useSelector((state) => state.staff.currentUser);
     const [selected, setSelected] = useState(null);
+    const refreshTimeoutRef = useRef(null);
+    const isRefreshingRef = useRef(false);
+
+    // Memoized refresh function for socket events
+    const refresh = useCallback(() => {
+        if (refreshTimeoutRef.current) {
+            clearTimeout(refreshTimeoutRef.current);
+        }
+        refreshTimeoutRef.current = setTimeout(async () => {
+            if (isRefreshingRef.current) return;
+            isRefreshingRef.current = true;
+            await dispatch(getCafeOrderStatus());
+            isRefreshingRef.current = false;
+            refreshTimeoutRef.current = null;
+        }, 300);
+    }, [dispatch]);
+
     useEffect(() => {
         dispatch(getCafeOrderStatus());
         dispatch(getUserById()); // Get current user details
@@ -25,7 +41,6 @@ export default function Dashboard() {
         s.on('connect', () => { console.log('socket connected', s.id); });
         s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
         s.on('error', (err) => { console.error('socket error', err?.message || err); });
-        const refresh = () => { dispatch(getCafeOrderStatus()); };
         s.on('cafe_order_changed', refresh);
         s.on('bar_order_changed', refresh);
         s.on('restaurant_order_changed', refresh);
@@ -33,9 +48,18 @@ export default function Dashboard() {
         s.on('bar_table_status_changed', refresh);
         s.on('restaurant_table_status_changed', refresh);
         return () => {
+            s.off('cafe_order_changed', refresh);
+            s.off('bar_order_changed', refresh);
+            s.off('restaurant_order_changed', refresh);
+            s.off('cafe_table_status_changed', refresh);
+            s.off('bar_table_status_changed', refresh);
+            s.off('restaurant_table_status_changed', refresh);
             s.disconnect();
+            if (refreshTimeoutRef.current) {
+                clearTimeout(refreshTimeoutRef.current);
+            }
         };
-    }, [dispatch]);
+    }, [refresh]);
     useEffect(() => {
         setSelected(preparingOrder)
     }, [preparingOrder])
@@ -50,7 +74,7 @@ export default function Dashboard() {
         }
     }, [data, dispatch, currentUser]);
 
-    const handleAcceptOrder = async (order) => {
+    const handleAcceptOrder = useCallback(async (order) => {
         if (order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id) {
             dispatch(setAlert({ text: "This order is being prepared by another chef", color: 'error' }));
             return;
@@ -98,10 +122,10 @@ export default function Dashboard() {
             setSelected(order);
             dispatch(setAlert({ text: "Failed to update order status", color: 'error' }));
         }
-    }
+    }, [currentUser?._id, preparingOrder, dispatch]);
 
     // Handle reject order
-    const handleRejectOrder = async (order) => {
+    const handleRejectOrder = useCallback(async (order) => {
         if (!order || order.status === 'Reject by chef' || order.status === 'Done') return;
         try {
             let orderData = {
@@ -116,9 +140,9 @@ export default function Dashboard() {
         } catch (error) {
             dispatch(setAlert({ text: 'Failed to reject order', color: 'error' }));
         }
-    }
+    }, [dispatch]);
 
-    const getButtonText = (order) => {
+    const getButtonText = useCallback((order) => {
         if (!order) return "Accept";
 
         if (order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id) {
@@ -137,9 +161,9 @@ export default function Dashboard() {
             return "Done this order";
         }
         return "Accept";
-    }
+    }, [currentUser?._id, preparingOrder]);
 
-    const isButtonDisabled = (order) => {
+    const isButtonDisabled = useCallback((order) => {
         if (!order) return true;
 
         // Disable if order is being prepared by another chef
@@ -154,12 +178,12 @@ export default function Dashboard() {
 
         // Disable if order is not in a state that allows action
         return !(order.status === "Pending" || (order.status === "Preparing" && preparingOrder && preparingOrder._id === order._id));
-    }
+    }, [currentUser?._id, preparingOrder]);
 
     // Check if an order is being prepared by another chef
-    const isOrderPreparedByAnotherChef = (order) => {
+    const isOrderPreparedByAnotherChef = useCallback((order) => {
         return order.status === "Preparing" && order.preparedBy && order.preparedBy !== currentUser?._id;
-    }
+    }, [currentUser?._id]);
 
     useEffect(() => {
         if (selected && data) {

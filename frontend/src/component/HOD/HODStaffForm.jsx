@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Upload, ChevronDown, X } from 'lucide-react';
@@ -17,7 +17,7 @@ const StaffForm = () => {
   const dispatch = useDispatch();
   const isEditMode = location?.state?.mode === 'edit';
   const staffData = location?.state?.staff || null;
-  const pageTitle = isEditMode ? 'Edit New Cafe Staff' : 'Add New Cafe Staff';
+  const pageTitle = useMemo(() => isEditMode ? 'Edit New Cafe Staff' : 'Add New Cafe Staff', [isEditMode]);
 
   const departments = useSelector((state) => state.department.departments);
 
@@ -37,15 +37,11 @@ const StaffForm = () => {
   const calendarRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const genders = ['Male', 'Female', 'Other'];
+  const genders = useMemo(() => ['Male', 'Female', 'Other'], []);
 
-  const designations = [
-    'Waiter',
-    'Chef',
-    'Accountant',
-  ];
+  const designations = useMemo(() => ['Waiter','Chef','Accountant'], []);
 
-  const countryCodes = [
+  const countryCodes = useMemo(() => [
     { code: '+1', country: 'USA' },
     { code: '+44', country: 'UK' },
     { code: '+91', country: 'India' },
@@ -54,16 +50,15 @@ const StaffForm = () => {
     { code: '+49', country: 'Germany' },
     { code: '+33', country: 'France' },
     { code: '+61', country: 'Australia' }
-  ];
+  ], []);
 
   const [showPassword, setShowPassword] = useState(false);
-  
-  const togglePasswordVisibility = () => {
+  const togglePasswordVisibility = useCallback(() => {
     setShowPassword((prev) => !prev);
-  };
+  }, []);
 
   // Validation Schema
-  const validationSchema = Yup.object({
+  const validationSchema = useMemo(() => Yup.object({
     name: Yup.string()
       .min(3, 'Name must be at least 3 characters')
       .max(50, 'Name must be less than 50 characters')
@@ -125,7 +120,7 @@ const StaffForm = () => {
     joiningDate: Yup.date()
       .max(new Date(), 'Joining date cannot be in the future')
       .required('Joining date is required')
-  });
+  }), [isEditMode]);
 
   // Helper function to extract country code, mobile and fullMobile from mobileno
   const extractMobileAndCode = (mobileno, storedCountryCode) => {
@@ -220,7 +215,7 @@ const StaffForm = () => {
     }
   });
 
-  const handleImageChange = (e) => {
+  const handleImageChange = useCallback((e) => {
     const file = e.target.files[0];
     if (file) {
       formik.setFieldValue('image', file);
@@ -230,17 +225,17 @@ const StaffForm = () => {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, [formik]);
 
-  const handleDateSelect = (date) => {
+  const handleDateSelect = useCallback((date) => {
     formik.setFieldValue('joiningDate', date);
     setShowCalendar(false);
-  };
+  }, [formik]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     formik.handleSubmit();
-  };
+  }, [formik]);
 
   useEffect(() => {
     dispatch(getAllDepartment());
@@ -578,4 +573,4 @@ const StaffForm = () => {
   );
 };
 
-export default StaffForm;
+export default React.memo(StaffForm);

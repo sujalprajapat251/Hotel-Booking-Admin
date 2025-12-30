@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import HODbookingchart from '../HOD/HODbookingchart';
@@ -15,25 +15,25 @@ const HODDashboard = () => {
   const getHodDashboard = useSelector((state) => state.HODDashboard.getHodDashboard);
   const getPaymentMethod = useSelector((state) => state.HODDashboard.getPaymentMethod);
 
-  const paymentMethods = getPaymentMethod?.paymentMethodSummary || {};
-  const fixedOrder = ["card", "cash", "upi"];
-
-  const paymentStats = Object.entries(paymentMethods)
-  .sort((a, b) => fixedOrder.indexOf(a[0]) - fixedOrder.indexOf(b[0]))
-  .map(([key, value]) => ({
-    label: key.charAt(0).toUpperCase() + key.slice(1),
-    value: value.revenue,
-  }));
-
-  const totalRevenue = paymentStats.reduce((sum, item) => sum + item.value, 0);
-
-  const colors = [ '#F7DF9C', '#B79982', '#876B56', '#755647', '#E3C78A', '#A3876A' ];
-
-  const stats = paymentStats.map((item, index) => ({
-    ...item,
-    percentage: totalRevenue ? (item.value / totalRevenue) * 100 : 0,
-    color: colors[index % colors.length],
-  }));
+  const paymentMethods = useMemo(() => getPaymentMethod?.paymentMethodSummary || {}, [getPaymentMethod]);
+  const fixedOrder = useMemo(() => ["card", "cash", "upi"], []);
+  const paymentStats = useMemo(() => {
+    return Object.entries(paymentMethods)
+      .sort((a, b) => fixedOrder.indexOf(a[0]) - fixedOrder.indexOf(b[0]))
+      .map(([key, value]) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value: value.revenue,
+      }));
+  }, [paymentMethods, fixedOrder]);
+  const totalRevenue = useMemo(() => paymentStats.reduce((sum, item) => sum + item.value, 0), [paymentStats]);
+  const colors = useMemo(() => ['#F7DF9C', '#B79982', '#876B56', '#755647', '#E3C78A', '#A3876A'], []);
+  const stats = useMemo(() => {
+    return paymentStats.map((item, index) => ({
+      ...item,
+      percentage: totalRevenue ? (item.value / totalRevenue) * 100 : 0,
+      color: colors[index % colors.length],
+    }));
+  }, [paymentStats, totalRevenue, colors]);
 
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
@@ -48,9 +48,8 @@ const HODDashboard = () => {
     }
   }, [dispatch, selectedDate]);
 
-  const disabledDate = (current) => {
-    return current && current > dayjs().endOf('month');
-  };
+  const disabledDate = useCallback((current) => current && current > dayjs().endOf('month'), []);
+  const handleMonthChange = useCallback((date) => setSelectedDate(date), []);
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
       <div className="mb-6 flex justify-between items-center">
@@ -58,7 +57,7 @@ const HODDashboard = () => {
         <DatePicker
           picker="month"
           value={selectedDate}
-          onChange={(date) => setSelectedDate(date)}
+          onChange={handleMonthChange}
           disabledDate={disabledDate}
           allowClear={false}
           className="mt-4 md:mt-3"
@@ -187,4 +186,4 @@ const HODDashboard = () => {
   );
 };
 
-export default HODDashboard;
+export default React.memo(HODDashboard);
