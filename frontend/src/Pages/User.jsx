@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, Plus, RefreshCw, Download, ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllUser } from '../Redux/Slice/user.slice';
@@ -34,31 +34,31 @@ const User = () => {
         return `${day}/${month}/${year}`;
     };
 
-    const filteredUsers = users.filter((user) => {
-        if (!searchQuery.trim()) return true;
+    const filteredUsers = useMemo(() => {
+        if (!searchQuery.trim()) return users;
 
         const query = searchQuery.toLowerCase().trim();
-        const name = (user.name || '').toLowerCase();
-        const email = (user.email || '').toLowerCase();
-        let formattedDate = '';
-        if (user?.createdAt) {
-            const formatted = formatDate(user.createdAt);
-            formattedDate = (formatted ? formatted.toLowerCase() : '');
-            if (formattedDate && !formattedDate.includes(query)) {
-                const dashed = formatted.replace(/\//g, "-").toLowerCase();
-                formattedDate += ` ${dashed}`;
+        return users.filter((user) => {
+            const name = (user.name || '').toLowerCase();
+            const email = (user.email || '').toLowerCase();
+            let formattedDate = '';
+            if (user?.createdAt) {
+                const formatted = formatDate(user.createdAt);
+                formattedDate = (formatted ? formatted.toLowerCase() : '');
+                if (formattedDate && !formattedDate.includes(query)) {
+                    const dashed = formatted.replace(/\//g, "-").toLowerCase();
+                    formattedDate += ` ${dashed}`;
+                }
             }
-        }
-        return name.includes(query) ||
-            email.includes(query) ||
-            formattedDate.includes(query);
-    });
+            return name.includes(query) || email.includes(query) || formattedDate.includes(query);
+        });
+    }, [users, searchQuery]);
 
-    const totalItems = filteredUsers.length;
-    const totalPages = Math.ceil(totalItems / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredUsers.slice(startIndex, endIndex);
+    const totalItems = useMemo(() => filteredUsers.length, [filteredUsers]);
+    const totalPages = useMemo(() => Math.ceil(totalItems / itemsPerPage), [totalItems, itemsPerPage]);
+    const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+    const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+    const currentData = useMemo(() => filteredUsers.slice(startIndex, endIndex), [filteredUsers, startIndex, endIndex]);
 
     const toggleColumn = (column) => {
         setVisibleColumns(prev => ({
@@ -82,7 +82,7 @@ const User = () => {
         dispatch(getAllUser());
     }, [dispatch]);
 
-    const handleDownloadExcel = () => {
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (currentData.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -128,13 +128,13 @@ const User = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [filteredUsers, visibleColumns, currentData, dispatch]);
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         dispatch(getAllUser());
         setSearchQuery("");
         setCurrentPage(1);
-    };
+    }, [dispatch]);
 
     return (
         <>

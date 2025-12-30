@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { RiDeleteBinLine } from 'react-icons/ri';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { useFormik } from 'formik';
@@ -47,11 +47,16 @@ const TermsTable = () => {
     };
   }, [isAddModalOpen, isDeleteModalOpen]);
 
-  const filteredTerms = (terms ?? []).filter(
-    (item) =>
-      item?.title?.toLowerCase().includes(search.toLowerCase()) ||
-      item?.description?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredTerms = useMemo(() => {
+    const list = terms ?? [];
+    const q = (search || '').toLowerCase().trim();
+    if (!q) return list;
+    return list.filter(
+      (item) =>
+        (item?.title || '').toLowerCase().includes(q) ||
+        (item?.description || '').toLowerCase().includes(q)
+    );
+  }, [terms, search]);
 
   useEffect(() => {
     const calculatedPages = Math.max(1, Math.ceil(filteredTerms.length / itemsPerPage));
@@ -110,20 +115,20 @@ const TermsTable = () => {
     setIsDeleteModalOpen(false);
   };
 
-  const totalItems = filteredTerms.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-  const startIndex = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage;
-  const endIndex = totalItems === 0 ? 0 : Math.min(startIndex + itemsPerPage, totalItems);
-  const currentData = filteredTerms.slice(startIndex, endIndex);
-  const displayStart = totalItems === 0 ? 0 : startIndex + 1;
-  const displayEnd = totalItems === 0 ? 0 : endIndex;
+  const totalItems = useMemo(() => filteredTerms.length, [filteredTerms]);
+  const totalPages = useMemo(() => Math.max(1, Math.ceil(totalItems / itemsPerPage)), [totalItems, itemsPerPage]);
+  const safeCurrentPage = useMemo(() => Math.min(currentPage, totalPages), [currentPage, totalPages]);
+  const startIndex = useMemo(() => (totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage), [safeCurrentPage, itemsPerPage, totalItems]);
+  const endIndex = useMemo(() => (totalItems === 0 ? 0 : Math.min(startIndex + itemsPerPage, totalItems)), [startIndex, itemsPerPage, totalItems]);
+  const currentData = useMemo(() => filteredTerms.slice(startIndex, endIndex), [filteredTerms, startIndex, endIndex]);
+  const displayStart = useMemo(() => (totalItems === 0 ? 0 : startIndex + 1), [startIndex, totalItems]);
+  const displayEnd = useMemo(() => (totalItems === 0 ? 0 : endIndex), [endIndex, totalItems]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllTerms());
     setSearch("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
   return (
     <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
