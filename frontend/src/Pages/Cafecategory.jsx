@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
@@ -34,12 +34,12 @@ const Cafecategory = () => {
     actions: true,
   });
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -93,24 +93,24 @@ const Cafecategory = () => {
     }
   });
 
-  const handleAddModalClose = () => {
+  const handleAddModalClose = useCallback(() => {
     setIsAddModalOpen(false);
     setIsEditMode(false);
     setEditingItem(null);
     formik.resetForm();
-  };
+  }, []);
 
-  const handleDeleteClick = (item) => {
+  const handleDeleteClick = useCallback((item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose = useCallback(() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (itemToDelete) {
       dispatch(deleteCafecategory(itemToDelete._id))
         .then(() => {
@@ -118,27 +118,36 @@ const Cafecategory = () => {
         });
     }
     handleDeleteModalClose();
-  };
+  }, [dispatch, itemToDelete]);
 
-  const filtereCafecategory = cafecategory.filter((item) => {
+  const filtereCafecategory = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    return cafecategory.filter(item =>
       item.name?.toLowerCase().includes(searchLower)
     );
-  });
+  }, [cafecategory, searchTerm]);
 
-  const totalPages = Math.ceil(filtereCafecategory.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filtereCafecategory.slice(startIndex, endIndex);
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filtereCafecategory.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
 
-  const handleRefresh = () => {
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData: filtereCafecategory.slice(startIndex, endIndex),
+    };
+  }, [filtereCafecategory, currentPage, itemsPerPage]);
+  const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+  const handleRefresh = useCallback(() => {
     dispatch(getAllCafecategory());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filtereCafecategory.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -177,7 +186,7 @@ const Cafecategory = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filtereCafecategory, dispatch]);
 
   useEffect(() => {
     dispatch(getAllCafecategory());

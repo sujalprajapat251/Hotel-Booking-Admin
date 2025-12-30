@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -44,19 +44,20 @@ const RestaurantItems = () => {
     });
 
 
-    const getImageFileName = (path = '') => {
+    const getImageFileName = useCallback((path = '') => {
         if (!path) return '';
         const segments = path.split(/[/\\]/);
         const fileName = segments[segments.length - 1] || '';
         return fileName.replace(/^\d+-/, '');
-    };
+    },[]);
 
-    const toggleColumn = (column) => {
+    const toggleColumn = useCallback((column) => {
         setVisibleColumns(prev => ({
             ...prev,
             [column]: !prev[column]
         }));
-    };
+    }, []);
+    
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -108,15 +109,15 @@ const RestaurantItems = () => {
         fetchCategories();
     }, []);
 
-    const handleViewClick = (item) => {
+    const handleViewClick = useCallback((item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
+    },[]);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedItem(null);
-    };
+    },[])
 
     const validationSchema = useMemo(() => (
         Yup.object({
@@ -177,54 +178,40 @@ const RestaurantItems = () => {
         },
     });
 
-    const handleAddModalClose = () => {
+    const handleAddModalClose = useCallback(() => {
         setIsAddModalOpen(false);
         setIsEditMode(false);
         setEditingItem(null);
         formik.resetForm();
-    };
+    },[]);
 
-    const handleDeleteClick = (item) => {
+    const handleDeleteClick = useCallback((item) => {
         setItemToDelete(item);
         setIsDeleteModalOpen(true);
-    };
-
-    const handleDeleteModalClose = () => {
+    }, []);
+    
+    const handleDeleteModalClose = useCallback(() => {
         setItemToDelete(null);
         setIsDeleteModalOpen(false);
-    };
-
-    const handleDeleteConfirm = async () => {
+    }, []);
+    
+    const handleDeleteConfirm = useCallback(async () => {
         if (!itemToDelete) return;
-
+    
         try {
             const result = await dispatch(deleteRestaurantitem({ id: itemToDelete._id || itemToDelete.id }));
-
             if (deleteRestaurantitem.fulfilled.match(result)) {
                 dispatch(setAlert({ text: "Restaurant Item deleted successfully..!", color: 'success' }));
                 dispatch(getAllRestaurantitem());
             }
-        } catch (error) {
+        } catch {
             dispatch(setAlert({ text: "Failed to delete restaurant item", color: 'error' }));
         } finally {
             handleDeleteModalClose();
         }
-    };
+    }, [dispatch, itemToDelete, handleDeleteModalClose]);
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Paid':
-                return '#4EB045';
-            case 'Unpaid':
-                return '#EC0927';
-            case 'Pending':
-                return '#F7DF9C';
-            default:
-                return '#gray';
-        }
-    };
-
-    const formatDate = (dateInput) => {
+    const formatDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
@@ -232,44 +219,58 @@ const RestaurantItems = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-    };
+    },[]);
 
-    const toIsoDate = (dateInput) => {
+    const toIsoDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
         return date.toISOString().split('T')[0];
-    };
+    },[]);
 
 
     // Filter bookings based on search term
-    const filteredBookings = restaurant.filter((item) => {
+    const filteredBookings = useMemo(() => {
         const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
+        if (!searchLower) return restaurant;
+    
+        return restaurant.filter((item) => {
+            const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
+            const formattedDate = formatDate(item.date).toLowerCase();
+            const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+            const isoDate = toIsoDate(item.date).toLowerCase();
+    
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.category?.name?.toLowerCase().includes(searchLower) ||
+                item.price?.toString().includes(searchLower) ||
+                item.description?.toLowerCase().includes(searchLower) ||
+                formattedCreatedAt.includes(searchLower) ||
+                formattedDate.includes(searchLower) ||
+                isoCreatedAt.includes(searchLower) ||
+                isoDate.includes(searchLower)
+            );
+        });
+    }, [restaurant, searchTerm]);
+    
 
-        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
-        const formattedDate = formatDate(item.date).toLowerCase();
-        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
-        const isoDate = toIsoDate(item.date).toLowerCase();
+    const pagination = useMemo(() => {
+        const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+    
+        return {
+            totalPages,
+            startIndex,
+            endIndex,
+            currentData: filteredBookings.slice(startIndex, endIndex),
+        };
+    }, [filteredBookings, currentPage, itemsPerPage]);
+    
+    const { totalPages, startIndex, endIndex, currentData } = pagination;
+    
 
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.category?.name?.toLowerCase().includes(searchLower) ||
-            item.price?.toString().includes(searchLower) ||
-            item.description?.toLowerCase().includes(searchLower) ||
-            formattedCreatedAt.includes(searchLower) ||
-            formattedDate.includes(searchLower) ||
-            isoCreatedAt.includes(searchLower) ||
-            isoDate.includes(searchLower)
-        );
-    });
-
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
-
-    const handleDownloadExcel = () => {
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -320,13 +321,14 @@ const RestaurantItems = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    },[filteredBookings, dispatch])
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         dispatch(getAllRestaurantitem());
         setSearchTerm("");
         setCurrentPage(1);
-    };
+    }, [dispatch]);
+    
 
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">

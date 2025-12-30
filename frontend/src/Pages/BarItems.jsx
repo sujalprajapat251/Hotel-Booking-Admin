@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -44,19 +44,20 @@ const BarItems = () => {
     });
 
 
-    const getImageFileName = (path = '') => {
+    const getImageFileName = useCallback((path = '') => {
         if (!path) return '';
         const segments = path.split(/[/\\]/);
         const fileName = segments[segments.length - 1] || '';
         return fileName.replace(/^\d+-/, '');
-    };
+    }, []);
 
-    const toggleColumn = (column) => {
+    const toggleColumn = useCallback((column) => {
         setVisibleColumns(prev => ({
             ...prev,
             [column]: !prev[column]
         }));
-    };
+    }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -108,15 +109,15 @@ const BarItems = () => {
         fetchCategories();
     }, []);
 
-    const handleViewClick = (item) => {
+    const handleViewClick = useCallback((item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
+    }, []);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedItem(null);
-    };
+    }, []);
 
     const validationSchema = useMemo(() => (
         Yup.object({
@@ -177,54 +178,40 @@ const BarItems = () => {
         },
     });
 
-    const handleAddModalClose = () => {
+    const handleAddModalClose = useCallback(() => {
         setIsAddModalOpen(false);
         setIsEditMode(false);
         setEditingItem(null);
         formik.resetForm();
-    };
+    }, []);
 
-    const handleDeleteClick = (item) => {
+    const handleDeleteClick = useCallback((item) => {
         setItemToDelete(item);
         setIsDeleteModalOpen(true);
-    };
+    }, []);
 
-    const handleDeleteModalClose = () => {
+    const handleDeleteModalClose = useCallback(() => {
         setItemToDelete(null);
         setIsDeleteModalOpen(false);
-    };
+    }, []);
 
-    const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = useCallback(async () => {
         if (!itemToDelete) return;
 
         try {
             const result = await dispatch(deleteBaritem({ id: itemToDelete._id || itemToDelete.id }));
-
             if (deleteBaritem.fulfilled.match(result)) {
                 dispatch(setAlert({ text: "Bar Item deleted successfully..!", color: 'success' }));
                 dispatch(getAllBaritem());
             }
-        } catch (error) {
+        } catch {
             dispatch(setAlert({ text: "Failed to delete bar item", color: 'error' }));
         } finally {
             handleDeleteModalClose();
         }
-    };
+    }, [dispatch, itemToDelete, handleDeleteModalClose]);
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Paid':
-                return '#4EB045';
-            case 'Unpaid':
-                return '#EC0927';
-            case 'Pending':
-                return '#F7DF9C';
-            default:
-                return '#gray';
-        }
-    };
-
-    const formatDate = (dateInput) => {
+    const formatDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
@@ -232,44 +219,56 @@ const BarItems = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-    };
+    }, []);
 
-    const toIsoDate = (dateInput) => {
+    const toIsoDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
         return date.toISOString().split('T')[0];
-    };
+    }, []);
 
 
     // Filter bookings based on search term
-    const filteredBookings = barItem.filter((item) => {
+    const filteredBookings = useMemo(() => {
         const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
+        if (!searchLower) return barItem;
 
-        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
-        const formattedDate = formatDate(item.date).toLowerCase();
-        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
-        const isoDate = toIsoDate(item.date).toLowerCase();
+        return barItem.filter((item) => {
+            const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
+            const formattedDate = formatDate(item.date).toLowerCase();
+            const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+            const isoDate = toIsoDate(item.date).toLowerCase();
 
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.category?.name?.toLowerCase().includes(searchLower) ||
-            item.price?.toString().includes(searchLower) ||
-            item.description?.toLowerCase().includes(searchLower) ||
-            formattedCreatedAt.includes(searchLower) ||
-            formattedDate.includes(searchLower) ||
-            isoCreatedAt.includes(searchLower) ||
-            isoDate.includes(searchLower)
-        );
-    });
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.category?.name?.toLowerCase().includes(searchLower) ||
+                item.price?.toString().includes(searchLower) ||
+                item.description?.toLowerCase().includes(searchLower) ||
+                formattedCreatedAt.includes(searchLower) ||
+                formattedDate.includes(searchLower) ||
+                isoCreatedAt.includes(searchLower) ||
+                isoDate.includes(searchLower)
+            );
+        });
+    }, [barItem, searchTerm]);
 
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
 
-    const handleDownloadExcel = () => {
+        const paginationData = useMemo(() => {
+            const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+
+            return {
+                totalPages,
+                startIndex,
+                endIndex,
+                currentData: filteredBookings.slice(startIndex, endIndex),
+            };
+        }, [filteredBookings, currentPage, itemsPerPage]);
+        const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -277,33 +276,20 @@ const BarItems = () => {
             }
             // Prepare data for Excel
             const excelData = filteredBookings.map((item, index) => {
-                const row = {};
-                if (visibleColumns.no) {
-                    row['No.'] = startIndex + index + 1;
-                }
-                if (visibleColumns.name) {
-                    row['Name'] = item.name || '';
-                }
-                if (visibleColumns.category) {
-                    row['Category'] = item.category.name || '';
-                }
-                if (visibleColumns.price) {
-                    row['Price'] = item.price || '';
-                }
-                if (visibleColumns.image) {
-                    row['Image'] = item.image ? item.image : '';
-                }
-                if (visibleColumns.description) {
-                    row['Description'] = item.description || '';
-                }
-
-                return row;
-            });
+            const row = {};
+            if (visibleColumns.no) row['No.'] = startIndex + index + 1;
+            if (visibleColumns.name) row['Name'] = item.name || '';
+            if (visibleColumns.category) row['Category'] = item.category?.name || '';
+            if (visibleColumns.price) row['Price'] = item.price || '';
+            if (visibleColumns.image) row['Image'] = item.image || '';
+            if (visibleColumns.description) row['Description'] = item.description || '';
+            return row;
+        });
 
             // Create a new workbook
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Barlist');
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Barlist');
 
             // Auto-size columns
             const maxWidth = 20;
@@ -316,17 +302,19 @@ const BarItems = () => {
 
             // Download the file
             XLSX.writeFile(workbook, fileName);
-            dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
+        dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [filteredBookings, dispatch]);
 
-    const handleRefresh = () => {
+
+    const handleRefresh = useCallback(() => {
         dispatch(getAllBaritem());
         setSearchTerm("");
         setCurrentPage(1);
-    };
+    }, [dispatch]);
+
 
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">

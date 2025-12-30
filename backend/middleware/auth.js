@@ -33,7 +33,6 @@ exports.auth = async (req, res, next) => {
 }
 
 exports.adminOnly = (req, res, next) => {
-    console.log(req.user)
     if (req.user.designation !== "admin") {
         return res.status(403).json({
             status: 403,

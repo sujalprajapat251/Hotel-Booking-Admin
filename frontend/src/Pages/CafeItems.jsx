@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -10,7 +10,7 @@ import { Search, Filter, Download, ChevronLeft, ChevronRight, RefreshCw, Chevron
 import { getAllCafeitem, createCafeitem, updateCafeitem, deleteCafeitem, toggleCafeitemStatus } from '../Redux/Slice/cafeitemSlice';
 import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
-import { IMAGE_URL, BASE_URL } from '../Utils/baseUrl';
+import { BASE_URL } from '../Utils/baseUrl';
 import axios from 'axios';
 
 const CafeItems = () => {
@@ -42,21 +42,21 @@ const CafeItems = () => {
         status: true,
         actions: true,
     });
-    const visibleColumnCount = Object.values(visibleColumns).filter(Boolean).length || 1;
 
-    const getImageFileName = (path = '') => {
+    const getImageFileName = useCallback((path = '') => {
         if (!path) return '';
         const segments = path.split(/[/\\]/);
         const fileName = segments[segments.length - 1] || '';
         return fileName.replace(/^\d+-/, '');
-    };
+    },[]);
 
-    const toggleColumn = (column) => {
+    const toggleColumn = useCallback((column) => {
         setVisibleColumns(prev => ({
             ...prev,
             [column]: !prev[column]
         }));
-    };
+    }, []);
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -108,15 +108,15 @@ const CafeItems = () => {
         fetchCategories();
     }, []);
 
-    const handleViewClick = (item) => {
+    const handleViewClick = useCallback((item) => {
         setSelectedItem(item);
         setIsModalOpen(true);
-    };
+    },[]);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
         setSelectedItem(null);
-    };
+    },[])
 
     const validationSchema = useMemo(() => (
         Yup.object({
@@ -177,54 +177,40 @@ const CafeItems = () => {
         },
     });
 
-    const handleAddModalClose = () => {
+    const handleAddModalClose = useCallback(() => {
         setIsAddModalOpen(false);
         setIsEditMode(false);
         setEditingItem(null);
         formik.resetForm();
-    };
+    },[]);
 
-    const handleDeleteClick = (item) => {
+    const handleDeleteClick = useCallback((item) => {
         setItemToDelete(item);
         setIsDeleteModalOpen(true);
-    };
+    }, []);
 
-    const handleDeleteModalClose = () => {
+    const handleDeleteModalClose = useCallback(() => {
         setItemToDelete(null);
         setIsDeleteModalOpen(false);
-    };
+    }, []);
 
-    const handleDeleteConfirm = async () => {
+    const handleDeleteConfirm = useCallback(async () => {
         if (!itemToDelete) return;
 
         try {
             const result = await dispatch(deleteCafeitem({ id: itemToDelete._id || itemToDelete.id }));
-
             if (deleteCafeitem.fulfilled.match(result)) {
                 dispatch(setAlert({ text: "Cafe Item deleted successfully..!", color: 'success' }));
                 dispatch(getAllCafeitem());
             }
-        } catch (error) {
+        } catch {
             dispatch(setAlert({ text: "Failed to delete cafe item", color: 'error' }));
         } finally {
             handleDeleteModalClose();
         }
-    };
+    }, [dispatch, itemToDelete, handleDeleteModalClose]);
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Paid':
-                return '#4EB045';
-            case 'Unpaid':
-                return '#EC0927';
-            case 'Pending':
-                return '#F7DF9C';
-            default:
-                return '#gray';
-        }
-    };
-
-    const formatDate = (dateInput) => {
+    const formatDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
@@ -232,44 +218,57 @@ const CafeItems = () => {
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const year = date.getFullYear();
         return `${day}/${month}/${year}`;
-    };
+    },[]);
 
-    const toIsoDate = (dateInput) => {
+    const toIsoDate = useCallback((dateInput) => {
         if (!dateInput) return '';
         const date = new Date(dateInput);
         if (Number.isNaN(date.getTime())) return '';
         return date.toISOString().split('T')[0];
-    };
+    },[])
 
 
     // Filter bookings based on search term
-    const filteredBookings = cafe.filter((item) => {
+    const filteredBookings = useMemo(() => {
         const searchLower = searchTerm.trim().toLowerCase();
-        if (!searchLower) return true;
+        if (!searchLower) return cafe;
 
-        const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
-        const formattedDate = formatDate(item.date).toLowerCase();
-        const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
-        const isoDate = toIsoDate(item.date).toLowerCase();
+        return cafe.filter((item) => {
+            const formattedCreatedAt = formatDate(item.createdAt).toLowerCase();
+            const formattedDate = formatDate(item.date).toLowerCase();
+            const isoCreatedAt = toIsoDate(item.createdAt).toLowerCase();
+            const isoDate = toIsoDate(item.date).toLowerCase();
 
-        return (
-            item.name?.toLowerCase().includes(searchLower) ||
-            item.category?.name?.toLowerCase().includes(searchLower) ||
-            item.price?.toString().includes(searchLower) ||
-            item.description?.toLowerCase().includes(searchLower) ||
-            formattedCreatedAt.includes(searchLower) ||
-            formattedDate.includes(searchLower) ||
-            isoCreatedAt.includes(searchLower) ||
-            isoDate.includes(searchLower)
-        );
-    });
+            return (
+                item.name?.toLowerCase().includes(searchLower) ||
+                item.category?.name?.toLowerCase().includes(searchLower) ||
+                item.price?.toString().includes(searchLower) ||
+                item.description?.toLowerCase().includes(searchLower) ||
+                formattedCreatedAt.includes(searchLower) ||
+                formattedDate.includes(searchLower) ||
+                isoCreatedAt.includes(searchLower) ||
+                isoDate.includes(searchLower)
+            );
+        });
+    }, [cafe, searchTerm]);
 
-    const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentData = filteredBookings.slice(startIndex, endIndex);
+    const pagination = useMemo(() => {
+        const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
 
-    const handleDownloadExcel = () => {
+        return {
+            totalPages,
+            startIndex,
+            endIndex,
+            currentData: filteredBookings.slice(startIndex, endIndex),
+        };
+    }, [filteredBookings, currentPage, itemsPerPage]);
+
+    const { totalPages, startIndex, endIndex, currentData } = pagination;
+
+
+    const handleDownloadExcel = useCallback(() => {
         try {
             if (filteredBookings.length === 0) {
                 dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -321,13 +320,14 @@ const CafeItems = () => {
         } catch (error) {
             dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
         }
-    };
+    }, [filteredBookings, dispatch])
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         dispatch(getAllCafeitem());
         setSearchTerm("");
         setCurrentPage(1);
-    };
+    }, [dispatch]);
+
 
     return (
         <div className="bg-[#F0F3FB] px-4 md:px-8 py-6 h-full">
@@ -720,8 +720,8 @@ const CafeItems = () => {
                                         onBlur={formik.handleBlur}
                                         name="category"
                                         className={`w-full rounded-[4px] border px-2 py-2 focus:outline-none bg-[#1414140F] flex items-center justify-between ${formik.touched.category && formik.errors.category
-                                                ? 'border-red-500'
-                                                : 'border-gray-200'
+                                            ? 'border-red-500'
+                                            : 'border-gray-200'
                                             }`}
                                     >
                                         <span className={formik.values.category ? 'text-black' : 'text-gray-400'}>
@@ -747,8 +747,8 @@ const CafeItems = () => {
                                                             setShowCategoryDropdown(false);
                                                         }}
                                                         className={`px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors ${formik.values.category === cat._id
-                                                                ? 'bg-[#F7DF9C] text-black/100 font-medium'
-                                                                : 'text-black/100'
+                                                            ? 'bg-[#F7DF9C] text-black/100 font-medium'
+                                                            : 'text-black/100'
                                                             }`}
                                                     >
                                                         {cat.name}

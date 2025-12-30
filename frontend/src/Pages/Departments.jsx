@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import "../Style/vaidik.css"
@@ -34,12 +34,13 @@ const Departments = () => {
     actions: true,
   });
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
-      [column]: !prev[column]
+      [column]: !prev[column],
     }));
-  };
+  }, []);
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -87,84 +88,80 @@ const Departments = () => {
     formik.resetForm();
   };
 
-  const handleDeleteClick = (item) => {
+  const handleDeleteClick = useCallback((item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
+  
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose = useCallback(() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
-  };
+  }, []);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (itemToDelete) {
       dispatch(deleteDepartment(itemToDelete._id))
-        .then(() => {
-          dispatch(getAllDepartment());
-        });
+        .then(() => dispatch(getAllDepartment()));
     }
     handleDeleteModalClose();
-  };
+  }, [dispatch, itemToDelete]);
+  
 
-  const filtereDepartment = departments.filter((item) => {
+  const filtereDepartment = useMemo(() => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    return departments.filter(item =>
       item.name?.toLowerCase().includes(searchLower)
     );
-  });
+  }, [departments, searchTerm]);
 
-  const totalPages = Math.ceil(filtereDepartment.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filtereDepartment.slice(startIndex, endIndex);
 
-  const handleRefresh = () => {
+  const paginationData = useMemo(() => {
+    const totalPages = Math.ceil(filtereDepartment.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+
+    return {
+      totalPages,
+      startIndex,
+      endIndex,
+      currentData: filtereDepartment.slice(startIndex, endIndex),
+    };
+  }, [filtereDepartment, currentPage, itemsPerPage]);
+
+  const { totalPages, startIndex, endIndex, currentData } = paginationData;
+
+
+  const handleRefresh = useCallback(() => {
     dispatch(getAllDepartment());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
+  
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filtereDepartment.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
         return;
       }
-      // Prepare data for Excel
-      const excelData = filtereDepartment.map((user, index) => {
-        const row = {};
-
-        if (visibleColumns.No) {
-          row['No.'] = index + 1;
-        }
-        if (visibleColumns.name) {
-          row['Name'] = user.name || '';
-        }
-        return row;
-      });
-
-      // Create a new workbook
+  
+      const excelData = filtereDepartment.map((dept, index) => ({
+        No: index + 1,
+        Name: dept.name || '',
+      }));
+  
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
-
-      // Auto-size columns
-      const maxWidth = 20;
-      const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
-      worksheet['!cols'] = wscols;
-
-      // Generate file name with current date
-      const date = new Date();
-      const fileName = `Department_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
-
-      // Download the file
-      XLSX.writeFile(workbook, fileName);
-      dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
-    } catch (error) {
-      dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Departments');
+  
+      XLSX.writeFile(workbook, `Department_List.xlsx`);
+      dispatch(setAlert({ text: "Export completed!", color: 'success' }));
+    } catch {
+      dispatch(setAlert({ text: "Export failed!", color: 'error' }));
     }
-  };
+  }, [filtereDepartment, dispatch]);
+  
 
   useEffect(() => {
     dispatch(getAllDepartment());
@@ -276,56 +273,56 @@ const Departments = () => {
             <tbody className="divide-y divide-gray-200 bg-white">
               {loading ? (
                 <tr>
-                    <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
-                        <div className="flex flex-col items-center justify-center text-gray-500">
-                          <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
-                          <p className="text-lg font-medium">Loading Departments...</p>
-                        </div>
-                    </td>
+                  <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500">
+                      <RefreshCw className="w-12 h-12 mb-4 text-[#B79982] animate-spin" />
+                      <p className="text-lg font-medium">Loading Departments...</p>
+                    </div>
+                  </td>
                 </tr>
               ) : currentData.length > 0 ? (
-              currentData.map((item, index) => (
-                <tr
-                  key={item._id || index}
-                  className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
-                >
-                  {visibleColumns.no && (
-                    <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
-                  )}
-                  {/* title */}
-                  {visibleColumns.name && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
-                      <div className="flex items-center gap-2">
-                        {item.name}
-                      </div>
-                    </td>
-                  )}
-                  {/* Actions */}
-                  {visibleColumns.actions && (
-                    <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
-                      <div className="mv_table_action flex">
-                        <div onClick={() => {
-                          setIsEditMode(true);
-                          setEditingItem(item);
-                          formik.setValues({ name: item.name });
-                          setIsAddModalOpen(true);
-                        }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
-                        <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
-                      </div>
-                    </td>
-                  )}
+                currentData.map((item, index) => (
+                  <tr
+                    key={item._id || index}
+                    className="hover:bg-gradient-to-r hover:from-[#F7DF9C]/10 hover:to-[#E3C78A]/10 transition-all duration-200"
+                  >
+                    {visibleColumns.no && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">{startIndex + index + 1}</td>
+                    )}
+                    {/* title */}
+                    {visibleColumns.name && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700 capitalize">
+                        <div className="flex items-center gap-2">
+                          {item.name}
+                        </div>
+                      </td>
+                    )}
+                    {/* Actions */}
+                    {visibleColumns.actions && (
+                      <td className=" px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        <div className="mv_table_action flex">
+                          <div onClick={() => {
+                            setIsEditMode(true);
+                            setEditingItem(item);
+                            formik.setValues({ name: item.name });
+                            setIsAddModalOpen(true);
+                          }}><FiEdit className="text-[#6777ef] text-[18px]" /></div>
+                          <div onClick={() => handleDeleteClick(item)}><RiDeleteBinLine className="text-[#ff5200] text-[18px]" /></div>
+                        </div>
+                      </td>
+                    )}
 
-                </tr>
-              ))
+                  </tr>
+                ))
               ) : (
                 <tr>
                   <td colSpan={Object.values(visibleColumns).filter(Boolean).length} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-500">
                       <svg className="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <p className="text-lg font-medium">No Departments available</p>
-                        <p className="text-sm mt-1">Try adjusting your search or filters</p>
+                      </svg>
+                      <p className="text-lg font-medium">No Departments available</p>
+                      <p className="text-sm mt-1">Try adjusting your search or filters</p>
                     </div>
                   </td>
                 </tr>
