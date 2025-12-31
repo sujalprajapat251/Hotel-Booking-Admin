@@ -11,11 +11,11 @@ const driverSchema = new mongoose.Schema({
         type: String,
     },
     countrycode: {
-        type: String,
+        type: String, 
         required: true
     },
     mobileno: {
-        type: String,
+        type: String,   
     },
     address: {
         type: String,
@@ -33,10 +33,18 @@ const driverSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "cab"
     },
-    status:{
-        type:String,
-        enum: ["Available" , "Unavailable", "Leave","onTrip"]
+    status: {
+        type: String,
+        enum: ["Available", "Unavailable", "Leave", "onTrip"]
     }
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    toJSON: {
+        transform: function (doc, ret) {
+            delete ret.password;
+            return ret;
+        },
+    },
+});
 
 module.exports = mongoose.model('driver', driverSchema);

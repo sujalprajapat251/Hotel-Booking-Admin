@@ -6,7 +6,7 @@ const { uploadToS3, deleteFromS3 } = require('../utils/s3Service');
 
 exports.createUser = async (req, res) => {
     try {
-        let { name, email, password, role,mobileno,gender,dob } = req.body;
+        let { name, email, password, role, mobileno, gender, dob } = req.body;
 
         role = role || "user";
 
@@ -33,6 +33,9 @@ exports.createUser = async (req, res) => {
             dob
         });
 
+        const userResponse = user.toObject();
+        delete userResponse.password;
+
         let token = null;
         if (role === "user") {
             token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
@@ -41,7 +44,7 @@ exports.createUser = async (req, res) => {
         return res.status(200).json({
             status: 200,
             message: 'User created successfully..!',
-            user: user,
+            user: userResponse,
             token: token
         });
     } catch (error) {
@@ -70,6 +73,9 @@ exports.userLogin = async (req, res) => {
                 .json({ status: 404, message: "Password Not Match" });
         }
 
+        const userResponse = checkEmailIsExist.toObject();
+        delete userResponse.password;
+
         let token = await jwt.sign(
             { _id: checkEmailIsExist._id },
             process.env.SECRET_KEY,
@@ -80,7 +86,7 @@ exports.userLogin = async (req, res) => {
             .json({
                 status: 200,
                 message: "Login SuccessFully..!",
-                user: checkEmailIsExist,
+                user: userResponse,
                 token: token,
             });
     } catch (error) {
@@ -137,10 +143,13 @@ exports.updateUser = async (req, res) => {
             });
         }
 
+        const userResponse = updatedUser.toObject();
+        delete userResponse.password;
+
         return res.status(200).json({
             status: 200,
             message: "User updated successfully..!",
-            user: updatedUser,
+            user: userResponse,
         });
     } catch (error) {
         return res.status(500).json({

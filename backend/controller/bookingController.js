@@ -702,7 +702,7 @@ const updateBooking = async (req, res) => {
         const populated = await booking.populate([
             { 
                 path: 'room', 
-                select: 'roomNumber roomType status capacity price cleanStatus',
+                select: 'roomNumber roomType status capacity price cleanStatus', 
                 populate: { path: 'roomType' }
             },
             { path: 'createdBy', select: 'fullName email role' }
@@ -722,7 +722,7 @@ const updateBooking = async (req, res) => {
 const deleteBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const booking = await Booking.findByIdAndDelete(id);
+        const booking = await Booking.findByIdAndDelete(id);        
 
         if (!booking) {
             return res.status(404).json({ success: false, message: 'Booking not found' });

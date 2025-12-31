@@ -59,7 +59,13 @@ const staffSchema = mongoose.Schema({
     }
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
+    toJSON: {
+        transform: function (doc, ret) {
+          delete ret.password; 
+          return ret;
+        },
+    },
 });
 
 module.exports = mongoose.model('staff', staffSchema);

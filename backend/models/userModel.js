@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema({
     },
     password: {
         type: String,
-        require: true
+        require: true,
     },
     photo: {
         type: String,
@@ -36,7 +36,13 @@ const userSchema = mongoose.Schema({
     },
 }, {
     timestamps: true,
-    versionKey: false
+    versionKey: false,
+    toJSON: {
+        transform: function (doc, ret) {
+          delete ret.password; 
+          return ret;
+        },
+    },
 });
 
 module.exports = mongoose.model('user', userSchema)

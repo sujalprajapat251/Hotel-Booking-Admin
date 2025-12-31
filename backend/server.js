@@ -11,6 +11,7 @@ const { Server } = require('socket.io');
 const socketManager = require('./socketManager/socketManager');
 const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
+const helmet = require("helmet");
 
 const numCPUs = os.cpus().length;
 const port = process.env.PORT || 5000
@@ -35,6 +36,7 @@ if (cluster.isPrimary) {
 
   app.use(express.json())
   app.use(cookieParser());
+  app.use(helmet());
   app.use(cors({
     origin: allowedOrigins,
     credentials: true
