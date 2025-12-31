@@ -126,19 +126,19 @@ const HODTable = () => {
     },
   });
 
-  const handleAddModalClose = useCallback(() => {
+  const handleAddModalClose = () => {
     setIsAddModalOpen(false);
     setIsEditMode(false);
     setEditingItem(null);
     formik.resetForm();
-  }, [formik]);
+  };
 
-  const handleAddModalOpen = useCallback(() => {
+  const handleAddModalOpen = () => {
     setIsEditMode(false);
     setEditingItem(null);
     formik.resetForm();
     setIsAddModalOpen(true);
-  }, [formik]);
+  };
 
   const handleRefresh = useCallback(() => {
     dispatch(getAllCafeTable());
@@ -220,15 +220,15 @@ const HODTable = () => {
     return () => { s.disconnect(); };
   }, [dispatch]);
 
-  const handleDeleteClick = useCallback((item) => {
+  const handleDeleteClick = (item) => {
     setItemToDelete(item);
     setIsDeleteModalOpen(true);
-  }, []);
+  };
 
-  const handleDeleteModalClose = useCallback(() => {
+  const handleDeleteModalClose =() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
-  }, []);
+  };
 
   const handleDeleteConfirm = useCallback(async () => {
     if (!itemToDelete) return;
