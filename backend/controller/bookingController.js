@@ -708,7 +708,7 @@ const bookRoomByType = async (req, res) => {
             // Verify payment with Stripe
             const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
             // Allow booking if paymentIntent is succeeded OR (for test/dev) just created and requires a payment method
-            if (!pi || (pi.status !== 'succeeded' && pi.status !== 'requires_payment_method')) {
+            if (!pi  || pi.status !== 'succeeded') {
                 return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
             }
         }
