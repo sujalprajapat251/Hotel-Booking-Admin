@@ -419,6 +419,87 @@ const getBookings = async (req, res) => {
     }
 };
 
+const getUserBookings = async (req, res) => {
+    try {
+        // Check if user is authenticated
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+        }
+
+        const userEmail = req.user.email?.toLowerCase().trim();
+        if (!userEmail) {
+            return res.status(400).json({ success: false, message: 'User email not found' });
+        }
+
+        const {
+            status,
+            paymentStatus,
+            checkInFrom,
+            checkInTo,
+            search,
+            page = 1,      
+            limit = 10     
+        } = req.query;
+
+        // Filter bookings by user's email (matching guest email)
+        const filter = {
+            'guest.email': { $regex: new RegExp(`^${userEmail}$`, 'i') }
+        };
+
+        // Additional filters
+        if (status) filter.status = status;
+        if (paymentStatus) filter['payment.status'] = paymentStatus;
+
+        if (checkInFrom || checkInTo) {
+            filter['reservation.checkInDate'] = {};
+            if (checkInFrom) filter['reservation.checkInDate'].$gte = parseDate(checkInFrom);
+            if (checkInTo) filter['reservation.checkInDate'].$lte = parseDate(checkInTo);
+        }
+
+        if (search) {
+            const regex = new RegExp(search.trim(), 'i');
+            filter.$or = [
+                { 'guest.fullName': regex },
+                { 'guest.phone': regex },
+                { 'guest.countrycode': regex },
+                { roomNumber: regex }
+            ];
+        }
+
+        // Calculate pagination
+        const pageNum = parseInt(page, 10);
+        const limitNum = parseInt(limit, 10);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Get total count for pagination
+        const totalCount = await Booking.countDocuments(filter);
+
+        // Fetch paginated bookings
+        const bookings = await Booking.find(filter)
+            .populate({
+                path: 'room',
+                select: 'roomNumber roomType status floor price cleanStatus',
+                populate: { path: 'roomType' }
+            })
+            .populate('createdBy', 'fullName email role')
+            .sort({ createdAt: -1 }) 
+            .skip(skip)
+            .limit(limitNum);
+
+        res.json({
+            success: true,
+            data: bookings.map(formatBooking),
+            totalCount,
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalCount / limitNum),
+            count: bookings.length
+        });
+    } catch (error) {
+        console.error('getUserBookings error:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch user bookings' });
+    }
+};
+
 const getBookingById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -867,6 +948,7 @@ const bookRoomByType = async (req, res) => {
 module.exports = {
     createBooking,
     getBookings,
+    getUserBookings,
     getBookingById,
     updateBooking,
     deleteBooking,
