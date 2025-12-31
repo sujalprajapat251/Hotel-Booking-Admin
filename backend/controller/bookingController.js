@@ -486,9 +486,43 @@ const getUserBookings = async (req, res) => {
             .skip(skip)
             .limit(limitNum);
 
+        // Get all booking IDs to fetch cab bookings
+        const bookingIds = bookings.map(b => b._id);
+
+        // Fetch cab bookings for these bookings
+        const cabBookings = await CabBooking.find({ booking: { $in: bookingIds } })
+            .populate({
+                path: 'assignedCab',
+                select: 'vehicleId modelName registrationNumber seatingCapacity perKmCharge'
+            })
+            .populate({
+                path: 'assignedDriver',
+                select: 'name email mobileno'
+            })
+            .sort({ bookingDate: -1 })
+            .lean();
+
+        // Group cab bookings by booking ID
+        const cabBookingsByBookingId = {};
+        cabBookings.forEach(cabBooking => {
+            const bookingId = cabBooking.booking.toString();
+            if (!cabBookingsByBookingId[bookingId]) {
+                cabBookingsByBookingId[bookingId] = [];
+            }
+            cabBookingsByBookingId[bookingId].push(cabBooking);
+        });
+
+        // Format bookings and attach cab bookings
+        const formattedBookings = bookings.map(booking => {
+            const formatted = formatBooking(booking);
+            const bookingId = booking._id.toString();
+            formatted.cabBookings = cabBookingsByBookingId[bookingId] || [];
+            return formatted;
+        });
+
         res.json({
             success: true,
-            data: bookings.map(formatBooking),
+            data: formattedBookings,
             totalCount,
             currentPage: pageNum,
             totalPages: Math.ceil(totalCount / limitNum),
