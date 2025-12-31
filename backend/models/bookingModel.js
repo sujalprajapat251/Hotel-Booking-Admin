@@ -80,6 +80,10 @@ const PaymentSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    refundedAmount: {
+      type: Number,
+      min: 0,
+    },
     currency: {
       type: String,
       default: "USD",

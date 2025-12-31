@@ -319,13 +319,18 @@ const BookingDashboard = () => {
   }, []);
 
   const handleBookingStatusChange = useCallback(
-    async (status) => {
+    async (statusOrData) => {
       if (!bookingForDetailsRoom?.id) return;
       try {
+        // Handle both old format (string status) and new format (object with status and payment)
+        const updates = typeof statusOrData === 'string' 
+          ? { status: statusOrData }
+          : statusOrData;
+        
         await dispatch(
           updateBooking({
             id: bookingForDetailsRoom.id,
-            updates: { status }
+            updates
           })
         ).unwrap();
         await dispatch(fetchBookings());
@@ -1155,7 +1160,7 @@ const BookingDashboard = () => {
           loading={bookingLoading}
           onClose={handleDetailsClose}
           onCheckOut={() => handleBookingStatusChange('CheckedOut')}
-          onCancelRoom={() => handleBookingStatusChange('Cancelled')}
+          onCancelRoom={(data) => handleBookingStatusChange(data)}
         />
       )}
       {viewId && (

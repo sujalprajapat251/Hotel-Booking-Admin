@@ -14,7 +14,7 @@ const PAYMENT_BADGE_MAP = {
   Paid: "bg-green-100 text-green-700",
   Pending: "bg-secondary/60 text-senary",
   Overdue: "bg-red-100 text-red-700",
-  // Refunded: "bg-tertiary/40 text-senary",
+  Refunded: "bg-tertiary/40 text-senary",
 };
 
 const formatDateTime = (value) => {
@@ -76,6 +76,7 @@ function GuestDetailsModal({
   const bookingStatus = booking?.status || activeRoom?.status || "Unknown";
   const lastUpdated = booking?.updatedAt || activeRoom?.updatedAt;
   const actionDisabled = !booking || loading;
+  const cancelDisabled = actionDisabled || payment?.status === 'Pending';
 
   const handleCheckOut = () => {
     if (actionDisabled || !onCheckOut) return;
@@ -83,8 +84,33 @@ function GuestDetailsModal({
   };
 
   const handleCancelRoom = () => {
-    if (actionDisabled || !onCancelRoom) return;
-    onCancelRoom();
+    if (cancelDisabled || !onCancelRoom) return;
+    
+    // Prevent cancellation if payment is Pending
+    if (payment?.status === 'Pending') {
+      return;
+    }
+    
+    // Calculate 30% refund if payment exists and is Paid
+    // User gets 30% of their paid amount returned, status changes to Refunded
+    if (payment?.status === 'Paid' && payment?.totalAmount) {
+      const refundedAmount = payment.totalAmount * 0.3;
+      const refundData = {
+        status: 'Cancelled',
+        payment: {
+          status: 'Refunded',
+          // Keep original totalAmount - refund amount (30%) is calculated from this
+          totalAmount: payment.totalAmount,
+          refundedAmount: refundedAmount,
+          currency: payment.currency || 'USD',
+          method: payment.method || 'Cash'
+        }
+      };
+      onCancelRoom(refundData);
+    } else {
+      // If not paid, just cancel without refund
+      onCancelRoom({ status: 'Cancelled' });
+    }
   };
 
   return (
@@ -128,6 +154,17 @@ function GuestDetailsModal({
           </div>
         )}
 
+        {!loading && booking && payment?.status === 'Pending' && (
+          <div className="px-6 py-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 text-sm border-b border-primary/40">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span>Room cancellation is not available while payment is pending. Please complete the payment first.</span>
+            </div>
+          </div>
+        )}
+
         {/* BODY */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 lg:gap-5   p-3 sm:p-4 md:p-6 max-h-[50vh] overflow-y-auto scrollbar-hide">
           {/* GUEST INFORMATION */}
@@ -162,11 +199,37 @@ function GuestDetailsModal({
                 PAYMENT_BADGE_MAP[payment.status] || "bg-primary/40 text-senary"
               }
             />
-            <InfoItem
-              label="Total Amount"
-              value={formatCurrency(payment.totalAmount, payment.currency)}
-              textColor="text-green-600"
-            />
+            {payment?.status === 'Refunded' && payment?.totalAmount ? (
+              <>
+                <InfoItem
+                  label="Original Amount Paid"
+                  value={formatCurrency(payment.totalAmount, payment.currency)}
+                  textColor="text-gray-600"
+                />
+                <InfoItem
+                  label="Refunded Amount (30%)"
+                  value={formatCurrency(
+                    payment.refundedAmount ?? payment.totalAmount * 0.3, 
+                    payment.currency
+                  )}
+                  textColor="text-blue-600"
+                />
+                <InfoItem
+                  label="Net Amount"
+                  value={formatCurrency(
+                    payment.totalAmount - (payment.refundedAmount ?? payment.totalAmount * 0.3), 
+                    payment.currency
+                  )}
+                  textColor="text-green-600"
+                />
+              </>
+            ) : (
+              <InfoItem
+                label="Total Amount"
+                value={formatCurrency(payment.totalAmount, payment.currency)}
+                textColor="text-green-600"
+              />
+            )}
             <InfoItem label="Notes" value={booking?.notes} />
           </div>
 
@@ -220,16 +283,17 @@ function GuestDetailsModal({
             >
               {loading ? "Processing..." : "Check Out"}
             </button>
-            {/* <button
+            <button
               onClick={handleCancelRoom}
-              disabled={actionDisabled}
-              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${actionDisabled
+              disabled={cancelDisabled}
+              title={payment?.status === 'Pending' ? "Cannot cancel room with pending payment" : ""}
+              className={`px-5 py-2 rounded-lg text-white transition shadow-sm ${cancelDisabled
                 ? "bg-quaternary/40 cursor-not-allowed"
                 : "bg-red-500 hover:bg-red-600 shadow-lg"
                 }`}
             >
               {loading ? "Please wait..." : "Cancel Room"}
-            </button> */}
+            </button>
             <button
               onClick={onClose}
               className="px-5 py-2 bg-secondary/40 text-quinary hover:bg-secondary/60 rounded-lg transition shadow-sm"

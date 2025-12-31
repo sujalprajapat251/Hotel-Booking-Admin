@@ -57,6 +57,7 @@ const normalizePaymentPayload = (payload = {}) => ({
         || (payload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(payload.status) ? payload.status : undefined)
         || 'Pending',
     totalAmount: payload.totalAmount !== undefined ? Number(payload.totalAmount) : undefined,
+    refundedAmount: payload.refundedAmount !== undefined ? Number(payload.refundedAmount) : undefined,
     currency: payload.currency || 'USD',
     method: payload.method || payload.paymentMethod || 'Cash',
     transactions: payload.transactions,
@@ -509,10 +510,13 @@ const updateBooking = async (req, res) => {
         }
 
         // Only process payment updates if payment data is explicitly provided
-        if (req.body.payment || req.body.paymentStatus || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency) {
+        if (req.body.payment || req.body.paymentStatus || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
             const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
+            }
+            if (paymentPayload.refundedAmount !== undefined && !Number.isNaN(paymentPayload.refundedAmount)) {
+                booking.payment.refundedAmount = paymentPayload.refundedAmount;
             }
             // Only update payment status if it's explicitly provided and valid
             if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
