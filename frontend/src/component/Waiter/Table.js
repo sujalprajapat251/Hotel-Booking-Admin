@@ -1,16 +1,20 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useCallback } from 'react'
 import tableImg from '../../Images/table.png'
-import { useState } from 'react'
-import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { SOCKET_URL } from '../../Utils/baseUrl';
+
 export default function Dashboard() {
   const dispatch = useDispatch();
-
   const getCafeTableData = useSelector((state) => state.cafeTable.cafeTable);
+
+  // Memoized refresh function
+  const refresh = useCallback(() => {
+    dispatch(getAllCafeTable());
+  }, [dispatch]);
+
   useEffect(() => {
     dispatch(getAllCafeTable());
   }, [dispatch]);
@@ -22,19 +26,24 @@ export default function Dashboard() {
     s.on('connect', () => { console.log('socket connected', s.id); });
     s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
     s.on('error', (err) => { console.error('socket error', err?.message || err); });
-    const refresh = () => {
-      dispatch(getAllCafeTable());
-    };
+    
     s.on('cafe_order_changed', refresh);
     s.on('bar_order_changed', refresh);
     s.on('restaurant_order_changed', refresh);
     s.on('cafe_table_status_changed', refresh);
     s.on('bar_table_status_changed', refresh);
     s.on('restaurant_table_status_changed', refresh);
+    
     return () => {
+      s.off('cafe_order_changed', refresh);
+      s.off('bar_order_changed', refresh);
+      s.off('restaurant_order_changed', refresh);
+      s.off('cafe_table_status_changed', refresh);
+      s.off('bar_table_status_changed', refresh);
+      s.off('restaurant_table_status_changed', refresh);
       s.disconnect();
     };
-  }, [dispatch]);
+  }, [dispatch, refresh]);
   return (
     <div className="p-4 md:p-6 bg-[#f0f3fb] h-full">
       <div className="mb-6">

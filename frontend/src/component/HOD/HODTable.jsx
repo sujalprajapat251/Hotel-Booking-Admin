@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -33,7 +33,7 @@ const HODTable = () => {
     actions: true
   });
 
-  const filteredData = cafeTable.filter((item) => {
+  const filteredData = useMemo(() => cafeTable.filter((item) => {
     const searchLower = searchTerm.trim().toLowerCase();
     if (!searchLower) return true;
     let matchesStatus = false;
@@ -54,19 +54,19 @@ const HODTable = () => {
       statusString.includes(searchLower) ||
       matchesStatus
     );
-  });
+  }), [cafeTable, searchTerm]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const totalPages = useMemo(() => Math.ceil(filteredData.length / itemsPerPage), [filteredData, itemsPerPage]);
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+  const currentData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -107,7 +107,7 @@ const HODTable = () => {
             setIsAddModalOpen(false);
             setIsEditMode(false);
             setEditingItem(null);
-            dispatch(getAllCafeTable());
+            // dispatch(getAllCafeTable());
           }
         } else {
           const result = await dispatch(createCafeTable(values));
@@ -117,7 +117,7 @@ const HODTable = () => {
             setIsAddModalOpen(false);
             setIsEditMode(false);
             setEditingItem(null);
-            dispatch(getAllCafeTable());
+            // dispatch(getAllCafeTable());
           }
         }
       } catch (error) {
@@ -133,13 +133,20 @@ const HODTable = () => {
     formik.resetForm();
   };
 
-  const handleRefresh = () => {
+  const handleAddModalOpen = () => {
+    setIsEditMode(false);
+    setEditingItem(null);
+    formik.resetForm();
+    setIsAddModalOpen(true);
+  };
+
+  const handleRefresh = useCallback(() => {
     dispatch(getAllCafeTable());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredData.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -190,7 +197,7 @@ const HODTable = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredData, visibleColumns, dispatch]);
 
   useEffect(() => {
     dispatch(getAllCafeTable());
@@ -218,12 +225,12 @@ const HODTable = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose =() => {
     setItemToDelete(null);
     setIsDeleteModalOpen(false);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (!itemToDelete) return;
 
     try {
@@ -238,9 +245,9 @@ const HODTable = () => {
     } finally {
       handleDeleteModalClose();
     }
-  };
+  }, [itemToDelete, dispatch, handleDeleteModalClose]);
 
-  const getStatusStyle = (status) => {
+  const getStatusStyle = useCallback((status) => {
     switch (status) {
         case true:
             return 'border border-green-500 text-green-600 bg-green-50';
@@ -249,7 +256,7 @@ const HODTable = () => {
         default:
             return 'border border-red-500 text-red-600 bg-red-50';
     }
-};
+}, []);
 
   return (
     <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>
@@ -278,12 +285,7 @@ const HODTable = () => {
               <div className="flex items-center gap-1 justify-end mt-2">
                 <div className="relative" ref={dropdownRef}>
                   <button
-                    onClick={() => {
-                      setIsEditMode(false);
-                      setEditingItem(null);
-                      formik.resetForm();
-                      setIsAddModalOpen(true);
-                    }}
+                    onClick={handleAddModalOpen}
                     className="p-2 text-[#4CAF50] hover:text-[#4CAF50] hover:bg-[#ecffed] rounded-lg transition-colors"
                     title="Add Table"
                   >
@@ -593,4 +595,4 @@ const HODTable = () => {
   );
 };
 
-export default HODTable;
+export default React.memo(HODTable);

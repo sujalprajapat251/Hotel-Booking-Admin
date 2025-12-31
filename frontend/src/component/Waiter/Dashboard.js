@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { Search } from 'lucide-react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeTable } from '../../Redux/Slice/cafeTable.slice';
 import { SOCKET_URL } from '../../Utils/baseUrl';
@@ -7,31 +6,30 @@ import { updateCafeItemStatus } from '../../Redux/Slice/Chef.slice';
 import { io } from 'socket.io-client';
 import { receiveNotification } from '../../Redux/Slice/notifications.slice';
 import { setAlert } from '../../Redux/Slice/alert.slice';
-export default function Dashboard() {
 
+export default function Dashboard() {
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.cafeTable.cafeTable);
   const currentUser = useSelector((state) => state.staff.currentUser);
+  const [menu, setMenu] = useState([]);
+  const [activeTableId, setActiveTableId] = useState(null);
+  const refreshTimeoutRef = useRef(null);
+  const isRefreshingRef = useRef(false);
+
   useEffect(() => {
     dispatch(getAllCafeTable());
   }, [dispatch]);
 
-  const [menu, setMenu] = useState([]);
-  const [activeTableId, setActiveTableId] = useState(null);
   useEffect(() => {
     if (orders?.length) {
-      // If no active table is selected, set to first order
       if (!activeTableId) {
         setMenu(orders[0]?.lastUnpaidOrder || []);
         setActiveTableId(orders[0]?.id || orders[0]?._id || null);
       } else {
-        // Find the currently active table in the refreshed orders
         const activeTable = orders.find(o => (o.id || o._id) === activeTableId);
         if (activeTable) {
-          // Update menu for the active table with fresh data
           setMenu(activeTable?.lastUnpaidOrder || []);
         } else {
-          // If active table no longer exists, switch to first order
           setMenu(orders[0]?.lastUnpaidOrder || []);
           setActiveTableId(orders[0]?.id || orders[0]?._id || null);
         }
@@ -40,31 +38,72 @@ export default function Dashboard() {
       setMenu([]);
       setActiveTableId(null);
     }
-  }, [orders]);
+  }, [orders, activeTableId]);
 
-  const calculateItemsTotal = (items = []) => {
+  const calculateItemsTotal = useCallback((items = []) => {
     return items
       .filter(item => item.status !== "Reject by chef")
       .reduce((sum, item) => {
         if (!item || !item.product || !item.product.price) return sum;
         return sum + item.product.price * (item.qty || 1);
       }, 0);
-  };
-  const total = calculateItemsTotal(menu?.items);
-  const handleChnage = (ele) => {
+  }, []);
+
+  const total = useMemo(() => 
+    calculateItemsTotal(menu?.items),
+    [calculateItemsTotal, menu?.items]
+  );
+
+  const handleChnage = useCallback((ele) => {
     setMenu(ele?.lastUnpaidOrder);
     setActiveTableId(ele?.id || ele?._id || null);
-  }
-  const handleserved = async (ele) => {
+  }, []);
+
+  const lastActionRef = useRef(0);
+const handleserved = useCallback(async (ele) => {
+    const now = Date.now();
+    // prevent rapid double-action
+    if (now - lastActionRef.current < 1500) return;
+    lastActionRef.current = now;
     let orderData = {
       orderId: menu?._id,
       itemId: ele._id
     };
-    const result = await dispatch(updateCafeItemStatus(orderData));
-    if (result) {
-      dispatch(getAllCafeTable());
+    await dispatch(updateCafeItemStatus(orderData));
+}, [menu?._id, dispatch]);
+
+  // Memoized refresh function
+  const refresh = useCallback(() => {
+    // debounce refresh to avoid duplicate calls from multiple socket events
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
     }
-  }
+    refreshTimeoutRef.current = setTimeout(async () => {
+      if (isRefreshingRef.current) return;
+      isRefreshingRef.current = true;
+      await dispatch(getAllCafeTable());
+      isRefreshingRef.current = false;
+      refreshTimeoutRef.current = null;
+    }, 300);
+  }, [dispatch]);
+
+  // Memoized notify handler
+  const handleNotify = useCallback((data) => {
+    const myDeptId = currentUser?.department?._id || currentUser?.departmentId;
+    if (!data?.departmentId || !myDeptId || String(myDeptId) === String(data.departmentId)) {
+      dispatch(receiveNotification(data));
+    }
+    if (data?.type === 'item_ready') {
+      const tbl = data?.tableId || data?.payload?.tableId;
+      if (!activeTableId || !tbl || String(activeTableId) === String(tbl)) {
+        const title = data?.tableTitle || data?.payload?.tableTitle || '';
+        const itemName = data?.itemName || data?.payload?.itemName || '';
+        const msg = itemName && title ? `${itemName} is ready on ${title}` : 'Item is ready to serve';
+        dispatch(setAlert({ text: msg, color: 'success' }));
+        dispatch(getAllCafeTable());
+      }
+    }
+  }, [currentUser?.department?._id, currentUser?.departmentId, activeTableId, dispatch]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -73,33 +112,29 @@ export default function Dashboard() {
     s.on('connect', () => { console.log('socket connected', s.id); });
     s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
     s.on('error', (err) => { console.error('socket error', err?.message || err); });
-    const refresh = () => { dispatch(getAllCafeTable()); };
+    
     s.on('cafe_order_changed', refresh);
     s.on('bar_order_changed', refresh);
     s.on('restaurant_order_changed', refresh);
     s.on('cafe_table_status_changed', refresh);
     s.on('bar_table_status_changed', refresh);
     s.on('restaurant_table_status_changed', refresh);
-    s.on('notify', (data) => {
-      const myDeptId = currentUser?.department?._id || currentUser?.departmentId;
-      if (!data?.departmentId || !myDeptId || String(myDeptId) === String(data.departmentId)) {
-        dispatch(receiveNotification(data));
-      }
-      if (data?.type === 'item_ready') {
-        const tbl = data?.tableId || data?.payload?.tableId;
-        if (!activeTableId || !tbl || String(activeTableId) === String(tbl)) {
-          const title = data?.tableTitle || data?.payload?.tableTitle || '';
-          const itemName = data?.itemName || data?.payload?.itemName || '';
-          const msg = itemName && title ? `${itemName} is ready on ${title}` : 'Item is ready to serve';
-          dispatch(setAlert({ text: msg, color: 'success' }));
-          dispatch(getAllCafeTable());
-        }
-      }
-    });
+    s.on('notify', handleNotify);
+    
     return () => {
+      s.off('cafe_order_changed', refresh);
+      s.off('bar_order_changed', refresh);
+      s.off('restaurant_order_changed', refresh);
+      s.off('cafe_table_status_changed', refresh);
+      s.off('bar_table_status_changed', refresh);
+      s.off('restaurant_table_status_changed', refresh);
+      s.off('notify', handleNotify);
       s.disconnect();
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
     };
-  }, [dispatch]);
+  }, [dispatch, refresh, handleNotify]);
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
       <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-800 mt-6 sm:mt-3 md:mt-1">Dashboard</h1>
@@ -163,7 +198,6 @@ export default function Dashboard() {
                       ):
                       <p className={`ms-auto  text-sm text-end ${m.status === 'Pending' ? 'text-yellow-400' : m.status === 'Preparing' ? 'text-blue-600' : m.status === 'Reject by chef'?'text-red-500' :'text-green-600'}`}>{m.status}</p>
                     }
-
                     </div>
                   ))}
                 </div> :

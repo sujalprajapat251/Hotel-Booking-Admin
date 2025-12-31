@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, Mail, Phone, X } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SOCKET_URL } from '../../Utils/baseUrl';
@@ -33,7 +33,7 @@ const HODHistory = () => {
     actions: true,
   });
 
-  const columnLabels = {
+  const columnLabels = useMemo(() => ({
     No: 'No.',
     name: 'Name',
     contact: 'Contact',
@@ -44,25 +44,25 @@ const HODHistory = () => {
     from: 'From',
     date: 'Date',
     actions: 'Actions'
-  };
+  }), []);
 
   const {orderHistory,loading} = useSelector((state) => state.hod);
 
-  const getOrderItemCount = (order) => {
+  const getOrderItemCount = useCallback((order) => {
     if (!order?.items?.length) return 0;
-    return order.items.reduce((sum, item) => sum + (item?.qty || 1), 0);
-  };
+    return order.items.length;
+  }, []);
 
-  const getOrderTotalAmount = (order) => {
+  const getOrderTotalAmount = useCallback((order) => {
     if (!order?.items?.length) return 0;
     return order.items.reduce((sum, item) => {
       const price = item?.product?.price || 0;
       const qty = item?.qty || 1;
       return sum + price * qty;
     }, 0);
-  };
+  }, []);
 
-  const getItemPreview = (order) => {
+  const getItemPreview = useCallback((order) => {
     if (!order?.items?.length) return 'No items added';
     const names = order.items
       .map((item) => item?.product?.name)
@@ -70,9 +70,9 @@ const HODHistory = () => {
     if (!names.length) return 'No items added';
     if (names.length <= 2) return names.join(', ');
     return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-  };
+  }, []);
 
-  const getStatusStyle = (status) => {
+  const getStatusStyle = useCallback((status) => {
     switch (status) {
       case 'Paid':
         return 'border border-green-500 text-green-600 bg-green-50';
@@ -83,18 +83,18 @@ const HODHistory = () => {
       default:
         return 'border border-gray-500 text-gray-600 bg-gray-50';
     }
-  };
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
-  };
+  }, []);
 
-  const formatDateTime = (dateString) => {
+  const formatDateTime = useCallback((dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
@@ -103,19 +103,19 @@ const HODHistory = () => {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
     return `${day}/${month}/${year} ${hours}:${minutes}`;
-  };
+  }, []);
 
-  const handleViewOrder = (order) => {
+  const handleViewOrder = useCallback((order) => {
     setSelectedOrder(order);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedOrder(null);
-  };
+  }, []);
 
-  const filteredOrderHistory = orderHistory.filter((order) => {
+  const filteredOrderHistory = useMemo(() => orderHistory.filter((order) => {
     if (!searchQuery.trim()) return true;
 
     const query = searchQuery.toLowerCase().trim();
@@ -157,24 +157,24 @@ const HODHistory = () => {
       formattedDate.includes(query) ||
       amountMatchesNumber ||
       amountMatchesCurrency;
-  });
+  }), [orderHistory, searchQuery, formatDate, getOrderTotalAmount]);
 
-  const totalItems = filteredOrderHistory.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginationTotalPages = Math.max(totalPages, 1);
-  const safeCurrentPage = Math.min(currentPage, paginationTotalPages);
-  const startIndex = totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredOrderHistory.slice(startIndex, endIndex);
-  const paginationStart = totalItems === 0 ? 0 : startIndex + 1;
-  const paginationEnd = totalItems === 0 ? 0 : Math.min(endIndex, totalItems);
+  const totalItems = useMemo(() => filteredOrderHistory.length, [filteredOrderHistory]);
+  const totalPages = useMemo(() => Math.ceil(totalItems / itemsPerPage), [totalItems, itemsPerPage]);
+  const paginationTotalPages = useMemo(() => Math.max(totalPages, 1), [totalPages]);
+  const safeCurrentPage = useMemo(() => Math.min(currentPage, paginationTotalPages), [currentPage, paginationTotalPages]);
+  const startIndex = useMemo(() => totalItems === 0 ? 0 : (safeCurrentPage - 1) * itemsPerPage, [totalItems, safeCurrentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+  const currentData = useMemo(() => filteredOrderHistory.slice(startIndex, endIndex), [filteredOrderHistory, startIndex, endIndex]);
+  const paginationStart = useMemo(() => totalItems === 0 ? 0 : startIndex + 1, [totalItems, startIndex]);
+  const paginationEnd = useMemo(() => totalItems === 0 ? 0 : Math.min(endIndex, totalItems), [totalItems, endIndex]);
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -236,7 +236,7 @@ const HODHistory = () => {
     }
   }, [currentPage, totalPages]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredOrderHistory.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
@@ -292,13 +292,13 @@ const HODHistory = () => {
     } catch (error) {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredOrderHistory, visibleColumns, dispatch, getOrderItemCount, getOrderTotalAmount, formatDate]);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllHodHistory());
     setSearchQuery("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
   return (
     <>
@@ -619,6 +619,7 @@ const HODHistory = () => {
                       </tr>
                     </thead>
                     <tbody>
+                    {console.log('selected',selectedOrder?.items?.length)}
                       {selectedOrder?.items?.length > 0 ? (
                         selectedOrder.items.map((item, index) => {
                           const price = item?.product?.price || 0;
@@ -673,4 +674,4 @@ const HODHistory = () => {
   );
 };
 
-export default HODHistory;
+export default React.memo(HODHistory);

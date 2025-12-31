@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafecategory } from '../../Redux/Slice/cafecategorySlice';
 import { getAllCafeitem } from '../../Redux/Slice/cafeitemSlice';
@@ -20,6 +20,8 @@ export default function TableOrder() {
     const [selected, setSelected] = useState([]); // CART ITEMS
     const { id } = useParams()
     const [socket, setSocket] = useState(null);
+    const fetchTimeoutRef = useRef(null);
+    const isFetchingRef = useRef(false);
     const { currentUser, loading, success, message } = useSelector((state) => state.staff);
     const cafeCategory = useSelector(state => state.cafecategory.cafecategory);
     const cafeItems = useSelector(state => state.cafe.cafe);
@@ -29,11 +31,16 @@ export default function TableOrder() {
 
     const restCategory = useSelector(state => state.restaurantcategory.restaurantcategory);
     const restItems = useSelector(state => state.restaurant.restaurant);
-    const dept = currentUser?.department?.name?.toLowerCase();
-
-    const Category = dept === "cafe" ? cafeCategory : dept === "bar" ? barCategory : restCategory;
-
-    const Items = dept === "cafe" ? cafeItems : dept === "bar" ? barItems : restItems;
+    
+    const dept = useMemo(() => currentUser?.department?.name?.toLowerCase(), [currentUser?.department?.name]);
+    const Category = useMemo(() => 
+        dept === "cafe" ? cafeCategory : dept === "bar" ? barCategory : restCategory,
+        [dept, cafeCategory, barCategory, restCategory]
+    );
+    const Items = useMemo(() => 
+        dept === "cafe" ? cafeItems : dept === "bar" ? barItems : restItems,
+        [dept, cafeItems, barItems, restItems]
+    );
 
     const singleTable = useSelector((state) => state.cafeTable.singleTable);
     const previousOrder = useSelector((state) => state.cafeTable.currentOrder);
@@ -58,9 +65,25 @@ export default function TableOrder() {
 
     }, [dispatch, currentUser]);
 
+    // Debounced function to prevent multiple rapid API calls
+    const fetchTableData = useCallback((tableId) => {
+        if (fetchTimeoutRef.current) {
+            clearTimeout(fetchTimeoutRef.current);
+        }
+
+        fetchTimeoutRef.current = setTimeout(() => {
+            if (!isFetchingRef.current) {
+                isFetchingRef.current = true;
+                dispatch(getCafeTableById(tableId)).finally(() => {
+                    isFetchingRef.current = false;
+                });
+            }
+        }, isFetchingRef.current ? 300 : 500);
+    }, [dispatch]);
+
     useEffect(() => {
-        dispatch(getCafeTableById(id));
-    }, [id])
+        fetchTableData(id);
+    }, [id, fetchTableData])
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -70,52 +93,35 @@ export default function TableOrder() {
         s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
         s.on('error', (err) => { console.error('socket error', err?.message || err); });
         setSocket(s);
-        s.on('cafe_order_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
-        s.on('cafe_table_status_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
-        s.on('bar_order_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
-        s.on('bar_table_status_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
-        s.on('restaurant_order_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
-        s.on('restaurant_table_status_changed', ({ tableId }) => {
-            if (tableId === id) {
-                dispatch(getCafeTableById(id));
-            }
-        });
+        const handleTableUpdate =({ tableId }) => {
+            if (tableId === id) fetchTableData(id);
+        };
+        s.on('cafe_order_changed', handleTableUpdate);
+        s.on('cafe_table_status_changed', handleTableUpdate);
+        s.on('bar_order_changed', handleTableUpdate);
+        s.on('bar_table_status_changed', handleTableUpdate);
+        s.on('restaurant_order_changed', handleTableUpdate);
+        s.on('restaurant_table_status_changed', handleTableUpdate);
         return () => {
             s.disconnect();
+            if (fetchTimeoutRef.current) {
+                clearTimeout(fetchTimeoutRef.current);
+            }
         };
-    }, [dispatch, id]);
+    }, [dispatch, id, fetchTableData]);
 
     // Filter products based on selected category
-    const filteredItems =
+    const filteredItems = useMemo(() =>
         activeCategory === "All"
             ? Items
-            : Items.filter((item) => item.category.name === activeCategory);
+            : Items.filter((item) => item.category.name === activeCategory),
+        [activeCategory, Items]
+    );
 
 
-    const handleAdd = (item) => {
+    const handleAdd = useCallback((item) => {
         setSelected((prev) => {
             const exists = prev.find((i) => i.product._id === item._id);
-
             if (exists) {
                 return prev.map((i) =>
                     i.product._id === item._id ? { ...i, qty: i.qty + 1 } : i
@@ -124,17 +130,17 @@ export default function TableOrder() {
 
             return [...prev, { product: item, qty: 1, description: "" }];
         });
-    };
+    },[]);
 
-    const incQty = (id) => {
+    const incQty =useCallback((id) => {
         setSelected(prev =>
             prev.map(i =>
                 i.product._id === id ? { ...i, qty: i.qty + 1 } : i
             )
         );
-    };
+    },[]);
 
-    const decQty = (id) => {
+    const decQty = useCallback((id) => {
         setSelected(prev =>
             prev
                 .map(i =>
@@ -142,32 +148,49 @@ export default function TableOrder() {
                 )
                 .filter(i => i.qty > 0)
         );
-    };
+    },[]);
 
-    const updateDescription = (id, desc) => {
+    const updateDescription = useCallback((id, desc) => {
         setSelected(prev =>
             prev.map(i =>
                 i.product._id === id ? { ...i, description: desc } : i
             )
         );
-    };
+    },[]);
+
     const [desIdx, setDesIdx] = useState(null);
 
     // Helper function to calculate items total
-    const calculateItemsTotal = (items = []) => {
+    const calculateItemsTotal = useCallback((items = []) => {
         return items
             .filter(item => item.status !== "Reject by chef")
             .reduce((sum, item) => {
                 if (!item || !item.product || !item.product.price) return sum;
                 return sum + item.product.price * (item.qty || 1);
             }, 0);
-    };
+    }, []);
 
     // Final calculation
-    const previousTotal = calculateItemsTotal(previousOrder?.items);
-    const newItemsTotal = calculateItemsTotal(selected);
+    const previousTotal = useMemo(() => 
+        calculateItemsTotal(previousOrder?.items),
+        [calculateItemsTotal, previousOrder?.items]
+    );
+//   const previousTotal = calculateItemsTotal(previousOrder?.items); 
+//   console.log('prev',previousTotal)
+    const newItemsTotal = useMemo(() => 
+        calculateItemsTotal(selected),
+        [calculateItemsTotal, selected]
+    );
+    const total = useMemo(() => 
+        previousTotal + newItemsTotal,
+        [previousTotal, newItemsTotal]
+    );
 
-    const total = previousTotal + newItemsTotal;
+    const handleTableStatusChange = useCallback(async () => {
+        if (!singleTable) return;
+        const nextStatus = !(singleTable.status ?? true);
+        await dispatch(updateCafeTable({ id, status: nextStatus })).unwrap();
+    }, [singleTable, id, dispatch]);
 
     const addOrderForm = useFormik({
         enableReinitialize: true,
@@ -175,10 +198,10 @@ export default function TableOrder() {
             name: previousOrder?.name || '',
             contact: previousOrder?.contact || ''
         },
-        validationSchema: Yup.object({
+        validationSchema: useMemo(() => Yup.object({
             name: Yup.string().trim().required('Name is required').min(2, 'Name must be at least 2 characters').max(50, 'Name must be at most 50 characters'),
             contact: Yup.string().trim().required('Contact is required').matches(/^[0-9]{10,15}$/, 'Contact must be 10-15 digits')
-        }),
+        }), []),
         onSubmit: async (values) => {
             try {
                 for (const i of selected) {
@@ -192,7 +215,6 @@ export default function TableOrder() {
                     })).unwrap();
                 }
                 setSelected([]);
-                dispatch(getCafeTableById(id));
             } catch (error) {
             }
         }
@@ -206,11 +228,7 @@ export default function TableOrder() {
                     {singleTable && (
                         <button
                             className="px-2 py-1.5 sm:px-3 sm:py-2 sm:mt-2 text-xs sm:text-sm rounded bg-senary text-white whitespace-nowrap"
-                            onClick={async () => {
-                                const nextStatus = !(singleTable.status ?? true);
-                                await dispatch(updateCafeTable({ id, status: nextStatus })).unwrap();
-                                dispatch(getCafeTableById(id));
-                            }}
+                            onClick={handleTableStatusChange}
                         >
                             {singleTable.status ? 'Mark Occupied' : 'Mark Available'}
                         </button>
@@ -315,7 +333,7 @@ export default function TableOrder() {
                                                             className="text-red-500 text-xs sm:text-sm px-1 sm:px-2"
                                                             onClick={async () => {
                                                                 await dispatch(removeItemFromOrder({ orderId: previousOrder._id, itemId: oi._id })).unwrap();
-                                                                dispatch(getCafeTableById(id));
+                                                                fetchTableData(id);
                                                             }}
                                                         >
                                                             Cancel

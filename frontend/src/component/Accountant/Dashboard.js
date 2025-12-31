@@ -1,15 +1,30 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { Search, X, Check } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAllCafeUnpaid, updateCafePayment, updateCafeItemStatus } from '../../Redux/Slice/Accountant.slice';
 import { SOCKET_URL } from '../../Utils/baseUrl';
 import { io } from 'socket.io-client';
-export default function Dashboard() {
+function Dashboard() {
 
   const dispatch = useDispatch();
   const orders = useSelector((state) => state.accountant?.orderData || []);
+  const refreshTimeoutRef = useRef(null);
+  const isRefreshingRef = useRef(false);
   useEffect(() => {
     dispatch(getAllCafeUnpaid());
+  }, [dispatch]);
+
+  const refresh = useCallback(() => {
+    if (refreshTimeoutRef.current) {
+      clearTimeout(refreshTimeoutRef.current);
+    }
+    refreshTimeoutRef.current = setTimeout(async () => {
+      if (isRefreshingRef.current) return;
+      isRefreshingRef.current = true;
+      await dispatch(getAllCafeUnpaid());
+      isRefreshingRef.current = false;
+      refreshTimeoutRef.current = null;
+    }, 300);
   }, [dispatch]);
 
   useEffect(() => {
@@ -19,7 +34,6 @@ export default function Dashboard() {
     s.on('connect', () => { console.log('socket connected', s.id); });
     s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
     s.on('error', (err) => { console.error('socket error', err?.message || err); });
-    const refresh = () => { dispatch(getAllCafeUnpaid()); };
     s.on('cafe_order_changed', refresh);
     s.on('bar_order_changed', refresh);
     s.on('restaurant_order_changed', refresh);
@@ -27,9 +41,18 @@ export default function Dashboard() {
     s.on('bar_table_status_changed', refresh);
     s.on('restaurant_table_status_changed', refresh);
     return () => {
+      s.off('cafe_order_changed', refresh);
+      s.off('bar_order_changed', refresh);
+      s.off('restaurant_order_changed', refresh);
+      s.off('cafe_table_status_changed', refresh);
+      s.off('bar_table_status_changed', refresh);
+      s.off('restaurant_table_status_changed', refresh);
       s.disconnect();
+      if (refreshTimeoutRef.current) {
+        clearTimeout(refreshTimeoutRef.current);
+      }
     };
-  }, [dispatch]);
+  }, [dispatch, refresh]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -46,36 +69,40 @@ export default function Dashboard() {
     }
   }, [orders])
 
-const calculateItemsTotal = (items = []) => {
-  return items
-    .filter(item => item.status !== "Reject by chef")
-    .reduce((sum, item) => {
-      if (!item || !item.product || !item.product.price) return sum;
-      return sum + item.product.price * (item.qty || 1);
-    }, 0);
-};
-  const total = calculateItemsTotal(menu?.items);
+  const calculateItemsTotal = useCallback((items = []) => {
+    return items
+      .filter(item => item.status !== "Reject by chef")
+      .reduce((sum, item) => {
+        if (!item || !item.product || !item.product.price) return sum;
+        return sum + item.product.price * (item.qty || 1);
+      }, 0);
+  }, []);
+
+  const total = useMemo(() => calculateItemsTotal(menu?.items), [calculateItemsTotal, menu?.items]);
   const hasOrder = (menu?.items?.length || 0) > 0;
-  const handleChnage = (ele) => {
-    // setMenu(ele?.lastUnpaidOrder)
+  
+  const handleChnage = useCallback((ele) => {
     setMenu(ele);
     setActiveTableId(ele?.id || ele?._id || null);
-  }
-  const handleserved = async (ele) => {
+  }, []);
+  
+  const lastActionRef = useRef(0);
+  const handleserved = useCallback(async (ele) => {
+    const now = Date.now();
+    if (now - lastActionRef.current < 1500) return;
+    lastActionRef.current = now;
     const orderId = menu?.orderId || menu?._id;
     if (!orderId) return;
     try {
       await dispatch(updateCafeItemStatus({ orderId, itemId: ele._id }));
       dispatch(getAllCafeUnpaid());
-    } catch (err) {
-      // handled by thunk
-    }
-  }
+    } catch {}
+  }, [menu?.orderId, menu?._id, dispatch]);
 
+  const onKey = useCallback((e) => {
+    if (e.key === "Escape") setIsModalOpen(false);
+  }, []);
   useEffect(() => {
-    function onKey(e) {
-      if (e.key === "Escape") setIsModalOpen(false);
-    }
     if (isModalOpen) {
       document.addEventListener('keydown', onKey);
       document.body.style.overflow = 'hidden';
@@ -86,7 +113,7 @@ const calculateItemsTotal = (items = []) => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
     }
-  }, [isModalOpen]);
+  }, [isModalOpen, onKey]);
 
   return (
     <div className='p-2 sm:p-4 md:p-6 bg-[#f0f3fb] min-h-screen'>
@@ -272,7 +299,7 @@ const calculateItemsTotal = (items = []) => {
                   const orderId = menu?.orderId || menu?._id;
                   if (!orderId) return;
                   await dispatch(updateCafePayment({ orderId, paymentMethod }));
-                  dispatch(getAllCafeUnpaid());
+                  // dispatch(getAllCafeUnpaid());
                   setIsModalOpen(false);
                   setPaymentMethod('');
                 }}
@@ -288,3 +315,5 @@ const calculateItemsTotal = (items = []) => {
     </div>
   )
 }
+
+export default React.memo(Dashboard);

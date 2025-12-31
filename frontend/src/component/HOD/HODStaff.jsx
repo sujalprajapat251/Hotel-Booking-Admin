@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Search, Filter, RefreshCw, Download, ChevronLeft, ChevronRight, MapPin, Phone, Mail } from 'lucide-react';
 import { FiEdit, FiPlusCircle } from 'react-icons/fi';
 import { RiDeleteBinLine } from 'react-icons/ri';
@@ -42,46 +42,49 @@ const HODStaff = () => {
     actions: true
   });
 
-  const handleViewClick = (staff) => {
+  const handleViewClick = useCallback((staff) => {
     setSelectedItem(staff);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedItem(null);
-  };
+  }, []);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
-  };
+  }, []);
 
-  const filteredData = staff.filter(staff =>
-    staff?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.gender?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    staff?.mobileno?.toString().includes(searchTerm) ||
-    staff?.designation?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (staff?.joiningdate && ( formatDate(staff.joiningdate).toLowerCase().includes(searchTerm.toLowerCase()) || formatDate(staff.joiningdate).replace(/\//g, "-").toLowerCase().includes(searchTerm.toLowerCase()))) ||
-    staff?.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = useMemo(() => {
+    const q = searchTerm.toLowerCase();
+    return (staff || []).filter(st =>
+      st?.name?.toLowerCase().includes(q) ||
+      st?.email?.toLowerCase().includes(q) ||
+      st?.gender?.toLowerCase().includes(q) ||
+      st?.mobileno?.toString().includes(searchTerm) ||
+      st?.designation?.toLowerCase().includes(q) ||
+      (st?.joiningdate && (formatDate(st.joiningdate).toLowerCase().includes(q) || formatDate(st.joiningdate).replace(/\//g, "-").toLowerCase().includes(q))) ||
+      st?.address?.toLowerCase().includes(q)
+    );
+  }, [staff, searchTerm, formatDate]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const totalPages = useMemo(() => Math.ceil(filteredData.length / itemsPerPage), [filteredData, itemsPerPage]);
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage]);
+  const endIndex = useMemo(() => startIndex + itemsPerPage, [startIndex, itemsPerPage]);
+  const currentData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
-  const toggleColumn = (column) => {
+  const toggleColumn = useCallback((column) => {
     setVisibleColumns(prev => ({
       ...prev,
       [column]: !prev[column]
     }));
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -94,102 +97,71 @@ const HODStaff = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
     dispatch(getAllHODStaff());
     setSearchTerm("");
     setCurrentPage(1);
-  };
+  }, [dispatch]);
 
-  const handleDownloadExcel = () => {
+  const handleDownloadExcel = useCallback(() => {
     try {
       if (filteredData.length === 0) {
         dispatch(setAlert({ text: "No data to export!", color: 'warning' }));
         return;
       }
-      // Prepare data for Excel
-      const excelData = filteredData.map((staff, index) => {
+      const excelData = filteredData.map((st, index) => {
         const row = {};
-
-        if (visibleColumns.No) {
-          row['No.'] = index + 1;
-        }
-        if (visibleColumns.image) {
-          row['Image'] = staff.image ? `${IMAGE_URL}${staff.image}` : '';
-        }
-        if (visibleColumns.name) {
-          row['Name'] = staff.name || '';
-        }
-        if (visibleColumns.designation) {
-          row['Designation'] = staff.designation || '';
-        }
-        if (visibleColumns.department) {
-          row['Department'] = staff.department.name || '';
-        }
+        if (visibleColumns.No) row['No.'] = index + 1;
+        if (visibleColumns.image) row['Image'] = st.image ? `${IMAGE_URL}${st.image}` : '';
+        if (visibleColumns.name) row['Name'] = st.name || '';
+        if (visibleColumns.designation) row['Designation'] = st.designation || '';
+        if (visibleColumns.department) row['Department'] = st.department?.name || '';
         if (visibleColumns.mobileno) {
-          const code = staff.countrycode || "+91";  
-          row['Mobile No.'] = `${code} ${staff.mobileno}` || '';
+          const code = st.countrycode || "+91";
+          row['Mobile No.'] = `${code} ${st.mobileno}` || '';
         }
-        if (visibleColumns.email) {
-          row['Email'] = staff.email || '';
-        }
-        if (visibleColumns.gender) {
-          row['Gender'] = staff.gender || '';
-        }
-        if (visibleColumns.joiningDate) {
-          row['Date'] = staff.joiningdate ? formatDate(staff.joiningdate) : '';
-        }
-        if (visibleColumns.address) {
-          row['Address'] = staff.address || '';
-        }
-        row['Department'] = staff.department.name || ''
-
+        if (visibleColumns.email) row['Email'] = st.email || '';
+        if (visibleColumns.gender) row['Gender'] = st.gender || '';
+        if (visibleColumns.joiningDate) row['Date'] = st.joiningdate ? formatDate(st.joiningdate) : '';
+        if (visibleColumns.address) row['Address'] = st.address || '';
+        row['Department'] = st.department?.name || '';
         return row;
       });
-
-      // Create a new workbook
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Users');
-
-      // Auto-size columns
       const maxWidth = 20;
       const wscols = Object.keys(excelData[0] || {}).map(() => ({ wch: maxWidth }));
       worksheet['!cols'] = wscols;
-
-      // Generate file name with current date
       const date = new Date();
       const fileName = `Staff_List_${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}.xlsx`;
-
-      // Download the file
       XLSX.writeFile(workbook, fileName);
       dispatch(setAlert({ text: "Export completed..!", color: 'success' }));
-    } catch (error) {
+    } catch {
       dispatch(setAlert({ text: "Export failed..!", color: 'error' }));
     }
-  };
+  }, [filteredData, visibleColumns, dispatch, formatDate]);
 
-  const handleDeleteClick = (staffItem) => {
+  const handleDeleteClick = useCallback((staffItem) => {
     setItemToDelete(staffItem);
     setIsDeleteModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteModalClose = () => {
+  const handleDeleteModalClose = useCallback(() => {
     setIsDeleteModalOpen(false);
     setItemToDelete(null);
-  };
+  }, []);
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (itemToDelete && itemToDelete._id) {
       try {
         await dispatch(deleteStaff(itemToDelete._id)).unwrap();
         await dispatch(getAllHODStaff());
         setIsDeleteModalOpen(false);
         setItemToDelete(null);
-      } catch (error) {
-        console.error('Error deleting staff:', error);
-      }
+      } catch {}
     }
-  };
+  }, [itemToDelete, dispatch]);
 
   useEffect(() => {
     dispatch(getAllHODStaff());
@@ -590,4 +562,4 @@ const HODStaff = () => {
   );
 };
 
-export default HODStaff;
+export default React.memo(HODStaff);

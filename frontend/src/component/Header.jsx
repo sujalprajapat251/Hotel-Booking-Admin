@@ -252,7 +252,7 @@ const Header = ({ onMenuClick }) => {
                   notifications.map((n) => (
                     <div key={n._id} className={`p-2 rounded border ${n.seen ? 'border-secondary/20' : 'border-primary/40 bg-primary/10'}`}>
                       <div className="text-sm font-medium text-senary">{n.message}</div>
-                      <div className="text-xs text-quaternary">{new Date(n.createdAt).toLocaleString()}</div>
+                      <div className="text-xs text-quaternary">{new Date(n.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true })}</div>
                       {!n.seen && (
                         <button className="mt-1 text-xs text-blue-600" onClick={() => markSeen(n._id)}>Mark as read</button>
                       )}
