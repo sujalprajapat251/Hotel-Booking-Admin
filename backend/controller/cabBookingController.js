@@ -615,7 +615,11 @@ exports.getCabBookingsByBookingId = async (req, res) => {
                 select: "guest reservation roomNumber status",
                 populate: {
                     path: "room",
-                    select: "roomNumber roomType"
+                    select: "roomNumber roomType",
+                    populate: {
+                        path: "roomType",
+                        select: "roomType" 
+                    }
                 }
             })
             .populate({

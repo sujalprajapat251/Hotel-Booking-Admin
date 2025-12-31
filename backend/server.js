@@ -23,7 +23,7 @@ if (cluster.isPrimary) {
   }
 
   cluster.on('exit', (worker) => {
-    console.log(`🔴 Worker ${worker.process.pid} died. Restarting...`);
+    console.log(`🔴worker ${worker.process.pid} died. Restarting...`);
     cluster.fork();
   });
 
@@ -31,7 +31,7 @@ if (cluster.isPrimary) {
   const app = express();
   const allowedOrigins = (process.env.FRONTEND_URL
     ? [process.env.FRONTEND_URL]
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://k02wn09x-3000.inc1.devtunnels.ms']);
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://k02wn09x-3000.inc1.devtunnels.ms','https://hotel-admin-panel.netlify.app']);
 
   app.use(express.json())
   app.use(cookieParser());
