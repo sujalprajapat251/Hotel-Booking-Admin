@@ -10,6 +10,8 @@ import { IoEyeSharp } from 'react-icons/io5';
 import { GoDotFill } from "react-icons/go";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../Utils/baseUrl';
 
 const AllBookings = () => {
 
@@ -251,6 +253,41 @@ const AllBookings = () => {
         setSearchQuery("");
         setPage(1);
     }, [dispatch, limit]);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        
+        if (!token) return;
+
+        const socket = io(SOCKET_URL, {
+            auth: {
+                token,
+                userId
+            },
+            transports: ['websocket']
+        });
+        
+        socket.on('connect', () => {
+            console.log('Socket connected successfully');
+        });
+
+        socket.on('connect_error', (err) => {
+            console.error('Socket connection error:', err);
+        });
+
+        socket.on('booking_changed', (data) => {
+            console.log('Booking update received via socket:', data);
+            handleRefresh();
+        });
+
+        return () => {
+            socket.off('booking_changed');
+            socket.off('connect');
+            socket.off('connect_error');
+            socket.disconnect();
+        };
+    }, [handleRefresh]);
 
     const handleDownloadExcel = useCallback(() => {
         try {

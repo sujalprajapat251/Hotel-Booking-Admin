@@ -243,4 +243,12 @@ async function emitUserNotification({ userId, event = 'notify', data = {}, depar
     },
     emitRoleNotification,
     emitUserNotification,
+    emitBookingChanged: (data) => {
+      try {
+        if (!ioInstance) return;
+        ioInstance.emit('booking_changed', data);
+      } catch (error) {
+        console.error("Error emitting booking_changed:", error);
+      }
+    },
   };

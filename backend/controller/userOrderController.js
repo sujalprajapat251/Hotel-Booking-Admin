@@ -15,7 +15,7 @@ exports.getOrdercafeByRoom = async (req, res) => {
     try {
         const { roomId } = req.params;
         const lastUnpaidOrder = await cafeOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Pending' })
+            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'cafeitem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -28,7 +28,7 @@ exports.getOrderbarByRoom = async (req, res) => {
     try {
         const { roomId } = req.params;
         const lastUnpaidOrder = await barOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Pending' })
+            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'baritem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -74,7 +74,7 @@ exports.getOrderrestroByRoom = async (req, res) => {
     try {
         const { roomId } = req.params;
         const lastUnpaidOrder = await restroOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Pending' })
+            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'restaurantitem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -107,10 +107,10 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ status: 400, message: 'Items array with at least one product is required' });
         }
 
-        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-        if (!pi || pi.status !== 'succeeded') {
-            return res.status(402).json({ status: 402, message: 'Payment not completed. Order not created.' });
-        }
+        // const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+        // if (!pi || pi.status !== 'succeeded') {
+        //     return res.status(402).json({ status: 402, message: 'Payment not completed. Order not created.' });
+        // }
 
         const fromValue = 'room';
         const created = await Model.create({

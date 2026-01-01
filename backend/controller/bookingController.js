@@ -2,6 +2,7 @@ const Booking = require('../models/bookingModel');
 const Room = require('../models/createRoomModel');
 const CabBooking = require('../models/cabBookingModel');
 const nodemailer = require("nodemailer");
+const { emitBookingChanged } = require('../socketManager/socketManager');
 const ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'CheckedIn'];
 // Stripe Integration
 let stripe = null;
@@ -247,6 +248,8 @@ const createBooking = async (req, res) => {
         });
 
         await refreshRoomStatus(roomId);
+
+        emitBookingChanged({ type: 'create', bookingId: booking._id, roomId });
 
         console.log("_____",roomId);
 
@@ -733,6 +736,8 @@ const updateBooking = async (req, res) => {
             await refreshRoomStatus(originalRoomId);
         }
 
+        emitBookingChanged({ type: 'update', bookingId: booking._id, roomId: booking.room });
+
         const populated = await booking.populate([
             { 
                 path: 'room', 
@@ -765,6 +770,8 @@ const deleteBooking = async (req, res) => {
         await CabBooking.deleteMany({ booking: id });
 
         await refreshRoomStatus(booking.room);
+
+        emitBookingChanged({ type: 'delete', bookingId: id, roomId: booking.room });
 
         res.json({
             success: true,
@@ -879,6 +886,7 @@ const bookRoomByType = async (req, res) => {
             createdBy: req.user?._id
         });
         await refreshRoomStatus(availableRoom._id);
+        emitBookingChanged({ type: 'create', bookingId: booking._id, roomId: availableRoom._id });
         const populated = await booking.populate([
             { path: 'room', select: 'roomNumber roomType status capacity cleanStatus',populate: {path: 'roomType', select: 'roomType' } },
             { path: 'createdBy', select: 'fullName email role' }

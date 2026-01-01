@@ -12,6 +12,8 @@ import { IoEyeSharp } from 'react-icons/io5';
 import SingleRoomModal from '../component/SingleRoomModal';
 import { useNavigate } from 'react-router-dom';
 import { RiDeleteBinLine } from 'react-icons/ri';
+import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../Utils/baseUrl';
 const RoomCard = ({ room, statusConfig, maxCapacity, roomTypeName, bedType, price, isAddGuestAction, isAddGuestDisabled, isDirty, amenities, roomBooking, guestName, bookingStatusLabel, checkInLabel, checkOutLabel, getImageUrl, mainImage, subImages, roomImages, onDelete, navigate, setViewId, handleRoomAction, checkInStr, todayStr, userRole }) => {
   const [selectedImage, setSelectedImage] = useState(mainImage);
   // Custom logic for Guest Details vs Add Guest
@@ -563,6 +565,43 @@ const AvailableRooms = () => {
       })
     );
   }, [dispatch, localPage, pageSize, apiFilters]);
+
+  useEffect(() => {
+      const token = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      if (!token) return;
+
+      const socket = io(SOCKET_URL, {
+          auth: {
+              token,
+              userId
+          },
+          transports: ['websocket']
+      });
+      
+      socket.on('connect', () => {
+          console.log('Socket connected successfully');
+      });
+
+      socket.on('connect_error', (err) => {
+          console.error('Socket connection error:', err);
+      });
+      
+      socket.on('booking_changed', (data) => {
+          console.log('Room update received via socket:', data);
+          refreshRooms();
+          // Also fetch bookings to keep data consistent
+          dispatch(fetchBookings());
+      });
+
+      return () => {
+          socket.off('booking_changed');
+          socket.off('connect');
+          socket.off('connect_error');
+          socket.disconnect();
+      };
+  }, [refreshRooms, dispatch]);
 
   const getBookingForRoom = useCallback(
     (roomData) => {
