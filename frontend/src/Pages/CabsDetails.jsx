@@ -132,9 +132,28 @@ const CabsDetails = () => {
 
   const handleAddInputChange = (e) => {
     const { name, value, type, checked, files } = e.target;
+    let newValue;
+    if (type === 'checkbox') newValue = checked;
+    else if (files) newValue = files[0];
+    else newValue = value;
+
+    if (name === 'seatingCapacity') {
+      if (newValue === '') {
+        newValue = '';
+      } else {
+        let num = Number(newValue);
+        if (isNaN(num)) {
+          newValue = '';
+        } else {
+          if (num < 2) num = 2;
+          newValue = num;
+        }
+      }
+    }
+
     setNewCab((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : files ? files[0] : value,
+      [name]: newValue,
     }));
   };
 
@@ -643,6 +662,7 @@ const CabsDetails = () => {
                   <input
                     type="number"
                     name="seatingCapacity"
+                    min={2}
                     value={newCab.seatingCapacity}
                     onChange={handleAddInputChange}
                     placeholder="Seating Capacity"
@@ -800,9 +820,27 @@ function EditCabModal({ cab, onClose }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    let newValue;
+    if (type === 'checkbox') newValue = checked;
+    else newValue = value;
+
+    if (name === 'seatingCapacity') {
+      if (newValue === '') {
+        newValue = '';
+      } else {
+        let num = Number(newValue);
+        if (isNaN(num)) {
+          newValue = '';
+        } else {
+          if (num < 2) num = 2;
+          newValue = num;
+        }
+      }
+    }
+
     setForm((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: newValue,
     }));
   };
 
@@ -978,6 +1016,7 @@ function EditCabModal({ cab, onClose }) {
                   <input
                     className="w-full rounded-[4px] border border-gray-200 px-2 py-2 focus:outline-none bg-[#1414140F]"
                     name="seatingCapacity"
+                    min={2}
                     value={form.seatingCapacity}
                     onChange={handleChange}
                     placeholder="Seating Capacity"
