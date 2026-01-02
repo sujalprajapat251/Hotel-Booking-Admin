@@ -12,8 +12,8 @@ const socketManager = require('./socketManager/socketManager');
 const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
 const helmet = require("helmet");
-const mongoSanitize = require("express-mongo-sanitize");
-const xss = require("xss-clean");
+// const mongoSanitize = require("express-mongo-sanitize");
+// const xss = require("xss-clean");
 
 const numCPUs = os.cpus().length;
 const port = process.env.PORT || 5000
@@ -38,9 +38,9 @@ if (cluster.isPrimary) {
 
   app.use(express.json())
   app.use(cookieParser());
+  // app.use(mongoSanitize({ replaceWith: '_' }));
+  // app.use(xss());
   app.use(helmet());
-  app.use(mongoSanitize());
-  app.use(xss());
   app.use(cors({
     origin: allowedOrigins,
     credentials: true
