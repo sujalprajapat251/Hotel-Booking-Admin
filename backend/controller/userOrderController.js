@@ -107,10 +107,10 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ status: 400, message: 'Items array with at least one product is required' });
         }
 
-        // const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
-        // if (!pi || pi.status !== 'succeeded') {
-        //     return res.status(402).json({ status: 402, message: 'Payment not completed. Order not created.' });
-        // }
+        const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+        if (!pi || pi.status !== 'succeeded') {
+            return res.status(402).json({ status: 402, message: 'Payment not completed. Order not created.' });
+        }
 
         const fromValue = 'room';
         const created = await Model.create({
