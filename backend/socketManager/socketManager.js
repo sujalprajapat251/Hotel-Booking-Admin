@@ -39,7 +39,7 @@ function initializeSocket(io) {
 
   io.on("connection", (socket) => {
   
-    // Handle user room joining
+    // Handle user room joining (explicit from client)
     socket.on("joinRoom", ({ userId }) => {
       if (userId) {
         const uid = String(userId);
@@ -47,15 +47,27 @@ function initializeSocket(io) {
         set.add(socket.id);
         userSocketMap.set(uid, set);
         socketUserMap.set(socket.id, uid);
+        // Also join a per-user room so notifications work across clustered workers with Redis
+        try {
+          socket.join(`user:${uid}`);
+        } catch (err) {
+          console.error(`Failed to join user room user:${uid}:`, err?.message || err);
+        }
       }
     });
 
+    // Automatically map & join room for authenticated sockets
     if (socket.userId) {
       const uid = String(socket.userId);
       const set = userSocketMap.get(uid) || new Set();
       set.add(socket.id);
       userSocketMap.set(uid, set);
       socketUserMap.set(socket.id, uid);
+      try {
+        socket.join(`user:${uid}`);
+      } catch (err) {
+        console.error(`Failed to join user room on connect user:${uid}:`, err?.message || err);
+      }
     }
 
     // Join music-specific room by ID
@@ -149,17 +161,10 @@ async function emitRoleNotification({ departmentId, designations = [], excludeUs
     targets.forEach(t => {
       const uid = String(t._id);
       if (excludeId && uid === excludeId) return;
-      const socketIds = userSocketMap.get(uid);
       const dpt = departmentId || (t?.department ? String(t.department) : null);
       const payload = dpt ? { ...data, departmentId: dpt } : { ...data };
-      if (socketIds && socketIds.size > 0) {
-        for (const sid of socketIds) {
-          const s = ioInstance.sockets.sockets.get(sid);
-          if (s && s.connected) {
-            ioInstance.to(sid).emit(event, payload);
-          }
-        }
-      }
+      // Emit to the per-user room so it works across all workers via Redis adapter
+      ioInstance.to(`user:${uid}`).emit(event, payload);
       docs.push({ user: uid, department: dpt, type: data?.type || event, message: data?.message || '', payload: data, seen: false });
     });
     if (docs.length) {
@@ -178,16 +183,9 @@ async function emitUserNotification({ userId, event = 'notify', data = {}, depar
         departmentId = u?.department?._id || null;
       } catch {}
     }
-    const socketIds = userSocketMap.get(uid);
     const payload = departmentId ? { ...data, departmentId } : { ...data };
-    if (socketIds && socketIds.size > 0) {
-      for (const sid of socketIds) {
-        const s = ioInstance.sockets.sockets.get(sid);
-        if (s && s.connected) {
-          ioInstance.to(sid).emit(event, payload);
-        }
-      }
-    }
+    // Emit to per-user room so notifications reach correct user on any worker
+    ioInstance.to(`user:${uid}`).emit(event, payload);
     try {
       const Notification = require('../models/notificationModel');
       await Notification.create({ user: uid, department: departmentId || null, type: payload?.type || event, message: payload?.message || '', payload, seen: false });

@@ -118,7 +118,7 @@ const Header = ({ onMenuClick }) => {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
     if (token && userId && !socketRef.current) {
-      socketRef.current = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket','polling'], withCredentials: true });
+      socketRef.current = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket'], withCredentials: true });
       socketRef.current.emit('joinRoom', { userId });
       socketRef.current.on('connect', () => {});
       socketRef.current.on('connect_error', () => {});

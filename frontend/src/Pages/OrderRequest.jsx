@@ -32,7 +32,7 @@ const OrderRequest = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
-        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket', 'polling'], withCredentials: true });
+        const s = io(SOCKET_URL, { auth: { token, userId }, transports: ['websocket'], withCredentials: true });
         s.on('connect', () => { console.log('socket connected', s.id); });
         s.on('connect_error', (err) => { console.error('socket connect_error', err?.message || err); });
         s.on('error', (err) => { console.error('socket error', err?.message || err); });
