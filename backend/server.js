@@ -12,9 +12,9 @@ const socketManager = require('./socketManager/socketManager');
 const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
 const helmet = require("helmet");
-const { setupMaster, setupWorker } = require("@socket.io/sticky");
-const { createAdapter } = require("@socket.io/redis-adapter");
-const { createClient } = require("redis");
+// const { setupMaster, setupWorker } = require("@socket.io/sticky");
+// const { createAdapter } = require("@socket.io/redis-adapter");
+// const { createClient } = require("redis");
 // const mongoSanitize = require("express-mongo-sanitize");
 // const xss = require("xss-clean");
 
@@ -24,13 +24,13 @@ const port = process.env.PORT || 5000
 if (cluster.isPrimary) {
   console.log(`🟢 Master ${process.pid} running`);
 
-  const httpServer = http.createServer();
+  // const httpServer = http.createServer();
 
-  setupMaster(httpServer, {
-    loadBalancingMethod: "least-connection",
-  });
+  // setupMaster(httpServer, {
+  //   loadBalancingMethod: "least-connection",
+  // });
 
-  httpServer.listen(port);
+  // httpServer.listen(port);
 
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
@@ -79,29 +79,33 @@ if (cluster.isPrimary) {
     // connectTimeout: 45000,
   });
 
-  setupWorker(io);
-  const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
-  const subClient = pubClient.duplicate();
+  // setupWorker(io);
+  // const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+  // const subClient = pubClient.duplicate();
 
-  pubClient.on('error', (err) => console.error('Redis Pub Error', err));
-  subClient.on('error', (err) => console.error('Redis Sub Error', err));
+  // pubClient.on('error', (err) => console.error('Redis Pub Error', err));
+  // subClient.on('error', (err) => console.error('Redis Sub Error', err));
 
-  Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
-    io.adapter(createAdapter(pubClient, subClient));
-    console.log(`✅ Redis Adapter connected (Worker ${process.pid})`);
-  }).catch(err => {
-    console.error("Redis connection failed, sockets might not sync", err);
-  });
+  // Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  //   io.adapter(createAdapter(pubClient, subClient));
+  //   console.log(`✅ Redis Adapter connected (Worker ${process.pid})`);
+  // }).catch(err => {
+  //   console.error("Redis connection failed, sockets might not sync", err);
+  // });
 
   socketManager.initializeSocket(io);
 
-  server.listen(0, async () => {
-    try {
-      await connectDb();
-      console.log(`🧵 Worker ${process.pid} ready`);
-    } catch (dbErr) {
-      console.error("Database connection failed", dbErr);
-    }
+  // server.listen(0, async () => {
+  //   try {
+  //     await connectDb();
+  //     console.log(`🧵 Worker ${process.pid} ready`);
+  //   } catch (dbErr) {
+  //     console.error("Database connection failed", dbErr);
+  //   }
+  // });
+  server.listen(port, () => {
+    connectDb();
+    console.log(`Server is running on port ${port}`);
   });
 }
 

@@ -366,7 +366,7 @@ export default function TableOrder() {
 
                                             <div className="ms-1 sm:ms-3 flex-1 min-w-0">
                                                 <h3 className="font-semibold text-xs sm:text-sm truncate">{item.product.name}</h3>
-                                                <p className="text-xs sm:text-sm text-gray-500">Rs.{item.product.price}</p>
+                                                <p className="text-xs sm:text-sm text-gray-500">${item.product.price}</p>
                                             </div>
 
                                             <div className="flex items-center gap-1 sm:gap-2 ms-auto flex-shrink-0">
