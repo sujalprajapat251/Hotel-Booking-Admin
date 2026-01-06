@@ -12,6 +12,9 @@ const socketManager = require('./socketManager/socketManager');
 const indexRoutes = require('./routes/index.routes');
 const cookieParser = require('cookie-parser');
 const helmet = require("helmet");
+// const { setupMaster, setupWorker } = require("@socket.io/sticky");
+// const { createAdapter } = require("@socket.io/redis-adapter");
+// const { createClient } = require("redis");
 // const mongoSanitize = require("express-mongo-sanitize");
 // const xss = require("xss-clean");
 
@@ -20,6 +23,14 @@ const port = process.env.PORT || 5000
 
 if (cluster.isPrimary) {
   console.log(`🟢 Master ${process.pid} running`);
+
+  // const httpServer = http.createServer();
+
+  // setupMaster(httpServer, {
+  //   loadBalancingMethod: "least-connection",
+  // });
+
+  // httpServer.listen(port);
 
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
@@ -34,7 +45,7 @@ if (cluster.isPrimary) {
   const app = express();
   const allowedOrigins = (process.env.FRONTEND_URL
     ? [process.env.FRONTEND_URL]
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://k02wn09x-3000.inc1.devtunnels.ms','https://hotel-admin-panel.netlify.app']);
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'https://k02wn09x-3000.inc1.devtunnels.ms', 'https://hotel-admin-panel.netlify.app']);
 
   app.use(express.json())
   app.use(cookieParser());
@@ -63,13 +74,35 @@ if (cluster.isPrimary) {
       credentials: true
     },
     transports: ['websocket', 'polling'],
-    pingTimeout: 60000,
-    pingInterval: 25000,
-    connectTimeout: 45000,
+    // pingTimeout: 60000,
+    // pingInterval: 25000,
+    // connectTimeout: 45000,
   });
+
+  // setupWorker(io);
+  // const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+  // const subClient = pubClient.duplicate();
+
+  // pubClient.on('error', (err) => console.error('Redis Pub Error', err));
+  // subClient.on('error', (err) => console.error('Redis Sub Error', err));
+
+  // Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+  //   io.adapter(createAdapter(pubClient, subClient));
+  //   console.log(`✅ Redis Adapter connected (Worker ${process.pid})`);
+  // }).catch(err => {
+  //   console.error("Redis connection failed, sockets might not sync", err);
+  // });
 
   socketManager.initializeSocket(io);
 
+  // server.listen(0, async () => {
+  //   try {
+  //     await connectDb();
+  //     console.log(`🧵 Worker ${process.pid} ready`);
+  //   } catch (dbErr) {
+  //     console.error("Database connection failed", dbErr);
+  //   }
+  // });
   server.listen(port, () => {
     connectDb();
     console.log(`Server is running on port ${port}`);

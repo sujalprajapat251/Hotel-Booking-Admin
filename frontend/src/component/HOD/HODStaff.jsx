@@ -167,6 +167,19 @@ const HODStaff = () => {
     dispatch(getAllHODStaff());
   }, [dispatch]);
 
+  // Prevent background scrolling when any modal is open
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    if (isModalOpen || isDeleteModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = originalOverflow;
+    }
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isModalOpen, isDeleteModalOpen]);
+
   return (
     <>
       <div className='p-3 md:p-4 lg:p-5 bg-[#F0F3FB] h-full'>

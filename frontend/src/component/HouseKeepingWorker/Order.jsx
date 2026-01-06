@@ -15,7 +15,7 @@ const Order = () => {
     useEffect(() => {
         dispatch(fetchOrderTasks({ workerId }));
         const token = localStorage.getItem('token');
-        const s = io(SOCKET_URL, { auth: { token, userId: workerId }, transports: ['websocket','polling'], withCredentials: true });
+        const s = io(SOCKET_URL, { auth: { token, userId: workerId }, transports: ['websocket'], withCredentials: true });
         const refreshIfMine = (payload) => {
             if (!payload || !payload.workerId) return;
             if (String(payload.workerId) === String(workerId)) {
