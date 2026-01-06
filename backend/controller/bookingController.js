@@ -677,7 +677,45 @@ const updateBooking = async (req, res) => {
         }
         
         if (req.body.status) {
+            // Check if user is trying to cancel with pending payment
+            if (req.body.status === 'Cancelled' && booking.payment?.status === 'Pending') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Cannot cancel booking with Pending payment. Please complete payment first.'
+                });
+            }
+
             booking.status = req.body.status;
+            
+            // If booking is cancelled, also cancel associated cab bookings
+            if (booking.status === 'Cancelled') {
+                await CabBooking.updateMany(
+                    { booking: booking._id },
+                    { $set: { status: 'Cancelled' } }
+                );
+
+                // Calculate 30% refund if payment status is Paid
+                if (booking.payment?.status === 'Paid' && booking.payment?.totalAmount) {
+                    const refundAmount = booking.payment.totalAmount * 0.3;
+                    
+                    booking.payment.status = 'Refunded';
+                    booking.payment.refundedAmount = refundAmount;
+
+                     // Initialize transactions array if needed
+                     if (!Array.isArray(booking.payment.transactions)) {
+                        booking.payment.transactions = [];
+                    }
+
+                    booking.payment.transactions.push({
+                        amount: refundAmount,
+                        method: booking.payment.method || 'Cash',
+                        status: 'Refunded',
+                        paidAt: new Date(),
+                        reference: `REF-CANCEL-${booking._id}-${Date.now()}`,
+                        notes: `Cancellation Refund (30% of ${booking.payment.totalAmount})`
+                    });
+                }
+            }
         }
 
 
