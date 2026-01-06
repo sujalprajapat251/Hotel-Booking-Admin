@@ -708,7 +708,7 @@ const updateBooking = async (req, res) => {
 
                     booking.payment.transactions.push({
                         amount: refundAmount,
-                        method: booking.payment.method || 'Cash',
+                        method:'Online',
                         status: 'Refunded',
                         paidAt: new Date(),
                         reference: `REF-CANCEL-${booking._id}-${Date.now()}`,
