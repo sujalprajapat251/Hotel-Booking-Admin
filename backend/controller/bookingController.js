@@ -627,18 +627,14 @@ const updateBooking = async (req, res) => {
             }
         }
 
-        // Only process payment updates if payment data is explicitly provided
-        if (req.body.payment || req.body.paymentStatus || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
+    // Only process payment updates if payment data is explicitly provided
+    if (req.body.payment || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
             const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
             }
             if (paymentPayload.refundedAmount !== undefined && !Number.isNaN(paymentPayload.refundedAmount)) {
                 booking.payment.refundedAmount = paymentPayload.refundedAmount;
-            }
-            // Only update payment status if it's explicitly provided and valid
-            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
-                booking.payment.status = paymentPayload.status;
             }
             if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
             if (paymentPayload.method) booking.payment.method = paymentPayload.method;
@@ -677,26 +673,19 @@ const updateBooking = async (req, res) => {
         }
         
         if (req.body.status) {
-            // Check if user is trying to cancel with pending payment
-            if (req.body.status === 'Cancelled' && booking.payment?.status === 'Pending') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Cannot cancel booking with Pending payment. Please complete payment first.'
-                });
-            }
-
             booking.status = req.body.status;
             
-            // If booking is cancelled, also cancel associated cab bookings
+            // If booking is cancelled, also cancel associated cab bookings and issue refund
             if (booking.status === 'Cancelled') {
                 await CabBooking.updateMany(
                     { booking: booking._id },
                     { $set: { status: 'Cancelled' } }
                 );
 
-                // Calculate 70% refund if payment status is Paid (30% cancellation fee)
-                if (booking.payment?.status === 'Paid' && booking.payment?.totalAmount) {
-                    const refundAmount = booking.payment.totalAmount * 0.7;
+                const totalAmount = booking.payment?.totalAmount || 0;
+                const alreadyRefunded = Array.isArray(booking.payment?.transactions) && booking.payment.transactions.some(t => t.status === 'Refunded');
+                if (totalAmount > 0 && !alreadyRefunded) {
+                    const refundAmount = totalAmount * 0.7; // 70% refund, 30% cancellation fee
                     let stripeRefundId = null;
                     let refundSuccess = false;
                     let refundError = null;
@@ -704,10 +693,7 @@ const updateBooking = async (req, res) => {
                     // Process Stripe refund if payment was made via Stripe
                     if (booking.payment?.paymentIntentId && stripe) {
                         try {
-                            // Convert refund amount to cents (Stripe uses smallest currency unit)
                             const refundAmountInCents = Math.round(refundAmount * 100);
-                            
-                            // Create refund in Stripe
                             const refund = await stripe.refunds.create({
                                 payment_intent: booking.payment.paymentIntentId,
                                 amount: refundAmountInCents,
@@ -725,15 +711,13 @@ const updateBooking = async (req, res) => {
                         } catch (stripeError) {
                             console.error('Stripe refund error:', stripeError);
                             refundError = stripeError.message;
-                            // Continue with database refund record even if Stripe fails
                         }
                     }
                     
                     booking.payment.status = 'Refunded';
                     booking.payment.refundedAmount = refundAmount;
 
-                     // Initialize transactions array if needed
-                     if (!Array.isArray(booking.payment.transactions)) {
+                    if (!Array.isArray(booking.payment.transactions)) {
                         booking.payment.transactions = [];
                     }
 
@@ -744,10 +728,10 @@ const updateBooking = async (req, res) => {
                         paidAt: new Date(),
                         reference: stripeRefundId || `REF-CANCEL-${booking._id}-${Date.now()}`,
                         notes: refundSuccess 
-                            ? `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Stripe Refund ID: ${stripeRefundId}`
+                            ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Refund ID: ${stripeRefundId}`
                             : refundError
-                                ? `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Stripe Error: ${refundError}`
-                                : `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Manual refund required`
+                                ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Error: ${refundError}`
+                                : `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Manual refund required`
                     });
                 }
             }
