@@ -694,9 +694,40 @@ const updateBooking = async (req, res) => {
                     { $set: { status: 'Cancelled' } }
                 );
 
-                // Calculate 30% refund if payment status is Paid
+                // Calculate 70% refund if payment status is Paid (30% cancellation fee)
                 if (booking.payment?.status === 'Paid' && booking.payment?.totalAmount) {
-                    const refundAmount = booking.payment.totalAmount * 0.3;
+                    const refundAmount = booking.payment.totalAmount * 0.7;
+                    let stripeRefundId = null;
+                    let refundSuccess = false;
+                    let refundError = null;
+
+                    // Process Stripe refund if payment was made via Stripe
+                    if (booking.payment?.paymentIntentId && stripe) {
+                        try {
+                            // Convert refund amount to cents (Stripe uses smallest currency unit)
+                            const refundAmountInCents = Math.round(refundAmount * 100);
+                            
+                            // Create refund in Stripe
+                            const refund = await stripe.refunds.create({
+                                payment_intent: booking.payment.paymentIntentId,
+                                amount: refundAmountInCents,
+                                reason: 'requested_by_customer',
+                                metadata: {
+                                    bookingId: booking._id.toString(),
+                                    refundType: 'cancellation',
+                                    refundAmount: refundAmount
+                                }
+                            });
+
+                            stripeRefundId = refund.id;
+                            refundSuccess = true;
+                            console.log(`Stripe refund created: ${stripeRefundId} for booking ${booking._id}`);
+                        } catch (stripeError) {
+                            console.error('Stripe refund error:', stripeError);
+                            refundError = stripeError.message;
+                            // Continue with database refund record even if Stripe fails
+                        }
+                    }
                     
                     booking.payment.status = 'Refunded';
                     booking.payment.refundedAmount = refundAmount;
@@ -708,11 +739,15 @@ const updateBooking = async (req, res) => {
 
                     booking.payment.transactions.push({
                         amount: refundAmount,
-                        method:'Online',
+                        method: booking.payment.method || 'Online',
                         status: 'Refunded',
                         paidAt: new Date(),
-                        reference: `REF-CANCEL-${booking._id}-${Date.now()}`,
-                        notes: `Cancellation Refund (30% of ${booking.payment.totalAmount})`
+                        reference: stripeRefundId || `REF-CANCEL-${booking._id}-${Date.now()}`,
+                        notes: refundSuccess 
+                            ? `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Stripe Refund ID: ${stripeRefundId}`
+                            : refundError
+                                ? `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Stripe Error: ${refundError}`
+                                : `Cancellation Refund (70% of ${booking.payment.totalAmount} = $${refundAmount.toFixed(2)}) - Manual refund required`
                     });
                 }
             }
