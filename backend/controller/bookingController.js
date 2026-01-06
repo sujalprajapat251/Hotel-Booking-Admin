@@ -723,7 +723,7 @@ const updateBooking = async (req, res) => {
 
                     booking.payment.transactions.push({
                         amount: refundAmount,
-                        method: booking.payment.method || 'Online',
+                        method: booking.payment.method,
                         status: 'Refunded',
                         paidAt: new Date(),
                         reference: stripeRefundId || `REF-CANCEL-${booking._id}-${Date.now()}`,
