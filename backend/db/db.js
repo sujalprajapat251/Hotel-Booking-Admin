@@ -5,10 +5,13 @@ const connectDb = async (req, res) => {
         await mongoose
             .connect(process.env.MONGODB_PATH)
             .then(() => console.log('DB Is Connected...'))
-    } catch (error) { 
+    } catch (error) {
         console.log(error);
-        return res.json({ status: 500, message: error.message });
+        if (res) {
+            return res.json({ status: 500, message: error.message });
+        }
+        throw error;
     }
 }
- 
+
 module.exports = connectDb;

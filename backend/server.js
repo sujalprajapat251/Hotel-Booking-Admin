@@ -15,6 +15,8 @@ const helmet = require("helmet");
 const { setupMaster, setupWorker } = require("@socket.io/sticky");
 const { createAdapter } = require("@socket.io/redis-adapter");
 const { createClient } = require("redis");
+const {doubleCsrfProtection} = require("./middleware/csrfProtection");
+const csrfRoutes = require("./routes/csrf.routes");
 // const mongoSanitize = require("express-mongo-sanitize");
 // const xss = require("xss-clean");
 
@@ -58,6 +60,9 @@ if (cluster.isPrimary) {
   }));
 
   app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+  app.use('/api', csrfRoutes);
+  app.use('/api', doubleCsrfProtection);
   app.use('/api', indexRoutes);
 
   // Define a root route
@@ -80,7 +85,7 @@ if (cluster.isPrimary) {
   });
 
   setupWorker(io);
-  const pubClient = createClient({ url: process.REDIS_URL});
+  const pubClient = createClient({ url: process.REDIS_URL });
   const subClient = pubClient.duplicate();
 
   pubClient.on('error', (err) => console.error('Redis Pub Error', err));
