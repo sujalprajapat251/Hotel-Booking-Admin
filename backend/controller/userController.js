@@ -38,7 +38,7 @@ exports.createUser = async (req, res) => {
 
         let token = null;
         if (role === "user") {
-            token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
+            token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY, { expiresIn: "7d" });
         }
 
         return res.status(200).json({
@@ -79,7 +79,7 @@ exports.userLogin = async (req, res) => {
         let token = await jwt.sign(
             { _id: checkEmailIsExist._id },
             process.env.SECRET_KEY,
-            { expiresIn: "1d" }
+            { expiresIn: "7d" }
         );
 
         return res.status(200)
@@ -107,7 +107,7 @@ exports.googleLogin = async (req, res) => {
             });
         }
         checkUser = checkUser.toObject();
-        let token = await jwt.sign({ _id: checkUser._id }, process.env.SECRET_KEY, { expiresIn: "1D" })
+        let token = await jwt.sign({ _id: checkUser._id }, process.env.SECRET_KEY, { expiresIn: "7D" })
         return res.status(200).json({ status: 200, message: 'Login SuccessFully..!', user: checkUser, token: token });
     } catch (error) {
         throw new Error(error);
