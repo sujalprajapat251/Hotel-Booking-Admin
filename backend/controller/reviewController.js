@@ -109,10 +109,53 @@ const getReviewById = async (req, res) => {
     }
 };
 
+const getReviewStatsByType = async (req, res) => {
+    try {
+        const stats = await Review.aggregate([
+            {
+                // optional filter (only cafe, bar, restaurant)
+                $match: {
+                    reviewType: { $in: ['cafe', 'bar', 'restaurant'] }
+                }
+            },
+            {
+                $group: {
+                    _id: "$reviewType",
+                    averageRating: { $avg: "$rating" },
+                    totalReviews: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    averageRating: { $round: ["$averageRating", 1] },
+                    totalReviews: 1
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Review statistics fetched successfully",
+            data: stats
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch review stats",
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createReview,
     getAllReviews,
-    getReviewById
+    getReviewById,
+    getReviewStatsByType
 };
 
 
