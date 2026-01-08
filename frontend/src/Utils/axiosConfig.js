@@ -4,6 +4,7 @@ import { BASE_URL } from "./baseUrl";
 let csrfToken = null;
 
 export const getCsrfToken = async () => {
+
   const res = await axios.get(`${BASE_URL}/csrf-token`, {
     withCredentials: true,
   });
@@ -12,6 +13,13 @@ export const getCsrfToken = async () => {
 };
 
 axios.interceptors.request.use(async (config) => {
+
+  // ⛔ Skip interceptor for csrf-token API itself
+  if (config.url.includes('/csrf-token')) {
+    config.withCredentials = true;
+    return config;
+  }
+
   if (!csrfToken && ["post", "put", "delete", "patch"].includes(config.method)) {
     await getCsrfToken();
   }
@@ -23,3 +31,4 @@ axios.interceptors.request.use(async (config) => {
   config.withCredentials = true;
   return config;
 });
+
