@@ -1,5 +1,6 @@
 const RoomType = require('../models/roomtypeModel');
 const Room = require('../models/createRoomModel');
+const Review = require('../models/reviewModel');
 const { uploadToS3 } = require('../utils/s3Service');
 
 const formatRoomType = (doc, availability = null) => ({
@@ -144,7 +145,7 @@ const getRoomTypes = async (_req, res) => {
             .populate('features', 'feature')
             .sort({ createdAt: -1 });
 
-        // Compute availability per room type from current room statuses
+        // 🔹 Availability aggregation
         const availabilityAgg = await Room.aggregate([
             {
                 $group: {
@@ -158,6 +159,7 @@ const getRoomTypes = async (_req, res) => {
                 }
             }
         ]);
+
         const availabilityMap = availabilityAgg.reduce((acc, item) => {
             acc[item._id?.toString()] = {
                 available: item.available,
@@ -166,17 +168,65 @@ const getRoomTypes = async (_req, res) => {
             return acc;
         }, {});
 
+        // 🔹 Rating aggregation
+        const reviewAgg = await Review.aggregate([
+            { $match: { reviewType: "room" } },
+            {
+                $lookup: {
+                    from: "rooms",
+                    localField: "roomId",
+                    foreignField: "_id",
+                    as: "room"
+                }
+            },
+            { $unwind: "$room" },
+            {
+                $group: {
+                    _id: "$room.roomType",
+                    averageRating: { $avg: "$rating" },
+                    totalReviews: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    averageRating: { $round: ["$averageRating", 1] },
+                    totalReviews: 1
+                }
+            }
+        ]);
+
+        const reviewMap = reviewAgg.reduce((acc, item) => {
+            acc[item._id.toString()] = {
+                average: item.averageRating,
+                totalReviews: item.totalReviews
+            };
+            return acc;
+        }, {});
+
         res.json({
             success: true,
-            data: list.map((doc) =>
-                formatRoomType(doc, availabilityMap[doc._id.toString()])
-            )
+            data: list.map((doc) => ({
+                ...doc.toObject(),
+                availability: availabilityMap[doc._id.toString()] || {
+                    available: 0,
+                    total: 0
+                },
+                rating: reviewMap[doc._id.toString()] || {
+                    average: 0,
+                    totalReviews: 0
+                }
+            }))
         });
+
     } catch (error) {
         console.error('getRoomTypes error:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch room types' });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch room types'
+        });
     }
 };
+
 
 const getRoomTypeById = async (req, res) => {
     try {
