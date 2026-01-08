@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require("uuid");
 
 const CSRF_COOKIE_NAME = process.env.NODE_ENV === "production" ? "__Host-csrf" : "csrf";
 const CSRF_SESSION_COOKIE_NAME = process.env.NODE_ENV === "production" ? "__Host-csrf-session" : "csrf-session";
+const MAX_AGE = 10 * 60 * 1000;
 
 const {
   invalidCsrfTokenError,
@@ -16,6 +17,7 @@ const {
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
+    maxAge: MAX_AGE,
   },
   ignoredMethods: ["GET", "HEAD", "OPTIONS"],
 
@@ -45,6 +47,7 @@ const doubleCsrfProtectionWrapper = (req, res, next) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       path: "/",
+      maxAge: MAX_AGE,
     });
   }
 
@@ -63,6 +66,7 @@ module.exports = {
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         path: "/",
+        maxAge: MAX_AGE,
       });
       // Update request object so getSessionIdentifier can find it
       req.cookies[CSRF_SESSION_COOKIE_NAME] = sessionId;

@@ -5,7 +5,6 @@ const { generateCsrfToken } = require("../middleware/csrfProtection");
 router.get("/csrf-token", (req, res) => {
   try {
     const token = generateCsrfToken(req, res); 
-    console.log("_________________________",token);
     
     if (!token) {
       return res.status(500).json({ message: "Failed to generate CSRF token" });
