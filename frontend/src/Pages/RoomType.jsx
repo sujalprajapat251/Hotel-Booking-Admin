@@ -19,6 +19,7 @@ import * as XLSX from 'xlsx';
 import { setAlert } from '../Redux/Slice/alert.slice';
 import { ChevronDown } from 'lucide-react';
 import { fetchFeatures } from '../Redux/Slice/featuresSlice';
+import { AiFillStar } from 'react-icons/ai';
 
 const bedTypes = ['Single', 'Double', 'Queen', 'King', 'Twin'];
 
@@ -52,6 +53,7 @@ const RoomType = () => {
     availableRooms: true,
     capacity: true,
     features: true,
+    reviews: true,
     image: true,
     actions: true,
   });
@@ -611,6 +613,9 @@ const RoomType = () => {
                 {visibleColumns.features && (
                   <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Features</th>
                 )}
+                {visibleColumns.reviews && (
+                  <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Reviews</th>
+                )}
                 {visibleColumns.image && (
                   <th className=" px-5 py-3 md600:py-4 lg:px-6  text-left text-sm font-bold text-[#755647]">Images</th>
                 )}
@@ -679,6 +684,11 @@ const RoomType = () => {
                     {visibleColumns.features && (
                       <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
                         {Array.isArray(item?.features) ? item.features.length : 0}
+                      </td>
+                    )}
+                    {visibleColumns.reviews && (
+                      <td className="px-5 py-2 md600:py-3 lg:px-6 text-sm text-gray-700">
+                        {item?.rating?.average} ({item?.rating?.totalReviews} reviews)
                       </td>
                     )}
                     {visibleColumns.image && (
@@ -1257,29 +1267,55 @@ const RoomType = () => {
                 </div>
 
                 {/* Bed Configuration */}
-                {selectedItem?.bed && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">Bed Configuration</span>
-                    <div className="flex flex-wrap gap-4">
-                      {selectedItem.bed.mainBed && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">Main Bed:</span>
-                          <span className="text-sm text-gray-900">
-                            {selectedItem.bed.mainBed.type || '—'} x{selectedItem.bed.mainBed.count || 0}
-                          </span>
-                        </div>
-                      )}
-                      {selectedItem.bed.childBed && selectedItem.bed.childBed.count > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-700">Child Bed:</span>
-                          <span className="text-sm text-gray-900">
-                            {selectedItem.bed.childBed.type || '—'} x{selectedItem.bed.childBed.count || 0}
-                          </span>
-                        </div>
-                      )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedItem?.bed && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">Bed Configuration</span>
+                      <div className="flex flex-wrap gap-4">
+                        {selectedItem.bed.mainBed && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Main Bed:</span>
+                            <span className="text-sm text-gray-900">
+                              {selectedItem.bed.mainBed.type || '—'} x{selectedItem.bed.mainBed.count || 0}
+                            </span>
+                          </div>
+                        )}
+                        {selectedItem.bed.childBed && selectedItem.bed.childBed.count > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700">Child Bed:</span>
+                            <span className="text-sm text-gray-900">
+                              {selectedItem.bed.childBed.type || '—'} x{selectedItem.bed.childBed.count || 0}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                  {selectedItem?.rating && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 block">Reviews</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => {
+                            const filledPercent = Math.min(Math.max(selectedItem?.rating?.average - i, 0), 1) * 100;
+                            return (
+                              <span key={i} className="relative inline-block">
+                                <AiFillStar className="text-gray-300 text-[16px] md600:text-[18px] lg:text-[20px]" />
+                                <span className="absolute top-0 left-0 overflow-hidden" style={{ width: `${filledPercent}%` }} >
+                                  <AiFillStar className="text-[#F6A623] text-[16px] md600:text-[18px] lg:text-[20px]" />
+                                </span>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-700 mt-1">
+                        <span className="font-bold text-lg">{selectedItem?.rating?.average}</span>
+                        <p className="text-black">({selectedItem?.rating?.totalReviews} reviews)</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {/* Features */}
                 <div className="bg-gray-50 rounded-lg p-4">

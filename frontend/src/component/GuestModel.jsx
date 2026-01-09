@@ -10,6 +10,16 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { ChevronDown } from "lucide-react";
 import { getAllCabs } from "../Redux/Slice/cab.slice";
+import {
+  Elements,
+  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 // Helper to calculate number of nights
 function getNights(checkIn, checkOut) {
   if (!checkIn || !checkOut) return 0;
@@ -19,21 +29,26 @@ function getNights(checkIn, checkOut) {
   return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
 }
 
-const GuestModal = ({ onClose, room, onBooked }) => {
+const stripePromise = loadStripe("pk_test_51R8wmeQ0DPGsMRTSHTci2XmwYmaDLRqeSSRS2hNUCU3xU7ikSAvXzSI555Rxpyf9SsTIgI83PXvaaQE3pJAlkMaM00g9BdsrOB");
+
+const GuestModalContent = ({ onClose, room, onBooked }) => {
   const { RangePicker } = DatePicker;
   const dispatch = useDispatch();
   const { creating, error } = useSelector((state) => state.booking || {});
   const { loading: cabBookingLoading } = useSelector((state) => state.cabBooking || {});
   const [activeTab, setActiveTab] = useState("personal");
   const [cabServiceEnabled, setCabServiceEnabled] = useState(false);
-  const [showPaymentStatusDropdown, setShowPaymentStatusDropdown] = useState(false);
   const [showPaymentMethodDropdown, setShowPaymentMethodDropdown] = useState(false);
   const [showPickUpDropdown, setShowPickUpDropdown] = useState(false);
   const [showSeatingDropdown, setShowSeatingDropdown] = useState(false);
-  const paymentStatusRef = useRef(null);
+  const [cardError, setCardError] = useState("");
+  const [cardProcessing, setCardProcessing] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState("");
   const paymentMethodRef = useRef(null);
   const pickUpRef = useRef(null);
   const seatingRef = useRef(null);
+  const stripe = useStripe();
+  const elements = useElements();
   const { cabs } = useSelector((state) => state.cab || { cabs: [] });
   // Prefer room type price, then room base price, fallback 0
   const roomPrice = room?.roomType?.price ?? room?.price?.base ?? 0;
@@ -46,7 +61,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       address: Yup.string().trim().required("Address is required"),
       checkInDate: Yup.string().required("Check-in date is required"),
       checkOutDate: Yup.string().required("Check-out date is required"),
-      paymentStatus: Yup.string().required("Payment status is required"),
       paymentMethod: Yup.string().required("Payment method is required"),
       totalAmount: Yup.number().min(0, "Total cannot be negative").required("Total amount is required"),
       idNumber: Yup.string().trim().required("ID number is required").max(15, "ID number must be at most 15 characters").matches(/^[a-zA-Z0-9]*$/, "ID number must contain only letters and numbers"),
@@ -82,7 +96,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       address: "",
       checkInDate: "",
       checkOutDate: "",
-      paymentStatus: "Pending",
       paymentMethod: "Cash",
       paymentIntentId: "",
       totalAmount: roomPrice || "",
@@ -95,6 +108,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       estimatedFare: "",
       specialInstructions: "",
       cabNotes: "",
+      cardholderName: "",
     },
     validationSchema,
     validateOnBlur: true,
@@ -111,17 +125,52 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       }
 
       try {
+        setPaymentMessage("");
         // Only create booking intent for Card or Bank Transfer
-        let paymentIntentId = "";
+        let paymentIntentId = submittedValues.paymentIntentId || "";
         const paymentMethod = (submittedValues.paymentMethod || "").toLowerCase();
-        if (paymentMethod === "card" || paymentMethod === "bank transfer" || paymentMethod === "bank_transfer") {
-          const paymentIntent = await dispatch(
+        let paymentStatus = "Pending";
+        if (paymentMethod === "card") {
+          if (!stripe || !elements) {
+            setCardError("Card payment is not ready. Please try again.");
+            return;
+          }
+          setCardError("");
+          setCardProcessing(true);
+          const intentResponse = await dispatch(
             createBookingPaymentIntent({ totalAmount: submittedValues.totalAmount, currency: "usd" })
           ).unwrap();
-          if (!paymentIntent) {
-            throw new Error("Failed to create payment intent.");
+          const clientSecret = intentResponse?.clientSecret;
+          paymentIntentId = intentResponse?.paymentIntentId || paymentIntentId;
+          if (!clientSecret) {
+            throw new Error("Unable to start card payment.");
           }
-          paymentIntentId = paymentIntent;
+
+          const cardElement = elements.getElement(CardNumberElement);
+          const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+              card: cardElement,
+              billing_details: {
+                name: submittedValues.cardholderName || submittedValues.fullName,
+                email: submittedValues.email,
+              },
+            },
+          });
+          if (stripeError) {
+            setCardError(stripeError.message || "Card payment failed. Please try again.");
+            setCardProcessing(false);
+            setActiveTab("personal");
+            return;
+          }
+          paymentIntentId = paymentIntent?.id || paymentIntentId;
+          paymentStatus = paymentIntent?.status === "succeeded" ? "Completed" : paymentStatus;
+          setPaymentMessage("Card payment completed.");
+          setCardProcessing(false);
+        } else if (paymentMethod === "bank transfer" || paymentMethod === "bank_transfer") {
+          const intentResponse = await dispatch(
+            createBookingPaymentIntent({ totalAmount: submittedValues.totalAmount, currency: "usd" })
+          ).unwrap();
+          paymentIntentId = intentResponse?.paymentIntentId || paymentIntentId;
         }
 
         const payload = {
@@ -144,7 +193,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
           },
           payment: {
             paymentIntentId: paymentIntentId,
-            status: submittedValues.paymentStatus,
+            status: paymentStatus,
             totalAmount: Number(submittedValues.totalAmount || room?.price?.base || 0),
             method: submittedValues.paymentMethod,
           },
@@ -179,6 +228,7 @@ const GuestModal = ({ onClose, room, onBooked }) => {
       } catch (err) {
         console.error("Error creating booking or cab booking:", err);
         setActiveTab("personal");
+        setCardProcessing(false);
       }
     },
   });
@@ -320,9 +370,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (paymentStatusRef.current && !paymentStatusRef.current.contains(event.target)) {
-        setShowPaymentStatusDropdown(false);
-      }
       if (paymentMethodRef.current && !paymentMethodRef.current.contains(event.target)) {
         setShowPaymentMethodDropdown(false);
       }
@@ -408,6 +455,10 @@ const GuestModal = ({ onClose, room, onBooked }) => {
         }));
       }
     } else {
+      if (field === "paymentMethod") {
+        setCardError("");
+        setPaymentMessage("");
+      }
       setFieldValue(field, value);
     }
   };
@@ -640,46 +691,6 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                   </ConfigProvider>
                   {errors.checkInDate && <p className="text-xs text-red-600 mt-1">{errors.checkInDate}</p>}
                   {errors.checkOutDate && !errors.checkInDate && <p className="text-xs text-red-600 mt-1">{errors.checkOutDate}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Payment Status</label>
-                  <div className="relative" ref={paymentStatusRef}>
-                    <button
-                      type="button"
-                      className="w-full text-left text-black rounded-[4px] border border-gray-200 px-4 py-2 focus:outline-none bg-[#f3f4f6] flex items-center justify-between"
-                      onClick={() => setShowPaymentStatusDropdown((prev) => !prev)}
-                    >
-                      <span className={formState.paymentStatus ? 'text-gray-800' : 'text-gray-400'}>
-                        {formState.paymentStatus || 'Select payment status'}
-                      </span>
-                      <ChevronDown size={18} className="text-gray-600 ml-2" />
-                    </button>
-                    {showPaymentStatusDropdown && (
-                      <div className="absolute z-50 w-full bg-white border border-gray-300 rounded-[4px] shadow-lg max-h-48 overflow-y-auto">
-                        <div
-                          onClick={() => {
-                            setFieldValue("paymentStatus", "Pending");
-                            setShowPaymentStatusDropdown(false);
-                          }}
-                          className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                        >
-                          Pending
-                        </div>
-                        <div
-                          onClick={() => {
-                            setFieldValue("paymentStatus", "Paid");
-                            setShowPaymentStatusDropdown(false);
-                          }}
-                          className="px-4 py-1 hover:bg-[#F7DF9C] cursor-pointer text-sm transition-colors text-black/100"
-                        >
-                          Paid
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
 
@@ -924,6 +935,78 @@ const GuestModal = ({ onClose, room, onBooked }) => {
                       </div>
                     )}
                   </div>
+                  {formState.paymentMethod === "Card" && (
+                    <div className="mt-3 p-4 border border-gray-200 rounded-md bg-white shadow-sm">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">Card Details</p>
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <label className="text-xs text-gray-600 mb-1 block">Cardholder Name</label>
+                          <input
+                            type="text"
+                            className="w-full text-black rounded-[4px] border border-gray-200 px-3 py-2 focus:outline-none bg-[#f3f4f6]"
+                            placeholder="Name on card"
+                            value={formState.cardholderName}
+                            onChange={handleChange("cardholderName")}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-600 mb-1 block">Card Number</label>
+                          <div className="rounded-md border border-gray-200 p-3 bg-[#f3f4f6]">
+                            <CardNumberElement
+                              options={{
+                                style: {
+                                  base: {
+                                    fontSize: "16px",
+                                    color: "#1f2937",
+                                    "::placeholder": { color: "#9ca3af" },
+                                  },
+                                  invalid: { color: "#ef4444" },
+                                },
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">Expiry</label>
+                            <div className="rounded-md border border-gray-200 p-3 bg-[#f3f4f6]">
+                              <CardExpiryElement
+                                options={{
+                                  style: {
+                                    base: {
+                                      fontSize: "16px",
+                                      color: "#1f2937",
+                                      "::placeholder": { color: "#9ca3af" },
+                                    },
+                                    invalid: { color: "#ef4444" },
+                                  },
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-600 mb-1 block">CVC</label>
+                            <div className="rounded-md border border-gray-200 p-3 bg-[#f3f4f6]">
+                              <CardCvcElement
+                                options={{
+                                  style: {
+                                    base: {
+                                      fontSize: "16px",
+                                      color: "#1f2937",
+                                      "::placeholder": { color: "#9ca3af" },
+                                    },
+                                    invalid: { color: "#ef4444" },
+                                  },
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {cardError && <p className="text-red-600 text-xs mt-2">{cardError}</p>}
+                      {paymentMessage && <p className="text-green-600 text-xs mt-2">{paymentMessage}</p>}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -964,15 +1047,25 @@ const GuestModal = ({ onClose, room, onBooked }) => {
 
           <button
             type="submit"
-            disabled={creating || cabBookingLoading}
+            disabled={creating || cabBookingLoading || cardProcessing}
             className={`mv_user_add bg-gradient-to-r from-[#F7DF9C] to-[#E3C78A] hover:from-white hover:to-white`}
           >
-            {creating || cabBookingLoading ? "Saving..." : "Add Guest"}
+            {cardProcessing
+              ? "Processing Card..."
+              : creating || cabBookingLoading
+              ? "Saving..."
+              : "Add Guest"}
           </button>
         </div>
       </form>
     </div>
   );
 };
+
+const GuestModal = (props) => (
+  <Elements stripe={stripePromise}>
+    <GuestModalContent {...props} />
+  </Elements>
+);
 
 export default GuestModal;

@@ -627,18 +627,14 @@ const updateBooking = async (req, res) => {
             }
         }
 
-        // Only process payment updates if payment data is explicitly provided
-        if (req.body.payment || req.body.paymentStatus || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
+    // Only process payment updates if payment data is explicitly provided
+    if (req.body.payment || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
             const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
             }
             if (paymentPayload.refundedAmount !== undefined && !Number.isNaN(paymentPayload.refundedAmount)) {
                 booking.payment.refundedAmount = paymentPayload.refundedAmount;
-            }
-            // Only update payment status if it's explicitly provided and valid
-            if (paymentPayload.status && ['Pending', 'Paid', 'Partial', 'Refunded'].includes(paymentPayload.status)) {
-                booking.payment.status = paymentPayload.status;
             }
             if (paymentPayload.currency) booking.payment.currency = paymentPayload.currency;
             if (paymentPayload.method) booking.payment.method = paymentPayload.method;
@@ -677,42 +673,65 @@ const updateBooking = async (req, res) => {
         }
         
         if (req.body.status) {
-            // Check if user is trying to cancel with pending payment
-            if (req.body.status === 'Cancelled' && booking.payment?.status === 'Pending') {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Cannot cancel booking with Pending payment. Please complete payment first.'
-                });
-            }
-
             booking.status = req.body.status;
             
-            // If booking is cancelled, also cancel associated cab bookings
+            // If booking is cancelled, also cancel associated cab bookings and issue refund
             if (booking.status === 'Cancelled') {
                 await CabBooking.updateMany(
                     { booking: booking._id },
                     { $set: { status: 'Cancelled' } }
                 );
 
-                // Calculate 30% refund if payment status is Paid
-                if (booking.payment?.status === 'Paid' && booking.payment?.totalAmount) {
-                    const refundAmount = booking.payment.totalAmount * 0.3;
+                const totalAmount = booking.payment?.totalAmount || 0;
+                const alreadyRefunded = Array.isArray(booking.payment?.transactions) && booking.payment.transactions.some(t => t.status === 'Refunded');
+                if (totalAmount > 0 && !alreadyRefunded) {
+                    const refundAmount = totalAmount * 0.7; // 70% refund, 30% cancellation fee
+                    let stripeRefundId = null;
+                    let refundSuccess = false;
+                    let refundError = null;
+
+                    // Process Stripe refund if payment was made via Stripe
+                    if (booking.payment?.paymentIntentId && stripe) {
+                        try {
+                            const refundAmountInCents = Math.round(refundAmount * 100);
+                            const refund = await stripe.refunds.create({
+                                payment_intent: booking.payment.paymentIntentId,
+                                amount: refundAmountInCents,
+                                reason: 'requested_by_customer',
+                                metadata: {
+                                    bookingId: booking._id.toString(),
+                                    refundType: 'cancellation',
+                                    refundAmount: refundAmount
+                                }
+                            });
+
+                            stripeRefundId = refund.id;
+                            refundSuccess = true;
+                            console.log(`Stripe refund created: ${stripeRefundId} for booking ${booking._id}`);
+                        } catch (stripeError) {
+                            console.error('Stripe refund error:', stripeError);
+                            refundError = stripeError.message;
+                        }
+                    }
                     
                     booking.payment.status = 'Refunded';
                     booking.payment.refundedAmount = refundAmount;
 
-                     // Initialize transactions array if needed
-                     if (!Array.isArray(booking.payment.transactions)) {
+                    if (!Array.isArray(booking.payment.transactions)) {
                         booking.payment.transactions = [];
                     }
 
                     booking.payment.transactions.push({
                         amount: refundAmount,
-                        method:'Online',
+                        method: booking.payment.method,
                         status: 'Refunded',
                         paidAt: new Date(),
-                        reference: `REF-CANCEL-${booking._id}-${Date.now()}`,
-                        notes: `Cancellation Refund (30% of ${booking.payment.totalAmount})`
+                        reference: stripeRefundId || `REF-CANCEL-${booking._id}-${Date.now()}`,
+                        notes: refundSuccess 
+                            ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Refund ID: ${stripeRefundId}`
+                            : refundError
+                                ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Error: ${refundError}`
+                                : `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Manual refund required`
                     });
                 }
             }

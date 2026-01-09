@@ -68,6 +68,7 @@ import OrderRequest from './Pages/OrderRequest.jsx';
 import Order from './component/HouseKeepingWorker/Order.jsx';
 import DriverDashboard from './component/Driver/DriverDashboard.jsx';
 import DriverLayout from './component/Driver/Layout';
+import "./Utils/axiosConfig";
 
 const { store, persistor } = configureStore();
 function App() {

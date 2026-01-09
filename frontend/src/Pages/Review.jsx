@@ -52,11 +52,11 @@ const Review = () => {
 	// Add filtering logic search functionallty
 	const filteredBookings = useMemo(() => {
 		return reviews.filter(staff =>
-			staff.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			staff.reviewType.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff?.reviewType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			staff?.roomId?.roomType?.roomType?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			staff.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			staff.comment.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff?.userId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			staff?.comment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			(staff?.createdAt && (formatDate(staff.createdAt).toLowerCase().includes(searchQuery.toLowerCase()) || formatDate(staff.createdAt).replace(/\//g, "-").toLowerCase().includes(searchQuery.toLowerCase())))
 		);
 	}, [reviews, searchQuery, formatDate]);

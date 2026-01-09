@@ -113,7 +113,7 @@ export const createBookingPaymentIntent = createAsyncThunk(
       const response = await axios.post(`${BASE_URL}/booking/paymentintent`, paymentIntentData, {
         headers: getAuthHeaders()
       });
-      return response.data?.paymentIntentId;
+      return response.data;
     } catch (error) {
       return handleErrors(error, dispatch, rejectWithValue);
     }
