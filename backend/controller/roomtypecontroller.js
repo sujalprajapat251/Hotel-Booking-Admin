@@ -231,35 +231,95 @@ const getRoomTypes = async (_req, res) => {
 const getRoomTypeById = async (req, res) => {
     try {
         const { id } = req.params;
+
         const doc = await RoomType.findById(id)
             .populate('features', 'feature');
+
         if (!doc) {
-            return res.status(404).json({ success: false, message: 'Room type not found' });
+            return res.status(404).json({
+                success: false,
+                message: 'Room type not found'
+            });
         }
 
-        // Compute availability for this specific room type
-        const availability = await Room.aggregate([
+        // 🔹 Availability aggregation (ONLY this room type)
+        const availabilityAgg = await Room.aggregate([
             { $match: { roomType: doc._id } },
             {
                 $group: {
                     _id: '$roomType',
                     total: { $sum: 1 },
                     available: {
-                        $sum: { $cond: [{ $eq: ['$status', 'Available'] }, 1, 0] }
+                        $sum: {
+                            $cond: [{ $eq: ['$status', 'Available'] }, 1, 0]
+                        }
                     }
                 }
             }
         ]);
-        const availabilityData = availability[0]
-            ? { available: availability[0].available, total: availability[0].total }
-            : null;
 
-        res.json({ success: true, data: formatRoomType(doc, availabilityData) });
+        const availability =
+            availabilityAgg.length > 0
+                ? {
+                    available: availabilityAgg[0].available,
+                    total: availabilityAgg[0].total
+                }
+                : { available: 0, total: 0 };
+
+        // 🔹 Rating aggregation (same as getRoomTypes)
+        const reviewAgg = await Review.aggregate([
+            { $match: { reviewType: "room" } },
+            {
+                $lookup: {
+                    from: "rooms",
+                    localField: "roomId",
+                    foreignField: "_id",
+                    as: "room"
+                }
+            },
+            { $unwind: "$room" },
+            { $match: { "room.roomType": doc._id } },
+            {
+                $group: {
+                    _id: "$room.roomType",
+                    averageRating: { $avg: "$rating" },
+                    totalReviews: { $sum: 1 }
+                }
+            },
+            {
+                $project: {
+                    averageRating: { $round: ["$averageRating", 1] },
+                    totalReviews: 1
+                }
+            }
+        ]);
+
+        const rating =
+            reviewAgg.length > 0
+                ? {
+                    average: reviewAgg[0].averageRating,
+                    totalReviews: reviewAgg[0].totalReviews
+                }
+                : { average: 0, totalReviews: 0 };
+
+        res.json({
+            success: true,
+            data: {
+                ...doc.toObject(),
+                availability,
+                rating
+            }
+        });
+
     } catch (error) {
         console.error('getRoomTypeById error:', error);
-        res.status(500).json({ success: false, message: 'Failed to fetch room type' });
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch room type'
+        });
     }
 };
+
 
 const updateRoomType = async (req, res) => {
     try {
