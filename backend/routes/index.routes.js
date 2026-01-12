@@ -19,7 +19,7 @@ const { createAbout, getAllAbout, getAboutById, updateAbout, deleteAbout } = req
 const { createCafeItem, getAllCafeItems, getSingleCafeItem, updateCafeItem, deleteCafeItem, changeAvailability } = require('../controller/cafeitemController');
 const { deleteCafeTable, createTable, getTables, getTableById, updateTable, deleteTable } = require('../controller/cafeTableController');
 const { createBarCategory, getSingleBarCategory, updateBarCategory, deleteBarCategory, getAllBarCategories } = require('../controller/barcategoryController');
-const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem } = require('../controller/baritemController');
+const { createBarItem, getAllBarItems, getSingleBarItem, updateBarItem, deleteBarItem, changeAvailabilityBarItem, searchAllItems } = require('../controller/baritemController');
 const { createRestaurantCategory, getAllRestaurantCategories, getSingleRestaurantCategory, updateRestaurantCategory, deleteRestaurantCategory } = require('../controller/restaurantcategoryController');
 const { createCafeOrder, addItemToTableOrder, removeItemFromOrder, getAllOrderItems, getAllCafeOrders, UpdateOrderItemStatus, getAllOrderItemsStatus, cafePayment, getAllCafeunpaid, getAllCafeOrdersByAdmin, getAllBarOrdersByAdmin, getAllRestaurantOrdersByAdmin } = require('../controller/adminOrderController');
 const { createRestaurantItem, getAllRestaurantItems, getSingleRestaurantItem, updateRestaurantItem, deleteRestaurantItem, changeAvailabilityRestaurantItem } = require('../controller/restaurantitemController');
@@ -189,6 +189,8 @@ indexRoutes.get('/getbaritem/:id', getSingleBarItem);
 indexRoutes.put('/updatebaritem/:id', auth, adminOnly, upload.single("image"), updateBarItem);
 indexRoutes.delete('/deletetbaritem/:id', auth, adminOnly, deleteBarItem);
 indexRoutes.put('/togglebaritem/:id', auth, adminOnly, changeAvailabilityBarItem);
+indexRoutes.get("/search", searchAllItems);
+
 
 // ------------------------------- Restaurant -------------------------------
 // Restaurant Category routes

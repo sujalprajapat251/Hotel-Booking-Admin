@@ -150,3 +150,117 @@ exports.changeAvailabilityBarItem = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message });
     }
 };
+
+exports.searchAllItems = async (req, res) => {
+    try {
+        const {
+            search,
+            type, 
+            category,
+            minPrice,
+            maxPrice,
+            available,
+            page = 1,
+            limit = 10,
+            sort = "latest"
+        } = req.query;
+
+        const matchStage = {};
+
+        // 🔍 Search by name
+        if (search) {
+            matchStage.name = { $regex: search, $options: "i" };
+        }
+
+        // 🧾 Category filter
+        if (category) {
+            matchStage.category = new mongoose.Types.ObjectId(category);
+        }
+
+        // 💰 Price filter
+        if (minPrice || maxPrice) {
+            matchStage.price = {};
+            if (minPrice) matchStage.price.$gte = Number(minPrice);
+            if (maxPrice) matchStage.price.$lte = Number(maxPrice);
+        }
+
+        // ✅ Availability
+        if (available !== undefined) {
+            matchStage.available = available === "true";
+        }
+
+        // 🔃 Sorting
+        let sortStage = { createdAt: -1 };
+        if (sort === "price_asc") sortStage = { price: 1 };
+        if (sort === "price_desc") sortStage = { price: -1 };
+
+        const skip = (page - 1) * limit;
+
+        // 🔥 Aggregation pipeline
+        const pipeline = [
+            { $match: matchStage },
+
+            // 🔖 Identify source
+            { $addFields: { type: "bar" } },
+
+            // ☕ Cafe items
+            ...(type && type !== "bar" ? [] : [{
+                $unionWith: {
+                    coll: "cafeitems",
+                    pipeline: [
+                        { $match: matchStage },
+                        { $addFields: { type: "cafe" } }
+                    ]
+                }
+            }]),
+
+            // 🍽️ Restaurant items
+            ...(type && type !== "restaurant" ? [] : [{
+                $unionWith: {
+                    coll: "restaurantitems",
+                    pipeline: [
+                        { $match: matchStage },
+                        { $addFields: { type: "restaurant" } }
+                    ]
+                }
+            }]),
+
+            // 🔃 Sort after merge
+            { $sort: sortStage },
+
+            // 📄 Pagination + Count
+            {
+                $facet: {
+                    data: [
+                        { $skip: skip },
+                        { $limit: Number(limit) }
+                    ],
+                    total: [
+                        { $count: "count" }
+                    ]
+                }
+            }
+        ];
+
+        const result = await BarItem.aggregate(pipeline);
+
+        const items = result[0].data;
+        const total = result[0].total[0]?.count || 0;
+
+        res.status(200).json({
+            success: true,
+            total,
+            page: Number(page),
+            totalPages: Math.ceil(total / limit),
+            data: items
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
