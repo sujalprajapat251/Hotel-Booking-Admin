@@ -98,16 +98,27 @@ if (cluster.isPrimary) {
     console.error("Redis connection failed, sockets might not sync", err);
   });
 
-  socketManager.initializeSocket(io);
+  
 
-  server.listen(0, async () => {
+  const startServer = async () => {
     try {
+      // પહેલા DB કનેક્ટ કરો
       await connectDb();
-      console.log(`🧵 Worker ${process.pid} ready`);
-    } catch (dbErr) {
-      console.error("Database connection failed", dbErr);
+      console.log(`✅ DB Connected (Worker ${process.pid})`);
+  
+      // પછી સર્વર લિસન કરાવો
+      server.listen(0, () => {
+        console.log(`🧵 Worker ${process.pid} ready`);
+      });
+
+      socketManager.initializeSocket(io);
+    } catch (err) {
+      console.error("❌ Worker initialization failed", err);
+      process.exit(1);
     }
-  });
+  };
+
+  startServer();
 
   // server.listen(port, () => {
   //   connectDb();

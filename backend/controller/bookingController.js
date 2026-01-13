@@ -9,7 +9,7 @@ let stripe = null;
 try {
     const Stripe = require('stripe');
     stripe = Stripe(process.env.STRIPE_SECRET);
-} catch {}
+} catch { }
 
 const formatBooking = (doc) => ({
     id: doc._id,
@@ -96,7 +96,7 @@ const refreshRoomStatus = async (roomId) => {
     }).sort({ 'reservation.checkInDate': 1 });
 
     let nextStatus = 'Available';
-    
+
     if (ongoingBooking) {
         if (ongoingBooking.status === 'CheckedIn') {
             nextStatus = 'Occupied';
@@ -126,7 +126,7 @@ const refreshRoomStatus = async (roomId) => {
                 status: { $in: ACTIVE_BOOKING_STATUSES },
                 'reservation.checkInDate': { $gt: now }
             }).sort({ 'reservation.checkInDate': 1 });
-            
+
             // Fu   ture bookings don't change status to Reserved, keep as Available
             // Only today's check-in or ongoing bookings change status
         }
@@ -169,7 +169,7 @@ const createBooking = async (req, res) => {
         const paymentIntentId = req.body.payment?.paymentIntentId || null;
         const paymentMethod = (req.body.payment?.method || req.body.paymentMethod || '').toLowerCase();
         if (
-            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') 
+            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer')
             && paymentIntentId
         ) {
             paymentPayload.paymentIntentId = paymentIntentId;
@@ -251,10 +251,8 @@ const createBooking = async (req, res) => {
 
         emitBookingChanged({ type: 'create', bookingId: booking._id, roomId });
 
-        console.log("_____",roomId);
-
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus',populate: {path: 'roomType', select: 'roomType' } },
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus', populate: { path: 'roomType', select: 'roomType' } },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
@@ -333,19 +331,24 @@ const createBooking = async (req, res) => {
 
   </div>
 `;
-
-        await transport.sendMail({
-            from: process.env.EMAIL_USER,
-            to: guestPayload?.email,
-            subject: "Your Booking Confirmation",
-            html: emailHtml,
-        });
-
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
             message: 'Booking created successfully..!',
             data: formatBooking(populated)
         });
+
+        transport.sendMail({
+            from: process.env.EMAIL_USER,
+            to: guestPayload?.email,
+            subject: "Your Booking Confirmation",
+            html: emailHtml,
+        })
+            .then(() => {
+                console.log("📧 Booking confirmation email sent");
+            })
+            .catch(err => {
+                console.error("📧 Email failed:", err.message);
+            });
     } catch (error) {
         console.error('createBooking error:', error);
         res.status(500).json({ success: false, message: 'Failed to create booking', error: error.message });
@@ -361,8 +364,8 @@ const getBookings = async (req, res) => {
             checkInFrom,
             checkInTo,
             search,
-            page = 1,      
-            limit = 10     
+            page = 1,
+            limit = 10
         } = req.query;
 
         const filter = {};
@@ -404,7 +407,7 @@ const getBookings = async (req, res) => {
                 populate: { path: 'roomType' }
             })
             .populate('createdBy', 'fullName email role')
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
 
@@ -440,8 +443,8 @@ const getUserBookings = async (req, res) => {
             checkInFrom,
             checkInTo,
             search,
-            page = 1,      
-            limit = 10     
+            page = 1,
+            limit = 10
         } = req.query;
 
         // Filter bookings by user's email (matching guest email)
@@ -485,7 +488,7 @@ const getUserBookings = async (req, res) => {
                 populate: { path: 'roomType' }
             })
             .populate('createdBy', 'fullName email role')
-            .sort({ createdAt: -1 }) 
+            .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
 
@@ -607,7 +610,7 @@ const updateBooking = async (req, res) => {
                     message: 'Check-in and check-out dates are required'
                 });
             }
-            
+
             // Only validate if checkout is not before check-in (normal case)
             if (checkOutDate > checkInDate) {
                 const overlappingBooking = await ensureRoomAvailability({
@@ -627,8 +630,8 @@ const updateBooking = async (req, res) => {
             }
         }
 
-    // Only process payment updates if payment data is explicitly provided
-    if (req.body.payment || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
+        // Only process payment updates if payment data is explicitly provided
+        if (req.body.payment || req.body.totalAmount !== undefined || req.body.paymentMethod || req.body.currency || req.body.refundedAmount !== undefined) {
             const paymentPayload = normalizePaymentPayload(req.body.payment || req.body);
             if (paymentPayload.totalAmount !== undefined && !Number.isNaN(paymentPayload.totalAmount)) {
                 booking.payment.totalAmount = paymentPayload.totalAmount;
@@ -671,10 +674,10 @@ const updateBooking = async (req, res) => {
             checkOutDateOnly.setHours(0, 0, 0, 0);
             isEarlyCheckout = checkOutDateOnly < checkInDateOnly;
         }
-        
+
         if (req.body.status) {
             booking.status = req.body.status;
-            
+
             // If booking is cancelled, also cancel associated cab bookings and issue refund
             if (booking.status === 'Cancelled') {
                 await CabBooking.updateMany(
@@ -713,7 +716,7 @@ const updateBooking = async (req, res) => {
                             refundError = stripeError.message;
                         }
                     }
-                    
+
                     booking.payment.status = 'Refunded';
                     booking.payment.refundedAmount = refundAmount;
 
@@ -727,7 +730,7 @@ const updateBooking = async (req, res) => {
                         status: 'Refunded',
                         paidAt: new Date(),
                         reference: stripeRefundId || `REF-CANCEL-${booking._id}-${Date.now()}`,
-                        notes: refundSuccess 
+                        notes: refundSuccess
                             ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Refund ID: ${stripeRefundId}`
                             : refundError
                                 ? `Cancellation refund (70% of $${totalAmount.toFixed(2)} = $${refundAmount.toFixed(2)}) - Stripe Error: ${refundError}`
@@ -748,14 +751,14 @@ const updateBooking = async (req, res) => {
         if (finalStatus === 'CheckedOut' && isEarlyCheckout) {
             // Calculate refund amount: use explicit amount if provided, otherwise full amount for early checkout
             let refundAmount = booking.payment.totalAmount || 0;
-            
+
             // Only process if refund amount is valid
-            if (refundAmount > 0) {                
+            if (refundAmount > 0) {
                 // Initialize transactions array if needed
                 if (!Array.isArray(booking.payment.transactions)) {
                     booking.payment.transactions = [];
                 }
-                
+
                 // Check if refund transaction already exists to avoid duplicates
                 const hasRefundTransaction = booking.payment.transactions.some(
                     t => t.status === 'Refunded' && (
@@ -763,12 +766,12 @@ const updateBooking = async (req, res) => {
                         (explicitRefundAmount && t.reference && t.reference.includes('REF-'))
                     )
                 );
-                
+
                 if (!hasRefundTransaction) {
-                    const refundNote = isEarlyCheckout 
+                    const refundNote = isEarlyCheckout
                         ? `Early checkout refund - Checkout date (${new Date(checkOutDate).toLocaleDateString()}) is before check-in date (${new Date(checkInDate).toLocaleDateString()})`
                         : `Refund processed - Amount: ${refundAmount}`;
-                    
+
                     booking.payment.transactions.push({
                         amount: refundAmount,
                         method: booking.payment.method,
@@ -796,9 +799,9 @@ const updateBooking = async (req, res) => {
         emitBookingChanged({ type: 'update', bookingId: booking._id, roomId: booking.room });
 
         const populated = await booking.populate([
-            { 
-                path: 'room', 
-                select: 'roomNumber roomType status capacity price cleanStatus', 
+            {
+                path: 'room',
+                select: 'roomNumber roomType status capacity price cleanStatus',
                 populate: { path: 'roomType' }
             },
             { path: 'createdBy', select: 'fullName email role' }
@@ -818,7 +821,7 @@ const updateBooking = async (req, res) => {
 const deleteBooking = async (req, res) => {
     try {
         const { id } = req.params;
-        const booking = await Booking.findByIdAndDelete(id);        
+        const booking = await Booking.findByIdAndDelete(id);
 
         if (!booking) {
             return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -850,7 +853,7 @@ const bookRoomByType = async (req, res) => {
         const paymentIntentId = req.body.payment?.paymentIntentId || null;
         const paymentMethod = (req.body.payment?.method || req.body.paymentMethod || '').toLowerCase();
         if (
-            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer') 
+            (paymentMethod === 'card' || paymentMethod === 'bank transfer' || paymentMethod === 'bank_transfer')
             && paymentIntentId
         ) {
             paymentPayload.paymentIntentId = paymentIntentId;
@@ -891,7 +894,7 @@ const bookRoomByType = async (req, res) => {
             // Verify payment with Stripe
             const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
             // Allow booking if paymentIntent is succeeded OR (for test/dev) just created and requires a payment method
-            if (!pi  || pi.status !== 'succeeded') {
+            if (!pi || pi.status !== 'succeeded') {
                 return res.status(402).json({ success: false, message: 'Stripe payment not completed. Booking not created.' });
             }
         }
@@ -945,7 +948,7 @@ const bookRoomByType = async (req, res) => {
         await refreshRoomStatus(availableRoom._id);
         emitBookingChanged({ type: 'create', bookingId: booking._id, roomId: availableRoom._id });
         const populated = await booking.populate([
-            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus',populate: {path: 'roomType', select: 'roomType' } },
+            { path: 'room', select: 'roomNumber roomType status capacity cleanStatus', populate: { path: 'roomType', select: 'roomType' } },
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
@@ -1024,20 +1027,19 @@ const bookRoomByType = async (req, res) => {
 
   </div>
 `;
-
-        await transport.sendMail({
-            from: process.env.EMAIL_USER,
-            to: guestPayload?.email,
-            subject: "Your Booking Confirmation",
-            html: emailHtml,
-        });
-
-
-        return res.status(201).json({
+        res.status(201).json({
             success: true,
             message: 'Booking created successfully',
             data: formatBooking(populated)
         });
+
+        transport.sendMail({
+            from: process.env.EMAIL_USER,
+            to: guestPayload?.email,
+            subject: "Your Booking Confirmation",
+            html: emailHtml,
+        })
+
     } catch (error) {
         console.error('bookRoomByType error:', error);
         res.status(500).json({ success: false, message: 'Failed to book room', error: error.message });

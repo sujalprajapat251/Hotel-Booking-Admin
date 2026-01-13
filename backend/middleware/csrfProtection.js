@@ -14,7 +14,7 @@ const {
   cookieName: CSRF_COOKIE_NAME,
   cookieOptions: {
     httpOnly: false,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge: MAX_AGE,
@@ -45,7 +45,7 @@ const doubleCsrfProtectionWrapper = (req, res, next) => {
     res.cookie(CSRF_SESSION_COOKIE_NAME, req.newSessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax",
       path: "/",
       maxAge: MAX_AGE,
     });
@@ -64,7 +64,7 @@ module.exports = {
       res.cookie(CSRF_SESSION_COOKIE_NAME, sessionId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: "lax",
         path: "/",
         maxAge: MAX_AGE,
       });
@@ -73,8 +73,7 @@ module.exports = {
     }
 
     // generateToken is now available from destructuring
-    const token = generateCsrfToken(req, res); 
-    return token;
+    return generateCsrfToken(req, res);
   },
   doubleCsrfProtection: doubleCsrfProtectionWrapper,
   invalidCsrfTokenError,
