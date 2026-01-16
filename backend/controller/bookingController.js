@@ -256,6 +256,13 @@ const createBooking = async (req, res) => {
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
+
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully..!',
+            data: formatBooking(populated)
+        });
+
         const transport = nodemailer.createTransport({
             service: "Gmail",
             auth: {
@@ -331,24 +338,17 @@ const createBooking = async (req, res) => {
 
   </div>
 `;
-        res.status(201).json({
-            success: true,
-            message: 'Booking created successfully..!',
-            data: formatBooking(populated)
-        });
 
-        transport.sendMail({
-            from: process.env.EMAIL_USER,
-            to: guestPayload?.email,
-            subject: "Your Booking Confirmation",
-            html: emailHtml,
-        })
-            .then(() => {
-                console.log("📧 Booking confirmation email sent");
-            })
-            .catch(err => {
-                console.error("📧 Email failed:", err.message);
+        setImmediate(() => {
+            transport.sendMail({
+                from: process.env.EMAIL_USER,
+                to: guestPayload?.email,
+                subject: "Your Booking Confirmation",
+                html: emailHtml,
+            }).catch(err => {
+                console.error("Email send failed:", err);
             });
+        });
     } catch (error) {
         console.error('createBooking error:', error);
         res.status(500).json({ success: false, message: 'Failed to create booking', error: error.message });
@@ -952,6 +952,12 @@ const bookRoomByType = async (req, res) => {
             { path: 'createdBy', select: 'fullName email role' }
         ]);
 
+        res.status(201).json({
+            success: true,
+            message: 'Booking created successfully',
+            data: formatBooking(populated)
+        });
+
         const transport = nodemailer.createTransport({
             service: "Gmail",
             auth: {
@@ -1027,18 +1033,17 @@ const bookRoomByType = async (req, res) => {
 
   </div>
 `;
-        res.status(201).json({
-            success: true,
-            message: 'Booking created successfully',
-            data: formatBooking(populated)
-        });
 
-        transport.sendMail({
-            from: process.env.EMAIL_USER,
-            to: guestPayload?.email,
-            subject: "Your Booking Confirmation",
-            html: emailHtml,
-        })
+        setImmediate(() => {
+            transport.sendMail({
+                from: process.env.EMAIL_USER,
+                to: guestPayload?.email,
+                subject: "Your Booking Confirmation",
+                html: emailHtml,
+            }).catch(err => {
+                console.error("Email send failed:", err);
+            });
+        });
 
     } catch (error) {
         console.error('bookRoomByType error:', error);

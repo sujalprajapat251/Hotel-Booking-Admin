@@ -102,11 +102,9 @@ if (cluster.isPrimary) {
 
   const startServer = async () => {
     try {
-      // પહેલા DB કનેક્ટ કરો
       await connectDb();
       console.log(`✅ DB Connected (Worker ${process.pid})`);
   
-      // પછી સર્વર લિસન કરાવો
       server.listen(0, () => {
         console.log(`🧵 Worker ${process.pid} ready`);
       });
