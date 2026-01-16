@@ -549,7 +549,7 @@ const getBookingById = async (req, res) => {
                 select: 'roomNumber roomType status capacity price cleanStatus',
                 populate: {
                     path: 'roomType',
-                    select:'roomType'
+                    select:'roomType images'
                 }
             })
             .populate('createdBy', 'fullName email role');
