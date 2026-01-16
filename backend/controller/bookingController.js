@@ -858,7 +858,7 @@ const bookRoomByType = async (req, res) => {
         ) {
             paymentPayload.paymentIntentId = paymentIntentId;
         }
-        const status = req.body.status || 'Pending';
+        const status = 'Confirmed';
         const notes = req.body.notes || req.body.additionalNotes;
 
         // Validations
