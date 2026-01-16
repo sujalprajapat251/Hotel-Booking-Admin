@@ -544,7 +544,14 @@ const getBookingById = async (req, res) => {
     try {
         const { id } = req.params;
         const booking = await Booking.findById(id)
-            .populate('room', 'roomNumber roomType status capacity price cleanStatus')
+            .populate({
+                path: 'room',
+                select: 'roomNumber roomType status capacity price cleanStatus',
+                populate: {
+                    path: 'roomType',
+                    select:'roomType'
+                }
+            })
             .populate('createdBy', 'fullName email role');
 
         if (!booking) {
