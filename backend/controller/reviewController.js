@@ -115,7 +115,7 @@ const getReviewStatsByType = async (req, res) => {
             {
                 // optional filter (only cafe, bar, restaurant)
                 $match: {
-                    reviewType: { $in: ['cafe', 'bar', 'restaurant'] }
+                    reviewType: { $in: ['room','cafe', 'bar', 'restaurant'] }
                 }
             },
             {
@@ -151,11 +151,110 @@ const getReviewStatsByType = async (req, res) => {
     }
 };
 
+// Update a review
+const updateReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rating, title, comment } = req.body;
+
+        const updatedReview = await Review.findByIdAndUpdate(
+            id,
+            { rating, title, comment },
+            { new: true }
+        );
+
+        if (!updatedReview) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Review updated successfully',
+            data: updatedReview
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update review',
+            error: error.message
+        });
+    }
+};
+
+// Delete a review
+const deleteReview = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const review = await Review.findById(id);
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                message: 'Review not found'
+            });
+        }
+
+        // If it's a room review, remove its ID from the room document
+        if (review.reviewType === 'room' && review.roomId) {
+            await Room.findByIdAndUpdate(
+                review.roomId,
+                { $pull: { reviews: id } }
+            );
+        }
+
+        await Review.findByIdAndDelete(id);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Review deleted successfully'
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to delete review',
+            error: error.message
+        });
+    }
+};
+
+// Get all reviews by user id
+const getUserReviews = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const reviews = await Review.find({ userId }).sort({ updatedAt: -1 })
+            .populate({
+                path: "roomId",
+                populate: {
+                    path: "roomType",
+                    model: "roomType",
+                }
+            });
+
+        return res.status(200).json({
+            success: true,
+            message: 'User reviews fetched successfully',
+            data: reviews
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user reviews',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createReview,
     getAllReviews,
     getReviewById,
-    getReviewStatsByType
+    getReviewStatsByType,
+    updateReview,
+    deleteReview,
+    getUserReviews
 };
 
 

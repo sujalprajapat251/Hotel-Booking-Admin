@@ -28,7 +28,7 @@ const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../con
 // const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId, assignDriversToUnassignedBookings, advanceCabBookingStatus } = require('../controller/cabBookingController');
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
-const { createReview, getAllReviews, getReviewById, getReviewStatsByType } = require('../controller/reviewController');
+const { createReview, getAllReviews, getReviewById, getReviewStatsByType, updateReview, deleteReview, getUserReviews } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
 const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
@@ -238,6 +238,9 @@ indexRoutes.put('/cabbooking/:id/status', auth, advanceCabBookingStatus);
 indexRoutes.post('/reviews', auth, createReview);
 indexRoutes.get('/reviews', getAllReviews);
 indexRoutes.get('/reviews/:id', getReviewById);
+indexRoutes.put('/reviews/:id', auth, updateReview);
+indexRoutes.delete('/reviews/:id', auth, deleteReview);
+indexRoutes.get('/user-reviews', auth, getUserReviews);
 indexRoutes.get('/review-stats', getReviewStatsByType);
 
 // admin side api 
