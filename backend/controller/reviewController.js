@@ -12,7 +12,8 @@ const createReview = async (req, res) => {
             comment,
             reviewType,
             userId,
-            roomId
+            // Only save roomId if reviewType is 'room'
+            ...(reviewType === 'room' && roomId && { roomId }) 
         });
 
         const savedReview = await review.save();
@@ -25,6 +26,18 @@ const createReview = async (req, res) => {
                 { new: true }
             );
         }
+        
+        // If you want to show the full room details in the response:
+        if(savedReview.roomId) {
+            await savedReview.populate({
+                path: "roomId",
+                populate: {
+                    path: "roomType",        
+                    model: "roomType",
+                }
+            });
+        }
+
         return res.status(201).json({
             success: true,
             message: 'Review submit successfully..!',
@@ -247,6 +260,43 @@ const getUserReviews = async (req, res) => {
     }
 };
 
+// Get user review by roomId
+const getUserReviewForRoom = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { roomId } = req.params;
+
+        const review = await Review.findOne({ userId, roomId })
+            .populate({
+                path: "roomId",
+                populate: {
+                    path: "roomType",
+                    model: "roomType",
+                }
+            });
+
+        if (!review) {
+            return res.status(200).json({
+                success: true,
+                message: 'No review found for this room',
+                data: null
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User room review fetched successfully',
+            data: review
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user review for room',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createReview,
     getAllReviews,
@@ -254,7 +304,8 @@ module.exports = {
     getReviewStatsByType,
     updateReview,
     deleteReview,
-    getUserReviews
+    getUserReviews,
+    getUserReviewForRoom
 };
 
 
