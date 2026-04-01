@@ -297,6 +297,46 @@ const getUserReviewForRoom = async (req, res) => {
     }
 };
 
+// Update user review by roomId
+const updateUserReviewForRoom = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { roomId } = req.params;
+        const { rating, title, comment } = req.body;
+
+        const updatedReview = await Review.findOneAndUpdate(
+            { userId, roomId },
+            { rating, title, comment },
+            { new: true }
+        ).populate({
+            path: "roomId",
+            populate: {
+                path: "roomType",
+                model: "roomType",
+            }
+        });
+
+        if (!updatedReview) {
+            return res.status(404).json({
+                success: false,
+                message: 'No review found for this room to update'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User room review updated successfully',
+            data: updatedReview
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update user review for room',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createReview,
     getAllReviews,
@@ -305,7 +345,8 @@ module.exports = {
     updateReview,
     deleteReview,
     getUserReviews,
-    getUserReviewForRoom
+    getUserReviewForRoom,
+    updateUserReviewForRoom
 };
 
 
