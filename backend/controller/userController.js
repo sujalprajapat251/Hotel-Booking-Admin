@@ -76,21 +76,77 @@ exports.userLogin = async (req, res) => {
         const userResponse = checkEmailIsExist.toObject();
         delete userResponse.password;
 
-        let token = await jwt.sign(
+        const accessToken = jwt.sign(
             { _id: checkEmailIsExist._id },
             process.env.SECRET_KEY,
-            { expiresIn: "7d" }
+            { expiresIn: "1d" }
         );
 
+        const refreshToken = jwt.sign(
+            { _id: checkEmailIsExist._id },
+            process.env.REFRESH_SECRET_KEY || "refresh_secret",
+            { expiresIn: "15d" }
+        );
+
+        checkEmailIsExist.refreshToken = refreshToken;
+        await checkEmailIsExist.save({ validateBeforeSave: false });
+
         return res.status(200)
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 1 * 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 15 * 24 * 60 * 60 * 1000 })
             .json({
                 status: 200,
                 message: "Login SuccessFully..!",
                 user: userResponse,
-                token: token,
+                token: accessToken,
+                refreshToken: refreshToken
             });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+exports.refreshAccessToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.cookies;
+
+        if (!refreshToken) return res.status(401).json({ message: 'No Refresh Token' });
+
+        // Verify token
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET_KEY || "refresh_secret");
+        const existingUser = await User.findById(decoded._id);
+
+        if (!existingUser || existingUser.refreshToken !== refreshToken) {
+            return res.status(403).json({ message: 'Invalid or expired refresh token' });
+        }
+
+        const accessToken = jwt.sign(
+            { _id: existingUser._id },
+            process.env.SECRET_KEY,
+            { expiresIn: '1d' }
+        );
+
+        const newRefreshToken = jwt.sign(
+            { _id: existingUser._id },
+            process.env.REFRESH_SECRET_KEY || "refresh_secret",
+            { expiresIn: '15d' }
+        );
+
+        existingUser.refreshToken = newRefreshToken;
+        await existingUser.save({ validateBeforeSave: false });
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 1 * 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", newRefreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 15 * 24 * 60 * 60 * 1000 })
+            .json({
+                status: 200,
+                message: "Token refreshed successfully",
+                user: existingUser,
+                token: accessToken,
+                refreshToken: newRefreshToken
+            });
+    } catch (err) {
+        return res.status(403).json({ message: 'Refresh Failed', error: err.message });
     }
 };
 
@@ -107,10 +163,33 @@ exports.googleLogin = async (req, res) => {
             });
         }
         checkUser = checkUser.toObject();
-        let token = await jwt.sign({ _id: checkUser._id }, process.env.SECRET_KEY, { expiresIn: "7D" })
-        return res.status(200).json({ status: 200, message: 'Login SuccessFully..!', user: checkUser, token: token });
+        
+        const accessToken = jwt.sign(
+            { _id: checkUser._id },
+            process.env.SECRET_KEY,
+            { expiresIn: "1d" }
+        );
+
+        const refreshToken = jwt.sign(
+            { _id: checkUser._id },
+            process.env.REFRESH_SECRET_KEY || "refresh_secret",
+            { expiresIn: "15d" }
+        );
+
+        await User.findByIdAndUpdate(checkUser._id, { refreshToken });
+
+        return res.status(200)
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 1 * 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 15 * 24 * 60 * 60 * 1000 })
+            .json({
+                status: 200,
+                message: 'Login SuccessFully..!',
+                user: checkUser,
+                token: accessToken,
+                refreshToken: refreshToken
+            });
     } catch (error) {
-        throw new Error(error);
+        return res.status(500).json({ status: 500, message: error.message });
     }
 };
 
@@ -412,8 +491,11 @@ exports.getUserById = async (req, res) => {
 exports.logout = async (req, res) => {
     try {
         const userId = req.params.id;
-        await User.findByIdAndUpdate(userId);
-        return res.status(200).json({ status: 200, message: "Logout successfully..!" });
+        await User.findByIdAndUpdate(userId, { refreshToken: null });
+        return res.status(200)
+            .clearCookie("accessToken")
+            .clearCookie("refreshToken")
+            .json({ status: 200, message: "Logout successfully..!" });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }

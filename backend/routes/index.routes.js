@@ -4,7 +4,7 @@ const upload = require('../helper/imageUpload')
 
 const { createRoomType, getRoomTypes, getRoomTypeById, updateRoomType, deleteRoomType } = require('../controller/roomtypecontroller');
 const { createFeature, getFeatures, getFeaturesByRoomType, getFeatureById, updateFeature, deleteFeature } = require('../controller/featuresController');
-const { createUser, userLogin, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById, logout } = require('../controller/userController');
+const { createUser, userLogin, refreshAccessToken, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById, logout } = require('../controller/userController');
 const { auth, adminOnly } = require('../middleware/auth');
 const { createContact, getAllContact } = require('../controller/contactController');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, getBlogReadcountById, getBlogsByTag } = require('../controller/blogController');
@@ -38,6 +38,7 @@ const { getMyNotifications, markSeen, clearAll } = require('../controller/notifi
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
+indexRoutes.post('/refresh-token', refreshAccessToken);
 indexRoutes.post("/google-login", googleLogin);
 indexRoutes.post('/forgotPassword', forgotPassword);
 indexRoutes.post('/verifyOtp', verifyOtp)

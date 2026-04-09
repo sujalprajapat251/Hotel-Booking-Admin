@@ -56,6 +56,9 @@ const staffSchema = mongoose.Schema({
     status: {
         type: String,
         enum: ["Available", "Unavailable", "Leave", "onTrip"]
+    },
+    refreshToken: {
+        type: String,
     }
 }, {
     timestamps: true,

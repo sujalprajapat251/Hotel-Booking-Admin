@@ -24,18 +24,30 @@ exports.adminLogin = async (req, res) => {
                 .json({ status: 404, message: "Password Not Match" });
         }
 
-        let token = await jwt.sign(
+        const accessToken = jwt.sign(
             { _id: checkEmailIsExist._id },
             process.env.SECRET_KEY,
             { expiresIn: "1d" }
         );
 
+        const refreshToken = jwt.sign(
+            { _id: checkEmailIsExist._id },
+            process.env.REFRESH_SECRET_KEY || "refresh_secret",
+            { expiresIn: "15d" }
+        );
+
+        checkEmailIsExist.refreshToken = refreshToken;
+        await checkEmailIsExist.save({ validateBeforeSave: false });
+
         return res.status(200)
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 1 * 24 * 60 * 60 * 1000 })
+            .cookie("refreshToken", refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "Lax", maxAge: 15 * 24 * 60 * 60 * 1000 })
             .json({
                 status: 200,
                 message: "Login SuccessFully..!",
                 user: checkEmailIsExist,
-                token: token,
+                token: accessToken,
+                refreshToken: refreshToken
             });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
