@@ -38,7 +38,7 @@ const { getMyNotifications, markSeen, clearAll } = require('../controller/notifi
 
 // auth Routes
 indexRoutes.post('/userLogin', userLogin);
-indexRoutes.post('/refresh-token', refreshAccessToken);
+indexRoutes.get('/refresh-token', refreshAccessToken);
 indexRoutes.post("/google-login", googleLogin);
 indexRoutes.post('/forgotPassword', forgotPassword);
 indexRoutes.post('/verifyOtp', verifyOtp)
