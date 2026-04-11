@@ -4,7 +4,7 @@ const upload = require('../helper/imageUpload')
 
 const { createRoomType, getRoomTypes, getRoomTypeById, updateRoomType, deleteRoomType } = require('../controller/roomtypecontroller');
 const { createFeature, getFeatures, getFeaturesByRoomType, getFeatureById, updateFeature, deleteFeature } = require('../controller/featuresController');
-const { createUser, userLogin, refreshAccessToken, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById, logout } = require('../controller/userController');
+const { createUser, userLogin, refreshAccessToken, updateUser, changePassword, googleLogin, forgotPassword, verifyOtp, resetPassword, resendOtp, getAllUsers, getUserById, logout, requestAccountDeletion, deleteAccount } = require('../controller/userController');
 const { auth, adminOnly } = require('../middleware/auth');
 const { createContact, getAllContact } = require('../controller/contactController');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog, getBlogReadcountById, getBlogsByTag } = require('../controller/blogController');
@@ -51,7 +51,8 @@ indexRoutes.put('/userUpdate', auth, upload.single("photo"), updateUser);
 indexRoutes.put('/changepassword', auth, changePassword);
 indexRoutes.get('/getalluser', auth, adminOnly, getAllUsers);
 indexRoutes.get('/getUserById', auth, getUserById);
-
+indexRoutes.post('/deleteaccountotp', auth, requestAccountDeletion);
+indexRoutes.post('/deleteaccount', auth, deleteAccount);
 // contact Routes
 indexRoutes.post('/contact', createContact);
 indexRoutes.get('/getallcontact', auth, adminOnly, getAllContact);

@@ -501,4 +501,82 @@ exports.logout = async (req, res) => {
     }
 };
 
+exports.requestAccountDeletion = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ status: 404, message: "User Not Found." });
+        }
+
+        const transport = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        let otp = Math.floor(1000 + Math.random() * 9000);
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: "Account Deletion OTP",
+            text: `Your OTP for account deletion is: ${otp} `,
+        };
+
+        user.otp = otp;
+
+        await user.save();
+
+        transport.sendMail(mailOptions, (error) => {
+            if (error) {
+                return res
+                    .status(500)
+                    .json({ status: 500, success: false, message: error.message });
+            }
+            return res.status(200).json({
+                status: 200,
+                success: true,
+                message: "OTP sent successfully to your email for account deletion..!",
+            });
+        });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
+exports.deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { otp } = req.body;
+
+        const user = await User.findById(userId);
+
+        if (!user) {
+            return res.status(404).json({ status: 404, message: "User Not Found" });
+        }
+
+        if (user.otp != otp) {
+            return res.status(400).json({ status: 400, message: "Invalid OTP" });
+        }
+
+        // OTP is correct, delete the user
+        await User.findByIdAndDelete(userId);
+
+        return res.status(200)
+            .clearCookie("accessToken")
+            .clearCookie("refreshToken")
+            .json({
+                status: 200,
+                success: true,
+                message: "Account Deleted Successfully..!",
+            });
+    } catch (error) {
+        return res.status(500).json({ status: 500, message: error.message });
+    }
+};
+
 
