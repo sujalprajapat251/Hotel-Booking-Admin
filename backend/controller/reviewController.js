@@ -168,19 +168,56 @@ const getReviewStatsByType = async (req, res) => {
 const updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, title, comment } = req.body;
+        const { rating, title, comment, reviewType, roomId } = req.body;
 
-        const updatedReview = await Review.findByIdAndUpdate(
-            id,
-            { rating, title, comment },
-            { new: true }
-        );
-
-        if (!updatedReview) {
+        const existingReview = await Review.findById(id);
+        if (!existingReview) {
             return res.status(404).json({
                 success: false,
                 message: 'Review not found'
             });
+        }
+
+        const updateData = { rating, title, comment };
+        if (reviewType) {
+            updateData.reviewType = reviewType;
+        }
+
+        const finalReviewType = reviewType || existingReview.reviewType;
+        let updateQuery = { $set: updateData };
+
+        if (finalReviewType === 'room') {
+            if (roomId) updateQuery.$set.roomId = roomId;
+        } else {
+            updateQuery.$unset = { roomId: 1 };
+        }
+
+        const updatedReview = await Review.findByIdAndUpdate(
+            id,
+            updateQuery,
+            { new: true }
+        );
+
+        // Manage Room's reviews array
+        if (existingReview.reviewType === 'room' && existingReview.roomId) {
+            // Remove from the old room if the review type changed, or if the roomId changed to a new one
+            if (finalReviewType !== 'room' || (roomId && existingReview.roomId.toString() !== roomId.toString())) {
+                await Room.findByIdAndUpdate(
+                    existingReview.roomId,
+                    { $pull: { reviews: id } }
+                );
+            }
+        }
+
+        if (finalReviewType === 'room' && roomId) {
+            // Add to the new room if the review type just became 'room', or it didn't have a room, or the room changed
+            if (existingReview.reviewType !== 'room' || !existingReview.roomId || existingReview.roomId.toString() !== roomId.toString()) {
+                await Room.findByIdAndUpdate(
+                    roomId,
+                    { $push: { reviews: id } },
+                    { new: true }
+                );
+            }
         }
 
         return res.status(200).json({
