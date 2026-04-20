@@ -27,19 +27,19 @@ const createReview = async (req, res) => {
                 { new: true }
             );
         }
-        
+
         // If you want to show the full room details in the response:
-        if(savedReview.roomId) {
+        if (savedReview.roomId) {
             await savedReview.populate({
                 path: "roomId",
                 populate: {
-                    path: "roomType",        
+                    path: "roomType",
                     model: "roomType",
                 }
             });
         }
 
-        if(savedReview.bookingId) {
+        if (savedReview.bookingId) {
             await savedReview.populate("bookingId", "roomNumber status");
         }
 
@@ -83,7 +83,7 @@ const getAllReviews = async (req, res) => {
             .populate({
                 path: "roomId",
                 populate: {
-                    path: "roomType",        
+                    path: "roomType",
                     model: "roomType",
                 }
             })
@@ -139,7 +139,7 @@ const getReviewStatsByType = async (req, res) => {
             {
                 // optional filter (only cafe, bar, restaurant)
                 $match: {
-                    reviewType: { $in: ['room','cafe', 'bar', 'restaurant'] }
+                    reviewType: { $in: ['room', 'cafe', 'bar', 'restaurant'] }
                 }
             },
             {
@@ -286,7 +286,11 @@ const deleteReview = async (req, res) => {
 const getUserReviews = async (req, res) => {
     try {
         const userId = req.user._id;
-        const reviews = await Review.find({ userId }).sort({ updatedAt: -1 })
+        const { bookingId } = req.query;
+        const filter = { userId };
+        if (bookingId) filter.bookingId = bookingId;
+
+        const reviews = await Review.find(filter).sort({ updatedAt: -1 })
             .populate({
                 path: "roomId",
                 populate: {
@@ -316,7 +320,7 @@ const getUserReviewForBooking = async (req, res) => {
         const userId = req.user._id;
         const { bookingId } = req.params;
 
-        const review = await Review.findOne({ userId, bookingId })
+        const reviews = await Review.find({ userId, bookingId })
             .populate({
                 path: "roomId",
                 populate: {
@@ -326,18 +330,18 @@ const getUserReviewForBooking = async (req, res) => {
             })
             .populate("bookingId", "roomNumber status");
 
-        if (!review) {
+        if (!reviews || reviews.length === 0) {
             return res.status(200).json({
                 success: true,
-                message: 'No review found for this room',
-                data: null
+                message: 'No review found for this booking',
+                data: []
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: 'User booking review fetched successfully',
-            data: review
+            message: 'User booking reviews fetched successfully',
+            data: reviews
         });
     } catch (error) {
         return res.status(500).json({
@@ -388,6 +392,72 @@ const updateUserReviewForBooking = async (req, res) => {
     }
 };
 
+// Get user Cafe review by bookingId
+const getUserCafeReviewByBooking = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { bookingId } = req.params;
+
+        const review = await Review.findOne({ userId, bookingId, reviewType: 'cafe' })
+            .populate("bookingId", "roomNumber status");
+
+        return res.status(200).json({
+            success: true,
+            data: review
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user cafe review',
+            error: error.message
+        });
+    }
+};
+
+// Get user Bar review by bookingId
+const getUserBarReviewByBooking = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { bookingId } = req.params;
+
+        const review = await Review.findOne({ userId, bookingId, reviewType: 'bar' })
+            .populate("bookingId", "roomNumber status");
+
+        return res.status(200).json({
+            success: true,
+            data: review
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user bar review',
+            error: error.message
+        });
+    }
+};
+
+// Get user Restaurant review by bookingId
+const getUserRestaurantReviewByBooking = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { bookingId } = req.params;
+
+        const review = await Review.findOne({ userId, bookingId, reviewType: 'restaurant' })
+            .populate("bookingId", "roomNumber status");
+
+        return res.status(200).json({
+            success: true,
+            data: review
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user restaurant review',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     createReview,
     getAllReviews,
@@ -397,7 +467,10 @@ module.exports = {
     deleteReview,
     getUserReviews,
     getUserReviewForBooking,
-    updateUserReviewForBooking
+    updateUserReviewForBooking,
+    getUserCafeReviewByBooking,
+    getUserBarReviewByBooking,
+    getUserRestaurantReviewByBooking
 };
 
 

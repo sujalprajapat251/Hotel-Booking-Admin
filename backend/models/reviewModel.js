@@ -4,26 +4,26 @@ const reviewSchema = mongoose.Schema({
     rating: { type: Number, min: 1, max: 5, required: true },
     title: {
         type: String,
-        require: true,
+        required: true,
     },
     comment: {
         type: String,
-        require: true
+        required: true
     },
-    reviewType: { 
+    reviewType: {
         type: String,
         enum: ['room', 'cafe', 'bar', 'restaurant'],
-        required: true 
+        required: true
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user"
     },
-    roomId:{
+    roomId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "room"
     },
-    bookingId:{
+    bookingId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "booking"
     }
