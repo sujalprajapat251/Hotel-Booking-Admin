@@ -14,11 +14,11 @@ try {
 exports.getOrdercafeByBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        const lastUnpaidOrder = await cafeOrder
-            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
+        const orders = await cafeOrder
+            .find({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'cafeitem' });
-        return res.status(200).json({ status: 200, data: lastUnpaidOrder });
+        return res.status(200).json({ status: 200, data: orders });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }
@@ -27,11 +27,11 @@ exports.getOrdercafeByBooking = async (req, res) => {
 exports.getOrderbarByBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        const lastUnpaidOrder = await barOrder
-            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
+        const orders = await barOrder
+            .find({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'baritem' });
-        return res.status(200).json({ status: 200, data: lastUnpaidOrder });
+        return res.status(200).json({ status: 200, data: orders });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }
@@ -73,11 +73,11 @@ exports.removeItembarOrder = async (req, res) => {
 exports.getOrderrestroByBooking = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        const lastUnpaidOrder = await restroOrder
-            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
+        const orders = await restroOrder
+            .find({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'restaurantitem' });
-        return res.status(200).json({ status: 200, data: lastUnpaidOrder });
+        return res.status(200).json({ status: 200, data: orders });
     } catch (error) {
         return res.status(500).json({ status: 500, message: error.message });
     }

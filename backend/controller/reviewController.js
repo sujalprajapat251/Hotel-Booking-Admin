@@ -398,12 +398,12 @@ const getUserCafeReviewByBooking = async (req, res) => {
         const userId = req.user._id;
         const { bookingId } = req.params;
 
-        const review = await Review.findOne({ userId, bookingId, reviewType: 'cafe' })
+        const reviews = await Review.find({ userId, bookingId, reviewType: 'cafe' })
             .populate("bookingId", "roomNumber status");
 
         return res.status(200).json({
             success: true,
-            data: review
+            data: reviews || []
         });
     } catch (error) {
         return res.status(500).json({
@@ -420,12 +420,12 @@ const getUserBarReviewByBooking = async (req, res) => {
         const userId = req.user._id;
         const { bookingId } = req.params;
 
-        const review = await Review.findOne({ userId, bookingId, reviewType: 'bar' })
+        const reviews = await Review.find({ userId, bookingId, reviewType: 'bar' })
             .populate("bookingId", "roomNumber status");
 
         return res.status(200).json({
             success: true,
-            data: review
+            data: reviews || []
         });
     } catch (error) {
         return res.status(500).json({
@@ -442,12 +442,12 @@ const getUserRestaurantReviewByBooking = async (req, res) => {
         const userId = req.user._id;
         const { bookingId } = req.params;
 
-        const review = await Review.findOne({ userId, bookingId, reviewType: 'restaurant' })
+        const reviews = await Review.find({ userId, bookingId, reviewType: 'restaurant' })
             .populate("bookingId", "roomNumber status");
 
         return res.status(200).json({
             success: true,
-            data: review
+            data: reviews || []
         });
     } catch (error) {
         return res.status(500).json({
