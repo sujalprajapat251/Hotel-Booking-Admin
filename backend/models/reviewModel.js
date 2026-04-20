@@ -22,6 +22,10 @@ const reviewSchema = mongoose.Schema({
     roomId:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "room"
+    },
+    bookingId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "booking"
     }
 }, {
     timestamps: true,

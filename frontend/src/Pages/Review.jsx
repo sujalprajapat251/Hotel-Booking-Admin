@@ -116,7 +116,7 @@ const Review = () => {
 		];
 
 		const totalReviews = ratingBreakdown.reduce((a, b) => a + b.count, 0);
-		const averageRating = reviews.length === 0 ? 0 : 
+		const averageRating = reviews.length === 0 ? 0 :
 			(reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length).toFixed(1);
 
 		return { ratingBreakdown, totalReviews, averageRating };

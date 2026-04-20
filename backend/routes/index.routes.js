@@ -28,7 +28,7 @@ const { addCab, getAllCabs, getCabById, updateCab, deleteCab } = require('../con
 // const { createDriver, getAllDrivers, getDriverById, updateDriver, deleteDriver } = require('../controller/driverController');
 const { createCabBooking, getAllCabBookings, getCabBookingById, updateCabBooking, deleteCabBooking, getCabBookingsByBookingId, assignDriversToUnassignedBookings, advanceCabBookingStatus } = require('../controller/cabBookingController');
 const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminresetPassword, adminchangePassword } = require('../controller/adminController');
-const { createReview, getAllReviews, getReviewById, getReviewStatsByType, updateReview, deleteReview, getUserReviews, getUserReviewForRoom, updateUserReviewForRoom } = require('../controller/reviewController');
+const { createReview, getAllReviews, getReviewById, getReviewStatsByType, updateReview, deleteReview, getUserReviews, getUserReviewForBooking, updateUserReviewForBooking } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
 const { addItemToRoomOrder, getOrdercafeByBooking,  getOrderbarByBooking,getOrderrestroByBooking, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
@@ -243,8 +243,8 @@ indexRoutes.get('/reviews/:id', getReviewById);
 indexRoutes.put('/reviews/:id', auth, updateReview);
 indexRoutes.delete('/reviews/:id', auth, deleteReview);
 indexRoutes.get('/user-reviews', auth, getUserReviews);
-indexRoutes.get('/user-review/:roomId', auth, getUserReviewForRoom);
-indexRoutes.put('/user-review/:roomId', auth, updateUserReviewForRoom);
+indexRoutes.get('/user-review/:bookingId', auth, getUserReviewForBooking);
+indexRoutes.put('/user-review/:bookingId', auth, updateUserReviewForBooking);
 indexRoutes.get('/review-stats', getReviewStatsByType);
 
 // admin side api 

@@ -4,7 +4,7 @@ const Room = require('../models/createRoomModel');
 // Create a new review
 const createReview = async (req, res) => {
     try {
-        const { rating, title, comment, reviewType, userId, roomId } = req.body;
+        const { rating, title, comment, reviewType, userId, roomId, bookingId } = req.body;
 
         const review = new Review({
             rating,
@@ -13,7 +13,8 @@ const createReview = async (req, res) => {
             reviewType,
             userId,
             // Only save roomId if reviewType is 'room'
-            ...(reviewType === 'room' && roomId && { roomId }) 
+            ...(reviewType === 'room' && roomId && { roomId }),
+            bookingId
         });
 
         const savedReview = await review.save();
@@ -38,6 +39,10 @@ const createReview = async (req, res) => {
             });
         }
 
+        if(savedReview.bookingId) {
+            await savedReview.populate("bookingId", "roomNumber status");
+        }
+
         return res.status(201).json({
             success: true,
             message: 'Review submit successfully..!',
@@ -55,7 +60,7 @@ const createReview = async (req, res) => {
 // Get all reviews 
 const getAllReviews = async (req, res) => {
     try {
-        const { reviewType, roomId } = req.query;
+        const { reviewType, roomId, bookingId } = req.query;
         const filter = {};
 
         if (reviewType) {
@@ -64,6 +69,10 @@ const getAllReviews = async (req, res) => {
 
         if (roomId) {
             filter.roomId = roomId;
+        }
+
+        if (bookingId) {
+            filter.bookingId = bookingId;
         }
 
         const reviews = await Review.find(filter).sort({ updatedAt: -1 })
@@ -77,7 +86,8 @@ const getAllReviews = async (req, res) => {
                     path: "roomType",        
                     model: "roomType",
                 }
-            });
+            })
+            .populate("bookingId", "roomNumber status");
 
         return res.status(200).json({
             success: true,
@@ -99,7 +109,8 @@ const getReviewById = async (req, res) => {
         const { id } = req.params;
         const review = await Review.findById(id)
             .populate('userId', 'name email')
-            .populate('roomId');
+            .populate('roomId')
+            .populate('bookingId', 'roomNumber status');
 
         if (!review) {
             return res.status(404).json({
@@ -168,7 +179,7 @@ const getReviewStatsByType = async (req, res) => {
 const updateReview = async (req, res) => {
     try {
         const { id } = req.params;
-        const { rating, title, comment, reviewType, roomId } = req.body;
+        const { rating, title, comment, reviewType, roomId, bookingId } = req.body;
 
         const existingReview = await Review.findById(id);
         if (!existingReview) {
@@ -188,8 +199,9 @@ const updateReview = async (req, res) => {
 
         if (finalReviewType === 'room') {
             if (roomId) updateQuery.$set.roomId = roomId;
+            if (bookingId) updateQuery.$set.bookingId = bookingId;
         } else {
-            updateQuery.$unset = { roomId: 1 };
+            updateQuery.$unset = { roomId: 1, bookingId: 1 };
         }
 
         const updatedReview = await Review.findByIdAndUpdate(
@@ -281,7 +293,8 @@ const getUserReviews = async (req, res) => {
                     path: "roomType",
                     model: "roomType",
                 }
-            });
+            })
+            .populate("bookingId", "roomNumber status");
 
         return res.status(200).json({
             success: true,
@@ -297,20 +310,21 @@ const getUserReviews = async (req, res) => {
     }
 };
 
-// Get user review by roomId
-const getUserReviewForRoom = async (req, res) => {
+// Get user review by bookingId
+const getUserReviewForBooking = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { roomId } = req.params;
+        const { bookingId } = req.params;
 
-        const review = await Review.findOne({ userId, roomId })
+        const review = await Review.findOne({ userId, bookingId })
             .populate({
                 path: "roomId",
                 populate: {
                     path: "roomType",
                     model: "roomType",
                 }
-            });
+            })
+            .populate("bookingId", "roomNumber status");
 
         if (!review) {
             return res.status(200).json({
@@ -322,27 +336,27 @@ const getUserReviewForRoom = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: 'User room review fetched successfully',
+            message: 'User booking review fetched successfully',
             data: review
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Failed to fetch user review for room',
+            message: 'Failed to fetch user review for booking',
             error: error.message
         });
     }
 };
 
-// Update user review by roomId
-const updateUserReviewForRoom = async (req, res) => {
+// Update user review by bookingId
+const updateUserReviewForBooking = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { roomId } = req.params;
+        const { bookingId } = req.params;
         const { rating, title, comment } = req.body;
 
         const updatedReview = await Review.findOneAndUpdate(
-            { userId, roomId },
+            { userId, bookingId },
             { rating, title, comment },
             { new: true }
         ).populate({
@@ -351,24 +365,24 @@ const updateUserReviewForRoom = async (req, res) => {
                 path: "roomType",
                 model: "roomType",
             }
-        });
+        }).populate("bookingId", "roomNumber status");
 
         if (!updatedReview) {
             return res.status(404).json({
                 success: false,
-                message: 'No review found for this room to update'
+                message: 'No review found for this booking to update'
             });
         }
 
         return res.status(200).json({
             success: true,
-            message: 'User room review updated successfully',
+            message: 'User booking review updated successfully',
             data: updatedReview
         });
     } catch (error) {
         return res.status(500).json({
             success: false,
-            message: 'Failed to update user review for room',
+            message: 'Failed to update user review for booking',
             error: error.message
         });
     }
@@ -382,8 +396,8 @@ module.exports = {
     updateReview,
     deleteReview,
     getUserReviews,
-    getUserReviewForRoom,
-    updateUserReviewForRoom
+    getUserReviewForBooking,
+    updateUserReviewForBooking
 };
 
 
