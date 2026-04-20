@@ -48,6 +48,11 @@ const barOrderSchema = new mongoose.Schema({
         ref: "room",
         required: false
     },
+    booking: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "booking",
+        required: false
+    },
     payment: {
         type: String,
         enum: ['Pending', 'Paid'],

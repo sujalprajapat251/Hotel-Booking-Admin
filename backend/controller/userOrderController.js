@@ -11,11 +11,11 @@ try {
     stripe = Stripe(process.env.STRIPE_SECRET);
 } catch {}
 
-exports.getOrdercafeByRoom = async (req, res) => {
+exports.getOrdercafeByBooking = async (req, res) => {
     try {
-        const { roomId } = req.params;
+        const { bookingId } = req.params;
         const lastUnpaidOrder = await cafeOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
+            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'cafeitem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -24,11 +24,11 @@ exports.getOrdercafeByRoom = async (req, res) => {
     }
 }
 
-exports.getOrderbarByRoom = async (req, res) => {
+exports.getOrderbarByBooking = async (req, res) => {
     try {
-        const { roomId } = req.params;
+        const { bookingId } = req.params;
         const lastUnpaidOrder = await barOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
+            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'baritem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -70,11 +70,11 @@ exports.removeItembarOrder = async (req, res) => {
     }
 };
 
-exports.getOrderrestroByRoom = async (req, res) => {
+exports.getOrderrestroByBooking = async (req, res) => {
     try {
-        const { roomId } = req.params;
+        const { bookingId } = req.params;
         const lastUnpaidOrder = await restroOrder
-            .findOne({ from: 'room', room: roomId, payment: 'Paid' })
+            .findOne({ from: 'room', booking: bookingId, payment: 'Paid' })
             .sort({ createdAt: -1, _id: -1 })
             .populate({ path: 'items.product', model: 'restaurantitem' });
         return res.status(200).json({ status: 200, data: lastUnpaidOrder });
@@ -87,7 +87,7 @@ exports.getOrderrestroByRoom = async (req, res) => {
 
 exports.createOrder = async (req, res) => {
     try {
-        const { type, roomId, items, name, contact, paymentIntentId } = req.body;
+        const { type, roomId, bookingId, items, name, contact, paymentIntentId } = req.body;
         if (!type) return res.status(400).json({ status: 400, message: 'type is required' });
         if (!roomId) return res.status(400).json({ status: 400, message: 'roomId is required' });
         if (!paymentIntentId) return res.status(400).json({ status: 400, message: 'paymentIntentId is required' });
@@ -116,6 +116,7 @@ exports.createOrder = async (req, res) => {
         const created = await Model.create({
             from: fromValue,
             room: roomId,
+            booking: bookingId,
             name,
             contact,
             items: normalized,

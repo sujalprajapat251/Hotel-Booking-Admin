@@ -31,7 +31,7 @@ const { adminLogin, adminforgotPassword, adminverifyOtp, adminresendOtp, adminre
 const { createReview, getAllReviews, getReviewById, getReviewStatsByType, updateReview, deleteReview, getUserReviews, getUserReviewForRoom, updateUserReviewForRoom } = require('../controller/reviewController');
 const { getDirtyRooms, assignWorker, startCleaning, completeCleaning, approveCleaning, getAllHousekeepignData, getWorkerTasks, getFreeWorkers } = require('../controller/housekeepingController');
 const { getRevenueDashboard, dashboard, reservationDaywise, roomAvailability, getBookingTrends, orderDashboard, monthlyRevenue, serviceRequests } = require('../controller/dashboardController');
-const { addItemToRoomOrder, getOrdercafeByRoom,  getOrderbarByRoom,getOrderrestroByRoom, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
+const { addItemToRoomOrder, getOrdercafeByBooking,  getOrderbarByBooking,getOrderrestroByBooking, createOrPayOrder, createOrder, createOrderPaymentIntent } = require('../controller/userOrderController');
 const { getPendingOrderRequests, getWorkerOrderRequests, assignWorkerToOrderRequest, advanceOrderRequestStatus } = require('../controller/orderRequestController');
 const {  DepartmentDashboard, getDepartmentPaymentSummary, getDepartmentRevenueByMonth } = require('../controller/hoddashboardController');
 const { getMyNotifications, markSeen, clearAll } = require('../controller/notificationController');
@@ -264,9 +264,9 @@ indexRoutes.get('/getallrestaurantorderbyadmin', auth, adminOnly, getAllRestaura
 // user side order api 
 indexRoutes.post('/createOrder', auth, createOrder);
 indexRoutes.post('/paymentintent',createOrderPaymentIntent)
-indexRoutes.get('/mycafeorder/:roomId', auth, getOrdercafeByRoom);
-indexRoutes.get('/mybarorder/:roomId', auth, getOrderbarByRoom);
-indexRoutes.get('/myrestaurantorder/:roomId', auth, getOrderrestroByRoom);
+indexRoutes.get('/mycafeorder/:bookingId', auth, getOrdercafeByBooking);
+indexRoutes.get('/mybarorder/:bookingId', auth, getOrderbarByBooking);
+indexRoutes.get('/myrestaurantorder/:bookingId', auth, getOrderrestroByBooking);
 
 // order request api 
 indexRoutes.get('/getorderRequest', getPendingOrderRequests)
