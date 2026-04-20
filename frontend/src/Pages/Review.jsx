@@ -373,14 +373,14 @@ const Review = () => {
 												<div className="flex items-center gap-3">
 													{item.photo ? (
 														<img src={item.photo}
-															alt={item.userId.name}
+															alt={item.userId?.name}
 															className="w-10 h-10 rounded-full object-cover border-2 border-[#E3C78A]"
 														/>
 													) : (
 														<div className="w-10 h-10 rounded-full object-cover bg-[#ECD292] flex items-center justify-center font-[600] text-[#8B752F] text-lg uppercase">
 															{(() => {
-																if (item.userId.name) {
-																	const words = item.userId.name.trim().split(/\s+/);
+																if (item.userId?.name) {
+																	const words = item.userId?.name.trim().split(/\s+/);
 																	if (words.length >= 2) {
 																		return words[0][0] + words[1][0];
 																	} else {
@@ -391,7 +391,7 @@ const Review = () => {
 															})()}
 														</div>
 													)}
-													<span className="text-sm font-medium text-gray-800 capitalize">{item.userId.name}</span>
+													<span className="text-sm font-medium text-gray-800 capitalize">{item.userId?.name}</span>
 												</div>
 											</td>
 										)}
