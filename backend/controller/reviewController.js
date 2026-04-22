@@ -199,10 +199,11 @@ const updateReview = async (req, res) => {
 
         if (finalReviewType === 'room') {
             if (roomId) updateQuery.$set.roomId = roomId;
-            if (bookingId) updateQuery.$set.bookingId = bookingId;
         } else {
-            updateQuery.$unset = { roomId: 1, bookingId: 1 };
+            updateQuery.$unset = { roomId: 1 };
         }
+
+        if (bookingId) updateQuery.$set.bookingId = bookingId;
 
         const updatedReview = await Review.findByIdAndUpdate(
             id,
@@ -357,10 +358,13 @@ const updateUserReviewForBooking = async (req, res) => {
     try {
         const userId = req.user._id;
         const { bookingId } = req.params;
-        const { rating, title, comment } = req.body;
+        const { rating, title, comment, reviewType } = req.body;
+
+        const filter = { userId, bookingId };
+        if (reviewType) filter.reviewType = reviewType;
 
         const updatedReview = await Review.findOneAndUpdate(
-            { userId, bookingId },
+            filter,
             { rating, title, comment },
             { new: true }
         ).populate({
